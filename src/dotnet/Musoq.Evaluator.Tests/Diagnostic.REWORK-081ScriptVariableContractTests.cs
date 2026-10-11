@@ -51,29 +51,29 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(true, table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual((sbyte)2, table[0][2]);
-        Assert.AreEqual((short)3, table[0][3]);
-        Assert.AreEqual((ushort)4, table[0][4]);
-        Assert.AreEqual(10, table[0][5]);
-        Assert.AreEqual(6u, table[0][6]);
-        Assert.AreEqual(7L, table[0][7]);
-        Assert.AreEqual(8UL, table[0][8]);
-        Assert.AreEqual(9.5f, (float)table[0][9], 0.0001f);
-        Assert.AreEqual(10.5d, (double)table[0][10], 0.0001d);
-        Assert.AreEqual(11.5m, table[0][11]);
-        Assert.AreEqual('x', table[0][12]);
-        Assert.AreEqual("text", table[0][13]);
-        Assert.AreEqual(Guid.Parse(guidText), table[0][14]);
+        Assert.AreEqual(true, table[0].ReadValue(0));
+        Assert.AreEqual((byte)1, table[0].ReadValue(1));
+        Assert.AreEqual((sbyte)2, table[0].ReadValue(2));
+        Assert.AreEqual((short)3, table[0].ReadValue(3));
+        Assert.AreEqual((ushort)4, table[0].ReadValue(4));
+        Assert.AreEqual(10, table[0].ReadValue(5));
+        Assert.AreEqual(6u, table[0].ReadValue(6));
+        Assert.AreEqual(7L, table[0].ReadValue(7));
+        Assert.AreEqual(8UL, table[0].ReadValue(8));
+        Assert.AreEqual(9.5f, (float)table[0].ReadValue(9), 0.0001f);
+        Assert.AreEqual(10.5d, (double)table[0].ReadValue(10), 0.0001d);
+        Assert.AreEqual(11.5m, table[0].ReadValue(11));
+        Assert.AreEqual('x', table[0].ReadValue(12));
+        Assert.AreEqual("text", table[0].ReadValue(13));
+        Assert.AreEqual(Guid.Parse(guidText), table[0].ReadValue(14));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0][15]);
+            table[0].ReadValue(15));
         Assert.AreEqual(
             DateTimeOffset.Parse(offsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0][16]);
-        Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3), table[0][17]);
-        Assert.IsNull(table[0][18]);
+            table[0].ReadValue(16));
+        Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3), table[0].ReadValue(17));
+        Assert.IsNull(table[0].ReadValue(18));
     }
 
     [TestMethod]
@@ -92,11 +92,11 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("VALUE_2", table[0][0]);
-        Assert.AreEqual(30, table[0][1]);
-        Assert.AreEqual(true, table[0][2]);
-        Assert.IsNull(table[0][3]);
-        Assert.AreEqual(true, table[0][4]);
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(0));
+        Assert.AreEqual(30, table[0].ReadValue(1));
+        Assert.AreEqual(true, table[0].ReadValue(2));
+        Assert.IsNull(table[0].ReadValue(3));
+        Assert.AreEqual(true, table[0].ReadValue(4));
     }
 
     [TestMethod]
@@ -112,7 +112,7 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
         Assert.AreEqual(1, provider.OpenCount);
     }
 
@@ -128,8 +128,8 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("lower", table[0][0]);
-        Assert.AreEqual("upper", table[0][1]);
+        Assert.AreEqual("lower", table[0].ReadValue(0));
+        Assert.AreEqual("upper", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -138,7 +138,7 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         const string query = "let key: string = 'constant'; select $key from #VariableRows.Items()";
         var provider = new VariableSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["key"] = "override";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "override");
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -162,7 +162,7 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
         Assert.AreEqual("KEY_2", provider.LastKey);
         Assert.AreEqual(1, provider.OpenCount);
     }
@@ -400,11 +400,12 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
             return new EnvironmentVariableEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             OpenCount++;
             LastKey = parameters.Length == 0 ? null : parameters[0] as string;
             var rows = LastKey == null

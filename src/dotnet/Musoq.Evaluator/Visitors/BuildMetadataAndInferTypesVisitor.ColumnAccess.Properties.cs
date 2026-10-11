@@ -10,22 +10,12 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var parentNode = PeekSemanticNode(VisitorOperationNames.VisitPropertyValueNode);
-        if (parentNode?.ReturnType == null || parentNode.ReturnType == typeof(void))
+        if (StructuralProjectionBinding.Property(parentNode, node.Name) is { } structural)
         {
-            var span = node.SpanOrEmpty();
-            throw new UnknownColumnOrAliasException(
-                node.Name,
-                "while resolving property access",
-                span);
+            PushSemanticNode(structural);
+            return;
         }
-
-        var parentNodeType = parentNode.ReturnType;
-
-        if (parentNodeType is NullNode.NullType)
-        {
-            var span = node.SpanOrEmpty();
-            throw new UnknownPropertyException(node.Name, "Null", span);
-        }
+        var parentNodeType = SemanticPropertyParentType.Require(parentNode, node);
 
 
         if (parentNodeType == typeof(object) || parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))

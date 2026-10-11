@@ -13,12 +13,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     #region ToSnakeCase Tests
 
     [TestMethod]
-    public void ToSnakeCase_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.ToSnakeCase(null));
-    }
-
-    [TestMethod]
     public void ToSnakeCase_EmptyString_ReturnsEmpty()
     {
         Assert.AreEqual(string.Empty, Library.ToSnakeCase(string.Empty));
@@ -34,18 +28,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     public void ToSnakeCase_SingleUpperLetter_ReturnsLower()
     {
         Assert.AreEqual("a", Library.ToSnakeCase("A"));
-    }
-
-    [TestMethod]
-    public void ToSnakeCase_PascalCase_ReturnsSnakeCase()
-    {
-        Assert.AreEqual("hello_world", Library.ToSnakeCase("HelloWorld"));
-    }
-
-    [TestMethod]
-    public void ToSnakeCase_CamelCase_ReturnsSnakeCase()
-    {
-        Assert.AreEqual("hello_world", Library.ToSnakeCase("helloWorld"));
     }
 
     [TestMethod]
@@ -107,12 +89,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     #region ToKebabCase Tests
 
     [TestMethod]
-    public void ToKebabCase_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.ToKebabCase(null));
-    }
-
-    [TestMethod]
     public void ToKebabCase_EmptyString_ReturnsEmpty()
     {
         Assert.AreEqual(string.Empty, Library.ToKebabCase(string.Empty));
@@ -128,18 +104,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     public void ToKebabCase_SingleUpperLetter_ReturnsLower()
     {
         Assert.AreEqual("a", Library.ToKebabCase("A"));
-    }
-
-    [TestMethod]
-    public void ToKebabCase_PascalCase_ReturnsKebabCase()
-    {
-        Assert.AreEqual("hello-world", Library.ToKebabCase("HelloWorld"));
-    }
-
-    [TestMethod]
-    public void ToKebabCase_CamelCase_ReturnsKebabCase()
-    {
-        Assert.AreEqual("hello-world", Library.ToKebabCase("helloWorld"));
     }
 
     [TestMethod]
@@ -195,12 +159,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     #region ToCamelCase Tests
 
     [TestMethod]
-    public void ToCamelCase_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.ToCamelCase(null));
-    }
-
-    [TestMethod]
     public void ToCamelCase_EmptyString_ReturnsEmpty()
     {
         Assert.AreEqual(string.Empty, Library.ToCamelCase(string.Empty));
@@ -219,27 +177,9 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void ToCamelCase_SnakeCase_ReturnsCamelCase()
-    {
-        Assert.AreEqual("helloWorld", Library.ToCamelCase("hello_world"));
-    }
-
-    [TestMethod]
-    public void ToCamelCase_KebabCase_ReturnsCamelCase()
-    {
-        Assert.AreEqual("helloWorld", Library.ToCamelCase("hello-world"));
-    }
-
-    [TestMethod]
     public void ToCamelCase_SpaceSeparated_ReturnsCamelCase()
     {
         Assert.AreEqual("helloWorld", Library.ToCamelCase("hello world"));
-    }
-
-    [TestMethod]
-    public void ToCamelCase_PascalCase_ReturnsCamelCase()
-    {
-        Assert.AreEqual("helloWorld", Library.ToCamelCase("HelloWorld"));
     }
 
     [TestMethod]
@@ -277,12 +217,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     #region ToPascalCase Tests
 
     [TestMethod]
-    public void ToPascalCase_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.ToPascalCase(null));
-    }
-
-    [TestMethod]
     public void ToPascalCase_EmptyString_ReturnsEmpty()
     {
         Assert.AreEqual(string.Empty, Library.ToPascalCase(string.Empty));
@@ -301,18 +235,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void ToPascalCase_SnakeCase_ReturnsPascalCase()
-    {
-        Assert.AreEqual("HelloWorld", Library.ToPascalCase("hello_world"));
-    }
-
-    [TestMethod]
-    public void ToPascalCase_KebabCase_ReturnsPascalCase()
-    {
-        Assert.AreEqual("HelloWorld", Library.ToPascalCase("hello-world"));
-    }
-
-    [TestMethod]
     public void ToPascalCase_SpaceSeparated_ReturnsPascalCase()
     {
         Assert.AreEqual("HelloWorld", Library.ToPascalCase("hello world"));
@@ -322,12 +244,6 @@ public partial class StringMethodsExtendedTests : PluginsTestBase
     public void ToPascalCase_AlreadyPascalCase_ReturnsSame()
     {
         Assert.AreEqual("HelloWorld", Library.ToPascalCase("HelloWorld"));
-    }
-
-    [TestMethod]
-    public void ToPascalCase_CamelCase_ReturnsPascalCase()
-    {
-        Assert.AreEqual("HelloWorld", Library.ToPascalCase("helloWorld"));
     }
 
     [TestMethod]

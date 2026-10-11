@@ -49,8 +49,8 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsNull(table[0].Values[0]);
-        Assert.IsNull(table[1].Values[0]);
+        Assert.IsNull(table[0].ReadValues()[0]);
+        Assert.IsNull(table[1].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -71,8 +71,8 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        CollectionAssert.AreEqual(new object?[] { null, null }, table[0].Values);
-        CollectionAssert.AreEqual(new object?[] { true, false }, table[1].Values);
+        CollectionAssert.AreEqual(new object?[] { null, null }, table[0].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { true, false }, table[1].ReadValues());
     }
 
     [TestMethod]
@@ -99,12 +99,12 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
             .Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, nullRows.Count);
-        Assert.IsNull(nullRows[0].Values[0]);
-        Assert.AreEqual(true, nullRows[0].Values[1]);
+        Assert.IsNull(nullRows[0].ReadValues()[0]);
+        Assert.AreEqual(true, nullRows[0].ReadValues()[1]);
 
         Assert.AreEqual(1, nonNullRows.Count);
-        Assert.AreEqual("value", nonNullRows[0].Values[0]);
-        Assert.AreEqual(true, nonNullRows[0].Values[1]);
+        Assert.AreEqual("value", nonNullRows[0].ReadValues()[0]);
+        Assert.AreEqual(true, nonNullRows[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -127,8 +127,8 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
         foreach (var row in table)
         {
-            Assert.HasCount(7, row.Values);
-            foreach (var value in row.Values)
+            Assert.HasCount(7, row.ReadValues());
+            foreach (var value in row.ReadValues())
                 Assert.IsNull(value);
         }
     }
@@ -149,7 +149,7 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         CollectionAssert.AreEqual(
             new object?[] { null, false, true, null, null, null, null, null },
-            table[0].Values);
+            table[0].ReadValues());
     }
 
     [TestMethod]
@@ -172,10 +172,10 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-        CollectionAssert.AreEqual(new object?[] { true, true }, table[0].Values);
-        CollectionAssert.AreEqual(new object?[] { true, true }, table[1].Values);
-        CollectionAssert.AreEqual(new object?[] { false, false }, table[2].Values);
-        CollectionAssert.AreEqual(new object?[] { true, false }, table[3].Values);
+        CollectionAssert.AreEqual(new object?[] { true, true }, table[0].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { true, true }, table[1].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { false, false }, table[2].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { true, false }, table[3].ReadValues());
     }
 
     [TestMethod]
@@ -221,7 +221,7 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void DynamicInvalidRegex_ShouldFailAtRuntimeWithInternalExecutionEnvelope()
+    public void DynamicInvalidRegex_ShouldFailAtRuntimeWithSpecificRuntimeEnvelope()
     {
         const string query = "select Name from #A.Entities() where Name rlike City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -237,14 +237,13 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         var envelope = exception.Envelope;
 
         Assert.IsNotNull(envelope);
-        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, envelope.Code);
+        Assert.AreEqual(DiagnosticCode.MQ7015_InvalidRuntimeRegex, envelope.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
-        Assert.AreEqual(DiagnosticPhase.Internal, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Internal, envelope.SourceKind);
+        Assert.AreEqual(DiagnosticPhase.Runtime, envelope.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Runtime, envelope.SourceKind);
         Assert.IsNull(envelope.Offset);
         Assert.IsNull(envelope.Length);
-        Assert.IsTrue(envelope.Arguments.ContainsKey("correlationId"));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.CorrelationId));
+        Assert.IsNotEmpty(envelope.SuggestedFixes);
         Assert.IsNotNull(exception.InnerException);
     }
 

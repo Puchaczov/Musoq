@@ -22,11 +22,12 @@ internal sealed class RecursiveGraphSchema(
         _ => throw new NotSupportedException($"Unknown recursive graph source '{name}'.")
     };
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
+        var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
         recorder.SourceCreated(name);
 
         if (name.Equals("roots", StringComparison.OrdinalIgnoreCase))

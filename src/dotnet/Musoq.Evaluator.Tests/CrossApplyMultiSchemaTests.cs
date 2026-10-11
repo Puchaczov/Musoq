@@ -66,9 +66,9 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.FullPath", typeof(string)),
-            ("s.Country", typeof(string)),
-            ("s.Money", typeof(decimal)));
+            ("FullPath", typeof(string)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["/path/to/test/file1.txt", "Country1", 1000m],
@@ -105,9 +105,9 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.FullPath", typeof(string)),
-            ("s.Country", typeof(string)),
-            ("s.Money", typeof(decimal)));
+            ("FullPath", typeof(string)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["/path/to/file1.txt", "Country1", 1000m],
@@ -228,8 +228,9 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
             return new GenericEntityTable<TEntity>();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             var nameToIndex =
                 typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>
                 ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<object>)} name-to-index map.");

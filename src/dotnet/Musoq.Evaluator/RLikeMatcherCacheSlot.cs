@@ -19,7 +19,13 @@ public sealed class RLikeMatcherCacheSlot
 
     /// <summary>Initializes a two-entry matcher cache, optionally partitioned by worker thread.</summary>
     public RLikeMatcherCacheSlot(bool workerLocal)
-        : this(workerLocal, PrepareMatcher)
+        : this(workerLocal, Runtime.RuntimeCacheOptions.DefaultRegexTimeout)
+    {
+    }
+
+    /// <summary>Initializes an execution-local matcher cache with a finite per-match budget.</summary>
+    public RLikeMatcherCacheSlot(bool workerLocal, TimeSpan timeout)
+        : this(workerLocal, CreateMatcherFactory(timeout))
     {
     }
 
@@ -53,9 +59,11 @@ public sealed class RLikeMatcherCacheSlot
             static (_, factory) => new SlotState(factory),
             _matcherFactory);
 
-    private static PreparedRLikeMatcher PrepareMatcher(string pattern) =>
-        Operators.PrepareRLike(pattern)
-        ?? throw new InvalidOperationException("A non-null RLIKE pattern did not produce a matcher.");
+    private static Func<string, PreparedRLikeMatcher> CreateMatcherFactory(TimeSpan timeout)
+    {
+        var budget = Runtime.RegexMatchBudget.Create(timeout);
+        return pattern => Operators.PrepareRLikeForExecution(pattern, budget);
+    }
 
     private sealed class SlotState(Func<string, PreparedRLikeMatcher> matcherFactory)
     {
@@ -70,12 +78,21 @@ public sealed class RLikeMatcherCacheSlot
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsMatch(string input, string pattern)
         {
-            if (_first is { } first && first.Matches(pattern))
-                return first.Matcher.IsMatch(input);
-            if (_second is { } second && second.Matches(pattern))
-                return second.Matcher.IsMatch(input);
+            var matcher = GetMatcher(pattern);
+            if (ReferenceEquals(input, pattern) && matcher.IsUnanchoredLiteral)
+                return true;
+            return matcher.IsMatch(input);
+        }
 
-            return Add(pattern).IsMatch(input);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private PreparedRLikeMatcher GetMatcher(string pattern)
+        {
+            if (_first is { } first && first.Matches(pattern))
+                return first.Matcher;
+            if (_second is { } second && second.Matches(pattern))
+                return second.Matcher;
+
+            return Add(pattern);
         }
 
         public void Clear()
@@ -89,6 +106,8 @@ public sealed class RLikeMatcherCacheSlot
         private PreparedRLikeMatcher Add(string pattern)
         {
             var matcher = matcherFactory(pattern);
+            if (!string.Equals(matcher.Pattern, pattern, StringComparison.Ordinal))
+                throw new InvalidOperationException("The RLIKE matcher factory returned a different pattern.");
             var entry = new CacheEntry(pattern, matcher);
             MatcherConstructionCount++;
 

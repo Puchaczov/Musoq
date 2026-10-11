@@ -15,7 +15,7 @@ public partial class QueryInspectionTests
         AssertTextEquals(
             string.Join("\n",
                 "MultiStatement",
-                "  Project [d.Dummy as d.Dummy]",
+                "  Project [d.Dummy as Dummy]",
                 "    SchemaScan [#system.dual() as d]"),
             result.LogicalPlanText);
     }
@@ -28,7 +28,7 @@ public partial class QueryInspectionTests
         AssertTextEquals(
             string.Join("\n",
                 "PhysicalMultiStatement",
-                "  PhysicalProject [d.Dummy as d.Dummy]",
+                "  PhysicalProject [d.Dummy as Dummy]",
                 "    PhysicalSchemaScan [#system.dual() as d]"),
             result.PhysicalPlanText);
     }
@@ -135,15 +135,15 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenSourceShapeIsDynamic_ShouldNotPruneProjectedColumns()
+    public void CompileForInspection_WhenNativeSourceShapeIsConcrete_ShouldPruneProjectedColumns()
     {
         var result = Inspect("select d.Name from #dynamic.all() d", CreateDynamicRowsSchemaProvider());
 
         var scan = FindFirstSchemaScan(result.PhysicalPlan);
 
-        Assert.IsEmpty(scan.ProjectedColumns);
-        Assert.Contains("Source entity type IReadOnlyDictionary", result.PlanningText);
-        Assert.Contains("Skipped", result.PlanningText);
+        CollectionAssert.AreEqual(new[] { "Name" }, scan.ProjectedColumns.ToArray());
+        Assert.Contains("Query-row projection is exact with 1 planned column(s).", result.PlanningText);
+        Assert.Contains("query-scoped rows selected", result.PlanningText);
     }
 
     [TestMethod]
@@ -159,12 +159,12 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenSourceInteractionIsDynamic_ShouldExplainDynamicShape()
+    public void CompileForInspection_WhenNativeSourceInteractionIsConcrete_ShouldExplainTypedShape()
     {
         var result = Inspect("select d.Name from #dynamic.all() d", CreateDynamicRowsSchemaProvider());
 
-        Assert.Contains("interaction shape: Dynamic", result.PlanningText);
-        Assert.Contains("Source entity type IReadOnlyDictionary", result.PlanningText);
+        Assert.Contains("KnownClr/ProjectedColumns", result.PlanningText);
+        Assert.Contains("Source entity type QueryScopedRowContract", result.PlanningText);
     }
 
     [TestMethod]
@@ -286,8 +286,8 @@ public partial class QueryInspectionTests
 
         Assert.Contains("BoundaryRowShapes", result.PlanningText);
         Assert.Contains("row-shape: sort:0 Sort", result.PlanningText);
-        Assert.Contains("semantic: i.Name", result.PlanningText);
-        Assert.Contains("retained: i.Name", result.PlanningText);
+        Assert.Contains("semantic: Name", result.PlanningText);
+        Assert.Contains("retained: Name", result.PlanningText);
         Assert.Contains("boundary-only: i.Line", result.PlanningText);
         Assert.Contains("candidates: i.Line", result.PlanningText);
         Assert.Contains("blocked: none", result.PlanningText);

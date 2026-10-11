@@ -105,7 +105,7 @@ public sealed class PhysicalOptimizerTests
     }
 
     [TestMethod]
-    public void Optimize_WhenHashJoinInputIsExpando_ShouldSelectNestedLoopBeforeLowering()
+    public void Optimize_WhenHashJoinInputIsExpando_ShouldRejectErasedSourceContract()
     {
         var left = CreateSchemaScan("a", ("Id", typeof(int)));
         var right = CreateSchemaScan("b", ("UserId", typeof(int)));
@@ -125,18 +125,17 @@ public sealed class PhysicalOptimizerTests
                 ["b"] = typeof(ExpandoObject)
             });
 
-        var result = Optimize(
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => Optimize(
             candidate,
             CreateEmptyProperties(),
-            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver));
-
-        Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
-        Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
-        Assert.Contains("dynamic or expando", result.Decisions[0].Reason);
+            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]
-    public void Optimize_WhenSortMergeProbeInputIsExpando_ShouldSelectNestedLoopBeforeLowering()
+    public void Optimize_WhenSortMergeProbeInputIsExpando_ShouldRejectErasedSourceContract()
     {
         var left = CreateSchemaScan("a", ("Age", typeof(int)));
         var right = CreateSchemaScan("b", ("Age", typeof(int)));
@@ -156,14 +155,13 @@ public sealed class PhysicalOptimizerTests
                 ["b"] = typeof(ExpandoObject)
             });
 
-        var result = Optimize(
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => Optimize(
             candidate,
             CreateEmptyProperties(),
-            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver));
-
-        Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
-        Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
-        Assert.Contains("range join lowering", result.Decisions[0].Reason);
+            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]

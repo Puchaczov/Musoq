@@ -19,59 +19,9 @@ public sealed partial class ExecutionCSharpRenderer
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
-    private static IndexerDeclarationSyntax CreateGeneratedRowIntIndexer(IReadOnlyList<FieldBinding> fields)
-    {
-        var arms = fields
-            .Select((field, index) => SyntaxFactory.SwitchExpressionArm(
-                SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(index))),
-                BoxExpression(CreateIdentifierName(GetGeneratedFieldName(field)))))
-            .Concat(
-            [
-                SyntaxFactory.SwitchExpressionArm(
-                    SyntaxFactory.DiscardPattern(),
-                    SyntaxFactory.ThrowExpression(CreateObjectCreation(nameof(IndexOutOfRangeException))))
-            ]);
 
-        return SyntaxFactory.IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-            .WithParameterList(SyntaxFactory.BracketedParameterList(SyntaxFactory.SingletonSeparatedList(
-                CreateParameter("columnNumber", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.SwitchExpression(
-                SyntaxFactory.IdentifierName("columnNumber"),
-                SyntaxFactory.SeparatedList(arms))))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-    }
 
-    private static IndexerDeclarationSyntax CreateGeneratedRowStringIndexer(IReadOnlyList<FieldBinding> fields)
-    {
-        var arms = CreateGeneratedRowStringKeys(fields)
-            .Select(key => SyntaxFactory.SwitchExpressionArm(
-                SyntaxFactory.ConstantPattern(CreateStringLiteral(key.Key)),
-                BoxExpression(CreateIdentifierName(GetGeneratedFieldName(fields[key.Index])))))
-            .Concat(
-            [
-                SyntaxFactory.SwitchExpressionArm(
-                    SyntaxFactory.DiscardPattern(),
-                    SyntaxFactory.ThrowExpression(CreateObjectCreation(
-                        nameof(KeyNotFoundException),
-                        SyntaxFactory.IdentifierName("name"))))
-            ]);
 
-        return SyntaxFactory.IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-            .WithParameterList(SyntaxFactory.BracketedParameterList(SyntaxFactory.SingletonSeparatedList(
-                CreateParameter("name", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))))))
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.SwitchExpression(
-                SyntaxFactory.IdentifierName("name"),
-                SyntaxFactory.SeparatedList(arms))))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-    }
 
     private static bool RequiresWideGeneratedRowColumnMap(IReadOnlyList<FieldBinding> fields)
     {
@@ -115,14 +65,7 @@ public sealed partial class ExecutionCSharpRenderer
             """)!;
     }
 
-    private static IndexerDeclarationSyntax CreateWideGeneratedRowStringIndexer()
-    {
-        return (IndexerDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("""
-            public override object this[string name] => __columnIndexes.TryGetValue(name, out var columnIndex)
-                ? this[columnIndex]
-                : throw new KeyNotFoundException(name);
-            """)!;
-    }
+
 
     private static MethodDeclarationSyntax CreateWideGeneratedRowHasColumnMethod()
     {
@@ -156,109 +99,6 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("name"),
                 SyntaxFactory.SeparatedList(arms))))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-    }
-
-    private static PropertyDeclarationSyntax CreateGeneratedRowContextsProperty(
-        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        int contextCount,
-        bool includeOverride = true)
-    {
-        var allConstructors = GetGeneratedRowConstructors(usedConstructors);
-        var contextsExpression = UsesDirectContextStorage(allConstructors)
-            ? SyntaxFactory.IdentifierName("__contexts")
-            : CreateGeneratedRowContextMaterialization(allConstructors.Single(), contextCount);
-
-        var modifiers = includeOverride
-            ? SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-            : SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
-
-        return SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, nameof(Row.Contexts))
-            .WithModifiers(modifiers)
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(contextsExpression))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-    }
-
-    private static MethodDeclarationSyntax CreateGeneratedRowAssignValueMethod(IReadOnlyList<FieldBinding> fields)
-    {
-        var sections = fields
-            .Select((field, index) => SyntaxFactory.SwitchSection()
-                .WithLabels(SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.CaseSwitchLabel(
-                    SyntaxFactory.LiteralExpression(
-                        SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(index)))))
-                .WithStatements(SyntaxFactory.List<StatementSyntax>(
-                [
-                    SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        CreateIdentifierName(GetGeneratedFieldName(field)),
-                        CastValueForAssignment(field))),
-                    SyntaxFactory.BreakStatement()
-                ])))
-            .Concat(
-            [
-                SyntaxFactory.SwitchSection()
-                    .WithLabels(SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()))
-                    .WithStatements(SyntaxFactory.SingletonList<StatementSyntax>(
-                        SyntaxFactory.ThrowStatement(CreateObjectCreation(nameof(IndexOutOfRangeException)))))
-            ]);
-
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                nameof(Row.AssignValue))
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-            [
-                CreateParameter("columnNumber", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))),
-                CreateParameter("value", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-            ])))
-            .WithBody(StatementEmitter.CreateBlock(SyntaxFactory.SwitchStatement(
-                    SyntaxFactory.IdentifierName("columnNumber"))
-                .WithSections(SyntaxFactory.List(sections))));
-    }
-
-    private static MemberDeclarationSyntax CreateWideGeneratedRowAssignersField(
-        string rowTypeName,
-        IReadOnlyList<FieldBinding> fields)
-    {
-        var assigners = fields.Select(field =>
-        {
-            var fieldName = EscapeIdentifier(GetGeneratedFieldName(field));
-            var value = string.IsNullOrWhiteSpace(field.GeneratedTypeName) && field.Type.RequireClrType() == typeof(object)
-                ? "value"
-                : $"({CreateGeneratedFieldTypeSyntax(field).ToFullString()})value";
-            return $"                static (row, value) => row.{fieldName} = {value}";
-        });
-        var code =
-            $"private static readonly Action<{rowTypeName}, object>[] __assigners = new Action<{rowTypeName}, object>[]{Environment.NewLine}" +
-            $"{{{Environment.NewLine}" +
-            string.Join("," + Environment.NewLine, assigners) + Environment.NewLine +
-            "};";
-
-        return SyntaxFactory.ParseMemberDeclaration(code)!;
-    }
-
-    private static MethodDeclarationSyntax CreateWideGeneratedRowAssignValueMethod()
-    {
-        return (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("""
-            public override void AssignValue(int columnNumber, object value)
-            {
-                if ((uint)columnNumber >= (uint)__assigners.Length)
-                    throw new IndexOutOfRangeException();
-                __assigners[columnNumber](this, value);
-            }
-            """)!;
-    }
-
-    private static ExpressionSyntax CastValueForAssignment(FieldBinding field)
-    {
-        var value = SyntaxFactory.IdentifierName("value");
-        return string.IsNullOrWhiteSpace(field.GeneratedTypeName) && field.Type.RequireClrType() == typeof(object)
-            ? value
-            : SyntaxFactory.CastExpression(CreateGeneratedFieldTypeSyntax(field), value);
     }
 
     private static IEnumerable<(string Key, int Index)> CreateGeneratedRowStringKeys(

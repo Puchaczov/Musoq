@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,12 +68,12 @@ public sealed class StructuredInputCornerCasePopulationTests
 
                     using var compiled = Compile(testCase.Query, $"structured-input-corner-population-{index}", testCase.Options);
                     if (testCase.Host is not null)
-                        compiled.Parameters["patterns"] = testCase.Host;
+                        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", testCase.Host);
                     StructuredInputSourceCounters.Reset();
 
                     using var table = compiled.Run();
                     var actual = table.Rows
-                        .Select(static row => $"{row[0]}:{row[1]}")
+                        .Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
                         .ToArray();
 
                     CollectionAssert.AreEqual(
@@ -110,16 +111,16 @@ public sealed class StructuredInputCornerCasePopulationTests
 
         StructuredInputSourceCounters.Reset();
         using var firstTable = first.Run();
-        var firstRows = firstTable.Rows.Select(static row => $"{row[0]}:{row[1]}").ToArray();
+        var firstRows = firstTable.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
 
         StructuredInputSourceCounters.Reset();
         using var reorderedTable = reordered.Run();
-        var reorderedRows = reorderedTable.Rows.Select(static row => $"{row[0]}:{row[1]}").ToArray();
+        var reorderedRows = reorderedTable.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
         CollectionAssert.AreEqual(firstRows, reorderedRows, "Field order and casing should preserve binding.");
 
         StructuredInputSourceCounters.Reset();
         using var reversedTable = reversed.Run();
-        var reversedRows = reversedTable.Rows.Select(static row => $"{row[0]}:{row[1]}").ToArray();
+        var reversedRows = reversedTable.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
         CollectionAssert.AreNotEqual(firstRows, reversedRows, "Array order is observable and must not be treated as equivalent.");
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
@@ -145,10 +146,10 @@ public sealed class StructuredInputCornerCasePopulationTests
 
         foreach (var host in hosts)
         {
-            compiled.Parameters["patterns"] = host;
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
             StructuredInputSourceCounters.Reset();
             using var table = compiled.Run();
-            var actual = table.Rows.Select(static row => $"{row[0]}:{row[1]}").ToArray();
+            var actual = table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
             expected ??= actual;
             CollectionAssert.AreEqual(expected, actual, $"Host representation {host.GetType().Name} changed the normalized snapshot.");
             Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);

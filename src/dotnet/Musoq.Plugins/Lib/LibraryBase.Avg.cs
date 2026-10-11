@@ -7,66 +7,75 @@ public partial class LibraryBase
     #pragma warning disable CS1591
 
     [AggregateFunction(
-        typeof(AvgAggregateKernel<byte>),
+        typeof(AverageKernel<byte, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public byte? Avg(byte? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<byte?>();
+    [WindowFunction(typeof(AverageKernel<byte, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(byte? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<sbyte>),
+        typeof(AverageKernel<sbyte, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public sbyte? Avg(sbyte? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<sbyte?>();
+    [WindowFunction(typeof(AverageKernel<sbyte, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(sbyte? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<short>),
+        typeof(AverageKernel<short, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public short? Avg(short? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<short?>();
+    [WindowFunction(typeof(AverageKernel<short, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(short? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<ushort>),
+        typeof(AverageKernel<ushort, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public ushort? Avg(ushort? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<ushort?>();
+    [WindowFunction(typeof(AverageKernel<ushort, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(ushort? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<int>),
+        typeof(AverageKernel<int, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public int? Avg(int? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<int?>();
+    [WindowFunction(typeof(AverageKernel<int, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(int? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<uint>),
+        typeof(AverageKernel<uint, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public uint? Avg(uint? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<uint?>();
+    [WindowFunction(typeof(AverageKernel<uint, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(uint? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<long>),
+        typeof(AverageKernel<long, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public long? Avg(long? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<long?>();
+    [WindowFunction(typeof(AverageKernel<long, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(long? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
-        typeof(AvgAggregateKernel<ulong>),
+        typeof(AverageKernel<ulong, decimal>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public ulong? Avg(ulong? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<ulong?>();
+    [WindowFunction(typeof(AverageKernel<ulong, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? Avg(ulong? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
     [AggregateFunction(
         typeof(AvgAggregateKernel<float>),
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(AvgAggregateKernel<float>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public float? Avg(float? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<float?>();
     [AggregateFunction(
@@ -74,6 +83,7 @@ public partial class LibraryBase
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(AvgAggregateKernel<double>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public double? Avg(double? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<double?>();
     [AggregateFunction(
@@ -81,6 +91,7 @@ public partial class LibraryBase
         Name = nameof(Avg),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(AvgAggregateKernel<decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public decimal? Avg(decimal? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<decimal?>();
 

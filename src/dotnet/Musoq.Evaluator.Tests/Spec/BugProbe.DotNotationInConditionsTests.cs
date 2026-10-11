@@ -46,9 +46,9 @@ public class BugProbeDotNotationInConditionsTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)10, table[0][0]);
-        Assert.AreEqual((byte)20, table[0][1]);
-        Assert.AreEqual(30, table[0][2]);
+        Assert.AreEqual((byte)10, table[0].ReadValue(0));
+        Assert.AreEqual((byte)20, table[0].ReadValue(1));
+        Assert.AreEqual(30, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -78,8 +78,8 @@ public class BugProbeDotNotationInConditionsTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual(42, table[0][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual(42, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class BugProbeDotNotationInConditionsTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual((byte)0xFF, table[0][1]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(1));
     }
 }

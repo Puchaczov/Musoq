@@ -21,7 +21,8 @@ internal static class ExecutionLikeMatcherSyntaxFactory
                 session),
             ExecutionPrepareLikeMatcher prepareLike => InvokeOperators(
                 nameof(Operators.PrepareLike),
-                renderChild(prepareLike.Pattern)),
+                renderChild(prepareLike.Pattern),
+                RegexTimeoutSyntax.Create(session.RegexMatchTimeout)),
             ExecutionPreparedLikeMatch preparedLike => InvokeOperators(
                 nameof(Operators.LikePrepared),
                 renderChild(preparedLike.Input),
@@ -36,10 +37,12 @@ internal static class ExecutionLikeMatcherSyntaxFactory
                 .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(
                     cacheSlot.WorkerLocal
                         ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
-                        : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                        : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression),
+                    RegexTimeoutSyntax.Create(session.RegexMatchTimeout))),
             ExecutionPrepareRLikeMatcher prepareRLike => InvokeOperators(
                 nameof(Operators.PrepareRLike),
-                renderChild(prepareRLike.Pattern)),
+                renderChild(prepareRLike.Pattern),
+                RegexTimeoutSyntax.Create(session.RegexMatchTimeout)),
             ExecutionPreparedRLikeMatch preparedRLike => InvokeOperators(
                 nameof(Operators.RLikePrepared),
                 renderChild(preparedRLike.Input),
@@ -54,7 +57,8 @@ internal static class ExecutionLikeMatcherSyntaxFactory
                 .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(
                     cacheSlot.WorkerLocal
                         ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
-                        : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                        : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression),
+                    RegexTimeoutSyntax.Create(session.RegexMatchTimeout))),
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression.GetType().Name, "Unknown LIKE matcher expression.")
         };
 

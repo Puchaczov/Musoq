@@ -9,7 +9,7 @@ namespace Musoq.Converter;
 
 public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
 {
-    public const int CurrentArtifactVersion = 2;
+    public const int CurrentArtifactVersion = 3;
 
     private static readonly string CurrentEngineVersion = GetAssemblyVersion(typeof(InstanceCreator));
     private static readonly string CurrentRuntimeVersion = GetAssemblyVersion(typeof(CompiledTypedQuery<>));

@@ -17,5 +17,8 @@ public sealed record DescNode(
     TextSpan? ColumnSpan = null,
     IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null) : LogicalNode(OutputSchema)
 {
+    /// <summary>Gets bound output expressions used only to describe generated result shapes.</summary>
+    public IReadOnlyList<ProjectedField>? QueryProjection { get; init; }
+
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

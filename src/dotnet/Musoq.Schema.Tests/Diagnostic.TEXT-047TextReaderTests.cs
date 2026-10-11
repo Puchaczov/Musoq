@@ -13,7 +13,7 @@ public partial class TextInterpreterBaseTests
         var result = interpreter.TestReadBetween("[a~]b]tail".AsSpan(), "[", "]", escaped: true,
             escapeCharacter: "~", fieldName: "Value");
 
-        Assert.AreEqual("a~]b", result);
+        Assert.AreEqual("a]b", result);
         Assert.AreEqual(6, interpreter.GetPosition());
     }
 

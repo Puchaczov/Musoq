@@ -28,8 +28,8 @@ public partial class QualifyTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -59,7 +59,7 @@ public partial class QualifyTests
             ("Name", typeof(string)),
             ("City", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob", "NYC", 200m, 250m],
@@ -89,9 +89,9 @@ public partial class QualifyTests
         var table = vm.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Name", typeof(string)),
-            ("a.City", typeof(string)),
-            ("RunSum", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob", "NYC", 250m],

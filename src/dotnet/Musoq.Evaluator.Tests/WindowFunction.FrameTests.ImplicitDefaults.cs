@@ -28,7 +28,7 @@ public partial class WindowFunctionFrameTests
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 100m],
@@ -79,7 +79,7 @@ public partial class WindowFunctionFrameTests
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("TotalSum", typeof(decimal)));
+            ("TotalSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 600m],
@@ -107,7 +107,7 @@ public partial class WindowFunctionFrameTests
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 100m],
@@ -135,7 +135,7 @@ public partial class WindowFunctionFrameTests
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 200m],

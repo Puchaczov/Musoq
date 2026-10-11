@@ -21,7 +21,7 @@ namespace Musoq.Plugins;
 /// <param name="ResultDescriptor">Public result shape and empty-input behavior.</param>
 /// <param name="ParentParameterIndex">Declaration method parent-depth parameter index, when present.</param>
 /// <param name="Inline">Whether generated code may inline this kernel.</param>
-public sealed record AggregateKernelDescriptor(
+public sealed partial record AggregateKernelDescriptor(
     string FunctionName,
     MethodInfo DeclarationMethod,
     Type KernelType,
@@ -36,6 +36,12 @@ public sealed record AggregateKernelDescriptor(
     int? ParentParameterIndex,
     bool Inline)
 {
+    /// <summary>Gets the validated operation used to initialize independent state.</summary>
+    public required MethodInfo ResetMethod { get; init; }
+
+    /// <summary>Gets the declaration's explicit execution permissions.</summary>
+    public FunctionExecutionPermissions ExecutionPermissions { get; init; }
+
     private const string StateTypeName = "State";
     private const string SetMethodName = "Set";
     private const string GetMethodName = "Get";
@@ -58,13 +64,21 @@ public sealed record AggregateKernelDescriptor(
         if (attribute is null)
             throw CreateInvalidKernelException(declarationMethod, "Aggregate declaration is missing AggregateFunctionAttribute.");
 
-        var stateType = ResolveStateType(attribute, declarationMethod);
+        return Create(declarationMethod, attribute);
+    }
+
+    private static AggregateKernelDescriptor Create(MethodInfo declarationMethod, AggregateFunctionAttribute attribute)
+    {
+        var kernelType = ResolveKernelType(attribute.KernelType, declarationMethod);
+        var stateType = ResolveStateType(attribute, kernelType, declarationMethod);
+        ValidateKernelState(kernelType, stateType, declarationMethod);
         var valueParameters = GetValueParameters(declarationMethod);
         var parentParameterIndex = ValidateParentParameter(declarationMethod);
         var inputShape = AggregateInputShape.Tuple(valueParameters.Select(static parameter => parameter.ParameterType).ToArray());
-        var setMethod = ResolveSetMethod(attribute.KernelType, stateType, valueParameters, declarationMethod);
-        var getMethod = ResolveGetMethod(attribute.KernelType, stateType, declarationMethod);
-        var mergeMethod = ResolveMergeMethod(attribute.KernelType, stateType, declarationMethod);
+        var setMethod = ResolveSetMethod(kernelType, stateType, valueParameters, declarationMethod);
+        var getMethod = ResolveGetMethod(kernelType, stateType, declarationMethod);
+        var mergeMethod = ResolveMergeMethod(kernelType, stateType, declarationMethod);
+        var resetMethod = ResolveResetMethod(kernelType, stateType, declarationMethod);
         var functionName = string.IsNullOrWhiteSpace(attribute.Name)
             ? declarationMethod.Name
             : attribute.Name!;
@@ -73,7 +87,7 @@ public sealed record AggregateKernelDescriptor(
         return new AggregateKernelDescriptor(
             functionName,
             declarationMethod,
-            attribute.KernelType,
+            kernelType,
             stateType,
             setMethod,
             getMethod,
@@ -86,21 +100,26 @@ public sealed record AggregateKernelDescriptor(
                 Nullable.GetUnderlyingType(resultType) ?? resultType,
                 attribute.EmptyResultBehavior),
             parentParameterIndex,
-            attribute.Inline);
+            attribute.Inline)
+        {
+            ResetMethod = resetMethod,
+            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(declarationMethod, SqlFunctionKind.Aggregate, attribute)
+        };
     }
 
     private static Type ResolveStateType(
         AggregateFunctionAttribute attribute,
+        Type kernelType,
         MethodInfo declarationMethod)
     {
         if (attribute.StateType is not null)
-            return attribute.StateType;
+            return CloseNestedStateType(kernelType, attribute.StateType);
 
-        var stateType = attribute.KernelType.GetNestedType(
+        var stateType = kernelType.GetNestedType(
             StateTypeName,
             BindingFlags.Public | BindingFlags.NonPublic);
         if (stateType is not null)
-            return CloseNestedStateType(attribute.KernelType, stateType);
+            return CloseNestedStateType(kernelType, stateType);
 
         throw CreateInvalidKernelException(
             declarationMethod,
@@ -193,17 +212,15 @@ public sealed record AggregateKernelDescriptor(
         Type stateType,
         MethodInfo declarationMethod)
     {
-        var mergeMethods = EnumerateStaticMethods(kernelType, MergeMethodName)
-            .Where(method => IsMatchingMergeMethod(method, stateType))
-            .ToArray();
+        var mergeMethods = EnumerateStaticMethods(kernelType, MergeMethodName).ToArray();
 
         return mergeMethods.Length switch
         {
             0 => null,
-            1 => mergeMethods[0],
+            1 when IsMatchingMergeMethod(mergeMethods[0], stateType) => mergeMethods[0],
             _ => throw CreateInvalidKernelException(
                 declarationMethod,
-                $"Aggregate kernel {kernelType.FullName} exposes multiple matching Merge(ref State, in State) methods.")
+                $"Aggregate kernel {kernelType.FullName} must expose one exact Merge(ref State, in State) operation when Merge is present.")
         };
     }
 
@@ -224,7 +241,7 @@ public sealed record AggregateKernelDescriptor(
         var parameters = method.GetParameters();
         if (method.ReturnType != typeof(void) ||
             parameters.Length != valueParameters.Count + 1 ||
-            !IsByRefStateParameter(parameters[0], stateType))
+            !IsMutableStateParameter(parameters[0], stateType))
         {
             return false;
         }
@@ -246,7 +263,7 @@ public sealed record AggregateKernelDescriptor(
         var parameters = method.GetParameters();
         return method.ReturnType == resultType &&
                parameters.Length == 1 &&
-               IsByRefStateParameter(parameters[0], stateType);
+               IsReadOnlyStateParameter(parameters[0], stateType);
     }
 
     private static bool IsMatchingMergeMethod(
@@ -256,8 +273,8 @@ public sealed record AggregateKernelDescriptor(
         var parameters = method.GetParameters();
         return method.ReturnType == typeof(void) &&
                parameters.Length == 2 &&
-               IsByRefStateParameter(parameters[0], stateType) &&
-               IsByRefStateParameter(parameters[1], stateType);
+               IsMutableStateParameter(parameters[0], stateType) &&
+               IsReadOnlyStateParameter(parameters[1], stateType);
     }
 
     private static bool IsByRefStateParameter(

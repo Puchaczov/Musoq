@@ -15,7 +15,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         var value = TryCreateGeneratedRowContextStorageRead(fieldRead.Alias, contextAccess, context, out var contextRead)
             ? contextRead
-            : CreateContextArrayElementRead(fieldRead.Alias, contextAccess.Index);
+            : throw UnsupportedShape.Of($"Context read {fieldRead.Alias}[{contextAccess.Index}] has no concrete source carrier.");
 
         if (fieldRead.ReturnType.RequireClrType() == typeof(object))
             return value;
@@ -48,17 +48,4 @@ public sealed partial class ExecutionCSharpRenderer
         return false;
     }
 
-    private static ElementAccessExpressionSyntax CreateContextArrayElementRead(
-        string alias,
-        int index)
-    {
-        var contexts = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            CreateIdentifierName(alias),
-            SyntaxFactory.IdentifierName("Contexts"));
-
-        return CreateElementAccess(
-            contexts,
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index)));
-    }
 }

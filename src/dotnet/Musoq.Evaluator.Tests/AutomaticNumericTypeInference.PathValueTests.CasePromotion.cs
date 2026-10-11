@@ -9,13 +9,13 @@ namespace Musoq.Evaluator.Tests;
 public partial class AutomaticNumericTypeInferencePathValueTests
 {
     [TestMethod]
-    public void WhenUsingComplexExpressionWithParentheses_ShouldAutoConvert()
+    public void WhenUsingComplexExpressionWithParentheses_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: long?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select (Value + 10) * 2 from Items()";
 
         var entities = new List<PathValueEntity>
@@ -25,23 +25,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = 15 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<long>(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
+        var results = table.Select(row => (long)row.ReadValue(0)).OrderBy(x => x).ToList();
         Assert.AreEqual(30L, results[0]);
         Assert.AreEqual(40L, results[1]);
         Assert.AreEqual(50L, results[2]);
     }
 
     [TestMethod]
-    public void WhenUsingComplexExpressionWithMultipleOperators_ShouldAutoConvert()
+    public void WhenUsingComplexExpressionWithMultipleOperators_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: long?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Value * 2 + Value / 2 from Items()";
 
         var entities = new List<PathValueEntity>
@@ -51,23 +51,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = 8 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<long>(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
+        var results = table.Select(row => (long)row.ReadValue(0)).OrderBy(x => x).ToList();
         Assert.AreEqual(20L, results[0]);
         Assert.AreEqual(25L, results[1]);
         Assert.AreEqual(50L, results[2]);
     }
 
     [TestMethod]
-    public void WhenConcatenatingMultipleStringsWithObject_ShouldWork()
+    public void WhenConcatenatingMultipleStringsWithDecodedValue_ShouldWork()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: string" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select 'Result: ' + Value + ' items' from Items()";
 
         var entities = new List<PathValueEntity>
@@ -77,23 +77,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = "hello" }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeStringQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => (string)row[0]).OrderBy(x => x).ToList();
+        var results = table.Select(row => (string)row.ReadValue(0)).OrderBy(x => x).ToList();
         Assert.AreEqual("Result: 42 items", results[0]);
         Assert.AreEqual("Result: hello items", results[1]);
         Assert.AreEqual("Result: test items", results[2]);
     }
 
     [TestMethod]
-    public void WhenMultiplyingObjectWithDouble_ShouldAutoConvert()
+    public void WhenMultiplyingTypedNumericWithDouble_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: decimal?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Value * 2.5 from Items()";
 
         var entities = new List<PathValueEntity>
@@ -103,23 +103,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = 8.0 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<decimal>(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => Convert.ToDouble(row[0])).OrderBy(x => x).ToList();
+        var results = table.Select(row => Convert.ToDouble(row.ReadValue(0))).OrderBy(x => x).ToList();
         Assert.AreEqual(10.0, results[0], 0.001);
         Assert.AreEqual(20.0, results[1], 0.001);
         Assert.AreEqual(25.0, results[2], 0.001);
     }
 
     [TestMethod]
-    public void WhenAddingObjectWithFloat_ShouldAutoConvert()
+    public void WhenAddingTypedNumericWithFloat_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: decimal?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Value + 1.5 from Items()";
 
         var entities = new List<PathValueEntity>
@@ -129,23 +129,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = 5.0 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<decimal>(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => Convert.ToDouble(row[0])).OrderBy(x => x).ToList();
+        var results = table.Select(row => Convert.ToDouble(row.ReadValue(0))).OrderBy(x => x).ToList();
         Assert.AreEqual(5.0, results[0], 0.001);
         Assert.AreEqual(6.5, results[1], 0.001);
         Assert.AreEqual(11.5, results[2], 0.001);
     }
 
     [TestMethod]
-    public void WhenDividingObjectWithDecimal_ShouldAutoConvert()
+    public void WhenDividingTypedNumericWithDecimal_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: decimal?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Value / 2.0 from Items()";
 
         var entities = new List<PathValueEntity>
@@ -155,23 +155,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = 10L }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<decimal>(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => Convert.ToDouble(row[0])).OrderBy(x => x).ToList();
+        var results = table.Select(row => Convert.ToDouble(row.ReadValue(0))).OrderBy(x => x).ToList();
         Assert.AreEqual(5.0, results[0], 0.001);
         Assert.AreEqual(7.5, results[1], 0.001);
         Assert.AreEqual(10.0, results[2], 0.001);
     }
 
     [TestMethod]
-    public void WhenSubtractingFloatFromObject_ShouldAutoConvert()
+    public void WhenSubtractingFloatFromTypedNumeric_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: decimal?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Value - 2.5 from Items()";
 
         var entities = new List<PathValueEntity>
@@ -181,23 +181,23 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "c", Value = 7.5f }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<decimal>(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => Convert.ToDouble(row[0])).OrderBy(x => x).ToList();
+        var results = table.Select(row => Convert.ToDouble(row.ReadValue(0))).OrderBy(x => x).ToList();
         Assert.AreEqual(2.5, results[0], 0.001);
         Assert.AreEqual(5.0, results[1], 0.001);
         Assert.AreEqual(8.0, results[2], 0.001);
     }
 
     [TestMethod]
-    public void WhenComparingObjectWithDouble_ShouldAutoConvert()
+    public void WhenComparingDecodedNumericWithDouble_ShouldPreserveTypedResults()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: decimal?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Path from Items() where Value > 5.5";
 
         var entities = new List<PathValueEntity>
@@ -208,53 +208,22 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "verylow", Value = 3.5f }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<decimal>(query, entities);
 
         Assert.AreEqual(2, table.Count);
-        var paths = table.Select(row => (string)row[0]).ToList();
+        var paths = table.Select(row => (string)row.ReadValue(0)).ToList();
         CollectionAssert.Contains(paths, "mid");
         CollectionAssert.Contains(paths, "high");
     }
 
     [TestMethod]
-    public void WhenMixingIntLongDoubleInArithmetic_ShouldAutoConvert()
+    public void WhenOrderingByDecodedNumericWithDoubleValues_ShouldWork()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: double?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
-                             "select Path, Value * 2 from Items()";
-
-        var entities = new List<PathValueEntity>
-        {
-            new() { Path = "int", Value = 5 },
-            new() { Path = "long", Value = 10L },
-            new() { Path = "double", Value = 8.2 }
-        };
-
-        var table = RunQuery(query, entities);
-
-        Assert.AreEqual(3, table.Count);
-
-        var intRow = table.First(r => (string)r[0] == "int");
-        Assert.AreEqual(10L, intRow[1]);
-
-        var longRow = table.First(r => (string)r[0] == "long");
-        Assert.AreEqual(20L, longRow[1]);
-
-        var doubleRow = table.First(r => (string)r[0] == "double");
-        Assert.AreEqual(16.4, (double)doubleRow[1], 0.001);
-    }
-
-    [TestMethod]
-    public void WhenOrderingByObjectWithDoubleValues_ShouldWork()
-    {
-        const string query = "table Items {" +
-                             "  Path: string," +
-                             "  Value: object" +
-                             "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Path from Items() order by Value";
 
         var entities = new List<PathValueEntity>
@@ -265,10 +234,10 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "fourth", Value = 20.8 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<double>(query, entities);
 
         Assert.AreEqual(4, table.Count);
-        var orderedPaths = table.Select(row => (string)row[0]).ToList();
+        var orderedPaths = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.AreEqual("first", orderedPaths[0]);
         Assert.AreEqual("second", orderedPaths[1]);
         Assert.AreEqual("third", orderedPaths[2]);
@@ -276,13 +245,13 @@ public partial class AutomaticNumericTypeInferencePathValueTests
     }
 
     [TestMethod]
-    public void WhenObjectValueIsDoubleString_ShouldRejectForArithmetic()
+    public void WhenDecodedValueValueIsDoubleString_ShouldRejectForArithmetic()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Value: long?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
+                             "couple #schema.first with table Items as Items; " +
                              "select Path from Items() where Value * 2 > 10";
 
         var entities = new List<PathValueEntity>
@@ -292,25 +261,25 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "low", Value = 4 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeNumericQuery<long>(query, entities, allowNumericText: false);
 
 
         Assert.AreEqual(1, table.Count);
-        var paths = table.Select(row => (string)row[0]).ToList();
+        var paths = table.Select(row => (string)row.ReadValue(0)).ToList();
         CollectionAssert.Contains(paths, "valid");
         CollectionAssert.DoesNotContain(paths, "invalid");
         CollectionAssert.DoesNotContain(paths, "low");
     }
 
     [TestMethod]
-    public void WhenCaseWhenReturnsMixedIntLiteralAndObjectValue_ShouldAutoConvert()
+    public void WhenCaseWhenReturnsMixedIntLiteralAndTypedColumnsValue_ShouldPreserveScenarioValues()
     {
         const string query = "table Items {" +
                              "  Path: string," +
-                             "  Value: object" +
+                             "  Integral: long?, Amount: decimal?, Text: string, Flag: bool?" +
                              "};" +
-                             "couple #pathvalue.data with table Items as Items; " +
-                             "select Path, CASE WHEN Path = 'age' THEN 35 ELSE Value END as Value from Items()";
+                             "couple #schema.first with table Items as Items; " +
+                             "select Path, CASE WHEN Path = 'age' THEN 35 ELSE Integral END as Value, Text from Items()";
 
         var entities = new List<PathValueEntity>
         {
@@ -319,18 +288,18 @@ public partial class AutomaticNumericTypeInferencePathValueTests
             new() { Path = "score", Value = 95 }
         };
 
-        var table = RunQuery(query, entities);
+        var table = RunNativeMixedQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
 
-        var ageRow = table.First(row => (string)row[0] == "age");
-        Assert.AreEqual(35, Convert.ToInt32(ageRow[1]));
+        var ageRow = table.First(row => (string)row.ReadValue(0) == "age");
+        Assert.AreEqual(35, Convert.ToInt32(ageRow.ReadValue(1)));
 
-        var nameRow = table.First(row => (string)row[0] == "name");
-        Assert.AreEqual("John", nameRow[1]);
+        var nameRow = table.First(row => (string)row.ReadValue(0) == "name");
+        Assert.AreEqual("John", nameRow.GetValue<string?>(2));
 
-        var scoreRow = table.First(row => (string)row[0] == "score");
-        Assert.AreEqual(95, Convert.ToInt32(scoreRow[1]));
+        var scoreRow = table.First(row => (string)row.ReadValue(0) == "score");
+        Assert.AreEqual(95, Convert.ToInt32(scoreRow.ReadValue(1)));
     }
 
 }

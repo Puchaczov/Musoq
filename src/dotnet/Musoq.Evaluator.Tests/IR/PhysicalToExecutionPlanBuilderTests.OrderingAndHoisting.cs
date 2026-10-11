@@ -37,10 +37,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
-            "      AppendShape [result <- ResultShape0(FirstName: p.Name, SecondName: p.Name)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(FirstName: p.Name, SecondName: p.Name)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -74,11 +74,11 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      If [(p.Age > 18)]",
-            "        AppendShape [result <- ResultShape0(Age: p.Age)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Age: p.Age)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

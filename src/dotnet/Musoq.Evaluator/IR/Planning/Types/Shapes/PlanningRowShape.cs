@@ -9,6 +9,5 @@ internal sealed record PlanningRowShape(
     Type RuntimeType,
     IReadOnlyList<PlanningField> Fields)
 {
-    public bool IsDynamic => Kind == PlanningRowShapeKind.ExpandoAdapter ||
-                             RuntimeType == typeof(object);
+    public bool IsDynamic => RuntimeType == typeof(object);
 }

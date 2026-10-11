@@ -208,7 +208,7 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
         var ex = Assert.Throws<ParseException>(() =>
             interpreter.TestExpectLiteral("goodbye".AsSpan(), "hello"));
-        Assert.Contains("Expected 'hello'", ex.Message);
+        Assert.Contains("Expected 'hello'", ex.Details);
     }
 
     [TestMethod]

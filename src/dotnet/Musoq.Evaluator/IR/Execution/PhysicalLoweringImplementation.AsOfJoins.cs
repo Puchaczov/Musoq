@@ -30,12 +30,12 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
         var joinSources = sources.Source with
         {
-            Right = PrepareAsOfProbeSource(sources.Source.Right)
+            Right = PrepareAsOfProbeSource(sources.Source.Right, resultTableName)
         };
         if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable))
         {
             return TableBuildResult.Unsupported(
-                $"Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found {joinSources.Right.Shape.GetType().Name} with row type {FormatTypeName(joinSources.Right.Variable.Type.ResolveClrType())}.");
+                $"Execution IR ASOF join lowering requires a non-dynamic source-entity, table-row, or typed generated right source. Found {joinSources.Right.Shape.GetType().Name} with row type {FormatTypeName(joinSources.Right.Variable.Type.ResolveClrType())}.");
         }
 
         var leftAlias = RowShapeLookup.ResolveSourceAlias(joinSources.Left.Shape);
@@ -85,7 +85,7 @@ internal sealed partial class PhysicalLoweringImplementation
             probe.EqualityKeys,
             probe.CandidateKey,
             probe.ComparisonKind,
-            probe.ComparisonKeyType?.ResolveClrType() ?? typeof(object),
+            probe.ComparisonKeyType?.ResolveClrType() ?? throw new InvalidOperationException("ASOF comparison key binding is missing."),
             probe.TieBreak);
     }
 
@@ -218,19 +218,6 @@ internal sealed partial class PhysicalLoweringImplementation
             candidateName);
 
         return new ExecutionAsOfTieBreak(key, tieBreak.Descending, tieBreak.NullOrdering);
-    }
-
-    private static Type ResolveAsOfComparisonKeyType(Type probeKeyType, Type candidateKeyType)
-    {
-        if (probeKeyType == candidateKeyType && IsTypedAsOfComparisonKey(probeKeyType))
-            return probeKeyType;
-
-        return typeof(object);
-    }
-
-    private static bool IsTypedAsOfComparisonKey(Type type)
-    {
-        return type != typeof(object) && type is not NullNode.NullType;
     }
 
 }

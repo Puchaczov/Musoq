@@ -29,7 +29,7 @@ internal static class TableMaterializationTestHelper
 
     public static void AssertRowsInOrder(Table table, params object?[][] expected)
     {
-        var actual = table.Select(static row => row.Values).ToArray();
+        var actual = table.Select(static row => row.ReadValues()).ToArray();
 
         Assert.AreEqual(expected.Length, actual.Length, "Unexpected row count.");
 
@@ -39,7 +39,7 @@ internal static class TableMaterializationTestHelper
 
     public static void AssertRowsUnordered(Table table, params object?[][] expected)
     {
-        var remaining = table.Select(static row => row.Values).ToList();
+        var remaining = table.Select(static row => row.ReadValues()).ToList();
 
         Assert.AreEqual(expected.Length, remaining.Count, "Unexpected row count.");
 

@@ -41,11 +41,11 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      If [(p.Age > 18)]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -89,7 +89,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.IsEmpty(parallelProjects);
         StringAssert.Contains(planText, "ChunkedForEach [p in pRows]");
         StringAssert.Contains(planText, "If [(p.Age > 18)]");
-        StringAssert.Contains(planText, "AppendShape [result <- ResultShape0(Name: p.Name)]");
+        StringAssert.Contains(planText, "AppendShape [result <- ResultRow0(Name: p.Name)]");
     }
 
     [TestMethod]

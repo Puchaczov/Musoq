@@ -42,7 +42,7 @@ public class BinaryCheckConstraintFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
     }
 
     #endregion
@@ -72,7 +72,7 @@ public class BinaryCheckConstraintFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
+        Assert.AreEqual((byte)5, table[0].ReadValue(0));
     }
 
     #endregion
@@ -102,7 +102,7 @@ public class BinaryCheckConstraintFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     #endregion
@@ -139,9 +139,9 @@ public class BinaryCheckConstraintFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0xCAFE, table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
-        Assert.AreEqual((short)10, table[0][2]);
+        Assert.AreEqual(0xCAFE, table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
+        Assert.AreEqual((short)10, table[0].ReadValue(2));
     }
 
     #endregion
@@ -178,8 +178,8 @@ public class BinaryCheckConstraintFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("valid.bin", table[0][0]);
-        Assert.AreEqual(100, table[0][1]);
+        Assert.AreEqual("valid.bin", table[0].ReadValue(0));
+        Assert.AreEqual(100, table[0].ReadValue(1));
     }
 
     #endregion

@@ -51,10 +51,10 @@ public partial class BinaryOrTextualCoreBinaryTests
             var table = compiled.Run(CancellationToken.None);
             TableMaterializationTestHelper.AssertColumns(
                 table,
-                ("p.Version", typeof(byte)),
+                ("Version", typeof(byte)),
                 ("p.Config.Key", typeof(string)),
                 ("p.Config.Value", typeof(string)),
-                ("p.Checksum", typeof(byte)));
+                ("Checksum", typeof(byte)));
             TableMaterializationTestHelper.AssertRowsInOrder(
                 table,
                 [(byte)1, "host", "localhost", (byte)0xFF]);

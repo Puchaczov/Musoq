@@ -35,7 +35,7 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunSum", typeof(decimal)));
+            table, ("Name", typeof(string)), ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m], ["Charlie", 400m], ["Bob", 600m], ["Diana", 1000m]);
@@ -60,10 +60,10 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunCount", typeof(int)));
+            table, ("Name", typeof(string)), ("RunCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", 1], ["Bob", 2], ["Charlie", 3], ["Diana", 4]);
+            ["Alice", 1L], ["Bob", 2L], ["Charlie", 3L], ["Diana", 4L]);
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunAvg", typeof(decimal)));
+            table, ("Name", typeof(string)), ("RunAvg", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m], ["Bob", 150m], ["Charlie", 700m / 3m]);
@@ -157,7 +157,7 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("Country", typeof(string)), ("RunSum", typeof(decimal)));
+            table, ("Name", typeof(string)), ("Country", typeof(string)), ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "US", 100m], ["Bob", "US", 300m], ["Charlie", "US", 600m],
@@ -405,7 +405,7 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunSum", typeof(decimal)));
+            table, ("Name", typeof(string)), ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m], ["Bob", 300m], ["Charlie", 600m]);
@@ -454,7 +454,7 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("Total", typeof(decimal)));
+            table, ("Name", typeof(string)), ("Total", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 500m], ["Bob", 500m], ["Charlie", 500m]);
@@ -476,9 +476,9 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("Total", typeof(int)));
+            table, ("Name", typeof(string)), ("Total", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", 3], ["Bob", 3], ["Charlie", 3]);
+            ["Alice", 3L], ["Bob", 3L], ["Charlie", 3L]);
     }
 }

@@ -43,7 +43,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (generatedCode.Contains("Statement0Row0", StringComparison.Ordinal))
             failures.Add($"{fileName}: still emits statement transition row");
 
-        if (!generatedCode.Contains("var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>", StringComparison.Ordinal) ||
+        if (!generatedCode.Contains("var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema", StringComparison.Ordinal) ||
             !generatedCode.Contains("var bRows = ", StringComparison.Ordinal) || !generatedCode.Contains("bRowsSource.Chunks", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing scoped right-side generic source rows");
 
@@ -64,7 +64,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             if (!generatedCode.Contains("bHasMatch = true;", StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing outer-apply matched-row marker");
 
-            if (!Regex.IsMatch(generatedCode, @"new ResultShape0\([A-Za-z_][A-Za-z0-9_]*,\s*null\)", RegexOptions.CultureInvariant))
+            if (!Regex.IsMatch(generatedCode, @"new ResultRow0\([A-Za-z_][A-Za-z0-9_]*,\s*null\)", RegexOptions.CultureInvariant))
                 failures.Add($"{fileName}: missing outer-apply null extension");
         }
 
@@ -181,7 +181,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (!content.Contains("if ((!sHasMatch))", StringComparison.Ordinal))
             failures.Add("missing unmatched-row branch");
 
-        if (!Regex.IsMatch(content, @"new ResultShape0\([^,\r\n]+,\s*null\)", RegexOptions.CultureInvariant))
+        if (!Regex.IsMatch(content, @"new ResultRow0\([^,\r\n]+,\s*null\)", RegexOptions.CultureInvariant))
             failures.Add("missing null-extended right-side projection");
 
         if (content.Contains("Statement0Row0", StringComparison.Ordinal))
@@ -243,7 +243,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = GetRetiredHelperShapeFailures(AsOfJoinSampleFileName, content).ToList();
 
-        if (!content.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal>", StringComparison.Ordinal))
+        if (!content.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>", StringComparison.Ordinal))
             failures.Add($"{AsOfJoinSampleFileName}: missing typed ASOF index");
 
         if (content.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal))
@@ -263,7 +263,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var failures = GetRetiredHelperShapeFailures(AsOfTieBreakSampleFileName, content).ToList();
 
         if (!content.Contains(
-                "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, decimal>",
+                "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, decimal>",
                 StringComparison.Ordinal))
             failures.Add($"{AsOfTieBreakSampleFileName}: missing typed ASOF tie-break index");
 
@@ -286,7 +286,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = GetRetiredHelperShapeFailures(CteBackedAsOfJoinSampleFileName, content).ToList();
 
-        if (!content.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal>", StringComparison.Ordinal))
+        if (!content.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal, bool>", StringComparison.Ordinal))
             failures.Add($"{CteBackedAsOfJoinSampleFileName}: missing typed ASOF index");
 
         if (content.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal))
@@ -323,38 +323,5 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         return rowLoadPatterns.Any(pattern => Regex.IsMatch(content, pattern, RegexOptions.Singleline));
     }
 
-    private static string[] GetDynamicCteBackedAsOfJoinShapeFailures(string content)
-    {
-        var failures = GetRetiredHelperShapeFailures(DynamicCteBackedAsOfJoinSampleFileName, content).ToList();
-
-        if (!content.Contains("private sealed class dDynamicRow0", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing right-side dynamic adapter row");
-
-        if (!content.Contains("private sealed class lDynamicRow0", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing left-side dynamic adapter row");
-
-        if (!content.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int>", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing typed CTE ASOF index");
-
-        if (content.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: ASOF probe still uses per-row full scan matcher");
-
-        if (!content.Contains("_cteRowResults.Slot0", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing typed CTE ASOF probe rows");
-
-        if (content.Contains("_tableResults[0]", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: still uses table-backed CTE storage");
-
-        if (content.Contains("new Table(\"cte0\"", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: still builds the dynamic CTE as a Table");
-
-        if (!content.Contains("new dDynamicRow0(dResolver.TryGetValue(\"Team\", out var __dynamicValue", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing right-side dynamic boundary adapter");
-
-        if (!content.Contains("new lDynamicRow0(lResolver.TryGetValue(\"Team\", out var __dynamicValue", StringComparison.Ordinal))
-            failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing left-side dynamic boundary adapter");
-
-        return failures.ToArray();
-    }
 
 }

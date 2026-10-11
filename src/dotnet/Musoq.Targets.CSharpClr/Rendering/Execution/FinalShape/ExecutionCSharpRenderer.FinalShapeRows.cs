@@ -17,17 +17,23 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<FieldBinding> shapeFields,
         bool useQueryRunContext = false,
         bool includeProfileRecorderParameter = false,
-        bool bufferFinalShapes = false)
+        FinalOutputPlan? outputPlan = null)
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
         ArgumentException.ThrowIfNullOrWhiteSpace(queryIdentifier);
         ArgumentException.ThrowIfNullOrWhiteSpace(finalTableName);
         ArgumentException.ThrowIfNullOrWhiteSpace(shapeTypeName);
+        if (outputPlan == null)
+        {
+            if (!TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan))
+                throw new InvalidOperationException("Final output requires result metadata.");
+            outputPlan = renderPlan.FinalSinkPlans.TableOutput;
+        }
         var context = InitializeRenderContext(plan);
         var session = context.Session;
         session.QueryIdentifier = queryIdentifier;
-        session.UseDirectTypedStoredRowsAlias = CanUseGeneratedFinalRowSink(plan, finalTableName);
+        session.ReuseStoredRows = outputPlan.ReuseStoredRows;
         var previousUseQueryRunContext = session.UseQueryRunContext;
         if (useQueryRunContext)
             session.UseQueryRunContext = true;
@@ -35,6 +41,9 @@ public sealed partial class ExecutionCSharpRenderer
         try
         {
             session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
+            session.ColumnarStoredTableResultsByTableName = CreateColumnarStoredTableResultsByTableName(
+                plan,
+                session.TypedStoredTableResults);
             session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
             session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
             session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
@@ -44,28 +53,16 @@ public sealed partial class ExecutionCSharpRenderer
             session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(
                 plan.Body,
                 session.TypedStoredTableResults);
-            var usesGeneratedRowCarrier = CanUseGeneratedFinalRowSink(plan, finalTableName);
-            session.DirectSortedRowBufferSources = usesGeneratedRowCarrier
-                ? plan.Body.Nodes
-                    .OfType<ExecutionSortTable>()
-                    .ToDictionary(static sort => sort.Target.Name, static sort => sort.Source.Name, StringComparer.Ordinal)
-                : new Dictionary<string, string>(StringComparer.Ordinal);
-            var sinkTypeName = usesGeneratedRowCarrier && plan.FinalResult is { } finalResult
-                ? finalResult.Shape.TypeName
-                : shapeTypeName;
-            var finalShapeBufferName = usesGeneratedRowCarrier
-                ? null
-                : bufferFinalShapes
-                    ? "__musoqFinalShapeRows"
-                    : null;
-            var finalShapeSourceBuffers = CreateFinalShapeSourceBuffers(plan.Body, finalTableName, shapeTypeName, shapeFields);
+            var sinkTypeName = outputPlan.UsesGeneratedRow ? outputPlan.Result.RowTypeName : shapeTypeName;
+            session.DirectSortedRowBufferSources = outputPlan.SortedRowBufferSources;
+            var finalShapeBufferName = outputPlan.BufferFinalRows ? "__musoqFinalShapeRows" : null;
             session.FinalShapeYieldSink = new FinalShapeYieldSink(
                 finalTableName,
                 sinkTypeName,
                 shapeFields,
                 finalShapeBufferName,
-                usesGeneratedRowCarrier ? null : finalShapeSourceBuffers,
-                usesGeneratedRowCarrier);
+                CreateFinalShapeSourceBuffers(outputPlan, shapeFields),
+                outputPlan.UsesGeneratedRow);
             session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
             session.EnumerableTraversalHelpersByBlock = Enumerable
                 .Where<KeyValuePair<ExecutionBlock, EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body, context), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
@@ -121,6 +118,7 @@ public sealed partial class ExecutionCSharpRenderer
             session.TypedStoredTableResults);
         session.StoredGeneratedRowsLoopNameCounts = [];
         session.TypedRowBufferVariables = CreateTypedRowBufferVariables(block, finalTableName);
+        session.RegexMatchTimeout = plan.RegexMatchTimeout;
         session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
         session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
@@ -133,7 +131,7 @@ public sealed partial class ExecutionCSharpRenderer
 
             var tryStatements = new List<StatementSyntax>();
             tryStatements.AddRange(CreateExecutionStateDeclarations(plan, context));
-            tryStatements.AddRange(CreateScriptParameterBindingStatements());
+            tryStatements.AddRange(CreateScriptParameterBindingStatements(plan));
             tryStatements.AddRange(CreateScriptVariableBindingStatements());
             tryStatements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
             tryStatements.AddRange(CollectMethodCallCaches(block)
@@ -148,7 +146,7 @@ public sealed partial class ExecutionCSharpRenderer
                         .WithArgumentList(SyntaxFactory.ArgumentList())));
             }
 
-            var bodyStatements = RenderMethodStatements(RemoveFinalTableBoundary(block, finalTableName), context)
+            var bodyStatements = RenderMethodStatements(FinalShapeBoundaryProjection.Apply(block, finalTableName, finalShapeBufferName), context)
                 .Select(statement => RewriteRemovedFinalTableCount(statement, finalTableName, finalShapeBufferName))
                 .ToList();
             if (finalShapeBufferName != null)
@@ -191,12 +189,6 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private static ExecutionBlock RemoveFinalTableBoundary(ExecutionBlock block, string finalTableName)
-    {
-        return new ExecutionBlock(block.Nodes
-            .Where(node => !IsFinalTableBoundaryNode(node, finalTableName))
-            .ToArray());
-    }
 
     private bool CapturesCurrentFinalShapeTargetOrSourceBuffer(
         EnumerableTraversalHelper helper,
@@ -206,114 +198,13 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static IReadOnlyDictionary<string, FinalShapeSourceBuffer> CreateFinalShapeSourceBuffers(
-        ExecutionBlock block,
-        string finalTableName,
-        string shapeTypeName,
-        IReadOnlyList<FieldBinding> shapeFields)
+        FinalOutputPlan output,
+        IReadOnlyList<FieldBinding> fields)
     {
-        var rowShapesByTableName = CreateTableRowShapeMap(block);
-        Dictionary<string, FinalShapeSourceBuffer>? buffers = null;
-
-        var requiredTargets = new HashSet<string>(StringComparer.Ordinal)
-        {
-            finalTableName
-        };
-
-        var changed = true;
-        while (changed)
-        {
-            changed = false;
-            foreach (var node in block.Nodes)
-            {
-                if (!TryGetPostOperationSourceAndTarget(node, out var source, out var target) ||
-                    !requiredTargets.Contains(target.Name) ||
-                    !rowShapesByTableName.TryGetValue(source.Name, out var sourceShape) ||
-                    !CanUseFinalShapeSourceBuffer(sourceShape, shapeFields))
-                {
-                    continue;
-                }
-
-                buffers ??= new Dictionary<string, FinalShapeSourceBuffer>(StringComparer.Ordinal);
-                if (buffers.TryAdd(source.Name, new FinalShapeSourceBuffer(shapeTypeName, shapeFields)))
-                    changed |= requiredTargets.Add(source.Name);
-            }
-        }
-
-        return buffers ?? (IReadOnlyDictionary<string, FinalShapeSourceBuffer>)
-            new Dictionary<string, FinalShapeSourceBuffer>(StringComparer.Ordinal);
+        return output.SourceBuffers.ToDictionary(
+            static pair => pair.Key,
+            pair => new FinalShapeSourceBuffer(pair.Value, fields),
+            StringComparer.Ordinal);
     }
 
-    private static bool TryGetPostOperationSourceAndTarget(
-        ExecutionNode node,
-        out ExecutionVariable source,
-        out ExecutionVariable target)
-    {
-        switch (node)
-        {
-            case ExecutionDistinctTable distinct:
-                source = distinct.Source;
-                target = distinct.Target;
-                return true;
-            case ExecutionSortTable sort:
-                source = sort.Source;
-                target = sort.Target;
-                return true;
-            case ExecutionTopNTable topN:
-                source = topN.Source;
-                target = topN.Target;
-                return true;
-            case ExecutionTopOffsetTable topOffset:
-                source = topOffset.Source;
-                target = topOffset.Target;
-                return true;
-            case ExecutionSkipTable skip:
-                source = skip.Source;
-                target = skip.Target;
-                return true;
-            case ExecutionTakeTable take:
-                source = take.Source;
-                target = take.Target;
-                return true;
-            case ExecutionSliceTable slice:
-                source = slice.Source;
-                target = slice.Target;
-                return true;
-            default:
-                source = null!;
-                target = null!;
-                return false;
-        }
-    }
-
-    private static bool CanUseFinalShapeSourceBuffer(
-        GeneratedRowShape sourceShape,
-        IReadOnlyList<FieldBinding> shapeFields)
-    {
-        if (sourceShape.Fields.Count != shapeFields.Count)
-            return false;
-
-        for (var index = 0; index < shapeFields.Count; index++)
-        {
-            var sourceField = sourceShape.Fields[index];
-            var shapeField = shapeFields[index];
-            if (sourceField.Type != shapeField.Type ||
-                !string.Equals(GetGeneratedFieldName(sourceField), GetGeneratedFieldName(shapeField), StringComparison.Ordinal))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool IsFinalTableBoundaryNode(ExecutionNode node, string finalTableName)
-    {
-        return node switch
-        {
-            ExecutionCreateTable createTable when createTable.Table.Name == finalTableName => true,
-            ExecutionEnsureTableCapacity ensureCapacity when ensureCapacity.Table.Name == finalTableName => true,
-            ExecutionReturnTable returnTable when returnTable.Table.Name == finalTableName => true,
-            _ => false
-        };
-    }
 }

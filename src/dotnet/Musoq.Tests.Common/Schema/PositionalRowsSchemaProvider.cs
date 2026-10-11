@@ -18,7 +18,7 @@ public sealed class PositionalRowsSchemaProvider(
 
 public sealed class PositionalRowsSchema(
     IReadOnlyList<ISchemaColumn> columns,
-    IReadOnlyList<object[]> rows) : SchemaBase("positional", CreateLibrary())
+    IReadOnlyList<object[]> rows) : SchemaBase("positional", CreateLibrary()), IQueryScopedRowSourceSchema
 {
     private const string All = "all";
 
@@ -33,16 +33,24 @@ public sealed class PositionalRowsSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
-        string name,
-        SourceExecutionContext executionContext,
-        params object?[] parameters)
-    {
-        if (name.Equals(All, StringComparison.OrdinalIgnoreCase))
-            return EnsureSourceType<T, object[]>(name, new PositionalRowsSource(rows));
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with
+        {
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads
+        };
 
-        throw new NotSupportedException(name);
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(string name,
+        QueryScopedRowSourceRequest request, TArguments parameters)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
+    {
+        if (!name.Equals(All, StringComparison.OrdinalIgnoreCase)) throw new NotSupportedException(name);
+        return new PositionalRowsSource<TRow, TMaterializer>(rows, request.Shape);
     }
+
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext,
+        TArguments parameters)
+        => throw new InvalidOperationException("This test source requires native query-scoped transfer.");
 
     public override SchemaMethodInfo[] GetRawConstructors(
         string methodName,
@@ -76,10 +84,23 @@ public sealed class PositionalRowsTable(IReadOnlyList<ISchemaColumn> columns) : 
     public SchemaTableMetadata Metadata { get; } = new(typeof(object[]));
 }
 
-public sealed class PositionalRowsSource(IReadOnlyList<object[]> rows) : RowSourceBase<object[]>
+internal sealed class PositionalRowsSource<TRow, TMaterializer>(IReadOnlyList<object[]> rows, QueryRowShape shape)
+    : RowSourceBase<TRow> where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
-    protected override void CollectChunks(IChunkWriter<object[]> writer)
+    protected override void CollectChunks(IChunkWriter<TRow> writer)
     {
-        writer.Write(rows);
+        var materialized = new List<TRow>(rows.Count);
+        foreach (var row in rows)
+        {
+            writer.CancellationToken.ThrowIfCancellationRequested();
+            var reader = new FixtureReader(row, shape);
+            materialized.Add(TMaterializer.Materialize(ref reader));
+        }
+        writer.Write(materialized);
+    }
+
+    private readonly struct FixtureReader(object[] values, QueryRowShape shape) : IQuerySourceFieldReader
+    {
+        public T Read<T>(int slot) => (T)values[shape.Fields[slot].SourceColumnIndex];
     }
 }

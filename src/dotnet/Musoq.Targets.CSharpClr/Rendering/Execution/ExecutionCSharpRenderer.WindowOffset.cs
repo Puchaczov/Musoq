@@ -115,10 +115,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 offsetPartitions.Variable.Name,
-                CreateWindowHelperInvocation(
-                    nameof(Evaluator.Helpers.WindowFunctionHelpers.ResolvePartitionSet),
-                    CreateBufferCountExpression(offset.Buffer),
-                    CreatePartitionKeysArgument(partitionKeys?.Variable))));
+                CreateWindowPartitionSetInvocation(offset.Buffer, partitionKeys?.Variable)));
         }
         else
         {

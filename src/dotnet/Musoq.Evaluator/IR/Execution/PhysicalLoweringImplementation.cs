@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Reflection;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
@@ -24,8 +23,6 @@ internal sealed partial class PhysicalLoweringImplementation :
     private const int ParallelFilterProjectRowThreshold = 4096;
     private const string DefaultAggregateScopeName = "result";
     private const ExecutionAppendMode SerialAppendMode = ExecutionAppendMode.Direct;
-    private static readonly MethodInfo CreateNullableHashJoinKeyMethod = typeof(EvaluationHelper)
-        .GetMethod(nameof(EvaluationHelper.CreateNullableHashJoinKey))!;
     private readonly PhysicalLoweringFacts _facts;
     private ExecutionShapeResolver _shapeResolver => _facts.ShapeResolver;
     private SchemaRegistry? _schemaRegistry => _facts.SchemaRegistry;
@@ -65,7 +62,11 @@ internal sealed partial class PhysicalLoweringImplementation :
             ? result with
             {
                 ExecutionPlan = ExecutionPlanRepresentationPlanner.Plan(
-                    ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan))
+                    new NativeScriptGenericBinding(_shapeResolver.ScriptValues).RewritePlan(
+                        ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan))) with
+                {
+                    StructuralCarriers = ExecutionIrCollections.Freeze(_shapeResolver.InlineRecords.Carriers)
+                }
             }
             : result;
     }

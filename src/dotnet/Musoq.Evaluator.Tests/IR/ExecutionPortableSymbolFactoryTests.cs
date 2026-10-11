@@ -203,4 +203,24 @@ public sealed class ExecutionPortableSymbolFactoryTests
         Assert.AreEqual(ExecutionPortableSymbolPortability.ClrOnly, symbol.Portability);
         StringAssert.Contains(symbol.PortabilityReason, "No portable callable catalog entry");
     }
+    [TestMethod]
+    public void FromMethod_WhenClosedSignaturesCoincide_ShouldPreserveGenericSpecializationIdentity()
+    {
+        var methods = typeof(LibraryBase).GetMethods().Where(static method =>
+            method.Name == nameof(LibraryBase.GetTypeName) && method.IsGenericMethodDefinition).ToArray();
+        var direct = methods.Single(static method => method.GetParameters()[0].ParameterType.IsGenericParameter)
+            .MakeGenericMethod(typeof(int?));
+        var nullable = methods.Single(static method => method.GetParameters()[0].ParameterType.IsGenericType)
+            .MakeGenericMethod(typeof(int));
+        var directSymbol = ExecutionPortableSymbolFactory.FromMethod(direct);
+        var nullableSymbol = ExecutionPortableSymbolFactory.FromMethod(nullable);
+
+        Assert.AreEqual(directSymbol.ParameterTypes.Single().StableName, nullableSymbol.ParameterTypes.Single().StableName);
+        Assert.AreNotEqual(directSymbol.StableName, nullableSymbol.StableName);
+        Assert.AreEqual("nullable<primitive:int32>", directSymbol.GenericArguments.Single().StableName);
+        Assert.AreEqual("primitive:int32", nullableSymbol.GenericArguments.Single().StableName);
+        Assert.AreEqual(direct, new ExecutionCallableRef(directSymbol).ResolveClrMethod());
+        Assert.AreEqual(nullable, new ExecutionCallableRef(nullableSymbol).ResolveClrMethod());
+    }
+
 }

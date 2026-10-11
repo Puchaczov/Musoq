@@ -4,6 +4,8 @@ using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
+using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests.Schema;
 
@@ -25,7 +27,7 @@ public sealed class DynamicRowsSchemaProvider(
 public sealed class DynamicRowsSchema(
     IReadOnlyList<ISchemaColumn> columns,
     IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
-    : SchemaBase(Dynamic, CreateLibrary())
+    : SchemaBase(Dynamic, CreateLibrary()), IQueryScopedRowSourceSchema
 {
     private const string All = "all";
     private const string Dynamic = "dynamic";
@@ -38,13 +40,24 @@ public sealed class DynamicRowsSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         if (string.Equals(name, All, StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, IReadOnlyDictionary<string, object>>(name, new DynamicRowsSource(rows));
 
         throw new NotSupportedException(name);
     }
+
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+        string name, QueryScopedRowSourceRequest request, TArguments parameters)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, ISourceArguments
+        => new NativeDictionaryTestSource<TRow, TMaterializer>(
+            rows.Select(row => (IReadOnlyDictionary<string, object?>)row.ToDictionary(pair => pair.Key, pair => (object?)pair.Value)).ToArray(),
+            request.Shape.Fields);
 
     private static MethodsAggregator CreateLibrary()
     {
@@ -75,7 +88,7 @@ public sealed class DynamicRowsTable : ISchemaTable
         return Columns.Where(column => column.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object>));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract));
 }
 
 public sealed class DynamicRowsSource(IReadOnlyList<IReadOnlyDictionary<string, object>> rows)

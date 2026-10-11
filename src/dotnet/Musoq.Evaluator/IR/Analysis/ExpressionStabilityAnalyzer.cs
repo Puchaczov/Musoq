@@ -80,7 +80,7 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch => IsStable(branch.Condition) && IsStable(branch.Result)) &&
                                           (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
             ExecutionCoalesce coalesce => coalesce.Expressions.All(IsStable),
-            ExecutionCompositeKey key => key.Parts.All(IsStable),
+
             ExecutionValueTupleKey key => key.Parts.All(IsStable),
             ExecutionRowPresence presence => IsStable(presence.PresenceSource),
             ExecutionAggregateCall aggregate => aggregate.Method.Descriptor.IsStable && aggregate.Arguments.All(IsStable),

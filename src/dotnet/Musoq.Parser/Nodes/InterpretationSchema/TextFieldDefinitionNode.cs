@@ -18,6 +18,7 @@ public class TextFieldDefinitionNode : Node
     /// <param name="modifiers">Optional processing modifiers.</param>
     /// <param name="escapeCharacter">Custom escape character for escaped modifier.</param>
     /// <param name="captureGroups">Named capture groups for pattern fields.</param>
+    /// <param name="repeatElement">Inline text type read for each repetition.</param>
     public TextFieldDefinitionNode(
         string name,
         TextFieldType fieldType,
@@ -25,7 +26,8 @@ public class TextFieldDefinitionNode : Node
         string? secondaryValue = null,
         TextFieldModifier modifiers = TextFieldModifier.None,
         string? escapeCharacter = null,
-        string[]? captureGroups = null)
+        string[]? captureGroups = null,
+        TextFieldDefinitionNode? repeatElement = null)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         FieldType = fieldType;
@@ -35,8 +37,11 @@ public class TextFieldDefinitionNode : Node
         EscapeCharacter = escapeCharacter;
         CaptureGroups = captureGroups ?? Array.Empty<string>();
         SwitchCases = Array.Empty<TextSwitchCaseNode>();
+        RepeatElement = repeatElement;
 
         Id = $"{nameof(TextFieldDefinitionNode)}{name}{fieldType}{primaryValue}{secondaryValue}{modifiers}";
+        if (repeatElement != null)
+            Id += repeatElement.Id;
     }
 
     /// <summary>
@@ -110,6 +115,9 @@ public class TextFieldDefinitionNode : Node
     /// </summary>
     public TextSwitchCaseNode[] SwitchCases { get; }
 
+    /// <summary>Gets the inline text type parsed for each repetition.</summary>
+    public TextFieldDefinitionNode? RepeatElement { get; }
+
     /// <summary>
     ///     Gets whether this is a discard field (name is "_").
     /// </summary>
@@ -118,7 +126,7 @@ public class TextFieldDefinitionNode : Node
     /// <inheritdoc />
     public override Type ReturnType => FieldType switch
     {
-        TextFieldType.Repeat => typeof(object[]),
+        TextFieldType.Repeat => RepeatElement?.ReturnType.MakeArrayType() ?? typeof(object[]),
         TextFieldType.Switch or TextFieldType.SchemaReference => typeof(object),
         _ => typeof(string)
     };
@@ -139,6 +147,13 @@ public class TextFieldDefinitionNode : Node
         var builder = new StringBuilder();
         builder.Append(Name);
         builder.Append(": ");
+
+        AppendTypeDefinition(builder);
+        return builder.ToString();
+    }
+
+    private void AppendTypeDefinition(StringBuilder builder)
+    {
 
         switch (FieldType)
         {
@@ -183,7 +198,11 @@ public class TextFieldDefinitionNode : Node
                 break;
 
             case TextFieldType.Repeat:
-                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"repeat {PrimaryValue}");
+                builder.Append("repeat ");
+                if (RepeatElement != null)
+                    RepeatElement.AppendTypeDefinition(builder);
+                else
+                    builder.Append(PrimaryValue);
                 if (SecondaryValue != null)
                     builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" until '{EscapeString(SecondaryValue)}'");
                 else
@@ -203,8 +222,6 @@ public class TextFieldDefinitionNode : Node
         }
 
         AppendModifiers(builder);
-
-        return builder.ToString();
     }
 
     private void AppendModifiers(StringBuilder builder)

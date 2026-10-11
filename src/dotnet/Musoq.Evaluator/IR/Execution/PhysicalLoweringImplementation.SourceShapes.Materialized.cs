@@ -34,7 +34,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return CreateMaterializedTransitionTableRowShape(
             alias,
             rowShape,
-            field => rowShape.SupportsGeneratedFieldAccess ? field.AccessStrategy : new PositionalAccess(field.OutputIndex),
+            field => rowShape.SupportsGeneratedFieldAccess ? field.AccessStrategy : new PositionalAccess(field.OutputIndex, field.Type),
             useTypedContextAccess: true);
     }
 
@@ -43,7 +43,7 @@ internal sealed partial class PhysicalLoweringImplementation
         FieldBinding field)
     {
         if (!rowShape.SupportsGeneratedFieldAccess)
-            return new PositionalAccess(field.OutputIndex);
+            return new PositionalAccess(field.OutputIndex, field.Type);
 
         return field.AccessStrategy is GeneratedFieldAccess generated
             ? new GeneratedRowTypeAccess(rowShape.TypeName, generated.FieldName)
@@ -55,7 +55,7 @@ internal sealed partial class PhysicalLoweringImplementation
         FieldBinding field)
     {
         if (!rowShape.SupportsGeneratedFieldAccess)
-            return new PositionalAccess(field.OutputIndex);
+            return new PositionalAccess(field.OutputIndex, field.Type);
 
         return field.AccessStrategy is GeneratedFieldAccess generated
             ? generated

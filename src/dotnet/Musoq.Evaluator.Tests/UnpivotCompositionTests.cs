@@ -55,9 +55,9 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("u.Name", typeof(string)),
-            ("u.Metric", typeof(string)),
-            ("u.Amount", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A", "Money", 1m],
@@ -90,9 +90,9 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("u.City", typeof(string)),
-            ("u.Metric", typeof(string)),
-            ("l.Country", typeof(string)));
+            ("City", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["GDA", "Money", "PL"],

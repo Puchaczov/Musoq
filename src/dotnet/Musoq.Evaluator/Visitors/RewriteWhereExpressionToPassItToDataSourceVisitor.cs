@@ -12,6 +12,8 @@ namespace Musoq.Evaluator.Visitors;
 ///     3. Handling OR conditions specially - if any branch references another data source,
 ///     the entire OR must be replaced with "1 = 1" since we can't partially push OR predicates
 ///     4. Replacing complex expressions (method calls, property chains) with "1 = 1"
+///     5. Preserving negation only when its entire operand transfers exactly; negating
+///     a weakened operand could otherwise discard rows accepted by the original predicate.
 ///     Example: For data source 'a' in query:
 ///     SELECT * FROM #A.data() a JOIN #B.data() b ON a.Id = b.Id
 ///     WHERE a.Status = 'open' AND b.Type = 'bug' OR a.Priority = 1
@@ -26,20 +28,38 @@ namespace Musoq.Evaluator.Visitors;
 public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisitor
 {
     private readonly Node _equalityNode;
-    private readonly SchemaFromNode _schemaFromNode;
     private readonly IsComplexVisitor _isComplexVisitor;
     private readonly IsComplexTraverseVisitor _isComplexTraverseVisitor;
 
     public RewriteWhereExpressionToPassItToDataSourceVisitor(SchemaFromNode schemaFromNode)
     {
         ArgumentNullException.ThrowIfNull(schemaFromNode);
-        _schemaFromNode = schemaFromNode;
         _equalityNode = new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s"));
         _isComplexVisitor = new IsComplexVisitor(schemaFromNode.Alias);
         _isComplexTraverseVisitor = new IsComplexTraverseVisitor(_isComplexVisitor);
     }
 
     public WhereNode WhereNode => (WhereNode)Nodes.Peek();
+
+    internal int PredicateSubstitutionCount { get; private set; }
+
+    internal void CompleteNegation(NotNode node, int operandSubstitutionCount)
+    {
+        var operand = Nodes.Pop();
+        if (PredicateSubstitutionCount != operandSubstitutionCount || ContainsOtherAlias(node.Expression))
+        {
+            PushNeutralPredicate();
+            return;
+        }
+
+        Nodes.Push(new NotNode(operand).WithSpan(node.Span).WithFullSpan(node.FullSpan));
+    }
+
+    private void PushNeutralPredicate()
+    {
+        PredicateSubstitutionCount++;
+        Nodes.Push(_equalityNode);
+    }
 
     /// <summary>
     ///     Handles OR nodes specially. If either branch of an OR contains references
@@ -59,7 +79,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var rightHasOtherAlias = ContainsOtherAlias(node.Right);
 
         if (leftHasOtherAlias || rightHasOtherAlias)
-            Nodes.Push(_equalityNode);
+            PushNeutralPredicate();
         else
             Nodes.Push(new OrNode(left, right));
     }
@@ -142,7 +162,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         Nodes.Pop();
         Nodes.Pop();
 
-        Nodes.Push(_equalityNode);
+        PushNeutralPredicate();
     }
 
     public override void Visit(ContainsNode node)
@@ -151,7 +171,10 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForArgsListNode(node.ToCompareExpression)) Nodes.Push(new ContainsNode(left, (ArgsListNode)right));
+        if (ContainsOtherAlias(node))
+            PushNeutralPredicate();
+        else
+            Nodes.Push(new ContainsNode(left, (ArgsListNode)right));
     }
 
     public override void Visit(InNode node)
@@ -160,7 +183,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForArgsListNode((ArgsListNode)node.Right))
+        if (!VisitForBinaryNode(node))
             Nodes.Push(new InNode(left, (ArgsListNode)right));
     }
 
@@ -176,8 +199,22 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(BetweenNode node)
     {
-        var clonedNode = Nodes.Pop();
-        Nodes.Push(clonedNode);
+        var max = Nodes.Pop();
+        var min = Nodes.Pop();
+        var expression = Nodes.Pop();
+        if (ContainsOtherAlias(node))
+            PushNeutralPredicate();
+        else
+            Nodes.Push(new BetweenNode(expression, min, max));
+    }
+
+    public override void Visit(IsNullNode node)
+    {
+        var expression = Nodes.Pop();
+        if (ContainsOtherAlias(node.Expression))
+            PushNeutralPredicate();
+        else
+            Nodes.Push(new IsNullNode(expression, node.IsNegated));
     }
 
     private bool ContainsOtherAlias(Node node)
@@ -199,26 +236,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
         if (leftIsComplex || rightIsComplex)
         {
-            Nodes.Push(_equalityNode);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool VisitForArgsListNode(ArgsListNode node)
-    {
-        var isComplex = false;
-        foreach (var argument in node.Args)
-        {
-            _isComplexVisitor.Reset();
-            argument.Accept(_isComplexTraverseVisitor);
-            isComplex |= _isComplexVisitor.IsComplex;
-        }
-
-        if (isComplex)
-        {
-            Nodes.Push(_equalityNode);
+            PushNeutralPredicate();
             return true;
         }
 
@@ -234,6 +252,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         public void Reset()
         {
             IsComplex = false;
+            Nodes.Clear();
         }
 
         public override void Visit(DotNode node)

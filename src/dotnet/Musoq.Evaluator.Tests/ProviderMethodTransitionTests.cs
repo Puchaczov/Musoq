@@ -26,7 +26,7 @@ left outer join #B.entities() b on a.Id = b.Id";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
+            ("Id", typeof(int)),
             ("b.GetCountry()", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -53,7 +53,7 @@ order by child.Ordinal";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("child.Name()", typeof(string)),
-            ("child.Ordinal", typeof(int)));
+            ("Ordinal", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["child1", 0],

@@ -31,25 +31,25 @@ public partial class DescColumnNestedPropertyTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        var nameRow = table.FirstOrDefault(row => ((string)row[0]).Equals("Name", StringComparison.OrdinalIgnoreCase));
+        var nameRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Name", StringComparison.OrdinalIgnoreCase));
         Assert.IsNotNull(nameRow, "Should have a row for Name");
-        Assert.Contains("String", (string)nameRow[2], "Name property should be of type String");
+        Assert.Contains("String", (string)nameRow.ReadValue(2), "Name property should be of type String");
 
 
-        var idRow = table.FirstOrDefault(row => ((string)row[0]).Equals("Id", StringComparison.OrdinalIgnoreCase));
+        var idRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Id", StringComparison.OrdinalIgnoreCase));
         Assert.IsNotNull(idRow, "Should have a row for Id");
-        Assert.Contains("Int32", (string)idRow[2], "Id property should be of type Int32");
+        Assert.Contains("Int32", (string)idRow.ReadValue(2), "Id property should be of type Int32");
 
 
-        var timeRow = table.FirstOrDefault(row => ((string)row[0]).Equals("Time", StringComparison.OrdinalIgnoreCase));
+        var timeRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Time", StringComparison.OrdinalIgnoreCase));
         Assert.IsNotNull(timeRow, "Should have a row for Time");
-        Assert.Contains("DateTime", (string)timeRow[2], "Time property should be of type DateTime");
+        Assert.Contains("DateTime", (string)timeRow.ReadValue(2), "Time property should be of type DateTime");
 
 
         var childrenRow =
-            table.FirstOrDefault(row => ((string)row[0]).Equals("Children", StringComparison.OrdinalIgnoreCase));
+            table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Children", StringComparison.OrdinalIgnoreCase));
         Assert.IsNotNull(childrenRow, "Should have a row for Children");
-        Assert.Contains("BasicEntity", (string)childrenRow[2], "Children property should be of type BasicEntity[]");
+        Assert.Contains("BasicEntity", (string)childrenRow.ReadValue(2), "Children property should be of type BasicEntity[]");
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public partial class DescColumnNestedPropertyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         var expectedProperties = new[]
@@ -148,10 +148,10 @@ public partial class DescColumnNestedPropertyTests
 
         Assert.AreEqual(1, table.Count, "Primitive array should have exactly 1 row for element type");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Array", columnName, "Should show the relative property name");
 
-        var typeName = (string)table[0][2];
+        var typeName = (string)table[0].ReadValue(2);
         Assert.Contains("Int32", typeName, "Should show Int32 as the element type");
     }
 
@@ -175,7 +175,7 @@ public partial class DescColumnNestedPropertyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         Assert.IsTrue(
@@ -207,7 +207,7 @@ public partial class DescColumnNestedPropertyTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        var indices = table.Select(row => (int)row[1]).Distinct().ToList();
+        var indices = table.Select(row => (int)row.ReadValue(1)).Distinct().ToList();
 
 
         Assert.HasCount(1, indices, "All nested properties should reference the same original column index");

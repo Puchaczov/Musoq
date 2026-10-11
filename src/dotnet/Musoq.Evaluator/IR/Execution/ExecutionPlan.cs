@@ -37,7 +37,24 @@ public sealed record ExecutionPlan
         init => _shapes = ExecutionIrCollections.Freeze(value);
     }
 
+    private TimeSpan _regexMatchTimeout = Runtime.RuntimeCacheOptions.DefaultRegexTimeout;
+
+    /// <summary>Gets the finite per-match pattern budget selected before target rendering.</summary>
+    public TimeSpan RegexMatchTimeout
+    {
+        get => _regexMatchTimeout;
+        init => _regexMatchTimeout = Runtime.RegexMatchTimeoutPolicy.Validate(value);
+    }
+
     public ExecutionBlock Body { get; init; }
+    private IReadOnlyList<ExecutionStructuralCarrier> _structuralCarriers = [];
+    public IReadOnlyList<ExecutionStructuralCarrier> StructuralCarriers
+    {
+        get => _structuralCarriers;
+        init => _structuralCarriers = ExecutionIrCollections.Freeze(value);
+    }
+
+    internal IReadOnlyList<string> NonNullMembershipParameters { get; init; } = [];
 
     public FinalShapeResult? FinalResult { get; init; }
 

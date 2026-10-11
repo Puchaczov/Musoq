@@ -93,27 +93,27 @@ public class StructuredInputPreparationBenchmark
             boundary ? BuildHostQuery() : BuildInlineQuery(Size),
             $"structured-inline-{Size}");
         if (boundary)
-            _inlineQuery.Parameters["patterns"] = _hostPatterns;
+            _inlineQuery.TypedParameters.SetJson("patterns", System.Text.Json.JsonSerializer.SerializeToElement(_hostPatterns));
 
         _weightedQuery = Compile(
             boundary ? BuildWeightedHostQuery() : BuildWeightedQuery(Size),
             $"structured-weighted-{Size}");
         if (boundary)
-            _weightedQuery.Parameters["items"] = _hostWeighted;
+            _weightedQuery.TypedParameters.SetJson("items", System.Text.Json.JsonSerializer.SerializeToElement(_hostWeighted));
 
         _nestedQuery = Compile(
             boundary ? BuildNestedHostQuery() : BuildNestedQuery(Size),
             $"structured-nested-{Size}",
             new BenchmarkStructuredInputSchemaProvider());
         if (boundary)
-            _nestedQuery.Parameters["options"] = _hostNested;
+            _nestedQuery.TypedParameters.SetJson("options", System.Text.Json.JsonSerializer.SerializeToElement(_hostNested));
 
         _nullableQuery = Compile(
             boundary ? BuildNullableHostQuery() : BuildNullableQuery(Size),
             $"structured-nullable-{Size}",
             new BenchmarkStructuredInputSchemaProvider());
         if (boundary)
-            _nullableQuery.Parameters["values"] = _hostNullable;
+            _nullableQuery.TypedParameters.SetJson("values", System.Text.Json.JsonSerializer.SerializeToElement(_hostNullable));
 
         _emptyQuery = Compile(BuildEmptyQuery(), $"structured-empty-{Size}");
         // Runtime parameters cannot participate in compile-time let
@@ -125,7 +125,7 @@ public class StructuredInputPreparationBenchmark
             boundary ? BuildCteHostQuery() : BuildCteQuery(Size),
             $"structured-cte-{Size}");
         if (boundary)
-            _cteQuery.Parameters["values"] = _hostCteValues;
+            _cteQuery.TypedParameters.SetJson("values", System.Text.Json.JsonSerializer.SerializeToElement(_hostCteValues));
         _scalarQuery = Compile(BuildScalarQuery(), $"structured-scalar-{Size}");
         // VALUES remains a parser/source baseline.  Avoid producing another
         // multi-megabyte generated literal in the boundary setup; its
@@ -268,7 +268,7 @@ public class StructuredInputPreparationBenchmark
     [Benchmark(Description = "Host normalization and source invocation")]
     public int HostNormalizationAndSourceInvocation()
     {
-        _hostQuery.Parameters["patterns"] = _hostPatterns;
+        _hostQuery.TypedParameters.SetJson("patterns", System.Text.Json.JsonSerializer.SerializeToElement(_hostPatterns));
         return ExecuteRows(_hostQuery);
     }
 
@@ -554,7 +554,7 @@ public class StructuredInputPreparationBenchmark
         using var table = query.Run();
         var checksum = 0;
         foreach (var row in table.Rows)
-            checksum += row[0]?.ToString()?.Length ?? 0;
+            checksum += NativeBenchmarkColumnConsumption.ReadTextLength(row, 0);
         return checksum;
     }
 
@@ -563,7 +563,7 @@ public class StructuredInputPreparationBenchmark
         using var table = query.Run();
         decimal checksum = 0;
         foreach (var row in table.Rows)
-            checksum += row[0] is decimal value ? value : Convert.ToDecimal(row[0], CultureInfo.InvariantCulture);
+            checksum += row.GetValue<decimal>(0);
         return checksum;
     }
 
@@ -572,7 +572,7 @@ public class StructuredInputPreparationBenchmark
         using var table = query.Run();
         var checksum = 0;
         foreach (var row in table.Rows)
-            checksum += row[0] is int value ? value : Convert.ToInt32(row[0], CultureInfo.InvariantCulture);
+            checksum += row.GetValue<int>(0);
         return checksum;
     }
 
@@ -581,7 +581,7 @@ public class StructuredInputPreparationBenchmark
         using var table = query.Run();
         var checksum = 0;
         foreach (var row in table.Rows)
-            checksum += row[0] is int value ? value : 0;
+            checksum += row.GetValue<int?>(0).GetValueOrDefault();
         return checksum;
     }
 }

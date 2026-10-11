@@ -27,14 +27,14 @@ internal sealed class RecursiveCteBenchmarkSchema(IReadOnlyList<RecursiveCteBenc
         SourceMetadataContext metadataContext,
         params object?[] parameters) => new RecursiveCteBenchmarkEdgeTable();
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
         var sourceId = name.Equals("neighbors", StringComparison.OrdinalIgnoreCase) &&
-                       parameters is [int value, ..]
-            ? value
+                       parameters.Count > 0
+            ? parameters.GetValue<int>(0)
             : (int?)null;
         return EnsureSourceType<T, RecursiveCteBenchmarkEdge>(
             name,

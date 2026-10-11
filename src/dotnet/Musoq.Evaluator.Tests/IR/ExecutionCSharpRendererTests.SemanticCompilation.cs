@@ -24,6 +24,16 @@ public sealed partial class ExecutionCSharpRendererTests
     }
 
     [TestMethod]
+    [DataRow("matches", null)]
+    [DataRow("matchesBucket", "matchesBucket")]
+    [DataRow("d", "key")]
+    [DataRow("d", "dHash")]
+    public void GeneratedCode_WhenHashBucketCollidesWithExistingLocal_ShouldCompile(string payloadAlias, string? bucketName)
+    {
+        AssertGeneratedCodeCompiles(CreateCompilableHashPayloadPlan(payloadAlias, bucketName));
+    }
+
+    [TestMethod]
     public void GeneratedCode_WhenWindowPlanIsRendered_ShouldCompile()
     {
         AssertGeneratedCodeCompiles(CreateWindowRenderNodePlan());
@@ -197,7 +207,7 @@ public sealed partial class ExecutionCSharpRendererTests
             resultShape);
     }
 
-    private static ExecutionPlan CreateCompilableHashPayloadPlan()
+    private static ExecutionPlan CreateCompilableHashPayloadPlan(string payloadAlias = "d", string? bucketName = null)
     {
         var payloadShape = new HashPayloadShape(
             "DHashPayload0",
@@ -209,7 +219,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultTable = new ExecutionVariable("result", typeof(object));
         var hash = new ExecutionVariable("dHash", typeof(object));
         var b = new ExecutionVariable("b", typeof(BasicEntity));
-        var d = new ExecutionVariable("d", typeof(object), payloadShape.TypeName);
+        var d = new ExecutionVariable(payloadAlias, typeof(object), payloadShape.TypeName);
 
         return CreateFinalResultPlan(
             "Q_CompilableHashPayload",
@@ -236,7 +246,8 @@ public sealed partial class ExecutionCSharpRendererTests
                     d,
                     typeof(int),
                     typeof(object),
-                    payloadShape.TypeName),
+                    payloadShape.TypeName,
+                    bucketVariableName: bucketName),
                 new ExecutionReturnTable(resultTable)
             ]),
             resultTable,

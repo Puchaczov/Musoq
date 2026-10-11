@@ -42,7 +42,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (filteredColumns != null)
         {
             var projectedColumns = CreateSingleTableStarProjectedColumns(
-                tableSymbol,
                 generatedColumnIdentifier,
                 filteredColumns);
             ApplyRenameSubstitution(node, projectedColumns, node.SpanOrEmpty());
@@ -55,7 +54,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     AddAssembly((entry.ReplacementExpression.ReturnType ??
                                  throw new InvalidOperationException($"Replacement expression for '{entry.Column.ColumnName}' has no inferred return type.")).Assembly);
                     generatedColumns.Add(new FieldNode(entry.ReplacementExpression, positionCounter++, entry.OutputName,
-                        false));
+                        true));
                 }
                 else
                 {
@@ -65,7 +64,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                         positionCounter++,
                         generatedColumnIdentifier,
                         generatedColumns,
-                        false,
                         entry.OutputName,
                         node.Span);
                 }
@@ -97,7 +95,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 foreach (var column in table.Columns)
                     if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(column.ColumnType))
                         AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
-                            generatedColumns, true, sourceSpan: node.Span);
+                            generatedColumns, sourceSpan: node.Span);
 
                 UpdateUsedColumns(tableIdentifier, table);
             }
@@ -145,12 +143,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 {
                     AddAssembly((projectedEntry.ReplacementExpression.ReturnType ?? typeof(object)).Assembly);
                     generatedColumns.Add(new FieldNode(projectedEntry.ReplacementExpression, positionCounter++,
-                        projectedEntry.OutputName, false));
+                        projectedEntry.OutputName, true));
                 }
                 else
                 {
                     AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
-                        generatedColumns, true, projectedEntry.OutputName, node.Span);
+                        generatedColumns, projectedEntry.OutputName, node.Span);
                 }
             }
 

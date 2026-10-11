@@ -31,7 +31,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int)), ("b.Id", typeof(int?)));
+            ("Id", typeof(int)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null });
     }
 
@@ -50,7 +50,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int)), ("b.Id", typeof(int?)));
+            ("Id", typeof(int)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { 1, null }, new object?[] { 2, 2 });
     }
@@ -70,7 +70,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("A.Id", typeof(int)), ("B.Id", typeof(int?)));
+            ("Id", typeof(int)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { 1, null }, new object?[] { 2, 2 });
     }
@@ -99,7 +99,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int)), ("b.Id", typeof(int?)), ("c.Id", typeof(int?)));
+            ("Id", typeof(int)), ("Id", typeof(int?)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null, null });
     }
 
@@ -133,7 +133,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int)), ("b.Id", typeof(int?)), ("c.Id", typeof(int?)));
+            ("Id", typeof(int)), ("Id", typeof(int?)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null, null });
     }
 
@@ -169,7 +169,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int)), ("b.Id", typeof(int?)), ("c.Id", typeof(int?)));
+            ("Id", typeof(int)), ("Id", typeof(int?)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { 1, 1, 1 }, new object?[] { 2, null, null });
     }
@@ -197,7 +197,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int?)), ("b.Id", typeof(int)));
+            ("Id", typeof(int?)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null, 1 });
     }
 
@@ -233,7 +233,7 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int?)), ("b.Id", typeof(int?)), ("c.Id", typeof(int)));
+            ("Id", typeof(int?)), ("Id", typeof(int?)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { 1, 1, 1 }, new object?[] { null, null, 2 });
     }

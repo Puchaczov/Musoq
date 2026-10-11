@@ -9,6 +9,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 using Musoq.Schema.DataSources;
 using Musoq.Tests.Common;
 
@@ -39,7 +40,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "rows", (new GenericEntityTable<StreamingAggregateEntity>(), rowSource) }
-            });
+            }, executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing);
         var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema>
         {
             { "#schema", schema }
@@ -67,7 +68,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
                 compilationOptions);
 
             var table = vm.Run(CancellationToken.None);
-            var rows = table.ToDictionary(static row => (string)row[0], static row => Convert.ToInt64(row[1]));
+            var rows = table.ToDictionary(static row => (string)row.ReadValue(0), static row => Convert.ToInt64(row.ReadValue(1)));
 
             Assert.AreEqual(2, rows.Count);
             Assert.AreEqual(2L, rows["A"]);
@@ -113,7 +114,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
     {
         public static AggregateStreamingProbe? Probe { get; set; }
 
-        [BindableMethod]
+        [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
         public string Signal(string value)
         {
             Probe?.Signal();

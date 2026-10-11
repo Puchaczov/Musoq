@@ -57,7 +57,6 @@ internal sealed partial class PhysicalLoweringImplementation
             SourceEntityShape source => source with { Fields = fields },
             GeneratedRowShape generated => generated with { Fields = fields },
             TableRowShape tableRow => tableRow with { Fields = fields },
-            ExpandoAdapterShape expando => expando with { Fields = fields },
             ValuesRowShape values => new ValuesRowShape(
                 values.Alias,
                 values.GeneratedShape with { Fields = fields }),

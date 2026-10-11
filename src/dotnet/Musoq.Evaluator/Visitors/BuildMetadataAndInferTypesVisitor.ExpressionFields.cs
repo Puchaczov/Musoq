@@ -1,4 +1,5 @@
 using System.Linq;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
@@ -9,7 +10,11 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var expression = PopSemanticNode(VisitorOperationNames.VisitFieldNode);
-        PushSemanticNode(new FieldNode(expression, node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Span)
+        var fieldName = _queryState.QueryPart == QueryPart.Select &&
+                        !node.HasExplicitFieldName && expression is AccessColumnNode column
+            ? column.Name
+            : node.FieldName;
+        PushSemanticNode(new FieldNode(expression, node.FieldOrder, fieldName, node.HasExplicitFieldName, node.Span)
             .WithFullSpan(node.FullSpan));
     }
 

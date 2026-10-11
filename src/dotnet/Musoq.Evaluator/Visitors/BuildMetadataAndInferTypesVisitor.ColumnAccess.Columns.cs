@@ -101,6 +101,11 @@ public partial class BuildMetadataAndInferTypesVisitor
             ? tableSymbol.GetTableByAlias(node.Alias)
             : tableSymbol.GetTableByColumnName(node.Name, node.SpanOrEmpty());
 
+        var matchingColumns = tuple.Table?.GetColumnsByName(node.Name) ?? [];
+        if (matchingColumns.Length > 1)
+            throw new AmbiguousColumnException(node.Name, tuple.TableName ?? identifier, tuple.TableName ?? identifier,
+                node.SpanOrEmpty());
+
         ISchemaColumn? column;
         try
         {
@@ -141,8 +146,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (usedColumns.All(c => c.ColumnName != column.ColumnName))
                 usedColumns.Add(column);
 
-        var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span,
-            column.IntendedTypeName);
+        var accessColumn = column is StructuralProjectionColumn structural
+            ? new StructuralAccessColumnNode(column.ColumnName, tuple.TableName, structural.Shape, node.Span)
+            : new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span, column.IntendedTypeName);
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);
         PushSemanticNode(accessColumn);

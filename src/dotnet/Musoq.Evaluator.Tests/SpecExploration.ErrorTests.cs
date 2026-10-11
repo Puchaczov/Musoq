@@ -94,7 +94,7 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("test", table[0][0]);
+        Assert.AreEqual("test", table[0].ReadValue(0));
     }
 
     [TestMethod]

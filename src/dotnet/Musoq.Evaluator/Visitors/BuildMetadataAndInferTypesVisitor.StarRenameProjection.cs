@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -12,7 +11,6 @@ namespace Musoq.Evaluator.Visitors;
 public partial class BuildMetadataAndInferTypesVisitor
 {
     private static List<StarProjectedColumn> CreateSingleTableStarProjectedColumns(
-        TableSymbol tableSymbol,
         string generatedColumnIdentifier,
         List<(ISchemaColumn Column, Node? ReplacementExpression)> filteredColumns)
     {
@@ -22,9 +20,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     generatedColumnIdentifier,
                     entry.Column,
                     entry.ReplacementExpression,
-                    tableSymbol.HasAlias
-                        ? $"{generatedColumnIdentifier}.{entry.Column.ColumnName}"
-                        : entry.Column.ColumnName))
+                    entry.Column.ColumnName))
             .ToList();
     }
 
@@ -41,7 +37,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 tableIdentifier,
                 entry.Column,
                 entry.ReplacementExpression,
-                $"{tableIdentifier}.{entry.Column.ColumnName}"));
+                entry.Column.ColumnName));
         }
 
         return projected;
@@ -85,6 +81,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         TextSpan span)
     {
         var finalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var targetNames = new HashSet<string>(renamedIndexes.Values, StringComparer.OrdinalIgnoreCase);
         var isSingleTableExpansion = projectedColumns
             .Select(static column => column.TableIdentifier)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -98,7 +95,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     ? projectedColumns[i].Column.ColumnName
                     : projectedColumns[i].OutputName;
 
-            if (!finalNames.Add(finalName))
+            if (!finalNames.Add(finalName) && targetNames.Contains(finalName))
                 throw new StarModifierValidationException(
                     $"RENAME would produce duplicate output column '{finalName}'.",
                     DiagnosticCode.MQ3069_StarRenameDuplicateTarget,
@@ -119,6 +116,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             static column => column.OutputName);
         if (exactIndex >= 0)
             return exactIndex;
+
+        var qualifiedIndex = FindRenameSourceIndex(
+            projectedColumns,
+            sourceName,
+            static column => $"{column.TableIdentifier}.{column.Column.ColumnName}");
+        if (qualifiedIndex >= 0)
+            return qualifiedIndex;
 
         return FindRenameSourceIndex(
             projectedColumns,

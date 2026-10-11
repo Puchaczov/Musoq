@@ -50,8 +50,8 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(2, table[0].ReadValue(1));
     }
 
     #endregion
@@ -83,8 +83,8 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][0]);
-        Assert.AreEqual((byte)0x0B, table[0][1]);
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x0B, table[0].ReadValue(1));
     }
 
     #endregion
@@ -119,7 +119,7 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)0x1234, table[0][0]);
+        Assert.AreEqual((short)0x1234, table[0].ReadValue(0));
     }
 
     #endregion
@@ -150,7 +150,7 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
     }
 
     #endregion
@@ -185,7 +185,7 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(5, table[0][0]);
+        Assert.AreEqual(5, table[0].ReadValue(0));
     }
 
     #endregion
@@ -216,7 +216,7 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0][0]);
+        Assert.AreEqual("hello", table[0].ReadValue(0));
     }
 
     #endregion
@@ -246,7 +246,7 @@ public class BinaryDiscardFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("the remaining text", table[0][0]);
+        Assert.AreEqual("the remaining text", table[0].ReadValue(0));
     }
 
     #endregion

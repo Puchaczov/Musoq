@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 
 [TestClass]
 [DoNotParallelize]
-public sealed class DiagnosticCore010StarModifierTests : BasicEntityTestBase
+public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTestBase
 {
     [TestMethod]
     public void FullModifierChain_ShouldApplyInOrderAndPreserveReplacementPosition()
@@ -56,9 +56,9 @@ public sealed class DiagnosticCore010StarModifierTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         CollectionAssert.AreEqual(
-            new[] { "a.Name", "a.City", "a.Country", "POP", "a.Money", "a.Month", "a.Time", "a.Id", "a.NullableValue" },
+            new[] { "Name", "City", "Country", "POP", "Money", "Month", "Time", "Id", "NullableValue" },
             table.Columns.Select(static column => column.ColumnName).ToArray());
-        Assert.AreEqual(200m, table[0].Values[3]);
+        Assert.AreEqual(200m, table[0].ReadValues()[3]);
     }
 
     [TestMethod]
@@ -73,7 +73,7 @@ public sealed class DiagnosticCore010StarModifierTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         Assert.AreEqual(8, table.Columns.Count());
-        Assert.IsFalse(table.Columns.Any(static column => column.ColumnName.EndsWith(".Id")));
+        Assert.IsFalse(table.Columns.Any(static column => column.ColumnName == "Id"));
     }
 
     [TestMethod]

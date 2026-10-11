@@ -23,7 +23,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -39,7 +39,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello world", table[0][0]);
+        Assert.AreEqual("hello world", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -86,8 +86,8 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue((bool?)table[0][0]);
-        Assert.IsFalse((bool?)table[0][1]);
+        Assert.IsTrue((bool?)table[0].ReadValue(0));
+        Assert.IsFalse((bool?)table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -182,7 +182,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2L, table[0][1]);
+        Assert.AreEqual(2L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -277,7 +277,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-        var names = table.Select(row => (string)row[0]).ToList();
+        var names = table.Select(row => (string)row.ReadValue(0)).ToList();
         CollectionAssert.Contains(names, "a");
         CollectionAssert.Contains(names, "b");
     }
@@ -295,7 +295,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-        var populations = table.Select(row => (decimal)row[1]).ToList();
+        var populations = table.Select(row => (decimal)row.ReadValue(1)).ToList();
         CollectionAssert.Contains(populations, 100m);
         CollectionAssert.Contains(populations, 200m);
     }

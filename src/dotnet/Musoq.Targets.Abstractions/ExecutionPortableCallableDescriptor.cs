@@ -28,6 +28,15 @@ public sealed record ExecutionPortableCallableDescriptor(
         init => _parameterTypes = Freeze(value);
     }
 
+    private IReadOnlyList<ExecutionPortableTypeDescriptor> _genericArguments = [];
+
+    /// <summary>Gets the concrete arguments of a closed generic declaration.</summary>
+    public IReadOnlyList<ExecutionPortableTypeDescriptor> GenericArguments
+    {
+        get => _genericArguments;
+        init => _genericArguments = Freeze(value);
+    }
+
     public bool IsStatic { get; init; }
 
     public int GenericArity { get; init; }

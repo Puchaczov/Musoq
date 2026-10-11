@@ -21,7 +21,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"]);
     }
 
@@ -41,8 +41,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.Location", typeof(string)),
-            ("d.Score", typeof(decimal)));
+            ("Location", typeof(string)),
+            ("Score", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS", 301m], ["WARSAW", 501m]);
     }
 
@@ -60,8 +60,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["PARIS", "LYON"],
@@ -84,7 +84,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"]);
     }
 
@@ -122,8 +122,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["PARIS", "LYON"],
@@ -146,8 +146,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "BERLIN", null },
@@ -174,8 +174,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", "MUNICH"],
@@ -222,8 +222,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["PARIS", "LYON"],

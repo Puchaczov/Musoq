@@ -89,8 +89,8 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        AssertColumn(table, 0, "p.PersonName", typeof(string));
-        Assert.AreEqual("Alice", table[0][0]);
+        AssertColumn(table, 0, "PersonName", typeof(string));
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]

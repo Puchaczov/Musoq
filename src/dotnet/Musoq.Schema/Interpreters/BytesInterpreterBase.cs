@@ -86,7 +86,7 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
 
     private void ThrowInsufficientData(int count, int dataLength)
     {
-        throw new ParseException(
+        throw ParseException.ForBytes(
             ParseErrorCode.InsufficientData,
             SchemaName,
             _currentFieldName,

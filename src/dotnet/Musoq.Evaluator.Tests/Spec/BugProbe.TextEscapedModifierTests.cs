@@ -10,10 +10,10 @@ namespace Musoq.Evaluator.Tests.Spec;
 /// <summary>
 ///     BUG PROBE: Text 'between' with 'escaped' modifier.
 ///     Per spec section 5.4.3: "Handles escape sequences within delimited content"
-///     Known issue: escaped modifier is parsed but never generates escape-handling code.
+///     Covers escaped delimiter capture and repeated record continuation.
 /// </summary>
 [TestClass]
-public class BugProbeTextEscapedModifierTests
+public partial class BugProbeTextEscapedModifierTests
 {
     private static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
@@ -22,7 +22,7 @@ public class BugProbeTextEscapedModifierTests
     ///     BUG: 'between' with 'escaped' should handle escaped delimiters.
     ///     Spec 5.4.3: "Default escape character is backslash (\)"
     ///     Expected: Escaped closing delimiter should be included in captured content.
-    ///     Input: "hello \"world\" end" → captured: hello \"world\" end
+    ///     Input: "hello \"world\" end" → captured: hello "world" end
     /// </summary>
     [TestMethod]
     public void Text_BetweenEscaped_ShouldHandleEscapedDelimiters()
@@ -35,7 +35,7 @@ public class BugProbeTextEscapedModifierTests
         var entities = new[]
         {
             // The input is: "hello \"world\" end"more
-            // After between with escaped: captured = hello \"world\" end (escaped quotes not delimiters)
+            // Escaped quotes are decoded without terminating the field.
             new TextEntity { Name = "1.txt", Text = "\"hello \\\"world\\\" end\"more" }
         };
         var schemaProvider = new TextSchemaProvider(
@@ -46,6 +46,6 @@ public class BugProbeTextEscapedModifierTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello \\\"world\\\" end", table[0][0]);
+        Assert.AreEqual("hello \"world\" end", table[0].ReadValue(0));
     }
 }

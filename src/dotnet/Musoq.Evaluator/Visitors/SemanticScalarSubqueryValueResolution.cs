@@ -10,7 +10,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool TryElideCorrelatedScalarSubqueryResultAccessor(AccessMethodNode node, ArgsListNode args)
     {
-        if (!string.Equals(node.Name, CorrelatedScalarSubqueryResultName, StringComparison.Ordinal))
+        if (!node.IsCompilerGenerated || !string.Equals(node.Name, CorrelatedScalarSubqueryResultName, StringComparison.Ordinal))
             return false;
 
         if (args.Args is not [var wrappedExpression])

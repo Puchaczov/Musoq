@@ -34,6 +34,8 @@ internal sealed class TypedProfileRunnableFactory<TOut>
 
     internal Type RunnableType => _core.RunnableType;
 
+    public required TableTypedRowProjector<TOut> Projector { get; init; }
+
     public TypedQueryDiagnostics Diagnostics => _core.Diagnostics;
 
     public CompiledTypedProfileQuery<TOut> Create(ISchemaProvider provider)

@@ -42,12 +42,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var table = CompileSampleForExecution(ChainedApplyQualifyWindowSampleFileName).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(3, table[1][2]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual(1, table[0].ReadValue(2));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
+        Assert.AreEqual(3, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -79,10 +79,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var table = CompileSampleForExecution(ChainedApplyGroupedAggregateQualifyWindowSampleFileName).Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("right", table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual(3, table[0][3]);
+        Assert.AreEqual("right", table[0].ReadValue(0));
+        Assert.AreEqual(3m, table[0].GetValue<decimal?>(1));
+        Assert.AreEqual(3, table[0].ReadValue(2));
+        Assert.AreEqual(3, table[0].ReadValue(3));
     }
 
     [TestMethod]

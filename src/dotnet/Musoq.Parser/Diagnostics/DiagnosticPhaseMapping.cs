@@ -21,6 +21,7 @@ public static class DiagnosticPhaseMapping
             (int)DiagnosticCode.MQ7011_DataSourceReadFailed or
             (int)DiagnosticCode.MQ7012_DataSourceCleanupFailed => DiagnosticPhase.DataSource,
             (int)DiagnosticCode.MQ7013_StructuralInputLimitExceeded => DiagnosticPhase.Runtime,
+            >= 7014 and <= 7115 => DiagnosticPhase.Runtime,
             >= 1000 and < 3000 => DiagnosticPhase.Parse,
             >= 3000 and < 4000 => DiagnosticPhase.Bind,
             >= 4000 and < 5000 => DiagnosticPhase.DataSource,

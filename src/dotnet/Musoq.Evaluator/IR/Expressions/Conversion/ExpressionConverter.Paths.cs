@@ -9,6 +9,7 @@ public sealed partial class ExpressionConverter
         return node switch
         {
             AccessColumnNode column => NormalizeAccessColumn(column),
+            StructuralPropertyValueNode property => (string.Empty, $"F{property.Index}"),
             PropertyValueNode property => (string.Empty, property.Name),
             IdentifierNode identifier => (string.Empty, identifier.Name),
             WordNode word => (string.Empty, word.Value),
@@ -23,11 +24,14 @@ public sealed partial class ExpressionConverter
         return node switch
         {
             AccessColumnNode column => NormalizeAccessColumn(column),
+            StructuralPropertyValueNode property => (string.Empty, $"F{property.Index}"),
             PropertyValueNode property => (string.Empty, property.Name),
             AccessObjectArrayNode arrayAccess => (
                 arrayAccess.IsColumnAccess ? arrayAccess.TableAlias ?? string.Empty : string.Empty,
                 $"{arrayAccess.Name}[{arrayAccess.Token.Index}]"),
-            AccessObjectKeyNode keyAccess => (string.Empty, $"{keyAccess.Name}['{keyAccess.Token.Key}']"),
+            AccessObjectKeyNode keyAccess => (
+                keyAccess.IsColumnAccess ? keyAccess.TableAlias ?? string.Empty : string.Empty,
+                $"{keyAccess.Name}['{keyAccess.Token.Key}']"),
             IdentifierNode identifier => (string.Empty, identifier.Name),
             WordNode word => (string.Empty, word.Value),
             DotNode dot => MergePath(

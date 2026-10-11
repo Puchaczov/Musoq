@@ -10,7 +10,7 @@ internal static partial class ExecutionExpressionFingerprint
         expression switch
         {
             ExecutionFieldRead fieldRead => $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}:stability={fieldRead.Stability}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
-            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}:stable={Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(memberRead)}",
+            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:null-safe={memberRead.IsNullSafe}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}:stable={Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(memberRead)}",
             ExecutionLiteral literal => $"literal:{HoistType(literal.ReturnType)}:{literal.Value}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForHoist(binary.Left)}:{ForHoist(binary.Right)}:{HoistType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForHoist(unary.Operand)}:{HoistType(unary.ReturnType)}",
@@ -20,10 +20,10 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionArrayAccess arrayAccess => $"array:{ForHoist(arrayAccess.Array)}:{ForHoist(arrayAccess.Index)}:{HoistType(arrayAccess.ElementType)}:{HoistType(arrayAccess.ReturnType)}",
             ExecutionIsNullCheck isNull => $"isnull:{isNull.IsNegated}:{ForHoist(isNull.Expression)}:{HoistType(isNull.ReturnType)}",
             ExecutionRowPresence rowPresence => $"presence:{rowPresence.Alias}:{rowPresence.IsPresent}:{ForHoist(rowPresence.PresenceSource)}",
-            ExecutionInCheck inCheck => $"in:{inCheck.IsNegated}:{ForHoist(inCheck.Expression)}:{string.Join(",", inCheck.Values.Select(ForHoist))}:{HoistType(inCheck.ReturnType)}",
+            ExecutionInCheck inCheck => $"in:{inCheck.UsesSqlNullSemantics}:{inCheck.IsNegated}:{ForHoist(inCheck.Expression)}:{string.Join(",", inCheck.Values.Select(ForHoist))}:{HoistType(inCheck.ReturnType)}",
             ExecutionCollectionInCheck collectionInCheck => $"collection-in:{ForHoist(collectionInCheck.Expression)}:{collectionInCheck.Collection.Name}:{HoistType(collectionInCheck.ElementType)}:{HoistType(collectionInCheck.ReturnType)}",
             ExecutionPatternMatch patternMatch => $"pattern:{patternMatch.Kind}:{ForHoist(patternMatch.Expression)}:{ForHoist(patternMatch.Pattern)}:{HoistType(patternMatch.ReturnType)}",
-            ExecutionStringMatch stringMatch => $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForHoist(stringMatch.Input)}:{HoistType(stringMatch.ReturnType)}",
+            ExecutionStringMatch stringMatch => $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.RegexMatchTimeout?.Ticks.ToString(CultureInfo.InvariantCulture) ?? "<inherit>"}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForHoist(stringMatch.Input)}:{HoistType(stringMatch.ReturnType)}",
             ExecutionPrepareLikeMatcher prepareLike => $"like-prepare:{prepareLike.Comparison}:{ForHoist(prepareLike.Pattern)}:{HoistType(prepareLike.ReturnType)}",
             ExecutionPreparedLikeMatch preparedLike => $"like-prepared:{ForHoist(preparedLike.Input)}:{ForHoist(preparedLike.Matcher)}:{HoistType(preparedLike.ReturnType)}",
             ExecutionDynamicLikeMatch dynamicLike => $"like-dynamic:{dynamicLike.Comparison}:{ForHoist(dynamicLike.Input)}:{ForHoist(dynamicLike.Pattern)}:{ForHoist(dynamicLike.CacheSlot)}:{HoistType(dynamicLike.ReturnType)}",
@@ -44,7 +44,6 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionRowContextsRead rowContextsRead => $"contexts:{rowContextsRead.Row.Name}",
             ExecutionNullContextArray nullContextArray => $"null-context:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
             ExecutionContextArray contextArray => $"context-array:{string.Join(",", contextArray.Segments.Select(static segment => ForHoist(segment.Value)))}",
-            ExecutionCompositeKey compositeKey => $"composite:{string.Join(",", compositeKey.Parts.Select(ForHoist))}",
             ExecutionValueTupleKey valueTupleKey => $"tuple:{string.Join(",", valueTupleKey.Parts.Select(ForHoist))}:{HoistType(valueTupleKey.ReturnType)}",
             ExecutionAggregateCall aggregateCall => $"aggregate:{HoistMethod(aggregateCall.Method)}:{string.Join(",", aggregateCall.Arguments.Select(ForHoist))}:{HoistType(aggregateCall.ReturnType)}",
             ExecutionGroupKeyRead groupKeyRead => $"group-key:{groupKeyRead.Group.Name}:{groupKeyRead.KeyName}:{HoistType(groupKeyRead.ReturnType)}",
@@ -60,7 +59,7 @@ internal static partial class ExecutionExpressionFingerprint
         builder.Append(HoistMethod(methodCall.Method));
         builder.Append(":stable=");
         builder.Append(methodCall.Method.Descriptor.IsStable);
-        AppendEnumIntrinsicFingerprint(builder, methodCall);
+        AppendScalarBindingFingerprint(builder, methodCall);
         builder.Append(':');
         builder.Append(methodCall.Target == null
             ? string.Empty
@@ -76,8 +75,9 @@ internal static partial class ExecutionExpressionFingerprint
         return builder.ToString();
     }
 
-    private static void AppendEnumIntrinsicFingerprint(StringBuilder builder, ExecutionMethodCall methodCall)
+    private static void AppendScalarBindingFingerprint(StringBuilder builder, ExecutionMethodCall methodCall)
     {
+        GeneratedScalarGenericBinding.AppendFingerprint(builder, methodCall);
         builder.Append(":enum-intrinsic=");
         builder.Append(methodCall.EnumIntrinsic?.ToString() ?? "-");
         builder.Append(':');

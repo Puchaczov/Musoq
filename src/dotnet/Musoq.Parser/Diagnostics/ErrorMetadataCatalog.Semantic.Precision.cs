@@ -39,7 +39,7 @@ internal static partial class SemanticErrorMetadataCatalog
 
         yield return Entry(
             DiagnosticCode.MQ3095_ScalarSubqueryCardinality,
-            "A scalar subquery must be provably single-row before its value can be used as a scalar.",
+            "Retired diagnostic identifier: scalar row cardinality is now checked during execution with MQ7016_ScalarSubqueryCardinalityViolation.",
             ["Add an aggregate, TAKE 1, or another predicate that guarantees one row.", "Use IN or EXISTS when multiple rows are intended."],
             "Core Spec - Subqueries");
 
@@ -123,6 +123,12 @@ internal static partial class SemanticErrorMetadataCatalog
                 "Rename one of the definitions so every window name is unique."
             ],
             "Core Spec - Window Functions");
+
+        yield return Entry(
+            DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod,
+            "A column value cannot be used as the owner of a CLR instance method call. Source aliases select registered schema/library methods.",
+            ["Use a registered schema/library function; source-alias calls do not invoke arbitrary CLR instance methods."],
+            "Core Spec - Method Calls on Entities");
 
     }
 }

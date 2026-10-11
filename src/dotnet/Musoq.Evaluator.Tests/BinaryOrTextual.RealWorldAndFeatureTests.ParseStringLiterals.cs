@@ -41,9 +41,9 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("log.Timestamp", typeof(string)),
-            ("log.Level", typeof(string)),
-            ("log.Message", typeof(string)));
+            ("Timestamp", typeof(string)),
+            ("Level", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["2026-03-09", "INFO", "booted"]);
     }
 
@@ -104,8 +104,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("kv.Key", typeof(string)),
-            ("kv.Value", typeof(string)));
+            ("Key", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["host", "localhost"]);
     }
 
@@ -141,9 +141,9 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("log.Timestamp", typeof(string)),
-            ("log.Level", typeof(string)),
-            ("log.Message", typeof(string)));
+            ("Timestamp", typeof(string)),
+            ("Level", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["2026-03-09", "INFO", "booted"]);
     }
 
@@ -175,7 +175,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("log.Timestamp", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Timestamp", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 

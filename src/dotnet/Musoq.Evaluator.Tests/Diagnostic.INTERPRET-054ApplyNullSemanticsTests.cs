@@ -51,8 +51,8 @@ public sealed class DiagnosticInterpret054ApplyNullSemanticsTests : BinaryOrText
 
         TableMaterializationTestHelper.AssertColumns(
             crossApplyTable,
-            ("f.Name", typeof(string)),
-            ("p.Value", typeof(int)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             crossApplyTable,
             ["valid.bin", 42]);
@@ -67,8 +67,8 @@ public sealed class DiagnosticInterpret054ApplyNullSemanticsTests : BinaryOrText
 
         TableMaterializationTestHelper.AssertColumns(
             outerApplyTable,
-            ("f.Name", typeof(string)),
-            ("p.Value", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             outerApplyTable,
             new object?[] { "empty.bin", null },
@@ -110,9 +110,9 @@ public sealed class DiagnosticInterpret054ApplyNullSemanticsTests : BinaryOrText
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("p.Key", typeof(string)),
-            ("p.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Key", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "bad.txt", null, null },

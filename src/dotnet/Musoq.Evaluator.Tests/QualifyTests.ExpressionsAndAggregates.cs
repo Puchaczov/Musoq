@@ -26,11 +26,11 @@ public partial class QualifyTests
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("CityCount", typeof(int)));
+            ("CityCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", "NYC", 2],
-            ["Charlie", "NYC", 2]);
+            ["Alice", "NYC", 2L],
+            ["Charlie", "NYC", 2L]);
     }
 
     [TestMethod]
@@ -53,7 +53,7 @@ public partial class QualifyTests
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunAvg", typeof(decimal)));
+            ("RunAvg", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob", 500m, 300m],

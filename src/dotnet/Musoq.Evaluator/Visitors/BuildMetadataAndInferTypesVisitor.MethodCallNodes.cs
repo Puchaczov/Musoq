@@ -29,7 +29,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                         FilterExpression = node.FilterExpression,
                         FilterExpressionText = node.FilterExpressionText,
                         IsPivotGenerated = node.IsPivotGenerated,
-                        IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
+                        IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
+                        IsCompilerGenerated = node.IsCompilerGenerated
                     }).WithFullSpan(node.FullSpan));
     }
 
@@ -100,7 +101,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     FilterExpression = node.FilterExpression,
                     FilterExpressionText = node.FilterExpressionText,
                     IsPivotGenerated = node.IsPivotGenerated,
-                    IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
+                    IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
+                    IsCompilerGenerated = node.IsCompilerGenerated
                 });
     }
 

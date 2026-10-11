@@ -71,8 +71,7 @@ internal static class ExecutionPortableSymbolCatalog
         typeof(SourcePlanResult),
         typeof(SourceIdentity),
         typeof(Table),
-        typeof(Row),
-        typeof(Key)
+        typeof(Row)
     };
 
     private static readonly IReadOnlyDictionary<Type, string> HostImportGenericDefinitions = new Dictionary<Type, string>

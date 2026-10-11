@@ -75,12 +75,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         {
             Assert.Contains("var __musoqMaterializedTable = QueryRows.DeferredTable", sample);
             Assert.Contains("_ = __musoqMaterializedTable.Count;", sample);
-            Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", sample);
+            Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", sample);
             Assert.Contains("InterpretSource [", sample);
             Assert.Contains("ScalarForEach [", sample);
             Assert.IsFalse(sample.Contains("EvaluationHelper.WrapScalarForCrossApply", StringComparison.Ordinal));
             Assert.IsFalse(sample.Contains("EvaluationHelper.ConvertEnumerableOutputToChunks", StringComparison.Ordinal));
-            Assert.Contains("ReturnDeferredTable [result: ResultRow0 <- ResultShape0]", sample);
+            Assert.Contains("ReturnDeferredTable [result: ResultRow0 <- ResultRow0]", sample);
         }
 
         Assert.Contains("binary SimpleHeader", multipleFiles);

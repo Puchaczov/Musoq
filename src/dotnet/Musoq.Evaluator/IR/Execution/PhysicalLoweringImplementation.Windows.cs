@@ -53,7 +53,7 @@ internal sealed partial class PhysicalLoweringImplementation
             source,
             windowSource.Source.GeneratedRowShape);
         var windowIndex = new ExecutionVariable("windowIndex", typeof(int));
-        var rowAccessMode = ResolveWindowRowAccessMode(sourceShape);
+        var rowAccessMode = ExecutionRowAccessMode.Direct;
         var materialization = CreateWindowMaterialization(new WindowMaterializationContext(
             pipeline.Source,
             sourceRows,
@@ -121,9 +121,7 @@ internal sealed partial class PhysicalLoweringImplementation
         nodes.Add(CreateTable(
             resultTable,
             resultShape,
-            preserveWindowAppendContexts
-                ? ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(resultTable, buffer)
-                : null));
+            ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(resultTable, buffer)));
         nodes.Add(new ExecutionForEachIndexed(source, windowIndex, buffer, rowAccessMode, appendBlock.Value));
 
         return CompleteTableBuild(

@@ -1,5 +1,6 @@
 using System.Dynamic;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
@@ -32,7 +33,30 @@ public partial class BuildMetadataAndInferTypesVisitor
                 keySpan);
         }
 
+        if (node.IsColumnAccess)
+        {
+            if (node.ReturnType == null)
+            {
+                if (TryReportNoIndexer($"Object {node.Name} does not implement a string key indexer.", node))
+                    return;
+                throw new ObjectDoesNotImplementIndexerException(
+                    $"Object {node.Name} does not implement a string key indexer.", node.SpanOrEmpty());
+            }
+            PushSemanticNode(node);
+            return;
+        }
+
         var parentNode = PeekSemanticNode(VisitorOperationNames.VisitAccessObjectKeyNode);
+        if (!_columnPropertyBindingService.HasTypedParentForArrayAccess(parentNode))
+        {
+            var table = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
+            var columnAccess = _columnPropertyBindingService.TryCreateColumnKeyAccess(table, _sourceBinding.Identifier, node);
+            if (columnAccess != null)
+            {
+                PushSemanticNode(columnAccess);
+                return;
+            }
+        }
         if (parentNode?.ReturnType is not { } parentNodeType)
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,

@@ -40,7 +40,7 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
     }
 
@@ -68,7 +68,7 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
     }
 
@@ -99,7 +99,7 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"]);
     }
 
@@ -138,7 +138,7 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
     }
 
@@ -178,8 +178,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Country", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
     }
 
@@ -218,8 +218,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "KRAKOW"],

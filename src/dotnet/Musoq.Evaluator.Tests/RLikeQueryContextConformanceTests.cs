@@ -92,7 +92,7 @@ public sealed class RLikeQueryContextConformanceTests : BasicEntityTestBase
             TwoSources([Row(1, "Alpha"), Row(2, "Beta")], [Row(10, "prefix", @"\AAl")]))
             .Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Id", typeof(int)), ("b.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10], [2, null]);
     }
 
@@ -130,7 +130,7 @@ public sealed class RLikeQueryContextConformanceTests : BasicEntityTestBase
         var window = CreateAndRunVirtualMachine(windowQuery, rows).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(qualify, ["Ada", 1L], ["Alice", 2L]);
-        TableMaterializationTestHelper.AssertRowsInOrder(window, [1, 1], [2, 1], [3, 2]);
+        TableMaterializationTestHelper.AssertRowsInOrder(window, [1, 1L], [2, 1L], [3, 2L]);
     }
 
     [TestMethod]

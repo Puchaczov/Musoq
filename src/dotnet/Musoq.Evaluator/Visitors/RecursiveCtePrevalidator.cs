@@ -1,6 +1,7 @@
 using Musoq.Parser.Nodes;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
+using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -18,10 +19,26 @@ public static class RecursiveCtePrevalidator
         {
             ValidateColumnNames(cte);
             _ = new RecursiveCteShapeAnalyzer().AnalyzeRawSyntax(cte);
+            ValidateDependencyCycles(cte);
         }
 
         foreach (var child in ParserNodeChildTraversal.EnumerateChildren(node))
             ValidateNode(child);
+    }
+
+    private static void ValidateDependencyCycles(CteExpressionNode cte)
+    {
+        if (cte.IsRecursive)
+            return;
+
+        var graph = new CteDependencyGraphBuilder().Build(cte);
+        if (!graph.HasReachableDependencyCycle)
+            return;
+
+        throw new RecursiveCteValidationException(
+            DiagnosticCode.MQ3016_CircularReference,
+            "Reachable CTE definitions contain a circular dependency.",
+            cte.Span);
     }
 
     private static void ValidateColumnNames(CteExpressionNode cte)

@@ -25,7 +25,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("مرحبا بالعالم", table[0].Values[0]);
+        Assert.AreEqual("مرحبا بالعالم", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -48,7 +48,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("القاهرة", table[0].Values[0]);
+        Assert.AreEqual("القاهرة", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -71,7 +71,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("الرياض", table[0].Values[0]);
+        Assert.AreEqual("الرياض", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -98,11 +98,11 @@ public partial class MultilingualTextTests
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "القاهرة" && (long)row.Values[1] == 3L),
+                (string)row.ReadValues()[0] == "القاهرة" && (long)row.ReadValues()[1] == 3L),
             "Expected group 'القاهرة' with count 3");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "دبي" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "دبي" && (long)row.ReadValues()[1] == 2L),
             "Expected group 'دبي' with count 2");
     }
 
@@ -125,7 +125,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Ärzte überprüfen größere Übungen", table[0].Values[0]);
+        Assert.AreEqual("Ärzte überprüfen größere Übungen", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -148,7 +148,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Straße", table[0].Values[0]);
+        Assert.AreEqual("Straße", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -171,7 +171,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("München", table[0].Values[0]);
+        Assert.AreEqual("München", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -193,7 +193,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("สวัสดีชาวโลก", table[0].Values[0]);
+        Assert.AreEqual("สวัสดีชาวโลก", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -216,7 +216,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("กรุงเทพมหานคร", table[0].Values[0]);
+        Assert.AreEqual("กรุงเทพมหานคร", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -238,7 +238,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("שלום עולם", table[0].Values[0]);
+        Assert.AreEqual("שלום עולם", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -261,7 +261,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ירושלים", table[0].Values[0]);
+        Assert.AreEqual("ירושלים", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -283,7 +283,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("नमस्ते दुनिया", table[0].Values[0]);
+        Assert.AreEqual("नमस्ते दुनिया", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -306,7 +306,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("मुंबई", table[0].Values[0]);
+        Assert.AreEqual("मुंबई", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -329,7 +329,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("दिल्ली", table[0].Values[0]);
+        Assert.AreEqual("दिल्ली", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -351,7 +351,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Türkçe öğretmeni çalışıyor", table[0].Values[0]);
+        Assert.AreEqual("Türkçe öğretmeni çalışıyor", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -374,7 +374,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("İstanbul", table[0].Values[0]);
+        Assert.AreEqual("İstanbul", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -399,13 +399,13 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "İ"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "İ"),
             "Row with 'İ' (Turkish dotted I) not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ı"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ı"),
             "Row with 'ı' (Turkish dotless i) not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "I"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "I"),
             "Row with 'I' (Latin capital I) not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "i"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "i"),
             "Row with 'i' (Latin lowercase i) not found");
     }
 
@@ -428,7 +428,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Γεια σου κόσμε", table[0].Values[0]);
+        Assert.AreEqual("Γεια σου κόσμε", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -451,7 +451,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Αθήνα", table[0].Values[0]);
+        Assert.AreEqual("Αθήνα", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -473,7 +473,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Привіт світе", table[0].Values[0]);
+        Assert.AreEqual("Привіт світе", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -496,7 +496,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Київ", table[0].Values[0]);
+        Assert.AreEqual("Київ", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -518,7 +518,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Xin chào thế giới", table[0].Values[0]);
+        Assert.AreEqual("Xin chào thế giới", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -541,7 +541,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hà Nội", table[0].Values[0]);
+        Assert.AreEqual("Hà Nội", table[0].ReadValues()[0]);
     }
 
     #endregion

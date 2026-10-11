@@ -27,7 +27,7 @@ public sealed class RLikeApplyConformanceTests : GenericEntityTestBase
             Children(),
             filterSecondRowsSource: CorrelateChildren(observedKeys)).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("m1.Key", typeof(string)), ("m2.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["one", 10], ["one", 11], ["two", 21]);
         CollectionAssert.AreEqual(new object?[] { "one", "two", "empty" }, observedKeys.ToArray());
     }
@@ -104,8 +104,8 @@ public sealed class RLikeApplyConformanceTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m1.Key", typeof(string)),
-            ("m2.Id", typeof(int?)),
+            ("Key", typeof(string)),
+            ("Id", typeof(int?)),
             ("Matched", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["empty", null, false]);
         Assert.AreEqual(1, parents[0].PatternReads);
@@ -148,7 +148,7 @@ public sealed class RLikeApplyConformanceTests : GenericEntityTestBase
             _ = table.Count;
         });
 
-        StringAssert.Contains(exception.Message, "MQ9002");
+        StringAssert.Contains(exception.Message, "MQ7015");
         Assert.IsInstanceOfType<ArgumentException>(exception.InnerException);
     }
 

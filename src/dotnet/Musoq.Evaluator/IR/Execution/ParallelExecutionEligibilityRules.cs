@@ -89,8 +89,7 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionScriptVariableRead => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionRowContextsRead => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionNullContextArray => ParallelExecutionEligibilityCheck.Enabled,
-            ExecutionCompositeKey compositeKey => Combine(
-                compositeKey.Parts.Select(part => CanUseExpression(part, fieldReadEligibility)).ToArray()),
+
             ExecutionValueTupleKey valueTupleKey => Combine(
                 valueTupleKey.Parts.Select(part => CanUseExpression(part, fieldReadEligibility)).ToArray()),
             ExecutionWindowValueRead => ParallelExecutionEligibilityCheck.Skipped("Expression reads a window value."),
@@ -145,7 +144,7 @@ internal static class ParallelExecutionEligibilityRules
                                               ContainsMethodCall(branch.Result)) ||
                                           ContainsMethodCall(caseWhen.ElseExpression),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsMethodCall),
-            ExecutionCompositeKey compositeKey => compositeKey.Parts.Any(ContainsMethodCall),
+
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsMethodCall),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(ContainsMethodCall),
             _ => false
@@ -173,8 +172,7 @@ internal static class ParallelExecutionEligibilityRules
 
     private static ParallelExecutionEligibilityCheck CanUseFilterProjectFieldRead(ExecutionFieldRead fieldRead)
     {
-        return fieldRead.AccessStrategy is ExpandoDictionaryAccess
-            or ReflectedMemberAccess
+        return fieldRead.AccessStrategy is ReflectedMemberAccess
             or NestedClrPropertyAccess
             or NestedPositionalAccess
             ? ParallelExecutionEligibilityCheck.Skipped($"Expression reads field {fieldRead.Alias}.{fieldRead.FieldName} through dynamic or reflected access.")

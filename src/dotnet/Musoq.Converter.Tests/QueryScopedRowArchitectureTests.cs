@@ -73,7 +73,7 @@ public sealed class QueryScopedRowArchitectureTests
             var carrierName = QueryRowSourceNaming.CreateCarrierTypeName(
                 planner.Shape.Fingerprint,
                 planner.Carrier.Value);
-            StringAssert.Contains(generatedCode, $"GetQueryScopedRowSource<{carrierName},");
+            StringAssert.Contains(generatedCode, $"QuerySourceInvocation<{carrierName},");
             StringAssert.Contains(generatedCode, planner.Shape.Fingerprint);
             StringAssert.Contains(generatedCode, "reader.Read<string>(0)");
             StringAssert.Contains(generatedCode, "reader.Read<int>(1)");

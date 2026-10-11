@@ -37,8 +37,8 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x42, table[0][0]);
-        Assert.AreEqual(string.Empty, table[0][1]);
+        Assert.AreEqual((byte)0x42, table[0].ReadValue(0));
+        Assert.AreEqual(string.Empty, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(string.Empty, table[0][0]);
+        Assert.AreEqual(string.Empty, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(string.Empty, table[0][0]);
+        Assert.AreEqual(string.Empty, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -124,8 +124,8 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        Assert.AreEqual("Hello!", table[0][1]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        Assert.AreEqual("Hello!", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("  Hello", table[0][0]);
+        Assert.AreEqual("  Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello   ", table[0][0]);
+        Assert.AreEqual("Hello   ", table[0].ReadValue(0));
     }
 
     #endregion

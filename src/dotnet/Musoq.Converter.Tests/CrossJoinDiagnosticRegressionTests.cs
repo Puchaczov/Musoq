@@ -36,10 +36,10 @@ public sealed class CrossJoinDiagnosticRegressionTests
 
         using var table = result.CompiledQuery!.Run();
         Assert.HasCount(2, table);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("x", table[0][1]);
-        Assert.AreEqual(1, table[1][0]);
-        Assert.AreEqual("y", table[1][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual("x", table[0].ReadValue(1));
+        Assert.AreEqual(1, table[1].ReadValue(0));
+        Assert.AreEqual("y", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -87,8 +87,8 @@ public sealed class CrossJoinDiagnosticRegressionTests
 
             using var table = result.CompiledQuery!.Run();
             Assert.HasCount(1, table);
-            Assert.AreEqual(1, table[0][0]);
-            Assert.AreEqual("x", table[0][1]);
+            Assert.AreEqual(1, table[0].ReadValue(0));
+            Assert.AreEqual("x", table[0].ReadValue(1));
         }
 
         Assert.IsEmpty(offendingApplies, string.Join(Environment.NewLine, offendingApplies));

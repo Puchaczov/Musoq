@@ -60,7 +60,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -106,10 +106,10 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual(unchecked((int)0xAABBCCDD), table[0][1]);
-        Assert.AreEqual((short)0x0102, table[0][2]);
-        Assert.AreEqual((short)0x0304, table[0][3]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
+        Assert.AreEqual(unchecked((int)0xAABBCCDD), table[0].ReadValue(1));
+        Assert.AreEqual((short)0x0102, table[0].ReadValue(2));
+        Assert.AreEqual((short)0x0304, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x0102030405060708L, table[0][0]);
+        Assert.AreEqual(0x0102030405060708L, table[0].ReadValue(0));
     }
 
     #endregion
@@ -179,7 +179,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((ushort)65535, table[0][0]);
+        Assert.AreEqual((ushort)65535, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -212,7 +212,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(4294967295u, table[0][0]);
+        Assert.AreEqual(4294967295u, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -245,7 +245,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x8000000000000000UL, table[0][0]);
+        Assert.AreEqual(0x8000000000000000UL, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -278,7 +278,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((sbyte)-1, table[0][0]);
+        Assert.AreEqual((sbyte)-1, table[0].ReadValue(0));
     }
 
     #endregion
@@ -313,7 +313,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3.14159f, (float)table[0][0], 0.00001f);
+        Assert.AreEqual(3.14159f, (float)table[0].ReadValue(0), 0.00001f);
     }
 
     [TestMethod]
@@ -344,7 +344,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3.141592653589793, (double)table[0][0], 0.0000000001);
+        Assert.AreEqual(3.141592653589793, (double)table[0].ReadValue(0), 0.0000000001);
     }
 
     [TestMethod]
@@ -382,7 +382,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3.14159f, (float)table[0][0], 0.00001f);
+        Assert.AreEqual(3.14159f, (float)table[0].ReadValue(0), 0.00001f);
     }
 
     #endregion

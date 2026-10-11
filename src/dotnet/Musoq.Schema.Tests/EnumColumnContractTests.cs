@@ -135,10 +135,10 @@ public sealed class EnumColumnContractTests
     [TestMethod]
     public void RuntimeContract_ShouldAdvertiseBreakingSchemaGeneration()
     {
-        Assert.AreEqual("2", ReadRuntimeContractConstant(nameof(RuntimeV2Contract.RuntimeContractVersion)));
-        Assert.AreEqual("2", ReadRuntimeContractConstant(nameof(RuntimeV2Contract.SchemaContractVersion)));
+        Assert.AreEqual("3", ReadRuntimeContractConstant(nameof(RuntimeV2Contract.RuntimeContractVersion)));
+        Assert.AreEqual("3", ReadRuntimeContractConstant(nameof(RuntimeV2Contract.SchemaContractVersion)));
         Assert.AreEqual(
-            "runtime-v2=2;schema=2;parameters=1",
+            "runtime-v2=3;schema=3;parameters=2",
             ReadRuntimeContractConstant(nameof(RuntimeV2Contract.ContractSignature)));
     }
 

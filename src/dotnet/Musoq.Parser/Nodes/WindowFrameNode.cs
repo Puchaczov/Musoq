@@ -22,6 +22,6 @@ public class WindowFrameNode(WindowFrameType frameType, WindowFrameBoundNode sta
     public override string ToString()
     {
         var frameKind = FrameType == WindowFrameType.Rows ? "rows" : "range";
-        return $"{frameKind} between {Start} and {End}";
+        return $"{frameKind} between {Start.ToString()} and {End.ToString()}";
     }
 }

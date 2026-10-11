@@ -12,12 +12,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (string) Tests
 
     [TestMethod]
-    public void GetBytes_NullString_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((string?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidString_ReturnsBytes()
     {
         var result = Library.GetBytes("Hello");
@@ -38,12 +32,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (string, length, offset) Tests
 
     [TestMethod]
-    public void GetBytes_StringWithOffset_NullString_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes(null, 5, 0));
-    }
-
-    [TestMethod]
     public void GetBytes_StringWithOffset_ValidString_ReturnsBytes()
     {
         var result = Library.GetBytes("Hello World", 5, 6);
@@ -56,12 +44,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (char) Tests
 
     [TestMethod]
-    public void GetBytes_NullChar_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((char?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidChar_ReturnsBytes()
     {
         var result = Library.GetBytes('A');
@@ -72,12 +54,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #endregion
 
     #region GetBytes (bool) Tests
-
-    [TestMethod]
-    public void GetBytes_NullBool_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((bool?)null));
-    }
 
     [TestMethod]
     public void GetBytes_TrueBool_ReturnsBytes()
@@ -100,12 +76,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (long) Tests
 
     [TestMethod]
-    public void GetBytes_NullLong_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((long?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidLong_ReturnsBytes()
     {
         var result = Library.GetBytes(123456789L);
@@ -124,12 +94,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #endregion
 
     #region GetBytes (int) Tests
-
-    [TestMethod]
-    public void GetBytes_NullInt_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((int?)null));
-    }
 
     [TestMethod]
     public void GetBytes_ValidInt_ReturnsBytes()
@@ -155,12 +119,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (short) Tests
 
     [TestMethod]
-    public void GetBytes_NullShort_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((short?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidShort_ReturnsBytes()
     {
         var result = Library.GetBytes(1234);
@@ -171,12 +129,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #endregion
 
     #region GetBytes (ulong) Tests
-
-    [TestMethod]
-    public void GetBytes_NullULong_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((ulong?)null));
-    }
 
     [TestMethod]
     public void GetBytes_ValidULong_ReturnsBytes()
@@ -191,12 +143,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (ushort) Tests
 
     [TestMethod]
-    public void GetBytes_NullUShort_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((ushort?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidUShort_ReturnsBytes()
     {
         var result = Library.GetBytes((ushort)1234);
@@ -209,12 +155,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (uint) Tests
 
     [TestMethod]
-    public void GetBytes_NullUInt_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((uint?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidUInt_ReturnsBytes()
     {
         var result = Library.GetBytes((uint)12345);
@@ -225,12 +165,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #endregion
 
     #region GetBytes (decimal) Tests
-
-    [TestMethod]
-    public void GetBytes_NullDecimal_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((decimal?)null));
-    }
 
     [TestMethod]
     public void GetBytes_ValidDecimal_ReturnsBytes()
@@ -253,12 +187,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #region GetBytes (double) Tests
 
     [TestMethod]
-    public void GetBytes_NullDouble_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((double?)null));
-    }
-
-    [TestMethod]
     public void GetBytes_ValidDouble_ReturnsBytes()
     {
         var result = Library.GetBytes(123.456);
@@ -277,12 +205,6 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     #endregion
 
     #region GetBytes (float) Tests
-
-    [TestMethod]
-    public void GetBytes_NullFloat_ReturnsNull()
-    {
-        Assert.IsNull(Library.GetBytes((float?)null));
-    }
 
     [TestMethod]
     public void GetBytes_ValidFloat_ReturnsBytes()

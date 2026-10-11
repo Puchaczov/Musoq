@@ -3,6 +3,7 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
+using static Musoq.Evaluator.Visitors.SqlFunctionCallBinding;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
@@ -19,7 +20,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var distinctMethodName = $"{node.Name}Distinct";
             if (TryResolveAggregateDeclarationMethod(distinctMethodName, argTypes, args, context, out var distinctDeclaration))
-                return (distinctDeclaration, false);
+                return (RequireCallableDeclaration(node, distinctDeclaration), false);
 
             throw CallableResolutionDiagnostics.CreateException(
                 context.SchemaTablePair.Schema,
@@ -31,19 +32,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var declaration))
-            return (declaration, false);
+            return (RequireCallableDeclaration(node, declaration), false);
 
         if (context.SchemaTablePair.Schema.TryResolveMethod(methodName, argTypes, context.EntityType, out var method))
         {
-            if (method.GetCustomAttribute<AggregationMethodAttribute>() is not null)
+            if (method.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
                 throw new CannotResolveMethodException(
                     $"Aggregate method {methodName} must declare a typed AggregateFunctionAttribute and a valid non-negative literal parent depth.",
                     node.SpanOrEmpty());
 
-            return (method, false);
+            return (RequireCallableDeclaration(node, method), false);
         }
 
-        if (context.SchemaTablePair.Schema.TryResolveRawMethod(methodName, argTypes, out method)) return (method, true);
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(methodName, argTypes, out method))
+            return (RequireCallableDeclaration(node, method), true);
 
         if (IsInterpretOrParseFunction(methodName))
             throw new CannotResolveMethodException(
@@ -60,4 +62,5 @@ public partial class BuildMetadataAndInferTypesVisitor
             node.SpanOrEmpty(),
             args.Args);
     }
+
 }

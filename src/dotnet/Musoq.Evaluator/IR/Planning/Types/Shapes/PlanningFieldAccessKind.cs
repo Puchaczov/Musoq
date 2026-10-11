@@ -6,7 +6,6 @@ internal enum PlanningFieldAccessKind
     ClrMember,
     ReflectedMember,
     Positional,
-    ExpandoDictionary,
     GeneratedField,
     GeneratedContext,
     NestedClrMember,

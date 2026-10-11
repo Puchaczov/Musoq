@@ -44,7 +44,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateComprehensiveSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("f.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["GDANSK"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -75,14 +75,14 @@ public partial class SubqueryTests
             ORDER BY a.Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateComprehensiveSources());
-        vm.Parameters["matchCountry"] = "POLAND";
-        vm.Parameters["minScore"] = 200m;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "matchCountry", "POLAND");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minScore", 200m);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("Verdict", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -109,7 +109,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("TotalPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -142,7 +142,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("RankInCountry", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -180,9 +180,9 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("j.City", typeof(string)),
-            ("applied.MatchCount", typeof(long?)));
+            ("City", typeof(string)),
+            ("City", typeof(string)),
+            ("MatchCount", typeof(long?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["PARIS", "LYON", 2L],

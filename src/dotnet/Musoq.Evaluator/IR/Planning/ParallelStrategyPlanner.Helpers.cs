@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Plugins;
 
 namespace Musoq.Evaluator.IR.Planning;
 
@@ -22,23 +23,6 @@ internal sealed partial class ParallelStrategyPlanner
             outcome,
             confidence,
             reason);
-    }
-
-    private static ParallelEligibilityCheck CanUseParallelAggregateBindings(AggregateBinding[] bindings)
-    {
-        if (bindings.Length == 0)
-            return ParallelEligibilityCheck.Skipped("No aggregate set operations are present for mergeable parallel aggregation.");
-
-        if (bindings.Any(static binding => binding.ParentDepth > 0))
-            return ParallelEligibilityCheck.Skipped("Aggregate binding requires parent group links, which cannot be merged in the parallel aggregate loop.");
-
-        if (bindings.Any(static binding => binding.Kernel == null))
-            return ParallelEligibilityCheck.Skipped("At least one aggregate binding has no typed aggregate kernel for parallel merging.");
-
-        if (bindings.Any(static binding => binding.Kernel is { SupportsMerge: false }))
-            return ParallelEligibilityCheck.Skipped("At least one aggregate binding is not mergeable.");
-
-        return ParallelEligibilityCheck.Enabled;
     }
 
     private static ParallelEligibilityCheck CanUseParallelFilterProjectPredicate(

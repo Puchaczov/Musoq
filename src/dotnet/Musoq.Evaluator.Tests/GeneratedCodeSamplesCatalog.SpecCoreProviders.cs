@@ -18,9 +18,9 @@ internal static partial class GeneratedCodeSamplesCatalog
         return new NamedDatasourceSampleProvider();
     }
 
-    private static ISchemaProvider CreateObjectCoercionSampleProvider()
+    private static ISchemaProvider CreateTypedNumericSampleProvider()
     {
-        return new ObjectCoercionSampleProvider();
+        return new TypedNumericSampleProvider();
     }
 
     private sealed class NamedDatasourceSampleProvider : ISchemaProvider
@@ -66,11 +66,12 @@ internal static partial class GeneratedCodeSamplesCatalog
                 parameters.Length > 1 && parameters[1] is int second ? second : 7);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             return EnsureSourceType<T, NamedDatasourceSampleEntity>(
                 name,
                 new NamedDatasourceSampleRowSource(parameters));
@@ -130,17 +131,17 @@ internal static partial class GeneratedCodeSamplesCatalog
         }
     }
 
-    private sealed class ObjectCoercionSampleProvider : ISchemaProvider
+    private sealed class TypedNumericSampleProvider : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
-            return new ObjectCoercionSampleSchema();
+            return new TypedNumericSampleSchema();
         }
     }
 
-    private sealed class ObjectCoercionSampleSchema : SchemaBase
+    private sealed class TypedNumericSampleSchema : SchemaBase
     {
-        public ObjectCoercionSampleSchema()
+        public TypedNumericSampleSchema()
             : base("object", CreateLibrary())
         {
         }
@@ -150,17 +151,17 @@ internal static partial class GeneratedCodeSamplesCatalog
             SourceMetadataContext metadataContext,
             params object?[] parameters)
         {
-            return new ObjectCoercionSampleTable();
+            return new TypedNumericSampleTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
-            return EnsureSourceType<T, ObjectCoercionSampleEntity>(
+            return EnsureSourceType<T, TypedNumericSampleEntity>(
                 name,
-                new ObjectCoercionSampleRowSource());
+                new TypedNumericSampleRowSource());
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -171,15 +172,15 @@ internal static partial class GeneratedCodeSamplesCatalog
         }
     }
 
-    private sealed class ObjectCoercionSampleTable : ISchemaTable
+    private sealed class TypedNumericSampleTable : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } =
         [
-            new SchemaColumn(nameof(ObjectCoercionSampleEntity.Label), 0, typeof(string)),
-            new SchemaColumn(nameof(ObjectCoercionSampleEntity.Value), 1, typeof(object))
+            new SchemaColumn(nameof(TypedNumericSampleEntity.Label), 0, typeof(string)),
+            new SchemaColumn(nameof(TypedNumericSampleEntity.Value), 1, typeof(decimal?))
         ];
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(ObjectCoercionSampleEntity));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(TypedNumericSampleEntity));
 
         public ISchemaColumn? GetColumnByName(string name)
         {
@@ -194,13 +195,13 @@ internal static partial class GeneratedCodeSamplesCatalog
         }
     }
 
-    private sealed class ObjectCoercionSampleRowSource : RowSourceBase<ObjectCoercionSampleEntity>
+    private sealed class TypedNumericSampleRowSource : RowSourceBase<TypedNumericSampleEntity>
     {
-        protected override void CollectChunks(IChunkWriter<ObjectCoercionSampleEntity> writer)
+        protected override void CollectChunks(IChunkWriter<TypedNumericSampleEntity> writer)
         {
             writer.Write(
             [
-                new ObjectCoercionSampleEntity { Label = "object", Value = 42 }
+                new TypedNumericSampleEntity { Label = "object", Value = 42 }
             ]);
         }
     }
@@ -215,9 +216,9 @@ public sealed class NamedDatasourceSampleEntity
     public int Second { get; init; }
 }
 
-public sealed class ObjectCoercionSampleEntity
+public sealed class TypedNumericSampleEntity
 {
     public string Label { get; init; } = string.Empty;
 
-    public object? Value { get; init; }
+    public decimal? Value { get; init; }
 }

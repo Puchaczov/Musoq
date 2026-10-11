@@ -35,7 +35,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
-        var methodNames = table.Select(row => (string)row[0]).ToList();
+        var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("empty", methodNames, "Should contain 'empty' method");
         Assert.Contains("entities", methodNames, "Should contain 'entities' method");
     }
@@ -64,7 +64,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
-        var methodNames = table.Select(row => (string)row[0]).ToList();
+        var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("empty", methodNames, "Should contain 'empty' method");
         Assert.Contains("entities", methodNames, "Should contain 'entities' method");
     }
@@ -93,7 +93,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
-        var methodNames = table.Select(row => (string)row[0]).ToList();
+        var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("empty", methodNames, "Should contain 'empty' method");
         Assert.Contains("entities", methodNames, "Should contain 'entities' method");
     }
@@ -180,7 +180,7 @@ public partial class DescStatementTests
 
 
         Assert.AreEqual(1, table.Count, "Should return exactly one method overload");
-        Assert.AreEqual("entities", (string)table[0][0], "Should return 'entities' method");
+        Assert.AreEqual("entities", (string)table[0].ReadValue(0), "Should return 'entities' method");
     }
 
     [TestMethod]
@@ -203,7 +203,7 @@ public partial class DescStatementTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Should return method constructor information");
-        Assert.AreEqual("entities", (string)table[0][0], "DESC keyword should be case insensitive");
+        Assert.AreEqual("entities", (string)table[0].ReadValue(0), "DESC keyword should be case insensitive");
     }
 
     [TestMethod]
@@ -230,7 +230,7 @@ public partial class DescStatementTests
 
 
         Assert.AreEqual(1, table.Count, "Should return exactly one method overload");
-        Assert.AreEqual("entities", (string)table[0][0], "Should return 'entities' method");
+        Assert.AreEqual("entities", (string)table[0].ReadValue(0), "Should return 'entities' method");
     }
 
     [TestMethod]
@@ -294,7 +294,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should return column information");
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("Name", columnNames, "Should contain 'Name' column");
         Assert.Contains("City", columnNames, "Should contain 'City' column");
         Assert.Contains("Country", columnNames, "Should contain 'Country' column");
@@ -371,18 +371,18 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should return library methods");
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain Trim method");
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")), "Should contain Substring method");
 
 
         foreach (var row in table)
         {
-            Assert.IsNotNull(row[0], "Method should not be null");
-            Assert.IsNotNull(row[1], "Description should not be null");
-            Assert.IsNotNull(row[2], "Category should not be null");
-            Assert.IsNotNull(row[3], "Source should not be null");
-            var source = (string)row[3];
+            Assert.IsNotNull(row.ReadValue(0), "Method should not be null");
+            Assert.IsNotNull(row.ReadValue(1), "Description should not be null");
+            Assert.IsNotNull(row.ReadValue(2), "Category should not be null");
+            Assert.IsNotNull(row.ReadValue(3), "Source should not be null");
+            var source = (string)row.ReadValue(3);
             Assert.IsTrue(source == "Library" || source == "Schema",
                 $"Source should be either 'Library' or 'Schema', got: {source}");
         }
@@ -408,9 +408,9 @@ public partial class DescStatementTests
 
         var allRows = table.Select(row => new
         {
-            Method = (string)row[0],
-            Category = (string)row[2],
-            Source = (string)row[3]
+            Method = (string)row.ReadValue(0),
+            Category = (string)row.ReadValue(2),
+            Source = (string)row.ReadValue(3)
         }).ToList();
 
         // Note: BasicSchema only has Library methods, no Schema-specific methods

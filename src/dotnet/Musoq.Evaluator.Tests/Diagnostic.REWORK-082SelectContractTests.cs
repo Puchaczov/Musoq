@@ -152,13 +152,13 @@ public sealed class DiagnosticRework082SelectContractTests : BasicEntityTestBase
         CollectionAssert.AreEqual(
             new[] { "Name", "City", "Country", "Population", "Money", "Month", "Time", "Id", "NullableValue", "Name2" },
             table.Columns.Select(static column => column.ColumnName).ToArray());
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual(7, table[0][7]);
-        Assert.AreEqual("Ada", table[0][9]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual(7, table[0].ReadValue(7));
+        Assert.AreEqual("Ada", table[0].ReadValue(9));
     }
 
     [TestMethod]
-    public void QualifiedWildcardExpansion_ShouldPreserveEachSourcePrefix()
+    public void QualifiedWildcardExpansion_ShouldPreserveEachSourceColumnOrder()
     {
         const string query =
             "select a.*, b.* from #A.Entities() a inner join #B.Entities() b on a.Id = b.Id";
@@ -173,14 +173,11 @@ public sealed class DiagnosticRework082SelectContractTests : BasicEntityTestBase
         {
             "Name", "City", "Country", "Population", "Money", "Month", "Time", "Id", "NullableValue"
         };
-        var expectedNames = primitiveColumns
-            .Select(column => $"a.{column}")
-            .Concat(primitiveColumns.Select(column => $"b.{column}"))
-            .ToArray();
+        var expectedNames = primitiveColumns.Concat(primitiveColumns).ToArray();
 
         CollectionAssert.AreEqual(expectedNames, table.Columns.Select(static column => column.ColumnName).ToArray());
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual("right", table[0][9]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual("right", table[0].ReadValue(9));
     }
 
     [TestMethod]
@@ -197,7 +194,7 @@ public sealed class DiagnosticRework082SelectContractTests : BasicEntityTestBase
         CollectionAssert.AreEqual(
             new[] { "Name", "City", "Country", "Population", "Money", "Month", "Time", "Id", "NullableValue" },
             table.Columns.Select(static column => column.ColumnName).ToArray());
-        Assert.AreEqual("Ada", table[0][0]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
     }
 
     [TestMethod]

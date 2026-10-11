@@ -23,6 +23,8 @@ public sealed record GeneratedCodeSample
 
     public required Func<ISchemaProvider> CreateSchemaProvider { get; init; }
 
+    public Type? OutputType { get; init; }
+
     public CompilationOptions CompilationOptions { get; init; } =
         new CompilationOptions().WithStabilityAwareScalarReuse();
 

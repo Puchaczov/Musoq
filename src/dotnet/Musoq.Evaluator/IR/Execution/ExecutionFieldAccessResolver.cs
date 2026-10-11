@@ -30,6 +30,9 @@ internal static class ExecutionFieldAccessResolver
             : sourceRelativeColumnName;
         FieldAccessStrategy? accessStrategy = sourceShape switch
         {
+            GeneratedRowShape generated when nestedRoot.Field.AccessStrategy is GeneratedFieldAccess generatedField =>
+                new GeneratedRowNestedAccess(generated.TypeName, generatedField.FieldName,
+                    nestedRoot.PropertyPath, IsRowCarrier: true),
             TableRowShape when nestedRoot.Field.AccessStrategy is GeneratedRowTypeAccess generatedRow =>
                 new GeneratedRowNestedAccess(
                     generatedRow.TypeName,

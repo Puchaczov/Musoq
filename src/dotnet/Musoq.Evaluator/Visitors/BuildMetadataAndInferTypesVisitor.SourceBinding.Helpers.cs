@@ -274,8 +274,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         return _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
     }
 
-
-
     private ISchemaColumn[] GetColumnsForAlias(string alias, int schemaFromKey)
     {
         ThrowIfCancellationRequested();
@@ -284,7 +282,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             return columnNames
                 .Select<string, ISchemaColumn>((f, i) => new SchemaColumn(f, i, typeof(object)))
                 .ToArray();
-
 
         return [];
     }

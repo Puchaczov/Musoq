@@ -139,11 +139,12 @@ public partial class MethodsMetadata
     private static bool TypeConformsToConstraints(Type genericType, Type type)
     {
         var effectiveType = Nullable.GetUnderlyingType(type) ?? type;
+        effectiveType = Musoq.Schema.StructuralInputs.GeneratedRecordConstraintWitness.Resolve(genericType, effectiveType);
 
         var interfaces = genericType.GetGenericParameterConstraints()
             .Where(t => t.IsInterface);
 
-        if (interfaces.Any(@interface => !effectiveType.GetInterfaces().Contains(@interface))) return false;
+        if (interfaces.Any(@interface => !ConformsToConstructedConstraint(@interface, genericType, effectiveType))) return false;
 
         var specialConstraints = genericType.GenericParameterAttributes;
 
@@ -158,7 +159,7 @@ public partial class MethodsMetadata
         var baseConstraint = genericType.GetGenericParameterConstraints()
             .FirstOrDefault(t => !t.IsInterface);
         if (baseConstraint != null)
-            if (!baseConstraint.IsAssignableFrom(effectiveType))
+            if (!ConformsToConstructedConstraint(baseConstraint, genericType, effectiveType))
                 return false;
 
         if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == 0) return true;

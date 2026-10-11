@@ -39,7 +39,8 @@ public partial class SubqueryToCteRewriteVisitor
             null,
             false)
         {
-            IsScalarSubqueryValueWrapper = true
+            IsScalarSubqueryValueWrapper = true,
+            IsCompilerGenerated = true
         };
     }
 
@@ -50,6 +51,6 @@ public partial class SubqueryToCteRewriteVisitor
             new ArgsListNode([expression]),
             null,
             false,
-            alias: libraryAlias);
+            alias: libraryAlias) { IsCompilerGenerated = true };
     }
 }

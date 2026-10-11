@@ -49,7 +49,7 @@ internal static partial class PlanningPropertyDeriver
                 continue;
 
             var requiredColumns = requiredColumnsByAlias.TryGetValue(scan.Alias, out var required)
-                ? required.OrderBy(static name => name, StringComparer.OrdinalIgnoreCase).ToArray()
+                ? required.OrderBy(static name => name, StringComparer.Ordinal).ToArray()
                 : [];
             context.CancellationToken.ThrowIfCancellationRequested();
             var predicates = pushedPredicates.TryGetValue(scan.SourceContextId, out var pushed)
@@ -134,7 +134,7 @@ internal static partial class PlanningPropertyDeriver
         }
 
         var availableByName = new Dictionary<string, ISchemaColumn>(
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.Ordinal);
         foreach (var column in availableColumns)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -153,7 +153,7 @@ internal static partial class PlanningPropertyDeriver
             }
         }
 
-        var requiredSet = new HashSet<string>(requiredColumns, StringComparer.OrdinalIgnoreCase);
+        var requiredSet = new HashSet<string>(requiredColumns, StringComparer.Ordinal);
         var projectedList = new List<ISchemaColumn>();
         foreach (var column in availableColumns)
         {

@@ -64,7 +64,7 @@ public partial class ExploratoryFunctionsAndFixesTests : ExploratoryEvaluatorTes
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(42m, table[0].Values[1]);
+        Assert.AreEqual(42m, table[0].ReadValues()[1]);
     }
 
     #endregion

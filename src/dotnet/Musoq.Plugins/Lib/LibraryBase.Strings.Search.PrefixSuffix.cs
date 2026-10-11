@@ -10,7 +10,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <param name="prefix">The prefix</param>
     /// <returns>True if starts with; otherwise false</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public bool? StartsWith(string? value, string? prefix)
     {
@@ -27,7 +27,7 @@ public partial class LibraryBase
     /// <param name="prefix">The prefix</param>
     /// <param name="comparison">The comparison</param>
     /// <returns>True if starts with; otherwise false</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public bool? StartsWith(string? value, string? prefix, string comparison)
     {
@@ -43,7 +43,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <param name="suffix">The suffix</param>
     /// <returns>True if ends with; otherwise false</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public bool? EndsWith(string? value, string? suffix)
     {
@@ -60,7 +60,7 @@ public partial class LibraryBase
     /// <param name="suffix">The suffix</param>
     /// <param name="comparison">The comparison</param>
     /// <returns>True if ends with; otherwise false</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public bool? EndsWith(string? value, string? suffix, string comparison)
     {

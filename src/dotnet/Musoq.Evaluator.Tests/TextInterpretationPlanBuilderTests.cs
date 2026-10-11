@@ -39,14 +39,14 @@ public class TextInterpretationPlanBuilderTests
     }
 
     [TestMethod]
-    public void BuildTextPlan_WhenFieldIsSwitch_ShouldEmitObjectProperty()
+    public void BuildTextPlan_WhenFieldIsSwitch_ShouldEmitConcreteProperty()
     {
         var field = new TextFieldDefinitionNode("Body", [new TextSwitchCaseNode("\\d+", "Numeric")]);
         var schema = new TextSchemaNode("Message", [field]);
 
         var plan = BuildPlan(schema);
 
-        Assert.AreEqual("object?", plan.Fields.Single().PropertyClrType);
+        Assert.AreEqual("TextSwitch_Body?", plan.Fields.Single().PropertyClrType);
     }
 
     [TestMethod]

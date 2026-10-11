@@ -43,8 +43,8 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Width", typeof(int)),
-            ("p.Height", typeof(int)));
+            ("Width", typeof(int)),
+            ("Height", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [16, 32]);
     }
 
@@ -65,7 +65,7 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         var table = RunBinaryQuery(query, content);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Width", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Width", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
@@ -87,8 +87,8 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Length", typeof(int)),
-            ("c.ChunkType", typeof(string)));
+            ("Length", typeof(int)),
+            ("ChunkType", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [13, "IHDR"]);
     }
 
@@ -108,7 +108,7 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         var table = RunBinaryQuery(query, content);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("c.ChunkType", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("ChunkType", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
@@ -128,7 +128,7 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         var table = RunBinaryQuery(query, content);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("h.Version", typeof(byte)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)3]);
     }
 
@@ -148,7 +148,7 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         var table = RunBinaryQuery(query, content);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Length", typeof(byte)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Length", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)3]);
     }
 
@@ -168,7 +168,7 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
 
         var table = RunBinaryQuery(query, content);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Length", typeof(byte?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Length", typeof(byte?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 }

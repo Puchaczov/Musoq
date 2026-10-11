@@ -41,10 +41,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by p.Name ASC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(Name: p.Name, RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(Name: p.Name, RowNum: resultRowNumbers[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -79,10 +79,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by p.Age order by p.Name ASC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -119,10 +119,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by p.Age DESC, p.Name ASC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -161,10 +161,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeFilteredChunked [pRows where (p.Age > 18) -> resultWindowRows]",
             "    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by p.Name ASC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

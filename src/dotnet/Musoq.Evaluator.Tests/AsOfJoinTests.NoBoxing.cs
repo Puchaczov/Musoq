@@ -27,7 +27,7 @@ public partial class AsOfJoinTests
             LoggerResolver);
 
         Assert.Contains(
-            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal>",
+            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>",
             result.GeneratedCSharpCode);
     }
 
@@ -50,10 +50,10 @@ public partial class AsOfJoinTests
             LoggerResolver);
 
         Assert.Contains(
-            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, decimal>",
+            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, decimal>",
             result.GeneratedCSharpCode);
         Assert.IsFalse(
-            result.GeneratedCSharpCode.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, object>", StringComparison.Ordinal),
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, object>", StringComparison.Ordinal),
             result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
     }

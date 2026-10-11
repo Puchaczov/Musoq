@@ -37,8 +37,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("const string letCountry = \"Poland\";", whereSelect);
         Assert.Contains("const int letMinPopulation = 100;", whereSelect);
         Assert.Contains("if (((Operators.SqlCompare<string, string>(ko3iko.Country, letCountry", whereSelect);
-        Assert.Contains("yield return new ResultShape0(ko3iko.Name, population, letCountry);", whereSelect);
-        Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population, __musoqShapeRow.RequestedCountry);", whereSelect);
+        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population, letCountry);", whereSelect);
+        Assert.Contains("yield return __musoqShapeRow;", whereSelect);
 
         Assert.AreEqual(0, CountOccurrences(primitiveValues, "ScriptParameterBinder.Get"));
         Assert.Contains("const bool letFlag = true;", primitiveValues);
@@ -52,7 +52,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(0, CountOccurrences(sourceArgument, "ScriptParameterBinder.Get"));
         Assert.IsFalse(sourceArgumentCode.Contains("const string letPrefix = \"KEY\";", StringComparison.Ordinal));
         Assert.Contains("const string letKey = \"KEY_1\";", sourceArgumentCode);
-        Assert.Contains("new object[] { letKey }", sourceArgumentCode);
+        Assert.Contains("global::Musoq.Schema.SourceArguments.Create(letKey, global::Musoq.Schema.SourceArguments.Empty)", sourceArgumentCode);
         AssertTopLevelBindingBefore(
             ScriptVariableSourceArgumentSampleFileName,
             sourceArgument,
@@ -114,7 +114,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         AssertScriptVariableBindingCount(ScriptVariableWindowHelperCaptureSampleFileName, window, 2);
         Assert.Contains("ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersPartitionKeys, resultRowNumbersOrderKeys, letCountry, letLabel);", window);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(ko3iko.Name, (long)resultRowNumbers[windowIndex], letLabel));", window);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(ko3iko.Name, (long)resultRowNumbers[windowIndex], letLabel));", window);
         Assert.IsFalse(window.Contains("AppendResultWindowRows(resultWindowRows, result, resultRowNumbers, letLabel);", StringComparison.Ordinal));
         Assert.Contains("WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys, string letCountry, string letLabel)", window);
         Assert.Contains("resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey((ko3iko.Name + letLabel));", window);

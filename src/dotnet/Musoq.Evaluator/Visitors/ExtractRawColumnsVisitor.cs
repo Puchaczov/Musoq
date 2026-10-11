@@ -51,6 +51,18 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
         AddColumn(ResolveColumnKey(node.Alias), node.Name);
     }
 
+    public override void Visit(AccessObjectArrayNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        AddColumn(ResolveColumnKey(node.TableAlias), node.ObjectName);
+    }
+
+    public override void Visit(AccessObjectKeyNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        AddColumn(ResolveColumnKey(node.TableAlias), node.ObjectName);
+    }
+
     public override void Visit(IdentifierNode node)
     {
         ArgumentNullException.ThrowIfNull(node);

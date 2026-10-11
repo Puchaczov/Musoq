@@ -15,6 +15,10 @@ public static partial class ExecutionExpressionConverter
         {
             var (alias, field) = resolvedField.Value;
 
+            var nested = NativeNestedFieldBinding.TryCreate(column, alias, field, sourceShapes);
+            if (nested is not null)
+                return nested;
+
             if (field.AccessStrategy is RuntimeDynamicMemberPathAccess runtimePath)
             {
                 ExecutionExpression current = new ExecutionFieldRead(
@@ -40,7 +44,9 @@ public static partial class ExecutionExpressionConverter
             return new ExecutionFieldRead(
                 alias,
                 field.Name,
-                ExecutionClrBindingFactory.FromClr(column.ReturnType),
+                column.ReturnType == typeof(object) && field.Type.ResolveClrType() != typeof(object)
+                    ? field.Type
+                    : ExecutionClrBindingFactory.FromClr(column.ReturnType),
                 field.AccessStrategy,
                 field.GeneratedTypeName ??
                 column.GeneratedTypeName ??
@@ -119,19 +125,19 @@ public static partial class ExecutionExpressionConverter
             ? columnName
             : $"{column.Alias}.{columnName}";
         var matchingFields = sourceShape.Fields
-            .Where(candidate =>
+            .Where(candidate => (column.SourceColumnIndex == null || candidate.OutputIndex == column.SourceColumnIndex) &&
                 !(sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
                   candidate.Name.Contains('.', StringComparison.Ordinal) &&
                   candidate.AccessStrategy is RuntimeDynamicMemberAccess) &&
-                (string.Equals(candidate.Name, columnName, StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
+                (string.Equals(candidate.Name, columnName, StringComparison.Ordinal) ||
+                 string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal) ||
+                 string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal) ||
+                 string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal) ||
                  sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
                  HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
-                 string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase)))
+                 string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal) ||
+                 string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal) ||
+                 string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.Ordinal)))
             .ToArray();
 
         var field = matchingFields.FirstOrDefault(candidate =>
@@ -165,8 +171,8 @@ public static partial class ExecutionExpressionConverter
 
         var unqualifiedMatches = sourceShape.Fields
             .Where(candidate =>
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase))
+                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.Ordinal) ||
+                string.Equals(GetUnqualifiedFieldName(candidate.Name), sourceRelativeColumnName, StringComparison.Ordinal))
             .Take(2)
             .ToArray();
         field = unqualifiedMatches.Length == 1 ? unqualifiedMatches[0] : null;
@@ -175,7 +181,7 @@ public static partial class ExecutionExpressionConverter
 
     private static bool HasQualifiedSuffix(string candidate, string relativeName)
     {
-        return candidate.EndsWith($".{relativeName}", StringComparison.OrdinalIgnoreCase);
+        return candidate.EndsWith($".{relativeName}", StringComparison.Ordinal);
     }
 
     private static string RemoveSourceAlias(string columnName, string sourceAlias)

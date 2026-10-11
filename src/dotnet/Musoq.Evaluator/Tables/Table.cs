@@ -6,8 +6,9 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
-public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IReadOnlyTable, IDisposable
+public partial class Table : IReadOnlyCollection<Row>, IReadOnlyTable, IDisposable
 {
+    private readonly List<Row> _rows = [];
     private readonly Dictionary<int, Column> _columnsByIndex;
     private readonly Dictionary<string, List<Column>> _columnsByName;
 
@@ -31,37 +32,28 @@ public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IR
 
     public IEnumerable<Column> Columns => _columnsByIndex.Values;
 
-    public override Row this[int index]
+    public Row this[int index]
     {
         get
         {
             FlushPendingRows();
-            return base[index];
+            return _rows[index];
         }
     }
 
-    public override IEnumerable<Row> this[Key key]
+    public IReadOnlyList<Row> Rows
     {
         get
         {
             FlushPendingRows();
-            return base[key];
-        }
-    }
-
-    public new IReadOnlyList<Row> Rows
-    {
-        get
-        {
-            FlushPendingRows();
-            return base.Rows;
+            return _rows;
         }
     }
 
     public IEnumerator<Row> GetEnumerator()
     {
         FlushPendingRows();
-        return base.Rows.GetEnumerator();
+        return _rows.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -74,47 +66,33 @@ public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IR
         get
         {
             FlushPendingRows();
-            return base.Rows;
+            return _rows;
         }
     }
 
-    public override int Count
+    public int Count
     {
         get
         {
             FlushPendingRows();
-            return base.Count;
+            return _rows.Count;
         }
     }
 
-    public override bool Contains(Row value)
+    public bool Contains(Row value)
     {
         FlushPendingRows();
-        return base.Contains(value);
+        return _rows.Contains(value);
     }
 
-    public override bool Contains(Row value, Func<Row, Row, bool> comparer)
+    public bool Contains(Row value, Func<Row, Row, bool> comparer)
     {
         FlushPendingRows();
-        return base.Contains(value, comparer);
-    }
-
-    public override bool Contains(Key key, Row value)
-    {
-        FlushPendingRows();
-        return base.Contains(key, value);
-    }
-
-    public override bool ContainsKey(Key key)
-    {
-        FlushPendingRows();
-        return base.ContainsKey(key);
-    }
-
-    public override bool TryGetIndexedValues(Key key, out IReadOnlyList<Row> values)
-    {
-        FlushPendingRows();
-        return base.TryGetIndexedValues(key, out values);
+        ArgumentNullException.ThrowIfNull(comparer);
+        foreach (var row in _rows)
+            if (comparer(row, value))
+                return true;
+        return false;
     }
 
     private void AddColumns(params Column[] columns)
@@ -125,12 +103,6 @@ public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IR
 
             if (_columnsByName.TryGetValue(column.ColumnName, out var value))
             {
-                var firstValue = value.First();
-
-                if (firstValue.ColumnType != column.ColumnType)
-                    throw new NotSupportedException(
-                        $"({nameof(AddColumns)}) Mismatched types. {firstValue.ColumnType.Name} is not assignable from {column.ColumnType.Name}");
-
                 value.Add(column);
                 continue;
             }

@@ -8,90 +8,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static ExecutionWindowKeyArray? ResolveWindowKeyArray(
-        ExecutionExpression? expression,
-        ExecutionWindowKeyArray? keyArray,
-        string defaultVariableName)
-    {
-        if (expression == null)
-            return null;
-
-        return keyArray ?? new ExecutionWindowKeyArray(
-            new ExecutionVariable(defaultVariableName, CreateWindowKeyArrayType(expression.ReturnType.RequireClrType())),
-            true,
-            CreateWindowKeyShape(expression.ReturnType.RequireClrType()));
-    }
-
-    private static ExecutionWindowKeyArray ResolveWindowKeyArray(
-        ExecutionWindowKeyArray? keyArray,
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeys,
-        string defaultVariableName)
-    {
-        var elementType = ResolveWindowOrderKeyElementType(orderKeys);
-        return keyArray ?? new ExecutionWindowKeyArray(
-            new ExecutionVariable(defaultVariableName, elementType.MakeArrayType()),
-            true,
-            CreateWindowKeyShape(elementType));
-    }
-
-    private static ExecutionWindowKeyShape CreateWindowKeyShape(Type elementType)
-    {
-        return new ExecutionWindowKeyShape(elementType, elementType != typeof(object));
-    }
-
-    private static Type CreateWindowKeyArrayType(Type elementType)
-    {
-        return ResolveWindowKeyElementType(elementType).MakeArrayType();
-    }
-
-    private static Type ResolveWindowKeyElementType(Type elementType)
-    {
-        return CanUseTypedWindowKeyElement(elementType) ? elementType : typeof(object);
-    }
-
-    private static Type ResolveWindowOrderKeyElementType(IReadOnlyList<ExecutionWindowOrderKey> orderKeys)
-    {
-        if (orderKeys.Count == 1)
-            return ResolveWindowKeyElementType(orderKeys[0].Expression.ReturnType.RequireClrType());
-
-        if (orderKeys.Count is < 2 or > 7)
-            return typeof(object);
-
-        var firstDirection = orderKeys[0].Descending;
-        if (orderKeys.Any(key => key.Descending != firstDirection || !CanUseTypedWindowOrderKeyElement(key.Expression.ReturnType.RequireClrType())))
-            return typeof(object);
-
-        return CreateValueTupleType(orderKeys.Select(key => key.Expression.ReturnType.RequireClrType()).ToArray());
-    }
-
-    private static bool CanUseTypedWindowKeyElement(Type type)
-    {
-        if (Nullable.GetUnderlyingType(type) != null)
-            return false;
-
-        return type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(bool) ||
-               type == typeof(char) ||
-               type == typeof(byte) ||
-               type == typeof(sbyte) ||
-               type == typeof(short) ||
-               type == typeof(ushort) ||
-               type == typeof(int) ||
-               type == typeof(uint) ||
-               type == typeof(long) ||
-               type == typeof(ulong) ||
-               type == typeof(float) ||
-               type == typeof(double);
-    }
-
-    private static bool CanUseTypedWindowOrderKeyElement(Type type)
-    {
-        return CanUseTypedWindowKeyElement(type) &&
-               typeof(IComparable<>).MakeGenericType(type).IsAssignableFrom(type);
-    }
-
     private static void AddWindowPartitionDeclarations(
         List<StatementSyntax> statements,
         ExecutionWindowPartitionSet? partitions,
@@ -118,10 +34,16 @@ public sealed partial class ExecutionCSharpRenderer
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             partitions.Variable.Name,
-            CreateWindowHelperInvocation(
-                nameof(WindowFunctionHelpers.ResolvePartitionSet),
-                CreateBufferCountExpression(buffer),
-                CreatePartitionKeysArgument(partitionKeys))));
+            CreateWindowPartitionSetInvocation(buffer, partitionKeys)));
+    }
+
+    private static InvocationExpressionSyntax CreateWindowPartitionSetInvocation(
+        ExecutionVariable buffer, ExecutionVariable? partitionKeys = null)
+    {
+        if (partitionKeys is null)
+            return CreateWindowHelperInvocation(nameof(WindowFunctionHelpers.ResolvePartitionSet), CreateBufferCountExpression(buffer));
+        return CreateWindowHelperInvocation(nameof(WindowFunctionHelpers.ResolvePartitionSet),
+            CreateBufferCountExpression(buffer), CreatePartitionKeysArgument(partitionKeys));
     }
 
     private static void AddWindowMethodTargetDeclarations(
@@ -145,22 +67,9 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionWindowKeyArray orderKeys,
         IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions)
     {
-        if (HasGeneratedWindowKeyType(orderKeys))
-        {
-            AddGeneratedWindowSortedPartitionDeclarations(
-                statements,
-                sortedPartitions,
-                partitions,
-                orderKeys.Variable);
-            return;
-        }
-
-        AddWindowSortedPartitionDeclarations(
-            statements,
-            sortedPartitions,
-            partitions,
-            orderKeys.Variable,
-            orderKeyExpressions);
+        if (!HasGeneratedWindowKeyType(orderKeys))
+            throw UnsupportedShape.Of("Sorted window partitions require a lowered concrete order carrier.");
+        AddGeneratedWindowSortedPartitionDeclarations(statements, sortedPartitions, partitions, orderKeys.Variable);
     }
 
     private static void AddGeneratedWindowSortedPartitionDeclarations(
@@ -196,80 +105,4 @@ public sealed partial class ExecutionCSharpRenderer
             invocation));
     }
 
-    private static void AddWindowSortedPartitionDeclarations(
-        List<StatementSyntax> statements,
-        ExecutionWindowPartitionSet? sortedPartitions,
-        ExecutionWindowPartitionSet? partitions,
-        ExecutionVariable orderKeys,
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions)
-    {
-        if (sortedPartitions is not { ShouldCreate: true })
-            return;
-
-        if (partitions == null)
-            throw new InvalidOperationException("Sorted window partitions require a partition set.");
-
-        var useScalarDirection = CanUseScalarOrderDirection(orderKeys, orderKeyExpressions);
-        ExpressionSyntax directionArgument = useScalarDirection
-            ? CreateBooleanLiteral(orderKeyExpressions[0].Descending)
-            : CreateWindowOrderDescendingArray(orderKeyExpressions);
-
-        if (sortedPartitions.SortInPlace)
-        {
-            statements.Add(SyntaxFactory.ExpressionStatement(
-                CreateWindowHelperInvocation(
-                    nameof(WindowFunctionHelpers.SortPartitionSetInPlace),
-                    SyntaxFactory.IdentifierName(partitions.Variable.Name),
-                    SyntaxFactory.IdentifierName(orderKeys.Name),
-                    directionArgument)));
-            return;
-        }
-
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            sortedPartitions.Variable.Name,
-            CreateWindowHelperInvocation(
-                useScalarDirection
-                    ? nameof(WindowFunctionHelpers.SortPartitionSetInPlace)
-                    : nameof(WindowFunctionHelpers.SortPartitionSet),
-                useScalarDirection
-                    ? SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(partitions.Variable.Name),
-                            SyntaxFactory.IdentifierName(nameof(WindowPartitionSet.Copy))))
-                    : SyntaxFactory.IdentifierName(partitions.Variable.Name),
-                SyntaxFactory.IdentifierName(orderKeys.Name),
-                directionArgument)));
-    }
-
-    private static bool CanUseScalarOrderDirection(
-        ExecutionVariable orderKeys,
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions)
-    {
-        return orderKeyExpressions.Count == 1 &&
-               CanUseTypedWindowOrderKeyElement(GetArrayElementType(orderKeys));
-    }
-
-    private ExpressionSyntax RenderWindowOrderKey(
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeys,
-        ExecutionVariable orderKeyArray)
-    {
-        var expression = CreateWindowOrderKeyExpression(orderKeys, GetArrayElementType(orderKeyArray));
-
-        return RenderExpression(expression);
-    }
-
-    private static ExecutionExpression CreateWindowOrderKeyExpression(
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeys,
-        Type elementType)
-    {
-        if (orderKeys.Count == 1)
-            return orderKeys[0].Expression;
-
-        var parts = orderKeys.Select(key => key.Expression).ToArray();
-        return IsValueTupleType(elementType, parts.Length)
-            ? new ExecutionValueTupleKey(parts, elementType)
-            : new ExecutionCompositeKey(parts);
-    }
 }

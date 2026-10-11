@@ -107,7 +107,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             samples[CorrelatedNotExistsSubquerySampleFileName]);
         Assert.IsFalse(
             samples[CorrelatedNotExistsSubquerySampleFileName].Contains("private static void BuildSq1Keys(", StringComparison.Ordinal));
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.City));", samples[CorrelatedNotExistsSubquerySampleFileName]);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.City));", samples[CorrelatedNotExistsSubquerySampleFileName]);
         Assert.IsFalse(
             samples[CorrelatedNotExistsSubquerySampleFileName]
                 .Contains("AppendLeftJoinRows(aRows, _sq_1Keys, result, token);", StringComparison.Ordinal));
@@ -122,7 +122,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(
             "var a_sq_1Hash = new Dictionary<string, HashJoinBucket<Statement0Row0>>(_cteRowResults.Slot1.Count);",
             samples[ScalarSubqueryJoinOnSampleFileName]);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a_sq_1.a_City, b.City));", samples[ScalarSubqueryJoinOnSampleFileName]);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));", samples[ScalarSubqueryJoinOnSampleFileName]);
         Assert.IsFalse(
             samples[ScalarSubqueryJoinOnSampleFileName]
                 .Contains("AppendHashJoinRows(bRows, a_sq_1Hash, result, token);", StringComparison.Ordinal));
@@ -162,7 +162,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(
             "foreach (var bChunk in cte0_bRows)",
             samples[CorrelatedApplyDerivedTableSampleFileName]);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));", samples[CorrelatedApplyDerivedTableSampleFileName]);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.City, d.City));", samples[CorrelatedApplyDerivedTableSampleFileName]);
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
                 .Contains("AppendHashJoinRows(aRows, dHash, result, token);", StringComparison.Ordinal));

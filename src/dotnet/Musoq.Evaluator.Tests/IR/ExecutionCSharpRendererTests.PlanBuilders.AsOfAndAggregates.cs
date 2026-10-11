@@ -120,12 +120,11 @@ public sealed partial class ExecutionCSharpRendererTests
 
     private static ExecutionPlan CreateDynamicAsOfProbePlan()
     {
-        var rightShape = new ExpandoAdapterShape(
+        var rightShape = new SourceEntityShape(
             "r",
-            "rDynamicRow0",
             typeof(IReadOnlyDictionary<string, object>),
             [
-                new FieldBinding("Score", "r.Score", 0, typeof(int), FieldNullability.Unknown, new ExpandoDictionaryAccess("Score"))
+                new FieldBinding("Score", "r.Score", 0, typeof(int), FieldNullability.Unknown, new ReflectedMemberAccess("Score"))
             ]);
         var match = new ExecutionVariable("r", typeof(ExpandoObject));
         var candidate = new ExecutionVariable("rCandidate", typeof(ExpandoObject));
@@ -142,7 +141,7 @@ public sealed partial class ExecutionCSharpRendererTests
                     new ExecutionRowStream(rightRows, ExecutionRowStreamKind.Rows),
                     [],
                     new ExecutionLiteral(2, typeof(int)),
-                    new ExecutionFieldRead("rCandidate", "Score", typeof(int), new ExpandoDictionaryAccess("Score")),
+                    new ExecutionFieldRead("rCandidate", "Score", typeof(int), new ReflectedMemberAccess("Score")),
                     BinaryOpKind.GreaterOrEqual,
                     ExecutionBlock.Empty)
             ]));

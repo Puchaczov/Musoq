@@ -8,7 +8,7 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     public void SemiJoin_WhenRightSideHasDuplicateMatches_ShouldReturnEachLeftRowOnce()
     {
         var table = RunJoinQuery("select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id");
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1"], ["A3"]);
     }
 
@@ -16,7 +16,7 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     public void AntiJoin_WhenRightSideHasMatches_ShouldReturnOnlyUnmatchedLeftRows()
     {
         var table = RunJoinQuery("select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id");
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A2"]);
     }
 
@@ -25,7 +25,7 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     {
         var query = "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id and b.Population > 100";
         var table = RunJoinQuery(query);
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A3"]);
     }
 
@@ -34,7 +34,7 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     {
         var query = "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id and b.Population > 100";
         var table = RunJoinQuery(query);
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1"], ["A2"]);
     }
 
@@ -45,7 +45,7 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     {
         var query = "select a.Name from #A.entities() a semi join #B.entities() b on a.Population > b.Population";
         var table = RunJoinQuery(query, new CompilationOptions(useSortMergeJoin: useSortMergeJoin));
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1"], ["A3"]);
     }
 
@@ -56,7 +56,7 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     {
         var query = "select a.Name from #A.entities() a anti join #B.entities() b on a.Population > b.Population";
         var table = RunJoinQuery(query, new CompilationOptions(useSortMergeJoin: useSortMergeJoin));
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A2"]);
     }
 }

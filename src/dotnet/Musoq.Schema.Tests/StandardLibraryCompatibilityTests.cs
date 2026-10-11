@@ -71,10 +71,10 @@ public class StandardLibraryCompatibilityTests
         Assert.IsTrue(aggregator.TryResolveWindowFunction("CUME_DIST", out var cumeDist));
         percentRank = TestNullabilityGuards.Require(percentRank, "percent_rank window function");
         cumeDist = TestNullabilityGuards.Require(cumeDist, "CUME_DIST window function");
-        Assert.AreEqual(nameof(LibraryBase.WindowPercentRank), percentRank.Name);
-        Assert.AreEqual(nameof(LibraryBase.WindowCumeDist), cumeDist.Name);
-        Assert.AreEqual(typeof(IWindowFunction<object, double>), percentRank.ReturnType);
-        Assert.AreEqual(typeof(IWindowFunction<object, double>), cumeDist.ReturnType);
+        Assert.AreEqual(nameof(LibraryBase.PercentRank), percentRank.Name);
+        Assert.AreEqual(nameof(LibraryBase.CumeDist), cumeDist.Name);
+        Assert.AreEqual(typeof(double), percentRank.ReturnType);
+        Assert.AreEqual(typeof(double), cumeDist.ReturnType);
     }
 
     [TestMethod]
@@ -148,7 +148,7 @@ public class StandardLibraryCompatibilityTests
     {
         var standardMethods = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(m => m.GetCustomAttribute<BindableMethodAttribute>() != null)
+            .Where(m => m.IsDefined(typeof(BindableMethodAttribute), true))
             .GroupBy(m => m.Name)
             .ToArray();
 
@@ -194,7 +194,7 @@ public class StandardLibraryCompatibilityTests
     {
         var standardMethods = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(m => m.GetCustomAttribute<BindableMethodAttribute>() != null)
+            .Where(m => m.IsDefined(typeof(BindableMethodAttribute), true))
             .Where(m => !HasInjectedParameters(m))
             .Take(10)
             .ToArray();

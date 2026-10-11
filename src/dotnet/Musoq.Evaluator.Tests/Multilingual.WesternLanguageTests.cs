@@ -26,7 +26,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Zażółć gęślą jaźń", table[0].Values[0]);
+        Assert.AreEqual("Zażółć gęślą jaźń", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -49,7 +49,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Wrocław", table[0].Values[0]);
+        Assert.AreEqual("Wrocław", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -72,7 +72,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Zażółć", table[0].Values[0]);
+        Assert.AreEqual("Zażółć", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -99,11 +99,11 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Łódź" && (long)row.Values[1] == 3L),
+                (string)row.ReadValues()[0] == "Łódź" && (long)row.ReadValues()[1] == 3L),
             "Expected group 'Łódź' with count 3");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Kraków" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "Kraków" && (long)row.ReadValues()[1] == 2L),
             "Expected group 'Kraków' with count 2");
     }
 
@@ -126,7 +126,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Привет мир", table[0].Values[0]);
+        Assert.AreEqual("Привет мир", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -149,7 +149,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Москва", table[0].Values[0]);
+        Assert.AreEqual("Москва", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Санкт-Петербург", table[0].Values[0]);
+        Assert.AreEqual("Санкт-Петербург", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -199,11 +199,11 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Москва" && (long)row.Values[1] == 3L),
+                (string)row.ReadValues()[0] == "Москва" && (long)row.ReadValues()[1] == 3L),
             "Expected group 'Москва' with count 3");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Казань" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "Казань" && (long)row.ReadValues()[1] == 2L),
             "Expected group 'Казань' with count 2");
     }
 
@@ -226,7 +226,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Les élèves français étudient à l'université", table[0].Values[0]);
+        Assert.AreEqual("Les élèves français étudient à l'université", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -249,7 +249,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Montréal", table[0].Values[0]);
+        Assert.AreEqual("Montréal", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -272,7 +272,7 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Château", table[0].Values[0]);
+        Assert.AreEqual("Château", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -299,11 +299,11 @@ public partial class MultilingualTextTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Résumé" && (long)row.Values[1] == 3L),
+                (string)row.ReadValues()[0] == "Résumé" && (long)row.ReadValues()[1] == 3L),
             "Expected group 'Résumé' with count 3");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Café" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "Café" && (long)row.ReadValues()[1] == 2L),
             "Expected group 'Café' with count 2");
     }
 

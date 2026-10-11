@@ -51,8 +51,8 @@ public class PivotIntegrationTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.City", typeof(string)),
-            ("p.Jan", typeof(decimal?)));
+            ("City", typeof(string)),
+            ("Jan", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["LA", 5m],
@@ -79,9 +79,9 @@ public class PivotIntegrationTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.City", typeof(string)),
-            ("p.Jan", typeof(decimal?)),
-            ("c.Country", typeof(string)));
+            ("City", typeof(string)),
+            ("Jan", typeof(decimal?)),
+            ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["LA", 5m, "USA-West"],

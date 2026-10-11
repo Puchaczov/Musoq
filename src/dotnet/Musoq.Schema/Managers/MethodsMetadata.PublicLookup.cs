@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Immutable;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Helpers;
@@ -72,7 +74,7 @@ public partial class MethodsMetadata
                         exactName,
                         methodArgs,
                         entityType,
-                        static method => method.GetCustomAttribute<AggregationMethodAttribute>() != null,
+                        static method => method.GetCustomAttribute<AggregateFunctionAttribute>() != null,
                         out idx));
 
             cached = (found, index, actualMethodName);
@@ -100,7 +102,7 @@ public partial class MethodsMetadata
                 name,
                 methodArgs,
                 entityType,
-                method => method.GetCustomAttribute<AggregationMethodAttribute>() != null &&
+                method => method.GetCustomAttribute<AggregateFunctionAttribute>() != null &&
                           methodFilter(method),
                 out var index,
                 out var actualMethodName) ||
@@ -167,6 +169,17 @@ public partial class MethodsMetadata
         );
     }
 
+    /// <summary>Gets SQL declarations independently from their CLR implementation names.</summary>
+    public virtual ImmutableArray<SqlFunctionDescriptor> GetAllFunctions()
+    {
+        if (!_functions.IsDefault)
+            return _functions;
+
+        _functions = _methods.Values.SelectMany(static methods => methods).Distinct()
+            .SelectMany(static method => SqlFunctionDeclarations.Read(method)).ToImmutableArray();
+        return _functions;
+    }
+
     /// <summary>
     ///     Finds a window function factory method by its SQL-level name.
     ///     Checks <see cref="WindowFunctionAttribute.Name"/> first, then falls back to the method name.
@@ -176,22 +189,13 @@ public partial class MethodsMetadata
     {
         var normalizedSqlName = MethodNameNormalizer.Normalize(sqlName);
 
-        foreach (var kvp in _methods)
+        foreach (var function in GetAllFunctions())
         {
-            foreach (var method in kvp.Value)
+            if (function.Kind == SqlFunctionKind.Window && function.Visibility == FunctionVisibility.Public &&
+                MethodNameNormalizer.Normalize(function.Name) == normalizedSqlName)
             {
-                var attr = method.GetCustomAttribute<WindowFunctionAttribute>();
-                if (attr is null)
-                    continue;
-
-                var effectiveName = attr.Name ?? method.Name;
-                var normalizedEffectiveName = MethodNameNormalizer.Normalize(effectiveName);
-
-                if (normalizedEffectiveName == normalizedSqlName)
-                {
-                    result = method;
-                    return true;
-                }
+                result = function.Declaration;
+                return true;
             }
         }
 

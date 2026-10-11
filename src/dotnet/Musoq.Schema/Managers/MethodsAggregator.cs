@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Collections.Immutable;
+using Musoq.Plugins;
 
 namespace Musoq.Schema.Managers;
 
@@ -36,6 +38,9 @@ public class MethodsAggregator(MethodsManager methodsManager)
         return methodsManager.TryGetWindowFunction(sqlName, out method);
     }
 
+    public bool TryResolveWindowFunction(string sqlName, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? method)
+        => methodsManager.TryGetWindowFunction(sqlName, argumentTypes, out method);
+
     /// <summary>
     ///     Gets all registered methods with their metadata.
     /// </summary>
@@ -44,4 +49,6 @@ public class MethodsAggregator(MethodsManager methodsManager)
     {
         return methodsManager.GetAllMethods();
     }
+
+    public ImmutableArray<SqlFunctionDescriptor> GetAllFunctions() => methodsManager.GetAllFunctions();
 }

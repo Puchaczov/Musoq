@@ -1,0 +1,445 @@
+﻿// === Parsed Query ===
+/*
+select Sum(Value) as Total, Avg(Value) as Average, Min(Value) as Minimum, Max(Value) as Maximum, Count(Value) as Present from #schema.first()
+*/
+
+// === Logical Plan ===
+/*
+MultiStatement
+  Project [1 as 1, AggRef(ko3iko.Count(ko3iko.Value)) as ko3iko.Count(ko3iko.Value), AggRef(ko3iko.Max(ko3iko.Value)) as ko3iko.Max(ko3iko.Value), AggRef(ko3iko.Min(ko3iko.Value)) as ko3iko.Min(ko3iko.Value), AggRef(ko3iko.Avg(ko3iko.Value)) as ko3iko.Avg(ko3iko.Value), AggRef(ko3iko.Sum(ko3iko.Value)) as ko3iko.Sum(ko3iko.Value)]
+    Aggregate [keys: 1] [aggs: Count(Value), Max(Value), Min(Value), Avg(Value), Sum(Value)]
+      SchemaScan [#schema.first() as ko3iko]
+  Project [ko3iko.Sum(ko3iko.Value) as Total, ko3iko.Avg(ko3iko.Value) as Average, ko3iko.Min(ko3iko.Value) as Minimum, ko3iko.Max(ko3iko.Value) as Maximum, ko3iko.Count(ko3iko.Value) as Present]
+    CteRef [ko3ikoScore as ko3ikoScore]
+*/
+
+// === Physical Plan ===
+/*
+PhysicalMultiStatement
+  PhysicalProject [1 as 1, AggRef(ko3iko.Count(ko3iko.Value)) as ko3iko.Count(ko3iko.Value), AggRef(ko3iko.Max(ko3iko.Value)) as ko3iko.Max(ko3iko.Value), AggRef(ko3iko.Min(ko3iko.Value)) as ko3iko.Min(ko3iko.Value), AggRef(ko3iko.Avg(ko3iko.Value)) as ko3iko.Avg(ko3iko.Value), AggRef(ko3iko.Sum(ko3iko.Value)) as ko3iko.Sum(ko3iko.Value)]
+    PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(Value), Max(Value), Min(Value), Avg(Value), Sum(Value)]
+      PhysicalSchemaScan [#schema.first() as ko3iko]
+  PhysicalProject [ko3iko.Sum(ko3iko.Value) as Total, ko3iko.Avg(ko3iko.Value) as Average, ko3iko.Min(ko3iko.Value) as Minimum, ko3iko.Max(ko3iko.Value) as Maximum, ko3iko.Count(ko3iko.Value) as Present]
+    PhysicalCteRef [ko3ikoScore as ko3ikoScore]
+*/
+
+// === Execution Plan ===
+/*
+ExecutionPlan [compiled]
+  Shapes
+    SourceEntity [ko3iko: NumericInput<ushort>]
+      Value: ushort? <- property Value
+    AggregateGroup [ResultAggregateGroup; keys: 0; typed aggs: 5]
+    Generated [ResultRow0]
+      Total: ushort? <- field Total
+      Average: decimal? <- field Average
+      Minimum: ushort? <- field Minimum
+      Maximum: ushort? <- field Maximum
+      Present: long <- field Present
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    SourceScan [ko3iko: NumericInput<ushort>] -> ko3ikoRows
+    CreateShapeRows [result: ResultRow0 from ResultRow0]
+    CreateAggregateContext [rootGroup, group, groupsToFinalize; typed: ResultAggregateGroup]
+    ChunkedForEach [ko3iko in ko3ikoRows]
+      EnsureAggregateGroup [group; typed: ResultAggregateGroup]
+      Let [value: ushort? = ko3iko.Value]
+      TypedAggregateSet [Set(group.__agg0, value)]
+      Let [value1: ushort? = ko3iko.Value]
+      TypedAggregateSet [Set(group.__agg1, value1)]
+      Let [value2: ushort? = ko3iko.Value]
+      TypedAggregateSet [Set(group.__agg2, value2)]
+      Let [value3: ushort? = ko3iko.Value]
+      TypedAggregateSet [Set(group.__agg3, value3)]
+      Let [value4: ushort? = ko3iko.Value]
+      TypedAggregateSet [Set(group.__agg4, value4)]
+    EnsureShapeCapacity [result <- groupsToFinalize.Count]
+    PhaseBoundary [Select]
+    ForEach [finalGroup in groupsToFinalize]
+      AppendShape [result <- ResultRow0(Total: ko3iko.Sum(ko3iko.Value), Average: ko3iko.Avg(ko3iko.Value), Minimum: ko3iko.Min(ko3iko.Value), Maximum: ko3iko.Max(ko3iko.Value), Present: ko3iko.Count(ko3iko.Value))]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
+*/
+
+// === Generated C# ===
+
+// === SyntaxTree:  ===
+namespace GeneratedSample_K90_NativeUInt16KernelState
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
+    using Musoq.Schema;
+    using Musoq.Schema.Optimization;
+    using Musoq.Evaluator;
+    using Musoq.Evaluator.Tables;
+    using Musoq.Evaluator.Helpers;
+    using Musoq.Evaluator.Runtime;
+    using Musoq.Schema.DataSources;
+    using System.Linq;
+
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    {
+        private static readonly Column[] __columns_compiled_result_1 = new Column[]
+        {
+            new Column("Total", typeof(ushort?), 0),
+            new Column("Average", typeof(decimal?), 1),
+            new Column("Minimum", typeof(ushort?), 2),
+            new Column("Maximum", typeof(ushort?), 3),
+            new Column("Present", typeof(long), 4)
+        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Value", typeof(ushort?), 0) });
+        public ILogger Logger { get; set; }
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
+        public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
+        public ISchemaProvider Provider { get; set; }
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
+
+        public event DataSourceEventHandler DataSourceProgress;
+        public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
+        public Table Run(CancellationToken token)
+        {
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+        }
+
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
+            {
+                yield return __musoqShapeRow;
+            }
+        }
+
+        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
+            try
+            {
+                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultRow0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                var __ko3ikoSchema = provider.GetSchema("#schema");
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionPerformanceQueryTests.NumericInput<ushort>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionPerformanceQueryTests.NumericInput<ushort>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var groupsToFinalize = new List<ResultAggregateGroup>();
+                ResultAggregateGroup group = new ResultAggregateGroup();
+                groupsToFinalize.Add(group);
+                foreach (var ko3ikoChunk in ko3ikoRows)
+                {
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionPerformanceQueryTests.NumericInput<ushort>> ko3ikoChunkView)
+                    {
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionPerformanceQueryTests.NumericInput<ushort>[] ko3ikoChunkViewArray)
+                        {
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            {
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                if (group == null)
+                                {
+                                    group = new ResultAggregateGroup();
+                                    groupsToFinalize.Add(group);
+                                }
+
+                                ushort? value = ko3iko.Value;
+                                if (((ushort?)value).HasValue)
+                                {
+                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                }
+
+                                ushort? value1 = ko3iko.Value;
+                                {
+                                    var __agg1Input = (ushort?)value1;
+                                    if (__agg1Input.HasValue)
+                                    {
+                                        var __agg1Current = __agg1Input.GetValueOrDefault();
+                                        if (!group.__agg1.HasValue || __agg1Current > group.__agg1.Value)
+                                        {
+                                            group.__agg1.Value = __agg1Current;
+                                        }
+
+                                        group.__agg1.HasValue = true;
+                                    }
+                                }
+
+                                ushort? value2 = ko3iko.Value;
+                                {
+                                    var __agg2Input = (ushort?)value2;
+                                    if (__agg2Input.HasValue)
+                                    {
+                                        var __agg2Current = __agg2Input.GetValueOrDefault();
+                                        if (!group.__agg2.HasValue || __agg2Current < group.__agg2.Value)
+                                        {
+                                            group.__agg2.Value = __agg2Current;
+                                        }
+
+                                        group.__agg2.HasValue = true;
+                                    }
+                                }
+
+                                ushort? value3 = ko3iko.Value;
+                                Musoq.Plugins.AverageKernel<ushort, decimal>.Set(ref group.__agg3, (ushort?)value3);
+                                ushort? value4 = ko3iko.Value;
+                                Musoq.Plugins.SumAggregateKernel<ushort>.Set(ref group.__agg4, (ushort?)value4);
+                            }
+
+                            continue;
+                        }
+
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionPerformanceQueryTests.NumericInput<ushort>> ko3ikoChunkViewList)
+                        {
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            {
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                if (group == null)
+                                {
+                                    group = new ResultAggregateGroup();
+                                    groupsToFinalize.Add(group);
+                                }
+
+                                ushort? value = ko3iko.Value;
+                                if (((ushort?)value).HasValue)
+                                {
+                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                }
+
+                                ushort? value1 = ko3iko.Value;
+                                {
+                                    var __agg1Input = (ushort?)value1;
+                                    if (__agg1Input.HasValue)
+                                    {
+                                        var __agg1Current = __agg1Input.GetValueOrDefault();
+                                        if (!group.__agg1.HasValue || __agg1Current > group.__agg1.Value)
+                                        {
+                                            group.__agg1.Value = __agg1Current;
+                                        }
+
+                                        group.__agg1.HasValue = true;
+                                    }
+                                }
+
+                                ushort? value2 = ko3iko.Value;
+                                {
+                                    var __agg2Input = (ushort?)value2;
+                                    if (__agg2Input.HasValue)
+                                    {
+                                        var __agg2Current = __agg2Input.GetValueOrDefault();
+                                        if (!group.__agg2.HasValue || __agg2Current < group.__agg2.Value)
+                                        {
+                                            group.__agg2.Value = __agg2Current;
+                                        }
+
+                                        group.__agg2.HasValue = true;
+                                    }
+                                }
+
+                                ushort? value3 = ko3iko.Value;
+                                Musoq.Plugins.AverageKernel<ushort, decimal>.Set(ref group.__agg3, (ushort?)value3);
+                                ushort? value4 = ko3iko.Value;
+                                Musoq.Plugins.SumAggregateKernel<ushort>.Set(ref group.__agg4, (ushort?)value4);
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                    {
+                        if ((ko3ikoIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                        if (group == null)
+                        {
+                            group = new ResultAggregateGroup();
+                            groupsToFinalize.Add(group);
+                        }
+
+                        ushort? value = ko3iko.Value;
+                        if (((ushort?)value).HasValue)
+                        {
+                            group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                        }
+
+                        ushort? value1 = ko3iko.Value;
+                        {
+                            var __agg1Input = (ushort?)value1;
+                            if (__agg1Input.HasValue)
+                            {
+                                var __agg1Current = __agg1Input.GetValueOrDefault();
+                                if (!group.__agg1.HasValue || __agg1Current > group.__agg1.Value)
+                                {
+                                    group.__agg1.Value = __agg1Current;
+                                }
+
+                                group.__agg1.HasValue = true;
+                            }
+                        }
+
+                        ushort? value2 = ko3iko.Value;
+                        {
+                            var __agg2Input = (ushort?)value2;
+                            if (__agg2Input.HasValue)
+                            {
+                                var __agg2Current = __agg2Input.GetValueOrDefault();
+                                if (!group.__agg2.HasValue || __agg2Current < group.__agg2.Value)
+                                {
+                                    group.__agg2.Value = __agg2Current;
+                                }
+
+                                group.__agg2.HasValue = true;
+                            }
+                        }
+
+                        ushort? value3 = ko3iko.Value;
+                        Musoq.Plugins.AverageKernel<ushort, decimal>.Set(ref group.__agg3, (ushort?)value3);
+                        ushort? value4 = ko3iko.Value;
+                        Musoq.Plugins.SumAggregateKernel<ushort>.Set(ref group.__agg4, (ushort?)value4);
+                    }
+                }
+
+                __musoqFinalShapeRows.EnsureCapacity(groupsToFinalize.Count);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                foreach (var finalGroup in groupsToFinalize)
+                {
+                    token.ThrowIfCancellationRequested();
+                    __musoqFinalShapeRows.Add(new ResultRow0(Musoq.Plugins.SumAggregateKernel<ushort>.Get(in finalGroup.__agg4), Musoq.Plugins.AverageKernel<ushort, decimal>.Get(in finalGroup.__agg3), finalGroup.__agg2.HasValue ? (ushort?)finalGroup.__agg2.Value : null, finalGroup.__agg1.HasValue ? (ushort?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count));
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+        {
+            DataSourceProgress?.Invoke(this, e);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnPhaseChanged(string queryId, QueryPhase phase)
+        {
+            PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        private sealed class ResultAggregateGroup
+        {
+            public Musoq.Plugins.CountNullableAggregateKernel<ushort>.State __agg0;
+            public Musoq.Plugins.MaxAggregateKernel<ushort>.State __agg1;
+            public Musoq.Plugins.MinAggregateKernel<ushort>.State __agg2;
+            public Musoq.Plugins.AverageKernel<ushort, decimal>.State __agg3;
+            public Musoq.Plugins.SumAggregateKernel<ushort>.State __agg4;
+            public ResultAggregateGroup()
+            {
+                Musoq.Plugins.CountNullableAggregateKernel<ushort>.Reset(ref this.__agg0);
+                Musoq.Plugins.MaxAggregateKernel<ushort>.Reset(ref this.__agg1);
+                Musoq.Plugins.MinAggregateKernel<ushort>.Reset(ref this.__agg2);
+                Musoq.Plugins.AverageKernel<ushort, decimal>.Reset(ref this.__agg3);
+                Musoq.Plugins.SumAggregateKernel<ushort>.Reset(ref this.__agg4);
+            }
+
+            public void MergeFrom(ResultAggregateGroup source)
+            {
+                Musoq.Plugins.CountNullableAggregateKernel<ushort>.Merge(ref this.__agg0, in source.__agg0);
+                Musoq.Plugins.MaxAggregateKernel<ushort>.Merge(ref this.__agg1, in source.__agg1);
+                Musoq.Plugins.MinAggregateKernel<ushort>.Merge(ref this.__agg2, in source.__agg2);
+                Musoq.Plugins.AverageKernel<ushort, decimal>.Merge(ref this.__agg3, in source.__agg3);
+                Musoq.Plugins.SumAggregateKernel<ushort>.Merge(ref this.__agg4, in source.__agg4);
+            }
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(ushort? __value0, decimal? __value1, ushort? __value2, ushort? __value3, long __value4)
+            {
+                Total = __value0;
+                Average = __value1;
+                Minimum = __value2;
+                Maximum = __value3;
+                Present = __value4;
+            }
+
+            public decimal? Average { get; private set; }
+            public override int Count => 5;
+            public ushort? Maximum { get; private set; }
+            public ushort? Minimum { get; private set; }
+            public long Present { get; private set; }
+            public ushort? Total { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, ushort?>(this.Total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<ushort?, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Average = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, ushort?>(this.Minimum = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<ushort?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, ushort?>(this.Maximum = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<ushort?, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Present = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, ushort?>(this.Total),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Average),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, ushort?>(this.Minimum),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, ushort?>(this.Maximum),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Present),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Total" => true,
+                "Average" => true,
+                "Minimum" => true,
+                "Maximum" => true,
+                "Present" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Total, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Average, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Minimum, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Maximum, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.Present, ref visitor);
+            }
+        }
+    }
+}

@@ -109,7 +109,7 @@ public partial class Parser
                 return new NullNode(token.Span);
             case TokenType.ParameterReference:
                 token = ConsumeAndGetToken(TokenType.ParameterReference);
-                return new ParameterReferenceNode(token.Value, null, token.Span);
+                return ComposeParameterIndexAccess(new ParameterReferenceNode(token.Value, null, token.Span));
             default:
 
                 if (IsSchemaKeywordToken(Current.TokenType)) return ComposeSchemaTokenAsWord();

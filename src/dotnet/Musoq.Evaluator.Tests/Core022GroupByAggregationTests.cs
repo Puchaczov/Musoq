@@ -10,7 +10,7 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class Core022GroupByAggregationTests : BasicEntityTestBase
+public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
 {
     [TestMethod]
     public void AggregateFamilies_GroupedRows_ShouldReturnTypedValues()

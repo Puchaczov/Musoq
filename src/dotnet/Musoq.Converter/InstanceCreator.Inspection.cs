@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using Musoq.Converter.Build;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Planning.Printing;
@@ -13,6 +14,10 @@ public static partial class InstanceCreator
     private static QueryInspectionResult CreateInspectionResult(BuildItems items)
     {
         items.CancellationToken.ThrowIfCancellationRequested();
+        if (items.DiagnosticContext.HasErrors)
+            throw new MusoqQueryException(BuildResult.Failure(
+                items.DiagnosticContext.Diagnostics.ToList(), items.RawQuery).ToEnvelopes());
+
         var logicalPlan = items.LogicalPlan ?? throw new InvalidOperationException(
             "Logical plan inspection failed because the compilation pipeline did not produce a logical plan.");
         var physicalPlan = items.PhysicalPlan ?? throw new InvalidOperationException(

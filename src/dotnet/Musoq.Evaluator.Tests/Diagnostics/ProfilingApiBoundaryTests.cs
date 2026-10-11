@@ -54,8 +54,8 @@ public sealed class ProfilingApiBoundaryTests
         Assert.AreEqual(1, factoryCalls);
         Assert.AreEqual(2, enumeratedRows);
         Assert.AreEqual(2, profileResult.Result.Count);
-        Assert.AreEqual("a", profileResult.Result[0][0]);
-        Assert.AreEqual("b", profileResult.Result[1][0]);
+        Assert.AreEqual("a", profileResult.Result[0].ReadValue(0));
+        Assert.AreEqual("b", profileResult.Result[1].ReadValue(0));
         StringAssert.Contains(profileResult.ProfileText, "Musoq query profile");
         StringAssert.Contains(profileResult.ProfileText, "op1 FakeOperator");
 
@@ -227,11 +227,12 @@ public sealed class ProfilingApiBoundaryTests
 
     private sealed class TestRow(string value) : Row
     {
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            => TypedColumnVisit.Apply(0, value, ref visitor);
+
         public override int Count => 1;
 
-        public override object this[int columnNumber] => columnNumber == 0
-            ? value
-            : throw new IndexOutOfRangeException();
+
     }
 
     private sealed class ThrowingSchemaProvider : ISchemaProvider

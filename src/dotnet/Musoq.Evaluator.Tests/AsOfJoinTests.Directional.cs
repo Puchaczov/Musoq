@@ -41,10 +41,10 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", 100m, "B1", 90m],
@@ -86,10 +86,10 @@ asof join #B.entities() b on a.Population > b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", 100m, "B2", 50m],
@@ -129,10 +129,10 @@ asof join #B.entities() b on a.Population <= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", 10m, "B1", 20m],
@@ -173,10 +173,10 @@ asof join #B.entities() b on a.Population < b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", 10m, "B2", 50m],
@@ -212,8 +212,8 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -246,8 +246,8 @@ asof left join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A1", null]);
@@ -286,10 +286,10 @@ asof left join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Population", typeof(decimal?)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", 100m, "B1", 50m],
@@ -333,12 +333,12 @@ asof join #B.entities() b on a.Country = b.Country and a.Population >= b.Populat
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Country", typeof(string)),
-            ("b.Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "US", 100m, "B1", "US", 90m],
@@ -376,9 +376,9 @@ asof left join #B.entities() b on a.Country = b.Country and a.Population >= b.Po
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Country", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A1", "US", "B1"],

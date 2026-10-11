@@ -44,15 +44,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
             "    ChunkedForEach [p in pRows]",
             "      GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]",
             "      TypedAggregateSet [Set(group.__agg0, p.Name)]",
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
-            "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, CountName: Count('p.CountName'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, CountName: Count('p.CountName'))]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -99,15 +99,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
             "    ChunkedForEach [p in pRows]",
             "      GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]",
             "      TypedAggregateSet [Set(group.__agg0, 1)]",
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
-            "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, CountPlusOne: (Count('p.Count') + 1))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, CountPlusOne: (Count('p.Count') + 1))]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

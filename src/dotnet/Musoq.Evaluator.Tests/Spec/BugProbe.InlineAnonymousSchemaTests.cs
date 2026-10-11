@@ -52,8 +52,8 @@ public class BugProbeInlineAnonymousSchemaTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual((short)3, table[0][1]);
-        Assert.AreEqual((byte)0xFF, table[0][2]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
+        Assert.AreEqual((short)3, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(2));
     }
 }

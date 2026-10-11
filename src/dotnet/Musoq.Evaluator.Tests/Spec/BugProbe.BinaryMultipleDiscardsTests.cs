@@ -47,8 +47,8 @@ public class BugProbeBinaryMultipleDiscardsTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xAA, table[0][0]);
-        Assert.AreEqual((byte)0xDD, table[0][1]);
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xDD, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -80,8 +80,8 @@ public class BugProbeBinaryMultipleDiscardsTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((byte)0xFF, table[0][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class BugProbeBinaryMultipleDiscardsTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x42, table[0][0]);
-        Assert.AreEqual((short)100, table[0][1]);
+        Assert.AreEqual((byte)0x42, table[0].ReadValue(0));
+        Assert.AreEqual((short)100, table[0].ReadValue(1));
     }
 }

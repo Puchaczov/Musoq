@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 373;
+    private const int ExpectedSampleFileCount = GeneratedCodeSamplesCatalog.ExpectedSampleCount;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -39,7 +39,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string OuterApplyWhereLeftGuardSampleFileName = "Q246_OuterApplyWhereLeftGuard.cs";
     private const string CrossApplyMethodWhereLeftGuardSampleFileName = "Q247_CrossApplyMethodWhereLeftGuard.cs";
     private const string NullableProviderMethodLeftJoinSampleFileName = "Q235_NullableProviderMethodLeftJoin.cs";
-    private const string QueryRowLegacyFallbackSampleFileName = "Q236_QueryRowLegacyFallback.cs";
+    private const string QueryRowDeclaredEntitySampleFileName = "Q236_QueryRowDeclaredEntity.cs";
     private const string QueryRowReadonlyStructSampleFileName = "Q237_QueryRowReadonlyStruct.cs";
     private const string QueryRowSealedClassSampleFileName = "Q238_QueryRowSealedClass.cs";
     private const string QueryRowZeroFieldSampleFileName = "Q239_QueryRowZeroField.cs";

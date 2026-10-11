@@ -26,6 +26,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (SchemaRegistry == null)
             return null;
 
+        var captureType = TextCapturePropertyResolver.Resolve(SchemaRegistry, GetAllTextSchemaFields, intendedTypeName, propertyName);
+        if (captureType.HasValue)
+            return captureType;
+
+        var switchType = TextSwitchPropertyResolver.Resolve(SchemaRegistry, GetAllTextSchemaFields, intendedTypeName, propertyName);
+        if (switchType.HasValue)
+            return switchType;
+
         var reference = ParseSchemaReferenceFromTypeName(intendedTypeName);
         if (!SchemaRegistry.TryGetSchema(reference.SchemaName, out var schemaRegistration))
             return ResolveSwitchSchemaField(reference.SchemaName, propertyName)
@@ -48,7 +56,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var field = GetAllTextSchemaFields(textNode)
                 .FirstOrDefault(f => string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
-            return field is null ? null : ResolveTextFieldClrTypeWithIntendedName(textNode.Name, field);
+            return field is null ? null : InterpretationTextFieldTypeResolver.Resolve(textNode.Name, field);
         }
 
         return null;
@@ -115,6 +123,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         TypeAnnotationNode typeAnnotation,
         IReadOnlyDictionary<string, string> typeParamMap)
     {
+        if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
+            return ResolveTypeAnnotationWithSubstitution(substream.Target, typeParamMap);
+
         if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
             return ResolveSchemaReferenceTypeWithIntendedName(
                 ResolveSchemaReferenceWithSubstitution(schemaRef, typeParamMap));

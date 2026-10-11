@@ -7,7 +7,7 @@ using Musoq.Schema;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class FirstClassEnumExecutionTests : GenericEntityTestBase
+public sealed partial class FirstClassEnumExecutionTests : GenericEntityTestBase
 {
     [TestMethod]
     public void NativeEnumProjectionAndHelpers_ShouldUsePrimitiveRuntimeValues()
@@ -44,11 +44,11 @@ public sealed class FirstClassEnumExecutionTests : GenericEntityTestBase
         Assert.HasCount(2, table);
         CollectionAssert.AreEqual(
             new object?[] { (short)20, (short)20, "Running", true, true, true, false, true, "Queued", true, true },
-            table[0].Values);
+            table[0].ReadValues());
         CollectionAssert.AreEqual(
             new object?[] { (short)99, (short)99, null, false, false, false, false, true, null, false, false },
-            table[1].Values);
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum));
+            table[1].ReadValues());
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
 
         var statusColumn = table.Columns.Single(static column => column.ColumnName == "Status");
         Assert.AreEqual(typeof(short), statusColumn.ColumnType);
@@ -79,8 +79,8 @@ public sealed class FirstClassEnumExecutionTests : GenericEntityTestBase
             ]).Run(TestContext.CancellationToken);
 
         Assert.HasCount(2, table);
-        CollectionAssert.AreEqual(new object?[] { (short)10 }, table[0].Values);
-        CollectionAssert.AreEqual(new object?[] { (short)20 }, table[1].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)10 }, table[0].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { (short)20 }, table[1].ReadValues());
         var column = table.Columns.Single();
         Assert.AreEqual(typeof(short), column.ColumnType);
         Assert.AreEqual(typeof(short), column.SourceReadType);
@@ -112,17 +112,17 @@ public sealed class FirstClassEnumExecutionTests : GenericEntityTestBase
             rows).Run(TestContext.CancellationToken);
 
         Assert.HasCount(2, cte);
-        Assert.IsTrue(cte.All(static row => row.Values[0] is short value && value == 20));
+        Assert.IsTrue(cte.All(static row => row.ReadValues()[0] is short value && value == 20));
         Assert.IsNotNull(cte.Columns.Single().EnumType);
         Assert.HasCount(2, grouped);
-        Assert.IsTrue(grouped.All(static row => row.Values[0] is short));
+        Assert.IsTrue(grouped.All(static row => row.ReadValues()[0] is short));
         Assert.IsNotNull(grouped.Columns.ElementAt(0).EnumType);
         Assert.IsNull(grouped.Columns.ElementAt(1).EnumType);
         Assert.HasCount(2, distinct);
-        Assert.IsTrue(distinct.All(static row => row.Values[0] is short));
+        Assert.IsTrue(distinct.All(static row => row.ReadValues()[0] is short));
         Assert.IsNotNull(distinct.Columns.Single().EnumType);
         Assert.HasCount(2, set);
-        Assert.IsTrue(set.All(static row => row.Values[0] is short));
+        Assert.IsTrue(set.All(static row => row.ReadValues()[0] is short));
         Assert.IsNotNull(set.Columns.Single().EnumType);
     }
 
@@ -141,7 +141,7 @@ public sealed class FirstClassEnumExecutionTests : GenericEntityTestBase
             ]).Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         Assert.IsNotNull(table.Columns.Single().EnumType);
     }
 
@@ -158,7 +158,7 @@ public sealed class FirstClassEnumExecutionTests : GenericEntityTestBase
 
         Assert.HasCount(2, table);
         CollectionAssert.AreEqual(new object?[] { (short)10, (short)20 },
-            table.Select(static row => row.Values[0]).ToArray());
+            table.Select(static row => row.ReadValues()[0]).ToArray());
     }
 
     public sealed record EnumExecutionEntity(

@@ -18,10 +18,10 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Other", typeof(string)),
-            ("a.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Other", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", "source-column", 10]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsTrue(
@@ -40,14 +40,14 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Other", typeof(string)),
-            ("a.Score", typeof(int)),
-            ("b.Id", typeof(int)),
-            ("b.Name", typeof(string)),
-            ("b.Other", typeof(string)),
-            ("b.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Other", typeof(string)),
+            ("Score", typeof(int)),
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Other", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [1, "Ada", "source-column", 10, 1, "Ada", "source-column", 10]);
@@ -67,9 +67,9 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("outer_source.Id", typeof(int)),
-            ("outer_source.Name", typeof(string)),
-            ("outer_source.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", 10]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
     }
@@ -87,8 +87,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
         var names = table.Columns.Select(static column => column.ColumnName).ToArray();
 
         Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(new[] { "derived.Id", "derived.Name", "derived.Score" }, names);
-        CollectionAssert.AreEqual(new object?[] { 1, "Ada", 10 }, table[0].Values);
+        CollectionAssert.AreEqual(new[] { "Id", "Name", "Score" }, names);
+        CollectionAssert.AreEqual(new object?[] { 1, "Ada", 10 }, table[0].ReadValues());
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
     }
 
@@ -105,7 +105,7 @@ public sealed partial class ProjectionSensitiveWildcardTests
                 recorder)
             .Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("first_alias.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Ada"]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsTrue(
@@ -129,7 +129,7 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         Assert.AreEqual(2, table.Count);
         CollectionAssert.AreEqual(
-            new[] { "branch_a.Id", "branch_a.Name", "branch_a.Other", "branch_a.Score" },
+            new[] { "Id", "Name", "Other", "Score" },
             table.Columns.Select(static column => column.ColumnName).ToArray());
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -152,9 +152,9 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("outer_source.Id", typeof(int)),
-            ("outer_source.Name", typeof(string)),
-            ("outer_source.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", 10]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsTrue(
@@ -175,9 +175,9 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", 10]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsTrue(
@@ -199,10 +199,10 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Other", typeof(string)),
-            ("a.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Other", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", "source-column", 10]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsTrue(

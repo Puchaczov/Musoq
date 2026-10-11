@@ -323,7 +323,7 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["glasgow"],
@@ -354,7 +354,7 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["czestochowa"],
@@ -385,7 +385,7 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["cracow"],
@@ -416,7 +416,7 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["katowice"],

@@ -180,10 +180,10 @@ public class TwoModeExecutionBenchmark : BenchmarkBase
         return TypedPostOperationRows.Project(
                 TypedPostOperationRows.Order(
                     TypedPostOperationRows.Distinct(_typedPostOperationRows),
-                    [new TypedRowOrderKey<ValueRow>(static row => row[0], false, 0)])
+                    [new TypedRowOrderKey<ValueRow>(static row => row.Value, false, 0)])
                     .Skip(0)
                     .Take(2),
-                static row => new ValueProjection((string)row[0]))
+                static row => new ValueProjection(row.Value))
             .ToArray();
     }
 
@@ -230,12 +230,12 @@ public class TwoModeExecutionBenchmark : BenchmarkBase
 
     public sealed class ValueRow(string value) : Row
     {
+        public string Value { get; } = value;
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            => TypedColumnVisit.Apply(0, Value, ref visitor);
+
         public override int Count => 1;
 
-        public override object this[int columnNumber] => columnNumber switch
-        {
-            0 => value,
-            _ => throw new IndexOutOfRangeException()
-        };
+
     }
 }

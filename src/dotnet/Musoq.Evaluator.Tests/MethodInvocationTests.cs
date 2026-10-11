@@ -33,7 +33,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.All(row =>
-                new[] { 500m, 400m, 250m, 250m, 350m }.Contains((decimal)row.Values[0])),
+                new[] { 500m, 400m, 250m, 250m, 350m }.Contains((decimal)row.ReadValues()[0])),
             "Expected values: 500, 400, 250, 250, 350");
     }
 
@@ -60,9 +60,9 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"), "Missing WARSAW row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"), "Missing CZESTOCHOWA row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Missing KATOWICE row");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "WARSAW"), "Missing WARSAW row");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "CZESTOCHOWA"), "Missing CZESTOCHOWA row");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "KATOWICE"), "Missing KATOWICE row");
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.All(row =>
-                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.Values[0])),
+                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.ReadValues()[0])),
             "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE");
     }
 
@@ -118,7 +118,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.All(row =>
-                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.Values[0])),
+                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.ReadValues()[0])),
             "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE");
     }
 
@@ -145,9 +145,9 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"), "Missing WARSAW");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"), "Missing CZESTOCHOWA");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Missing KATOWICE");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "WARSAW"), "Missing WARSAW");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "CZESTOCHOWA"), "Missing CZESTOCHOWA");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "KATOWICE"), "Missing KATOWICE");
     }
 
     [TestMethod]
@@ -174,9 +174,9 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"), "Row with WARSAW not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"), "Row with CZESTOCHOWA not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Row with KATOWICE not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "WARSAW"), "Row with WARSAW not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "CZESTOCHOWA"), "Row with CZESTOCHOWA not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "KATOWICE"), "Row with KATOWICE not found");
     }
 
     [TestMethod]
@@ -205,7 +205,7 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         var expectedCities = new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" };
         Assert.IsTrue(expectedCities.All(city =>
-                table.Any(row => (string)row.Values[0] == city)),
+                table.Any(row => (string)row.ReadValues()[0] == city)),
             "Not all expected cities found in table");
     }
 
@@ -229,7 +229,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue((bool?)table[0].Values[0]);
+        Assert.IsTrue((bool?)table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -263,9 +263,9 @@ public class MethodInvocationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("TEST", table[0].Values[0]);
-        Assert.AreEqual("TEST", table[1].Values[0]);
-        Assert.AreEqual("TEST", table[2].Values[0]);
-        Assert.AreEqual("TEST", table[3].Values[0]);
+        Assert.AreEqual("TEST", table[0].ReadValues()[0]);
+        Assert.AreEqual("TEST", table[1].ReadValues()[0]);
+        Assert.AreEqual("TEST", table[2].ReadValues()[0]);
+        Assert.AreEqual("TEST", table[3].ReadValues()[0]);
     }
 }

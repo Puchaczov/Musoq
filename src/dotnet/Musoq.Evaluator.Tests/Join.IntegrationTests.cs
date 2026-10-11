@@ -53,8 +53,8 @@ inner join #C.entities() population on cities.City = population.City";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("countries.Country", typeof(string)), ("cities.City", typeof(string)),
-            ("population.Population", typeof(decimal)));
+            ("Country", typeof(string)), ("cities.City", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland", "Krakow", 400m], ["Poland", "WROCLAW", 500m],
@@ -100,9 +100,9 @@ inner join #C.entities() population on cities.City = population.City";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("countries.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("case when population.Population >= 500 then big else low end", typeof(string)),
-            ("population.Population", typeof(decimal)));
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland", "low", 400m], ["Poland", "big", 500m], ["Poland", "big", 1000m],
@@ -154,7 +154,7 @@ group by cities.Country";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("cities.Country", typeof(string)), ("countries.Sum(population.Population)", typeof(decimal?)));
+            ("Country", typeof(string)), ("countries.Sum(population.Population)", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 2100m], ["Germany", 400m]);
     }
 
@@ -204,7 +204,7 @@ order by TotalPopulation desc";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("cities.Country", typeof(string)), ("TotalPopulation", typeof(decimal?)));
+            ("Country", typeof(string)), ("TotalPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland", 2100m], ["Germany", 400m]);
     }
 
@@ -277,7 +277,7 @@ order by cities.GetTypeName(cities.Country)";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("cities.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland"], ["Poland"], ["Poland"], ["Poland"], ["Germany"]);
@@ -332,8 +332,8 @@ inner join #C.entities() population on cities.City = population.City";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("countries.Country", typeof(string)), ("cities.City", typeof(string)),
-            ("population.Population", typeof(decimal)));
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -387,8 +387,8 @@ inner join #C.entities() population on cities.City = population.City";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("countries.Country", typeof(string)), ("cities.City", typeof(string)),
-            ("population.Population", typeof(decimal)));
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland", "Krakow", 400m], ["Poland", "Wroclaw", 500m],
@@ -445,8 +445,8 @@ inner join #C.entities() population on cities.City = population.City";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("countries.Country", typeof(string)), ("cities.City", typeof(string)),
-            ("population.Population", typeof(decimal)));
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland", "Krakow", 400m], ["Poland", "Krakow", 400m],

@@ -368,7 +368,7 @@ group by a.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Country", typeof(string)), ("Cities", typeof(string)));
+            ("Country", typeof(string)), ("Cities", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
             new object?[] { "Poland", "Warsaw,Gdansk" });
     }
@@ -405,7 +405,7 @@ group by a.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Country", typeof(string)), ("Cities", typeof(string)));
+            ("Country", typeof(string)), ("Cities", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
             new object?[] { "Poland", "Gdansk" });
     }
@@ -435,7 +435,7 @@ group by a.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Country", typeof(string)), ("FirstLetter", typeof(string)));
+            ("Country", typeof(string)), ("FirstLetter", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { "Poland", "P" }, new object?[] { "Brazil", "B" });
     }
@@ -465,7 +465,7 @@ group by a.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Country", typeof(string)), ("FirstLetter", typeof(string)));
+            ("Country", typeof(string)), ("FirstLetter", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { "Poland", "P" }, new object?[] { "Brazil", "B" });
     }

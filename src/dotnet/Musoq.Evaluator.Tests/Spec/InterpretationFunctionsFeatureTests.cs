@@ -52,8 +52,8 @@ public class InterpretationFunctionsFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Name", typeof(string)),
-            ("d.Value", typeof(int)),
+            ("Name", typeof(string)),
+            ("Value", typeof(int)),
             ("TextName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["test.bin", 10, "Label"]);
     }
@@ -96,7 +96,7 @@ public class InterpretationFunctionsFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.Category", typeof(byte)),
+            ("Category", typeof(byte)),
             ("Total", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -137,8 +137,8 @@ public class InterpretationFunctionsFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Magic", typeof(int)),
-            ("h.Version", typeof(byte)));
+            ("Magic", typeof(int)),
+            ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [0x44434241, (byte)1]);
     }
 
@@ -170,9 +170,9 @@ public class InterpretationFunctionsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x00020001, table[0][0]);
-        Assert.AreEqual((short)1, table[0][1]);
-        Assert.AreEqual((short)2, table[0][2]);
+        Assert.AreEqual(0x00020001, table[0].ReadValue(0));
+        Assert.AreEqual((short)1, table[0].ReadValue(1));
+        Assert.AreEqual((short)2, table[0].ReadValue(2));
     }
 
     #endregion
@@ -203,8 +203,8 @@ public class InterpretationFunctionsFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("r.Name", typeof(string)),
-            ("r.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Key", "Value123"]);
     }
 
@@ -236,9 +236,9 @@ public class InterpretationFunctionsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0][0]);
-        Assert.AreEqual("B", table[0][1]);
-        Assert.AreEqual("C", table[0][2]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
+        Assert.AreEqual("B", table[0].ReadValue(1));
+        Assert.AreEqual("C", table[0].ReadValue(2));
     }
 
     #endregion
@@ -269,7 +269,7 @@ public class InterpretationFunctionsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -294,7 +294,7 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(long?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(long?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
@@ -358,8 +358,8 @@ public class InterpretationFunctionsFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("l.Line", typeof(string)),
-            ("r.Name", typeof(string)));
+            ("Line", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Has:colon", "Has"],
@@ -397,7 +397,7 @@ public class InterpretationFunctionsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class InterpretationFunctionsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -459,8 +459,8 @@ public class InterpretationFunctionsFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.DataOffset", typeof(int)),
-            ("p.Value", typeof(short)));
+            ("DataOffset", typeof(int)),
+            ("Value", typeof(short)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [8, (short)42]);
     }
 

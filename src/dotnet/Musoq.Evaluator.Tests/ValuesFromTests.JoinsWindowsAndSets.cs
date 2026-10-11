@@ -33,8 +33,8 @@ order by entity.Name";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("entity.Name", typeof(string)),
-            ("policy.Approved", typeof(bool?)));
+            ("Name", typeof(string)),
+            ("Approved", typeof(bool?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Legacy.Package", false],
@@ -63,8 +63,8 @@ order by policy.Name";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("policy.Name", typeof(string)),
-            ("entity.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Missing.Package", null],
@@ -92,8 +92,8 @@ order by entity.Name, policy.Flag";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("entity.Name", typeof(string)),
-            ("policy.Flag", typeof(string)));
+            ("Name", typeof(string)),
+            ("Flag", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Legacy.Package", "A"],
@@ -121,7 +121,7 @@ order by Sum(scores.Score) desc";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Team", typeof(string)),
+            ("Team", typeof(string)),
             ("Sum(scores.Score)", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["red", 5]);
     }
@@ -141,7 +141,7 @@ order by scores.Team";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("scores.Team", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Team", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["blue"], ["red"]);
     }
 
@@ -163,8 +163,8 @@ order by scores.Team";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Team", typeof(string)),
-            ("scores.Score", typeof(int)),
+            ("Team", typeof(string)),
+            ("Score", typeof(int)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -193,7 +193,7 @@ order by scores.Score";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("rn", typeof(long)),
             ("rnk", typeof(long)),
             ("dense_rnk", typeof(long)),
@@ -223,7 +223,7 @@ from values {
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(table, ("packages.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Legacy.Package"],
@@ -253,7 +253,7 @@ order by packages.Name";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("packages.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Legacy.Package"],

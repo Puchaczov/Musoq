@@ -54,8 +54,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((uint)3, table[0][0]);
-        Assert.AreEqual("ABC", table[0][1]);
+        Assert.AreEqual((uint)3, table[0].ReadValue(0));
+        Assert.AreEqual("ABC", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class BugProbeSizeExpressionEdgeCaseTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((ushort)4, table[0][0]);
+        Assert.AreEqual((ushort)4, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -123,8 +123,7 @@ public class BugProbeSizeExpressionEdgeCaseTests
 
         var ex = Assert.Throws<ParseException>(() =>
             _ = vm.Run(CancellationToken.None).Count);
-        Assert.Contains("Negative string size", ex.Message,
-            $"Expected 'Negative string size' in message but got: {ex.Message}");
+        Assert.Contains("Negative string size", ex.Details);
     }
 
     /// <summary>
@@ -157,8 +156,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(6, table[0][0]);
-        Assert.AreEqual("Musoq!", table[0][1]);
+        Assert.AreEqual(6, table[0].ReadValue(0));
+        Assert.AreEqual("Musoq!", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -194,8 +193,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)6, table[0][0]);
-        Assert.AreEqual("Hello", table[0][1]);
+        Assert.AreEqual((byte)6, table[0].ReadValue(0));
+        Assert.AreEqual("Hello", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -229,8 +228,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        Assert.AreEqual("ABCDEF", table[0][1]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        Assert.AreEqual("ABCDEF", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -263,6 +262,6 @@ public class BugProbeSizeExpressionEdgeCaseTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2L, table[0][0]);
+        Assert.AreEqual(2L, table[0].ReadValue(0));
     }
 }

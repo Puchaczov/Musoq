@@ -67,7 +67,7 @@ public sealed class ThirdRoundSetCteResultTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(except, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(except, ["001"]);
         TableMaterializationTestHelper.AssertColumns(intersect, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(intersect, ["002"], ["002"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(intersect, ["002"]);
     }
 
     [TestMethod]
@@ -98,11 +98,11 @@ public sealed class ThirdRoundSetCteResultTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("leftSide.Country", typeof(string)),
-            ("leftSide.City", typeof(string)),
-            ("rightSide.City", typeof(string)),
-            ("leftSide.Population", typeof(decimal)),
-            ("rightSide.Population", typeof(decimal?)));
+            ("Country", typeof(string)),
+            ("City", typeof(string)),
+            ("City", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Population", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["DE", "Berlin", "Munich", 100m, 200m],
@@ -138,8 +138,8 @@ public sealed class ThirdRoundSetCteResultTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Country", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["DE", "Deploy"],

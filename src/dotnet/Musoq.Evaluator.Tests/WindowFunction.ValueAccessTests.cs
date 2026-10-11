@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -6,6 +7,19 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class WindowFunctionValueAccessTests : BasicEntityTestBase
 {
+    [TestMethod]
+    [TestProperty("CandidateId", "P1-096")]
+    public void InlineFirstValue_ShouldAdvertiseNullableResultMetadata()
+    {
+        const string query = "select N, FirstValue(N) over (order by N) as FirstN from values { (N: 1), (N: 2), (N: 3) } v order by N";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 1], [2, 1], [3, 1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("N", typeof(int)), ("FirstN", typeof(int?)));
+    }
+
 
     [TestMethod]
     public void WhenFirstValueOverOrderByName_ShouldReturnFirstInPartition()

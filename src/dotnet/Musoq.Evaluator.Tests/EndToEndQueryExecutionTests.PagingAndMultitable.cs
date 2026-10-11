@@ -23,7 +23,7 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)), ("Cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Cnt", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["NYC", 2L]);
     }
 
@@ -73,7 +73,7 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("f.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", "B"]);
     }
 

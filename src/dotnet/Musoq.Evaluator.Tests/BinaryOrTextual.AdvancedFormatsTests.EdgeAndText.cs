@@ -43,8 +43,8 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Count", typeof(byte)),
-            ("h.Data", typeof(byte[])));
+            ("Count", typeof(byte)),
+            ("Data", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0, Array.Empty<byte>()]);
     }
 
@@ -89,9 +89,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.MaxByte", typeof(byte)),
-            ("h.MaxShort", typeof(short)),
-            ("h.MaxInt", typeof(int)));
+            ("MaxByte", typeof(byte)),
+            ("MaxShort", typeof(short)),
+            ("MaxInt", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)255, (short)32767, 2147483647]);
     }
 
@@ -136,9 +136,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.MinSByte", typeof(sbyte)),
-            ("h.MinShort", typeof(short)),
-            ("h.MinInt", typeof(int)));
+            ("MinSByte", typeof(sbyte)),
+            ("MinShort", typeof(short)),
+            ("MinInt", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(sbyte)-128, (short)-32768, -2147483648]);
     }
 
@@ -184,8 +184,8 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Level", typeof(string)),
-            ("p.Message", typeof(string)));
+            ("Level", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["ERROR", "Failed to connect"],
@@ -231,9 +231,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert - ordered by Name (Jane before John alphabetically)
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("p.Age", typeof(string)),
-            ("p.City", typeof(string)));
+            ("Name", typeof(string)),
+            ("Age", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Jane Smith", "25", "Los Angeles"],

@@ -46,6 +46,9 @@ public class MultiLibrary : LibraryBase
 
     public static class AggregateMethodAKernel
     {
+        /// <summary>Initializes independently owned kernel state.</summary>
+        public static void Reset(ref State state) => state = default;
+
         public struct State
         {
             public List<int>? Values;

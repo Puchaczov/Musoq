@@ -115,6 +115,9 @@ public partial class InterpreterCodeGenerator
 
     private static string InferComputedFieldTypeNameStatic(Node expression)
     {
+        if (expression is IntegerNode or DecimalNode or BooleanNode && expression.ReturnType is { } literalType)
+            return MapClrTypeName(literalType);
+
         if (expression is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode
             or LessNode or LessOrEqualNode or AndNode or OrNode)
             return "bool";
@@ -141,6 +144,10 @@ public partial class InterpreterCodeGenerator
 
     private string InferComputedFieldTypeName(Node expression, List<SchemaFieldNode>? contextFields = null)
     {
+        if (expression is IdentifierNode identifier && contextFields?.FirstOrDefault(field =>
+                field.Name.Equals(identifier.Name, StringComparison.OrdinalIgnoreCase)) is { } referencedField)
+            return GetClrTypeNameForFieldWithContext(referencedField, contextFields);
+
         if (expression is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode
             or LessNode or LessOrEqualNode or AndNode or OrNode)
             return "bool";

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
+using Musoq.Schema.Diagnostics;
 
 namespace Musoq.Schema.Exceptions;
 
@@ -20,19 +22,35 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string sourceContextId,
         string operation,
         Exception innerException)
-        : base(CreateSafeMessage(code, schemaName, sourceName, alias, operation), innerException)
+        : this(
+            code,
+            new DataSourceLifecycleContext(schemaName, sourceName, alias, sourceContextId, operation),
+            innerException,
+            null)
+    {
+    }
+
+    private DataSourceLifecycleException(
+        DiagnosticCode code,
+        DataSourceLifecycleContext context,
+        Exception innerException,
+        MalformedInputFailure? inputFailure)
+        : base(CreateSafeMessage(code, context, inputFailure?.Reason), innerException)
     {
         if (code is not DiagnosticCode.MQ7010_DataSourceOpenFailed and
             not DiagnosticCode.MQ7011_DataSourceReadFailed and
-            not DiagnosticCode.MQ7012_DataSourceCleanupFailed)
+            not DiagnosticCode.MQ7012_DataSourceCleanupFailed and
+            not DiagnosticCode.MQ7014_MalformedRuntimeInput)
             throw new ArgumentOutOfRangeException(nameof(code), code, "The code is not a data-source lifecycle diagnostic.");
 
-        SchemaName = schemaName ?? string.Empty;
-        SourceName = sourceName ?? string.Empty;
-        Alias = alias ?? string.Empty;
-        SourceContextId = sourceContextId ?? string.Empty;
-        Operation = operation ?? string.Empty;
+        SchemaName = context.SchemaName ?? string.Empty;
+        SourceName = context.SourceName ?? string.Empty;
+        Alias = context.Alias ?? string.Empty;
+        SourceContextId = context.SourceContextId ?? string.Empty;
+        Operation = context.Operation ?? string.Empty;
         Code = code;
+        InputReason = inputFailure?.Reason;
+        InputLocation = inputFailure?.InputLocation;
     }
 
     public DiagnosticCode Code { get; }
@@ -46,6 +64,10 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
     public string SourceContextId { get; }
 
     public string Operation { get; }
+
+    public RuntimeInputFailureReason? InputReason { get; }
+
+    public DiagnosticInputLocation? InputLocation { get; }
 
     internal void AttachRelatedFailure(Exception exception)
     {
@@ -76,15 +98,24 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
                 _relatedException.GetType().FullName ?? string.Empty));
         }
 
+        if (InputReason.HasValue)
+        {
+            arguments.Add(new KeyValuePair<string, string>(
+                "inputReason",
+                RuntimeInputDiagnosticException.GetReasonCode(InputReason.Value)));
+        }
+
         return new Diagnostic(
             Code,
             DiagnosticSeverity.Error,
             Message,
             SourceLocation.None,
             SourceLocation.None,
-            phase: DiagnosticPhase.DataSource,
+            phase: Code == DiagnosticCode.MQ7014_MalformedRuntimeInput
+                ? DiagnosticPhase.Runtime
+                : DiagnosticPhase.DataSource,
             sourceKind: DiagnosticSourceKind.DataSource,
-            arguments: arguments);
+            arguments: arguments).WithInputLocation(InputLocation);
     }
 
     public static DataSourceLifecycleException ForProviderOperation(
@@ -95,6 +126,14 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string operation,
         Exception innerException)
     {
+        if (FindInnerException<DataSourceInputException>(innerException) is { } inputFailure)
+        {
+            return CreateMalformedInputFailure(
+                new DataSourceLifecycleContext(schemaName, sourceName, alias, sourceContextId, operation),
+                innerException,
+                inputFailure.ToParserDiagnosticException());
+        }
+
         return new DataSourceLifecycleException(
             DiagnosticCode.MQ7010_DataSourceOpenFailed,
             schemaName,
@@ -112,6 +151,14 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string sourceContextId,
         Exception innerException)
     {
+        if (FindInnerException<DataSourceInputException>(innerException) is { } inputFailure)
+        {
+            return CreateMalformedInputFailure(
+                new DataSourceLifecycleContext(schemaName, sourceName, alias, sourceContextId, "open"),
+                innerException,
+                inputFailure.ToParserDiagnosticException());
+        }
+
         return new DataSourceLifecycleException(
             DiagnosticCode.MQ7010_DataSourceOpenFailed,
             schemaName,
@@ -129,6 +176,31 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string sourceContextId,
         Exception innerException)
     {
+        if (FindInnerException<DataSourceInputException>(innerException) is { } dataSourceInputFailure)
+        {
+            return CreateMalformedInputFailure(
+                new DataSourceLifecycleContext(schemaName, sourceName, alias, sourceContextId, "read"),
+                innerException,
+                dataSourceInputFailure.ToParserDiagnosticException());
+        }
+
+        var inputFailure = FindInnerException<RuntimeInputDiagnosticException>(innerException);
+        if (inputFailure != null)
+        {
+            return CreateMalformedInputFailure(
+                new DataSourceLifecycleContext(schemaName, sourceName, alias, sourceContextId, "read"),
+                innerException,
+                new MalformedInputFailure(inputFailure.Reason, inputFailure.InputLocation));
+        }
+
+        if (FindInnerException<InvalidDataException>(innerException) != null)
+        {
+            return CreateMalformedInputFailure(
+                new DataSourceLifecycleContext(schemaName, sourceName, alias, sourceContextId, "read"),
+                innerException,
+                new MalformedInputFailure(RuntimeInputFailureReason.MalformedInput, null));
+        }
+
         return new DataSourceLifecycleException(
             DiagnosticCode.MQ7011_DataSourceReadFailed,
             schemaName,
@@ -158,22 +230,71 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
 
     private static string CreateSafeMessage(
         DiagnosticCode code,
-        string schemaName,
-        string sourceName,
-        string alias,
-        string operation)
+        DataSourceLifecycleContext context,
+        RuntimeInputFailureReason? inputReason)
     {
         return code switch
         {
-            DiagnosticCode.MQ7010_DataSourceOpenFailed when string.Equals(operation, "open", StringComparison.Ordinal) =>
-                ErrorCatalog.GetMessage(code, schemaName, sourceName, alias),
-            DiagnosticCode.MQ7011_DataSourceReadFailed when string.Equals(operation, "read", StringComparison.Ordinal) =>
-                ErrorCatalog.GetMessage(code, schemaName, sourceName, alias),
-            DiagnosticCode.MQ7012_DataSourceCleanupFailed when string.Equals(operation, "cleanup", StringComparison.Ordinal) =>
-                ErrorCatalog.GetMessage(code, schemaName, sourceName, alias),
+            DiagnosticCode.MQ7014_MalformedRuntimeInput =>
+                RuntimeInputDiagnosticException.GetSafeMessage(inputReason ?? RuntimeInputFailureReason.MalformedInput),
+            DiagnosticCode.MQ7010_DataSourceOpenFailed when string.Equals(context.Operation, "open", StringComparison.Ordinal) =>
+                ErrorCatalog.GetMessage(code, context.SchemaName, context.SourceName, context.Alias),
+            DiagnosticCode.MQ7011_DataSourceReadFailed when string.Equals(context.Operation, "read", StringComparison.Ordinal) =>
+                ErrorCatalog.GetMessage(code, context.SchemaName, context.SourceName, context.Alias),
+            DiagnosticCode.MQ7012_DataSourceCleanupFailed when string.Equals(context.Operation, "cleanup", StringComparison.Ordinal) =>
+                ErrorCatalog.GetMessage(code, context.SchemaName, context.SourceName, context.Alias),
             DiagnosticCode.MQ7010_DataSourceOpenFailed =>
-                $"The data source provider failed during '{operation}' for schema '{schemaName}', source '{sourceName}', alias '{alias}'.",
+                $"The data source provider failed during '{context.Operation}' for schema '{context.SchemaName}', source '{context.SourceName}', alias '{context.Alias}'.",
             _ => "The data source failed during query execution."
         };
     }
+
+    private static DataSourceLifecycleException CreateMalformedInputFailure(
+        DataSourceLifecycleContext context,
+        Exception innerException,
+        RuntimeInputDiagnosticException inputFailure)
+    {
+        return CreateMalformedInputFailure(
+            context,
+            innerException,
+            new MalformedInputFailure(inputFailure.Reason, inputFailure.InputLocation));
+    }
+
+    private static DataSourceLifecycleException CreateMalformedInputFailure(
+        DataSourceLifecycleContext context,
+        Exception innerException,
+        MalformedInputFailure inputFailure)
+    {
+        return new DataSourceLifecycleException(
+            DiagnosticCode.MQ7014_MalformedRuntimeInput,
+            context,
+            innerException,
+            inputFailure);
+    }
+
+    private static TException? FindInnerException<TException>(Exception exception)
+        where TException : Exception
+    {
+        var current = exception;
+        while (current != null)
+        {
+            if (current is TException match)
+                return match;
+
+            current = current.InnerException;
+        }
+
+        return null;
+    }
+
+    private sealed record DataSourceLifecycleContext(
+        string SchemaName,
+        string SourceName,
+        string Alias,
+        string SourceContextId,
+        string Operation);
+
+    private sealed record MalformedInputFailure(
+        RuntimeInputFailureReason Reason,
+        DiagnosticInputLocation? InputLocation);
 }

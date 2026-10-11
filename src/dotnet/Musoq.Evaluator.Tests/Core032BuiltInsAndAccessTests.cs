@@ -26,8 +26,8 @@ public sealed class Core032BuiltInsAndAccessTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count);
         Assert.IsTrue(
-            table[0].Values.All(static value => value is null),
-            string.Join(", ", table[0].Values.Select(static value => value is null ? "<null>" : $"<{value}>")));
+            table[0].ReadValues().All(static value => value is null),
+            string.Join(", ", table[0].ReadValues().Select(static value => value is null ? "<null>" : $"<{value}>")));
     }
 
     [TestMethod]
@@ -47,10 +47,10 @@ public sealed class Core032BuiltInsAndAccessTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
         CollectionAssert.AreEqual(
             new object?[] { "Hello", false, true, true, "Hi", 0 },
-            table[0].Values);
+            table[0].ReadValues());
         CollectionAssert.AreEqual(
             new object?[] { "hello", true, true, true, "Hi", 0 },
-            table[1].Values);
+            table[1].ReadValues());
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public sealed class Core032BuiltInsAndAccessTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         CollectionAssert.AreEqual(
             new object?[] { "child2", null, 2 },
-            table[0].Values);
+            table[0].ReadValues());
     }
 
     [TestMethod]
@@ -77,13 +77,23 @@ public sealed class Core032BuiltInsAndAccessTests : BasicEntityTestBase
             new Dictionary<string, NestedItem> { ["key"] = new("mapped") },
             [10, 20, 30]);
 
-        Assert.AreEqual("last", EvaluationHelper.GetNestedValue(value, "Items[-1].Name"));
-        Assert.AreEqual("last", EvaluationHelper.GetNestedValue(value, "Items[-4].Name"));
-        Assert.AreEqual(0, EvaluationHelper.GetNestedValue(value, "Numbers[100]"));
-        Assert.AreEqual('c', EvaluationHelper.GetNestedValue(value, "Text[-1]"));
-        Assert.AreEqual('\0', EvaluationHelper.GetNestedValue(value, "Text[100]"));
-        Assert.AreEqual("mapped", EvaluationHelper.GetNestedValue(value, "Named['key'].Name"));
-        Assert.IsNull(EvaluationHelper.GetNestedValue(value, "Named['missing'].Name"));
+        const string query = "select Items[-1].Name as Last, Items[-4].Name as Wrapped, Numbers[100] as MissingNumber, " +
+            "Text[-1] as LastCharacter, Text[100] as MissingCharacter, Named['key'].Name as Mapped, " +
+            "Named['missing'].Name as MissingName from #schema.first()";
+        var runner = new NativeAccessRunner();
+        using var compiled = runner.Compile(query, value);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        var row = table.Single();
+        TableMaterializationTestHelper.AssertColumns(table, ("Last", typeof(string)), ("Wrapped", typeof(string)),
+            ("MissingNumber", typeof(int)), ("LastCharacter", typeof(char)), ("MissingCharacter", typeof(char)),
+            ("Mapped", typeof(string)), ("MissingName", typeof(string)));
+        Assert.AreEqual("last", row.GetValue<string>(0));
+        Assert.AreEqual("last", row.GetValue<string>(1));
+        Assert.AreEqual(0, row.GetValue<int>(2));
+        Assert.AreEqual('c', row.GetValue<char>(3));
+        Assert.AreEqual('\0', row.GetValue<char>(4));
+        Assert.AreEqual("mapped", row.GetValue<string>(5));
+        Assert.IsNull(row.GetValue<string>(6));
     }
 
     [TestMethod]
@@ -149,7 +159,7 @@ public sealed class Core032BuiltInsAndAccessTests : BasicEntityTestBase
             });
     }
 
-    private sealed class NestedEntity(
+    public sealed class NestedEntity(
         IReadOnlyList<NestedItem> items,
         string text,
         IReadOnlyDictionary<string, NestedItem> named,
@@ -161,8 +171,14 @@ public sealed class Core032BuiltInsAndAccessTests : BasicEntityTestBase
         public IReadOnlyList<int> Numbers { get; } = numbers;
     }
 
-    private sealed class NestedItem(string name)
+    public sealed class NestedItem(string name)
     {
         public string Name { get; } = name;
+    }
+
+    private sealed class NativeAccessRunner : Schema.Generic.GenericEntityTestBase
+    {
+        public CompiledQuery Compile(string query, NestedEntity value)
+            => CreateAndRunVirtualMachine<NestedEntity>(query, [value]);
     }
 }

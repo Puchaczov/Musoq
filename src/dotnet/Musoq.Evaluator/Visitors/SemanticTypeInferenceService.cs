@@ -17,6 +17,9 @@ internal static class SemanticTypeInferenceService
         if (types.Length == 0)
             return typeof(object);
 
+        if (types.All(BinaryOperatorTypeRules.IsNumericType))
+            return types.Aggregate(BinaryOperatorTypeRules.GetWiderNumericType);
+
         var greatestCommonSubtype = types[0];
 
         foreach (var currentType in types.Skip(1))

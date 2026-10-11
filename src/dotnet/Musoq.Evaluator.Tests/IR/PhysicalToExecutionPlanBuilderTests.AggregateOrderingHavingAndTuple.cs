@@ -100,15 +100,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateSingleKeyAggregateContext [groups: int -> ResultAggregateGroup]",
             "    ChunkedForEach [p in pRows]",
             "      GetOrAddSingleKeyAggregateGroup [group = groups[(p.Age + 1)] by p.AgePlusOne; typed: ResultAggregateGroup]",
             "      TypedAggregateSet [Set(group.__agg0, 1)]",
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
-            "      AppendShape [result <- ResultShape0(AgePlusOne: finalGroup.p.AgePlusOne, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(AgePlusOne: finalGroup.p.AgePlusOne, Count: Count('p.Count'))]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -155,7 +155,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
             "    ChunkedForEach [p in pRows]",
             "      GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]",
@@ -163,8 +163,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
             "      If [(Count('p.Count') > 1)]",
-            "        AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -206,15 +206,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateValueTupleAggregateContext [groups: (string, int) -> ResultAggregateGroup]",
             "    ChunkedForEach [p in pRows]",
             "      GetOrAddValueTupleAggregateGroup [group = groups[(p.Name, p.Age)] by p.Name, p.Age; typed: ResultAggregateGroup]",
             "      TypedAggregateSet [Set(group.__agg0, 1)]",
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
-            "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Age: finalGroup.p.Age, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, Age: finalGroup.p.Age, Count: Count('p.Count'))]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

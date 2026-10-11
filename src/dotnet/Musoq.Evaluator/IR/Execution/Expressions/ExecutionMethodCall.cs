@@ -8,6 +8,8 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionMethodCall : ExecutionExpression
 {
     private IReadOnlyList<ExecutionExpression> _arguments = [];
+    private IReadOnlyDictionary<int, string> _generatedGenericArguments =
+        System.Collections.Immutable.ImmutableDictionary<int, string>.Empty;
 
     public ExecutionMethodCall(
         ExecutionCallableRef method,
@@ -35,6 +37,16 @@ public sealed record ExecutionMethodCall : ExecutionExpression
         get => _arguments;
         init => _arguments = ExecutionIrCollections.Freeze(value);
     }
+
+    /// <summary>Concrete generated type arguments selected before target rendering.</summary>
+    public IReadOnlyDictionary<int, string> GeneratedGenericArguments
+    {
+        get => _generatedGenericArguments;
+        init => _generatedGenericArguments = ExecutionIrCollections.Freeze(value);
+    }
+
+    /// <summary>Concrete generated result selected from the closed generic declaration.</summary>
+    public string? GeneratedResultTypeName { get; init; }
 
     public string? Alias { get; init; }
 

@@ -23,23 +23,6 @@ public partial class BranchCoverageImprovementTests
 
     #region Test Helpers
 
-    private sealed class TestIndexedList : IndexedList<Key, Row>
-    {
-        public void AddRowWithIndex(Key key, Row row)
-        {
-            Rows.Add(row);
-            var rowIndex = Rows.Count - 1;
-
-            if (!Indexes.TryGetValue(key, out var indices))
-            {
-                indices = [];
-                Indexes[key] = indices;
-            }
-
-            indices.Add(rowIndex);
-        }
-    }
-
     private sealed class TestSchemaProvider(ISchema? schema = null) : ISchemaProvider
     {
         public ISchema GetSchema(string schema1)
@@ -67,7 +50,7 @@ public partial class BranchCoverageImprovementTests
         public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters) =>
             SourcePlanResult.RejectAll(request);
 
-        public RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters) =>
+        public RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
             throw new NotImplementedException();
 
         public SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) =>

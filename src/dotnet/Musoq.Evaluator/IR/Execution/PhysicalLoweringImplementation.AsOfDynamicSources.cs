@@ -4,21 +4,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static JoinSource PrepareAsOfProbeSource(JoinSource rightSource)
+    private JoinSource PrepareAsOfProbeSource(JoinSource rightSource, string resultTableName)
     {
-        if (rightSource.Shape is not ExpandoAdapterShape expando)
-            return rightSource;
+        if (rightSource.Shape is GeneratedRowShape ||
+            rightSource.Shape is SourceEntityShape && rightSource.Variable.Type.ResolveClrType().IsValueType)
+            return MaterializeAsOfStructSource(rightSource, resultTableName);
 
-        var buffer = new ExecutionVariable(
-            CreateIdentifierCandidate($"{rightSource.Variable.Name}AsOfRows", 0),
-            typeof(object),
-            expando.TypeName);
-        rightSource.Setup.Add(CreateMaterializeExpandoListNode(rightSource.Rows, buffer, expando, null));
-
-        return rightSource with
-        {
-            Variable = new ExecutionVariable(rightSource.Variable.Name, typeof(object), expando.TypeName),
-            Rows = new ExecutionVariableRead(buffer)
-        };
+        return rightSource;
     }
 }

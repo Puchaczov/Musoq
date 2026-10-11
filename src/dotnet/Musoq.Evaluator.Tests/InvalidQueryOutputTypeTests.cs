@@ -252,7 +252,7 @@ select Self from cte2";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("test", table[0][0]);
+        Assert.AreEqual("test", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -268,7 +268,7 @@ select Self from cte2";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(100.5m, table[0][0]);
+        Assert.AreEqual(100.5m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -285,7 +285,7 @@ select Self from cte2";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(now, table[0][0]);
+        Assert.AreEqual(now, table[0].ReadValue(0));
     }
 
 }

@@ -8,7 +8,7 @@ using Musoq.Schema.Interpreters;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
+public partial class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 {
     [TestMethod]
     public void Query_RawSubstream_ShouldReturnBoundedPayloadBytes()
@@ -28,9 +28,9 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Kind", typeof(byte)),
-            ("p.Payload", typeof(byte[])),
-            ("p.Checksum", typeof(byte)));
+            ("Kind", typeof(byte)),
+            ("Payload", typeof(byte[])),
+            ("Checksum", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [(byte)0x01, new byte[] { 0xAA, 0xBB, 0xCC }, (byte)0x7F]);
@@ -54,8 +54,8 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Payload", typeof(byte[])),
-            ("p.Checksum", typeof(byte)));
+            ("Payload", typeof(byte[])),
+            ("Checksum", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [Array.Empty<byte>(), (byte)0x42]);
     }
 
@@ -81,9 +81,9 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Payload.A", typeof(object)),
-            ("p.Payload.B", typeof(object)),
-            ("p.Checksum", typeof(byte)));
+            ("p.Payload.A", typeof(byte)),
+            ("p.Payload.B", typeof(byte)),
+            ("Checksum", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
@@ -131,9 +131,9 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Payload.A", typeof(object)),
-            ("p.Payload.B", typeof(object)),
-            ("p.Checksum", typeof(byte)));
+            ("p.Payload.A", typeof(byte)),
+            ("p.Payload.B", typeof(byte)),
+            ("Checksum", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
@@ -155,9 +155,9 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Payload.A", typeof(object)),
-            ("p.Payload.B", typeof(object)),
-            ("p.Checksum", typeof(byte)));
+            ("p.Payload.A", typeof(byte)),
+            ("p.Payload.B", typeof(byte)),
+            ("Checksum", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
@@ -179,9 +179,9 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Payload.A", typeof(object)),
-            ("p.Payload.B", typeof(object)),
-            ("p.Checksum", typeof(byte)));
+            ("p.Payload.A", typeof(byte)),
+            ("p.Payload.B", typeof(byte)),
+            ("Checksum", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 

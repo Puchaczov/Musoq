@@ -21,7 +21,8 @@ internal sealed record TargetArtifactSemanticFacts
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? usedColumns,
         IReadOnlyDictionary<string, ISchemaColumn[]>? pipelineInferredColumns,
         IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? sourcePlanRequestsPerSchema,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, SourceExecutionPermissions>? sourceExecutionPermissions = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         QueryResultMode = queryResultMode;
@@ -64,6 +65,8 @@ internal sealed record TargetArtifactSemanticFacts
             (sourcePlanRequestsPerSchema ?? new Dictionary<SchemaFromNode, SourcePlanRequest>())
             .Select(entry => CreateSourcePlanFact(entry.Key, entry.Value, cancellationToken)),
             cancellationToken);
+        SourceScheduling = Freeze(sourceExecutionPermissions?.Select(static source =>
+            new TargetArtifactSourceSchedulingFact(source.Key, (int)source.Value)), cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
     }
 
@@ -92,6 +95,8 @@ internal sealed record TargetArtifactSemanticFacts
     public IReadOnlyList<TargetArtifactAliasColumnsFact>? PortablePipelineInferredColumns { get; }
 
     public IReadOnlyList<TargetArtifactSourcePlanFact> PortableSourcePlanSignatures { get; }
+
+    public IReadOnlyList<TargetArtifactSourceSchedulingFact> SourceScheduling { get; }
 
     public static TargetArtifactSemanticFacts Empty { get; } = new(
         QueryResultMode.Table,
@@ -330,6 +335,8 @@ internal sealed record TargetArtifactSourceColumnRefFact(
 internal sealed record TargetArtifactOrderByFact(
     TargetArtifactSourceColumnRefFact Column,
     string Direction);
+
+internal sealed record TargetArtifactSourceSchedulingFact(string SourceId, int Permissions);
 
 internal sealed record TargetArtifactSourcePlanFact(
     TargetArtifactSourceFact Source,

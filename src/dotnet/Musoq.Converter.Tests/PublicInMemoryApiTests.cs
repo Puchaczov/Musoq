@@ -411,7 +411,7 @@ public class PublicInMemoryApiTests
         Assert.AreEqual("int", compiled.ParameterContracts[0].DeclaredTypeName);
         Assert.AreEqual("int", compiled.ParameterContracts[0].CanonicalTypeName);
         Assert.AreEqual(typeof(int), compiled.ParameterContracts[0].ClrType);
-        compiled.Parameters["minAge"] = 30;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minAge", 30);
 
         var rows = compiled.Run(
                 CancellationToken.None,
@@ -460,11 +460,11 @@ public class PublicInMemoryApiTests
         var secondPhaseCount = 0;
         var firstOptions = new TypedQueryRunOptions(
             CancellationToken.None,
-            new Dictionary<string, object?> { ["minAge"] = 30 },
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["minAge"] = 30 }),
             (_, _) => Interlocked.Increment(ref firstPhaseCount));
         var secondOptions = new TypedQueryRunOptions(
             CancellationToken.None,
-            new Dictionary<string, object?> { ["minAge"] = 40 },
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["minAge"] = 40 }),
             (_, _) => Interlocked.Increment(ref secondPhaseCount));
 
         var firstTask = Task.Run(() => compiled.Run(
@@ -501,7 +501,7 @@ public class PublicInMemoryApiTests
             .Compile<NameDto>();
         var firstPhaseCount = 0;
         var secondPhaseCount = 0;
-        compiled.Parameters["minAge"] = 30;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minAge", 30);
         compiled.PhaseChanged += (_, _) => firstPhaseCount++;
 
         var rows = compiled.Run(
@@ -511,7 +511,7 @@ public class PublicInMemoryApiTests
                 new Person("Alice", 35, "NY"),
                 new Person("Bob", 20, "LA")
             })));
-        compiled.Parameters["minAge"] = 40;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minAge", 40);
         compiled.PhaseChanged += (_, _) => secondPhaseCount++;
 
         var names = rows.Select(static row => row.Name).ToArray();

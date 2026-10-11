@@ -13,13 +13,15 @@ namespace Musoq.Evaluator.Tests;
 public class CompiledQueryParameterApiTests
 {
     [TestMethod]
-    public void Parameters_ShouldExposeParameterizedRunnableDictionary()
+    public void TypedParameters_ShouldCaptureNativeSlotsForTheRunnable()
     {
         var runnable = new ParameterizedRunnable();
-        var query = new CompiledQuery(runnable) { Parameters = { ["author"] = "Ada" } };
+        using var query = new CompiledQuery(runnable);
+        query.TypedParameters.Set("author", "Ada");
+        using var result = query.Run(CancellationToken.None);
 
-        Assert.AreNotSame(runnable.Parameters, query.Parameters);
-        Assert.AreEqual("Ada", runnable.Parameters["author"]);
+        Assert.AreEqual(1, query.TypedParameters.Count);
+        Assert.AreEqual("Ada", runnable.TypedParameters.GetRequired<string>("author"));
     }
 
     [TestMethod]
@@ -61,7 +63,7 @@ public class CompiledQueryParameterApiTests
         Assert.IsEmpty(query.RequiredParameters);
     }
 
-    private sealed class ParameterizedRunnable : ITableRunnable, IParameterizedRunnable
+    private sealed class ParameterizedRunnable : ITableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
@@ -76,7 +78,7 @@ public class CompiledQueryParameterApiTests
 
         public ILogger Logger { get; set; } = new NullLogger<object>();
 
-        public IDictionary<string, object?> Parameters { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
 
         public List<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 

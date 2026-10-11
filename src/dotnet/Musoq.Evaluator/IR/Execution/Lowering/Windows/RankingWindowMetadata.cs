@@ -1,19 +1,25 @@
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
+using System.Reflection;
 
 namespace Musoq.Evaluator.IR.Execution;
 
 internal static class RankingWindowMetadata
 {
-    public static ExecutionRankingWindowFunction? ResolveFunction(string functionName)
+    public static bool RequiresPeerMetadata(WindowRegistration registration)
+        => registration.Function?.GetCustomAttribute<WindowFunctionAttribute>()?.RequiresPeerMetadata ?? true;
+
+    public static ExecutionRankingWindowFunction? ResolveFunction(WindowRegistration registration)
     {
-        var normalized = functionName.Replace("_", string.Empty, StringComparison.Ordinal).ToUpperInvariant();
-        return normalized switch
+        var kind = registration.Function?.GetCustomAttribute<WindowFunctionAttribute>()?.RankingKind;
+        return kind switch
         {
-            "ROWNUMBER" => ExecutionRankingWindowFunction.RowNumber,
-            "RANK" => ExecutionRankingWindowFunction.Rank,
-            "DENSERANK" => ExecutionRankingWindowFunction.DenseRank,
-            "PERCENTRANK" => ExecutionRankingWindowFunction.PercentRank,
-            "CUMEDIST" => ExecutionRankingWindowFunction.CumeDist,
+            WindowRankingKind.RowNumber => ExecutionRankingWindowFunction.RowNumber,
+            WindowRankingKind.Rank => ExecutionRankingWindowFunction.Rank,
+            WindowRankingKind.DenseRank => ExecutionRankingWindowFunction.DenseRank,
+            WindowRankingKind.PercentRank => ExecutionRankingWindowFunction.PercentRank,
+            WindowRankingKind.CumeDist => ExecutionRankingWindowFunction.CumeDist,
             _ => null
         };
     }
@@ -49,6 +55,8 @@ internal static class RankingWindowMetadata
         var expectedType = function is ExecutionRankingWindowFunction.PercentRank or ExecutionRankingWindowFunction.CumeDist
             ? typeof(double)
             : typeof(long);
+        if (registration.Function?.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null })
+            expectedType = registration.Function.ReturnType;
         if (registration.ReturnType != expectedType)
         {
             return WindowRegistrationBuildResult.Unsupported(

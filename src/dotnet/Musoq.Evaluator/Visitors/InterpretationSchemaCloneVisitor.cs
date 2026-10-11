@@ -63,7 +63,8 @@ public partial class CloneQueryVisitor
                 node.SecondaryValue,
                 node.Modifiers,
                 node.EscapeCharacter,
-                (string[])node.CaptureGroups.Clone());
+                (string[])node.CaptureGroups.Clone(),
+                node.RepeatElement != null ? (TextFieldDefinitionNode)Nodes.Pop() : null);
 
         Nodes.Push(clone
             .WithSpan(node.Span)

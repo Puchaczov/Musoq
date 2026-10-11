@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
@@ -46,9 +46,7 @@ internal readonly struct ParameterMetadataInfo
     {
         foreach (var parameter in parameters)
         {
-            var attrs = parameter.GetCustomAttributes();
-
-            if (attrs.Any(attr => attr.GetType().IsAssignableTo(typeof(ParamArrayAttribute)))) return [parameter];
+            if (global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter)) return [parameter];
         }
 
         return [];

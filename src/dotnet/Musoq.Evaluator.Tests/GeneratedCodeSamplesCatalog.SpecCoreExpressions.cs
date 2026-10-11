@@ -67,11 +67,11 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Scalar",
                 "select Name from #A.entities() where Time >= '2024-01-01'"),
             Basic(
-                "Q301_SpecCoreObjectNumericCoercion",
+                "Q301_SpecCoreTypedNumericCoercion",
                 "Scalar",
                 "select Label from #object.items() where Value > 10") with
             {
-                CreateSchemaProvider = CreateObjectCoercionSampleProvider
+                CreateSchemaProvider = CreateTypedNumericSampleProvider
             }
         ];
     }

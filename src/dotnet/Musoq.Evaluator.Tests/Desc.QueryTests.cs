@@ -16,6 +16,16 @@ namespace Musoq.Evaluator.Tests;
 public partial class DescStatementTests
 {
     [TestMethod]
+    public void DescQuery_DuplicateLabelsWithDifferentTypes_ShouldDescribeBothPositions()
+    {
+        const string query = "desc query (select l.Id, r.Id from values { (Id: 7) } l cross join values { (Id: 'seven') } r)";
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        AssertDescriptionRows(table, ("Id", typeof(int)), ("Id", typeof(string)));
+    }
+
+    [TestMethod]
     public void DescQuery_WithProjectedAlias_ShouldReturnProjectedMetadata()
     {
         const string query =
@@ -64,7 +74,7 @@ desc query (
 )";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        vm.Parameters["adjust"] = 10m;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
         var table = vm.Run(TestContext.CancellationToken);
 
         AssertDescriptionRows(
@@ -157,8 +167,8 @@ desc query (
 )";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        vm.Parameters["prefix"] = "person:";
-        vm.Parameters["adjust"] = 10m;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "prefix", "person:");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
         var table = vm.Run(TestContext.CancellationToken);
 
         AssertDescriptionRows(
@@ -244,7 +254,7 @@ desc query (
             table,
             ("Name", typeof(string)),
             ("RowNo", typeof(long)),
-            ("RunningPopulation", typeof(decimal)));
+            ("RunningPopulation", typeof(decimal?)));
     }
 
     [TestMethod]
@@ -345,10 +355,10 @@ desc query (
             return new MetadataOnlyTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             provider.RecordRowSourceCall();
             throw new InvalidOperationException("DESC QUERY should not execute the inner source.");

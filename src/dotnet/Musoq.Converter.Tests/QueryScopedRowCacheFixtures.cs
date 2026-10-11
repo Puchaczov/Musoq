@@ -75,10 +75,10 @@ public sealed class QueryRowCacheSchema : SchemaBase, IQueryScopedRowSourceSchem
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
         {
@@ -101,11 +101,12 @@ public sealed class QueryRowCacheSchema : SchemaBase, IQueryScopedRowSourceSchem
         };
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (!string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
             throw new NotSupportedException(name);

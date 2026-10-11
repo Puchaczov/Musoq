@@ -269,17 +269,14 @@ public sealed class RoslynRuntimeSeamTests
     }
 
     [TestMethod]
-    public void ParameterSnapshot_MutableDictionaryContracts_ShouldReturnMutableCopies()
+    public void NativeParameterSnapshot_ShouldKeepIndependentConcreteValues()
     {
-        var empty = ParameterSnapshot.EmptyDictionary;
-        empty["value"] = 1;
-        Assert.AreEqual(1, empty["value"]);
-
-        var snapshot = ParameterSnapshot.CaptureDictionaryOrEmpty(
-            new Dictionary<string, object?> { ["value"] = 2 });
-        snapshot["value"] = 3;
-
-        Assert.AreEqual(3, snapshot["value"]);
+        var values = new TypedParameterValues();
+        values.Set("value", 2);
+        var snapshot = values.Capture();
+        values.Set("value", 3);
+        Assert.AreEqual(2, snapshot.GetRequired<int>("value"));
+        Assert.AreEqual(3, values.Capture().GetRequired<int>("value"));
     }
 
     [TestMethod]

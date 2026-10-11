@@ -7,7 +7,8 @@ namespace Musoq.Evaluator.IR.Planning;
 internal sealed partial class ParallelStrategyPlanner(
     CompilationOptions compilationOptions,
     CteExecutionPlan? cteExecutionPlan,
-    IPlanningShapeResolver shapeResolver)
+    IPlanningShapeResolver shapeResolver,
+    ParallelSourcePermissionPolicy sourcePermissions)
 {
     private readonly HashSet<PhysicalSingleKeyAggregateNode> _aggregateCandidates = new(ReferenceComparer<PhysicalSingleKeyAggregateNode>.Instance);
     private readonly HashSet<PhysicalProjectNode> _filterProjectCandidates = new(ReferenceComparer<PhysicalProjectNode>.Instance);

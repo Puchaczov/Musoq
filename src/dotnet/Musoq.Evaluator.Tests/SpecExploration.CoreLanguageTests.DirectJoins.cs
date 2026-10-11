@@ -10,7 +10,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_Join_SemiJoin()
     {
         var table = RunDirectJoinSpecQuery("select a.Name from #A.Entities() a semi join #B.Entities() b on a.Id = b.Id");
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { "A1" },
             new object?[] { "A3" });
@@ -20,7 +20,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_Join_AntiJoin()
     {
         var table = RunDirectJoinSpecQuery("select a.Name from #A.Entities() a anti join #B.Entities() b on a.Id = b.Id");
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "A2" });
     }
 

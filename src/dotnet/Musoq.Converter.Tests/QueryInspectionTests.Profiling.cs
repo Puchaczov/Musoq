@@ -102,7 +102,7 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -173,12 +173,12 @@ public partial class QueryInspectionTests
             _schemaProvider,
             _loggerResolver);
 
-        compiled.Parameters["expected"] = "single";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "expected", "single");
 
         var result = compiled.RunWithProfile();
 
         Assert.AreEqual(1, result.Result.Count);
-        Assert.AreEqual("single", result.Result[0][0]);
+        Assert.AreEqual("single", result.Result[0].ReadValue(0));
         Assert.AreEqual(1, result.Profile.Sources.Single().RowsRead);
     }
 
@@ -342,12 +342,12 @@ public partial class QueryInspectionTests
             _schemaProvider,
             _loggerResolver);
 
-        compiled.Parameters["expected"] = "single";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "expected", "single");
 
         var result = compiled.Run();
 
         Assert.AreEqual(1, result.Result.Count);
-        Assert.AreEqual("single", result.Result[0][0]);
+        Assert.AreEqual("single", result.Result[0].ReadValue(0));
         Assert.AreEqual(1, compiled.ParameterDefinitions.Count);
         Assert.AreEqual(1, compiled.ParameterContracts.Count);
         StringAssert.Contains(result.ExplainAnalyzeText, "actual rows=");
@@ -641,7 +641,7 @@ public partial class QueryInspectionTests
         AssertDiagnosticTextTable(table);
         StringAssert.Contains(text, "Musoq query profile");
         StringAssert.Contains(text, "Rows read: 1");
-        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "Dummy"));
     }
 
     [TestMethod]
@@ -662,7 +662,7 @@ public partial class QueryInspectionTests
         var query = CompileForExecution(
             "param(expected: string) PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected");
 
-        query.Parameters["expected"] = "single";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
 
         var table = query.Run();
         var text = ReadDiagnosticsText(table);
@@ -682,7 +682,7 @@ public partial class QueryInspectionTests
         AssertDiagnosticTextTable(table);
         StringAssert.Contains(text, "Musoq query profile");
         StringAssert.Contains(text, "Rows read: 1");
-        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "Dummy"));
     }
 
     [TestMethod]
@@ -697,7 +697,7 @@ public partial class QueryInspectionTests
         StringAssert.Contains(text, "Musoq explain analyze");
         StringAssert.Contains(text, "[op1] ExecutionPlan");
         StringAssert.Contains(text, "actual rows=");
-        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "Dummy"));
     }
 
     [TestMethod]
@@ -706,7 +706,7 @@ public partial class QueryInspectionTests
         var query = CompileForExecution(
             "param(expected: string); let marker: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected and d.Dummy = $marker");
 
-        query.Parameters["expected"] = "single";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
 
         var table = query.Run();
         var text = ReadDiagnosticsText(table);
@@ -714,7 +714,7 @@ public partial class QueryInspectionTests
         AssertDiagnosticTextTable(table);
         StringAssert.Contains(text, "Musoq query profile");
         StringAssert.Contains(text, "Rows read: 1");
-        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "Dummy"));
     }
 
     [TestMethod]
@@ -832,7 +832,7 @@ public partial class QueryInspectionTests
         Assert.AreEqual(expected.Columns.Count(), actual.Columns.Count());
 
         for (var rowIndex = 0; rowIndex < expected.Count; rowIndex++)
-            CollectionAssert.AreEqual(expected[rowIndex].Values, actual[rowIndex].Values);
+            CollectionAssert.AreEqual(expected[rowIndex].ReadValues(), actual[rowIndex].ReadValues());
     }
 
     private static void AssertDiagnosticTextTable(Table table)
@@ -847,7 +847,7 @@ public partial class QueryInspectionTests
 
     private static string ReadDiagnosticsText(Table table)
     {
-        return string.Join("\n", table.Rows.Select(row => row[1]?.ToString() ?? string.Empty));
+        return string.Join("\n", table.Rows.Select(row => row.ReadValue(1)?.ToString() ?? string.Empty));
     }
 
     private static OperatorProfileSnapshot AssertActualOperator(ExplainAnalyzeResult result, string name)
@@ -884,14 +884,14 @@ public partial class QueryInspectionTests
 
     private sealed class CancellingSystemSchema(Action cancel, Action tokenReachedSource) : SystemSchema
     {
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return name.Equals("dual", StringComparison.OrdinalIgnoreCase)
                 ? EnsureSourceType<T, DualEntity>(name, new CancellingDualRowSource(executionContext, cancel, tokenReachedSource))
-                : base.GetRowSource<T>(name, executionContext, parameters);
+                : base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
         }
     }
 
@@ -916,14 +916,14 @@ public partial class QueryInspectionTests
 
     private sealed class ReportingSystemSchema : SystemSchema
     {
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return name.Equals("dual", StringComparison.OrdinalIgnoreCase)
                 ? EnsureSourceType<T, DualEntity>(name, new ReportingDualRowSource(executionContext))
-                : base.GetRowSource<T>(name, executionContext, parameters);
+                : base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
         }
     }
 

@@ -140,10 +140,10 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
 
         var inspection = Inspect(query, new CsvSchemaProvider(enableQueryScopedRows: true));
 
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetQueryScopedRowSource<");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "IQuerySourceFieldReader");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "Read<string>(0)");
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSource<Musoq.Examples.DataSources.Csv.CsvRow>", StringComparison.Ordinal));
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("SourceInvocation<Musoq.Examples.DataSources.Csv.CsvRow>", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSourceChunks", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetColumnValue", StringComparison.Ordinal));
     }

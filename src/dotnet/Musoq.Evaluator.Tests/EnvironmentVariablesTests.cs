@@ -27,8 +27,8 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Key", table[0][0]);
-        Assert.AreEqual("Value", table[1][0]);
+        Assert.AreEqual("Key", table[0].ReadValue(0));
+        Assert.AreEqual("Value", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.All(row =>
-                new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row[0], (string)row[1]))),
+                new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row.ReadValue(0), (string)row.ReadValue(1)))),
             "Expected rows with values: (KEY_1,VALUE_1), (KEY_2,VALUE_2)");
     }
 
@@ -87,15 +87,15 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_1" &&
-            (string)entry[1] == "VALUE_1" &&
-            (string)entry[2] == "VALUE_3"
+            (string)entry.ReadValue(0) == "KEY_1" &&
+            (string)entry.ReadValue(1) == "VALUE_1" &&
+            (string)entry.ReadValue(2) == "VALUE_3"
         ), "First entry should be KEY_1, VALUE_1, VALUE_3");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_2" &&
-            (string)entry[1] == "VALUE_2" &&
-            (string)entry[2] == "VALUE_4"
+            (string)entry.ReadValue(0) == "KEY_2" &&
+            (string)entry.ReadValue(1) == "VALUE_2" &&
+            (string)entry.ReadValue(2) == "VALUE_4"
         ), "Second entry should be KEY_2, VALUE_2, VALUE_4");
     }
 
@@ -128,23 +128,23 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_1" &&
-            (string)entry[1] == "VALUE_1"
+            (string)entry.ReadValue(0) == "KEY_1" &&
+            (string)entry.ReadValue(1) == "VALUE_1"
         ), "First entry should be KEY_1, VALUE_1");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_2" &&
-            (string)entry[1] == "VALUE_2"
+            (string)entry.ReadValue(0) == "KEY_2" &&
+            (string)entry.ReadValue(1) == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_3" &&
-            (string)entry[1] == "VALUE_3"
+            (string)entry.ReadValue(0) == "KEY_3" &&
+            (string)entry.ReadValue(1) == "VALUE_3"
         ), "Third entry should be KEY_3, VALUE_3");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_4" &&
-            (string)entry[1] == "VALUE_4"
+            (string)entry.ReadValue(0) == "KEY_4" &&
+            (string)entry.ReadValue(1) == "VALUE_4"
         ), "Fourth entry should be KEY_4, VALUE_4");
     }
 
@@ -198,13 +198,13 @@ select Key, Value from #EnvironmentVariables.All()";
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_1" &&
-            (string)entry[1] == "VALUE_1"
+            (string)entry.ReadValue(0) == "KEY_1" &&
+            (string)entry.ReadValue(1) == "VALUE_1"
         ), "First entry should be KEY_1, VALUE_1");
 
         Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "KEY_2" &&
-            (string)entry[1] == "VALUE_2"
+            (string)entry.ReadValue(0) == "KEY_2" &&
+            (string)entry.ReadValue(1) == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
     }
 

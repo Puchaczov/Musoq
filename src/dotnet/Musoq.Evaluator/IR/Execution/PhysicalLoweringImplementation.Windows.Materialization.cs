@@ -19,11 +19,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 $"Execution IR ranking window lowering requires a boolean pre-window filter predicate. Found {predicate.ReturnType.ResolveClrType().Name}.");
         }
 
-        if (context.SourceShape is ExpandoAdapterShape expando)
-        {
-            return LoweringAttempt<ExecutionNode>.Built(
-                CreateMaterializeExpandoListNode(context.SourceRows, context.Buffer, expando, predicate));
-        }
+
 
         return LoweringAttempt<ExecutionNode>.Built(
             CreateMaterializeFilteredListNode(
@@ -37,11 +33,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static LoweringAttempt<ExecutionNode> CreateUnfilteredWindowMaterialization(WindowMaterializationContext context)
     {
-        if (context.SourceShape is ExpandoAdapterShape expando)
-        {
-            return LoweringAttempt<ExecutionNode>.Built(
-                CreateMaterializeExpandoListNode(context.SourceRows, context.Buffer, expando, null));
-        }
+
 
         return LoweringAttempt<ExecutionNode>.Built(
             CreateMaterializeListNode(context.SourceRows, context.Buffer, context.GeneratedRowShape));

@@ -27,5 +27,5 @@ public class DynamicTable : ISchemaTable
         return Columns.Where(col => col.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object>));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract));
 }

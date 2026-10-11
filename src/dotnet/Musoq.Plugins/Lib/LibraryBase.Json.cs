@@ -16,7 +16,9 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Json)]
     public string? ToJson<T>(T? obj)
     {
-        return obj == null ? null : JsonSerializer.Serialize(obj);
+        if (obj == null)
+            return null;
+        return !typeof(T).IsValueType && obj is IJsonPayload ? JsonPayloadWriter.Serialize(in obj) : JsonSerializer.Serialize(obj);
     }
 
     /// <summary>

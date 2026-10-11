@@ -24,8 +24,8 @@ public sealed partial class ExecutionShapeResolver
             var columnType = field.FieldType switch
             {
                 TextFieldType.Pattern when field.CaptureGroups.Length > 0 => typeof(object),
-                TextFieldType.Repeat => typeof(object[]),
-                TextFieldType.Switch => DynamicEntityBoundary.ExpandoType,
+                TextFieldType.Repeat => InterpretationTextFieldTypeResolver.Resolve(text.Name, field).ClrType,
+                TextFieldType.Switch => typeof(object),
                 TextFieldType.SchemaReference => typeof(object),
                 _ => typeof(string)
             };
@@ -34,8 +34,10 @@ public sealed partial class ExecutionShapeResolver
             {
                 { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 } =>
                     $"Musoq.Generated.Interpreters.{text.Name}.CaptureResult_{field.Name}",
+                { FieldType: TextFieldType.Switch } =>
+                    InterpretationTextFieldTypeResolver.Resolve(text.Name, field).IntendedTypeName,
                 { FieldType: TextFieldType.Repeat } =>
-                    $"Musoq.Generated.Interpreters.{field.PrimaryValue ?? "object"}[]",
+                    InterpretationTextFieldTypeResolver.Resolve(text.Name, field).IntendedTypeName,
                 { FieldType: TextFieldType.SchemaReference } =>
                     $"Musoq.Generated.Interpreters.{field.PrimaryValue ?? "object"}",
                 _ => null

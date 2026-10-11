@@ -10,7 +10,7 @@ using Musoq.Schema.Managers;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class DiagnosticExceptionTaxonomyTests
+public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEntityTestBase
 {
     [TestMethod]
     public void QueryAnalyzer_WhenProviderFails_ShouldPreserveProviderException()
@@ -74,12 +74,17 @@ public sealed class DiagnosticExceptionTaxonomyTests
     }
 
     [TestMethod]
-    public void DynamicAccess_WhenGetterThrowsUnexpectedException_ShouldPreserveIt()
+    public void TypedAccess_WhenGetterThrowsUnexpectedException_ShouldPreserveIt()
     {
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            EvaluationHelper.GetNestedValue(new ThrowingDynamicObject(), "Value"));
+        using var compiled = CreateAndRunVirtualMachine<ThrowingValueEntity>("select Value from #schema.first()", [new()]);
+        var exception = Assert.Throws<Musoq.Evaluator.Exceptions.QueryExecutionException>(() =>
+        {
+            using var table = compiled.Run(TestContext.CancellationToken);
+            foreach (var row in table) _ = row.GetValue<string>(0);
+        });
 
-        Assert.AreEqual("getter failed", exception.Message);
+        Assert.IsInstanceOfType<InvalidOperationException>(exception.GetBaseException());
+        Assert.AreEqual("getter failed", exception.GetBaseException().Message);
     }
 
     private sealed class ThrowingSchemaProvider(string message) : ISchemaProvider
@@ -111,10 +116,10 @@ public sealed class DiagnosticExceptionTaxonomyTests
             SourceMetadataContext metadataContext,
             params object?[] parameters) => throw exception;
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
     }
 
     private sealed class ThrowingColumnSchemaProvider : ISchemaProvider
@@ -134,10 +139,10 @@ public sealed class DiagnosticExceptionTaxonomyTests
             SourceMetadataContext metadataContext,
             params object?[] parameters) => new ThrowingColumnTable();
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
     }
 
     private sealed class ThrowingColumnTable : ISchemaTable
@@ -152,11 +157,8 @@ public sealed class DiagnosticExceptionTaxonomyTests
         public SchemaTableMetadata Metadata { get; } = new(typeof(object));
     }
 
-    private sealed class ThrowingDynamicObject : DynamicObject
+    public sealed class ThrowingValueEntity
     {
-        public override bool TryGetMember(GetMemberBinder binder, out object? result)
-        {
-            throw new InvalidOperationException("getter failed");
-        }
+        public string Value => throw new InvalidOperationException("getter failed");
     }
 }

@@ -21,7 +21,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("SmallerCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -71,7 +71,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("HasEarlier", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

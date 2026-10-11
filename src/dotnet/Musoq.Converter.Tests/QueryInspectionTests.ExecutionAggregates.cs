@@ -150,11 +150,11 @@ public partial class QueryInspectionTests
         Assert.AreEqual(2, table.Count);
         foreach (var row in table)
         {
-            Assert.AreEqual("PL", row[0]);
-            Assert.AreEqual(2L, row[2]);
-            Assert.AreEqual(10, row[3]);
-            Assert.AreEqual(-3, row[4]);
-            Assert.AreEqual(1L, row[5]);
+            Assert.AreEqual("PL", row.ReadValue(0));
+            Assert.AreEqual(2L, row.ReadValue(2));
+            Assert.AreEqual(10, row.ReadValue(3));
+            Assert.AreEqual(-3, row.ReadValue(4));
+            Assert.AreEqual(1L, row.ReadValue(5));
         }
     }
 
@@ -277,7 +277,7 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1L, table[0][0]);
+        Assert.AreEqual(1L, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -317,8 +317,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -395,8 +395,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -426,8 +426,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -455,8 +455,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -469,8 +469,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(2L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -498,8 +498,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -525,8 +525,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single!", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("single!", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -553,9 +553,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -587,10 +587,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(8, table[0][8]);
-        Assert.AreEqual(1L, table[0][9]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual(8, table[0].ReadValue(8));
+        Assert.AreEqual(1L, table[0].ReadValue(9));
     }
 
 }

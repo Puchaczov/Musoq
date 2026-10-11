@@ -3,7 +3,7 @@ namespace Musoq.Plugins;
 /// <summary>
 ///     Typed row-count kernel used by runtime-v2 generated aggregate code.
 /// </summary>
-public static class CountAllAggregateKernel
+public static partial class CountAllAggregateKernel
 {
     /// <summary>
     ///     Query-specific aggregate state stored directly on generated group classes.

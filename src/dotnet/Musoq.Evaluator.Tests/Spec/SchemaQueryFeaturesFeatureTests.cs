@@ -47,9 +47,9 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((byte)3, table[2][0]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((byte)3, table[2].ReadValue(0));
     }
 
     #endregion
@@ -86,8 +86,8 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        Assert.AreEqual((byte)4, table[1][0]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        Assert.AreEqual((byte)4, table[1].ReadValue(0));
     }
 
     #endregion
@@ -123,9 +123,9 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((byte)3, table[2][0]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((byte)3, table[2].ReadValue(0));
     }
 
     #endregion
@@ -163,12 +163,12 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)0x5F, table[0][0]);
-        Assert.AreEqual("A", table[0][1]);
-        Assert.AreEqual((byte)0x50, table[1][0]);
-        Assert.AreEqual("B", table[1][1]);
-        Assert.AreEqual((byte)0x46, table[2][0]);
-        Assert.AreEqual("C", table[2][1]);
+        Assert.AreEqual((byte)0x5F, table[0].ReadValue(0));
+        Assert.AreEqual("A", table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x50, table[1].ReadValue(0));
+        Assert.AreEqual("B", table[1].ReadValue(1));
+        Assert.AreEqual((byte)0x46, table[2].ReadValue(0));
+        Assert.AreEqual("C", table[2].ReadValue(1));
     }
 
     #endregion
@@ -205,12 +205,12 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ERROR", table[0][0]);
-        Assert.AreEqual("Critical", table[0][1]);
-        Assert.AreEqual("INFO", table[1][0]);
-        Assert.AreEqual("Info", table[1][1]);
-        Assert.AreEqual("WARN", table[2][0]);
-        Assert.AreEqual("Warning", table[2][1]);
+        Assert.AreEqual("ERROR", table[0].ReadValue(0));
+        Assert.AreEqual("Critical", table[0].ReadValue(1));
+        Assert.AreEqual("INFO", table[1].ReadValue(0));
+        Assert.AreEqual("Info", table[1].ReadValue(1));
+        Assert.AreEqual("WARN", table[2].ReadValue(0));
+        Assert.AreEqual("Warning", table[2].ReadValue(1));
     }
 
     #endregion
@@ -243,14 +243,14 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((short)3, table[0][0]);
-        Assert.AreEqual((short)4, table[0][1]);
-        Assert.AreEqual(3 * 4, table[0][2]);
-        Assert.AreEqual((3 + 4) * 2, table[0][3]);
-        Assert.AreEqual((short)5, table[1][0]);
-        Assert.AreEqual((short)6, table[1][1]);
-        Assert.AreEqual(5 * 6, table[1][2]);
-        Assert.AreEqual((5 + 6) * 2, table[1][3]);
+        Assert.AreEqual((short)3, table[0].ReadValue(0));
+        Assert.AreEqual((short)4, table[0].ReadValue(1));
+        Assert.AreEqual(3 * 4, table[0].ReadValue(2));
+        Assert.AreEqual((3 + 4) * 2, table[0].ReadValue(3));
+        Assert.AreEqual((short)5, table[1].ReadValue(0));
+        Assert.AreEqual((short)6, table[1].ReadValue(1));
+        Assert.AreEqual(5 * 6, table[1].ReadValue(2));
+        Assert.AreEqual((5 + 6) * 2, table[1].ReadValue(3));
     }
 
     #endregion
@@ -283,10 +283,10 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("CITY", table[0][0]);
-        Assert.AreEqual(8, table[0][1]);
-        Assert.AreEqual("NAME", table[1][0]);
-        Assert.AreEqual(5, table[1][1]);
+        Assert.AreEqual("CITY", table[0].ReadValue(0));
+        Assert.AreEqual(8, table[0].ReadValue(1));
+        Assert.AreEqual("NAME", table[1].ReadValue(0));
+        Assert.AreEqual(5, table[1].ReadValue(1));
     }
 
     #endregion
@@ -322,9 +322,9 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ERROR", table[0][0]);
-        Assert.AreEqual("INFO", table[1][0]);
-        Assert.AreEqual("WARN", table[2][0]);
+        Assert.AreEqual("ERROR", table[0].ReadValue(0));
+        Assert.AreEqual("INFO", table[1].ReadValue(0));
+        Assert.AreEqual("WARN", table[2].ReadValue(0));
     }
 
     #endregion
@@ -359,10 +359,10 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)15, table[0][1]);
-        Assert.AreEqual((byte)1, table[1][0]);
-        Assert.AreEqual((short)30, table[1][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)15, table[0].ReadValue(1));
+        Assert.AreEqual((byte)1, table[1].ReadValue(0));
+        Assert.AreEqual((short)30, table[1].ReadValue(1));
     }
 
     /// <summary>
@@ -392,10 +392,10 @@ public class SchemaQueryFeaturesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)10, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((short)100, table[1][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)10, table[0].ReadValue(1));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((short)100, table[1].ReadValue(1));
     }
 
     #endregion

@@ -90,7 +90,7 @@ public partial class BytesInterpreterBaseTests
         var ex = Assert.Throws<ParseException>(() =>
             interpreter.TestValidate(false, "testField", "validation failed"));
         Assert.AreEqual("testField", ex.FieldName);
-        Assert.Contains("validation failed", ex.Message);
+        Assert.AreEqual("validation failed", ex.Details);
     }
 
     #endregion
@@ -150,7 +150,7 @@ public partial class BytesInterpreterBaseTests
         Assert.IsNotNull(result.Result);
         Assert.AreEqual(0x42, result.Result!.Value);
         Assert.IsNull(result.ErrorMessage);
-        Assert.AreEqual("Test", result.ParsedFields["Name"]);
+        Assert.AreEqual("Test", result.ParsedFields!.Name);
     }
 
     [TestMethod]

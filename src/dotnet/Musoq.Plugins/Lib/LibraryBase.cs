@@ -7,6 +7,9 @@ namespace Musoq.Plugins;
 ///     Library base type that all other types should inherit from.
 /// </summary>
 [BindableClass]
+[LibraryExecutionDefaults(
+    AggregatePermissions = FunctionExecutionPermissions.ConcurrentInvocations | FunctionExecutionPermissions.IndependentGroups,
+    WindowPermissions = FunctionExecutionPermissions.ConcurrentInvocations | FunctionExecutionPermissions.IndependentPartitions)]
 [SuppressMessage("ReSharper", "UnusedMember.Global")]
 [SuppressMessage("ReSharper", "UnusedParameter.Global")]
 public partial class LibraryBase
@@ -48,4 +51,24 @@ public partial class LibraryBase
     {
         return obj?.GetType().FullName;
     }
+    /// <summary>Returns the concrete type name without boxing a value-type argument.</summary>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public string? GetTypeName<T>(T value)
+    {
+        if (typeof(T).IsValueType)
+            return typeof(T).FullName;
+
+        if (value is null)
+            return null;
+
+        return value.GetType().FullName;
+    }
+
+    /// <summary>Returns the underlying type name for a present nullable value.</summary>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public string? GetTypeName<T>(T? value) where T : struct
+        => value.HasValue ? typeof(T).FullName : null;
+
 }

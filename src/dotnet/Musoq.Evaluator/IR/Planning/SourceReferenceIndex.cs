@@ -65,7 +65,7 @@ internal sealed record SourceReferenceIndex(
         SchemaScanNode scan,
         CancellationToken cancellationToken)
     {
-        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var columns = new HashSet<string>(StringComparer.Ordinal);
         foreach (var column in scan.OutputSchema.Columns)
         {
             cancellationToken.ThrowIfCancellationRequested();

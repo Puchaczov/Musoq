@@ -101,7 +101,7 @@ public partial class AutomaticDateTimeComparisonTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
     }
@@ -121,7 +121,7 @@ public partial class AutomaticDateTimeComparisonTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
     }
@@ -141,7 +141,7 @@ public partial class AutomaticDateTimeComparisonTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Earlier Event", results);
         Assert.Contains("Equal Event", results);
     }
@@ -161,7 +161,7 @@ public partial class AutomaticDateTimeComparisonTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
     }
@@ -181,7 +181,7 @@ public partial class AutomaticDateTimeComparisonTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Earlier Event", results);
         Assert.Contains("Equal Event", results);
     }
@@ -218,7 +218,7 @@ public partial class AutomaticDateTimeComparisonTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
     }

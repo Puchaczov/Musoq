@@ -25,7 +25,7 @@ public sealed class DescSourceDispatchTests
         Assert.AreEqual(1, schema.SchemaWideCalls);
         Assert.IsEmpty(schema.SpecificMethodCalls);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("items", table[0][0]);
+        Assert.AreEqual("items", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -48,7 +48,7 @@ public sealed class DescSourceDispatchTests
 
         CollectionAssert.AreEqual(new[] { "items" }, schema.SpecificMethodCalls);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("items", table[0][0]);
+        Assert.AreEqual("items", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -59,7 +59,7 @@ public sealed class DescSourceDispatchTests
         var table = Execute("desc #dispatch.items()", schema);
 
         CollectionAssert.AreEqual(new[] { "items" }, schema.SpecificMethodCalls);
-        var columnNames = table.Select(row => (string)row[0]).ToArray();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToArray();
         CollectionAssert.Contains(columnNames, "Name");
         CollectionAssert.Contains(columnNames, "Children");
     }
@@ -73,7 +73,7 @@ public sealed class DescSourceDispatchTests
 
         CollectionAssert.AreEqual(new[] { "items" }, schema.SpecificMethodCalls);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Children", table[0][0]);
+        Assert.AreEqual("Children", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -96,7 +96,7 @@ public sealed class DescSourceDispatchTests
 
         CollectionAssert.AreEqual(new[] { "items" }, schema.SpecificMethodCalls);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Name", table[0][0]);
+        Assert.AreEqual("Name", table[0].ReadValue(0));
     }
 
     private static Table Execute(string query, DispatchProbeSchema schema)
@@ -159,10 +159,10 @@ public sealed class DescSourceDispatchTests
             SourceMetadataContext metadataContext,
             params object?[] parameters) => new DispatchProbeTable();
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
 
         private sealed class DispatchProbeTable : ISchemaTable
         {

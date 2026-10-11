@@ -13,14 +13,14 @@ public sealed partial class GenericTests
     [DynamicData(nameof(NumericCoalesceCases))]
     public void Coalesce_NumericOverloadCases_ReturnExpected(string name, MethodInfo method, object?[] arguments, object? expected)
     {
-        Assert.AreEqual(expected, method.Invoke(Library, arguments), name);
+        Assert.AreEqual(expected, InvokeCoalesce(method, arguments), name);
     }
 
     public static IEnumerable<object?[]> NumericCoalesceCases()
     {
         foreach (var method in GetNumericCoalesceMethods())
         {
-            var elementType = method.GetParameters()[0].ParameterType.GetElementType()!;
+            var elementType = VariadicParameter.ElementType(method.GetParameters()[0].ParameterType)!;
 
             yield return ReflectionCase(
                 $"{FormatCoalesceName(method)}_FirstNotNull_ReturnsFirst",
@@ -72,8 +72,31 @@ public sealed partial class GenericTests
 
     private static string FormatCoalesceName(MethodInfo method)
     {
-        var elementType = method.GetParameters()[0].ParameterType.GetElementType()!;
+        var elementType = VariadicParameter.ElementType(method.GetParameters()[0].ParameterType)!;
         return $"Coalesce_{GetUnderlyingType(elementType).Name}";
+    }
+
+    private object? InvokeCoalesce(MethodInfo method, object?[] arguments)
+    {
+        var parameterType = method.GetParameters()[0].ParameterType;
+        if (parameterType.IsArray)
+            return method.Invoke(Library, arguments);
+        var elementType = GetUnderlyingType(VariadicParameter.ElementType(parameterType)!);
+        var resultType = GetUnderlyingType(method.ReturnType);
+        var invocation = typeof(GenericTests).GetMethod(nameof(InvokeNativeCoalesce),
+            BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(elementType, resultType);
+        var execute = invocation.CreateDelegate<Func<LibraryBase, MethodInfo, object?[], object?>>();
+        return execute(Library, method, arguments);
+    }
+
+    private delegate TResult? NativeCoalesce<T, TResult>(ReadOnlySpan<T?> values)
+        where T : struct where TResult : struct;
+
+    private static object? InvokeNativeCoalesce<T, TResult>(LibraryBase library, MethodInfo method, object?[] arguments)
+        where T : struct where TResult : struct
+    {
+        var operation = method.CreateDelegate<NativeCoalesce<T, TResult>>(library);
+        return operation((T?[])arguments[0]!);
     }
 
     private static object?[] ReflectionCase(string name, MethodInfo method, object?[] arguments, object? expected)

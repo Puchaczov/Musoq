@@ -36,8 +36,8 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "002"), "Second entry should be '002'");
     }
 
     [TestMethod]
@@ -58,7 +58,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("05|00", table[0][0]);
+        Assert.AreEqual("05|00", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -81,8 +81,8 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "Second entry should be '003'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "002"), "First entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "003"), "Second entry should be '003'");
     }
 
     [TestMethod]
@@ -125,12 +125,12 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(6, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("003", table[2].Values[0]);
-        Assert.AreEqual("004", table[3].Values[0]);
-        Assert.AreEqual("005", table[4].Values[0]);
-        Assert.AreEqual("006", table[5].Values[0]);
+        Assert.AreEqual("001", table[0].ReadValues()[0]);
+        Assert.AreEqual("002", table[1].ReadValues()[0]);
+        Assert.AreEqual("003", table[2].ReadValues()[0]);
+        Assert.AreEqual("004", table[3].ReadValues()[0]);
+        Assert.AreEqual("005", table[4].ReadValues()[0]);
+        Assert.AreEqual("006", table[5].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -202,7 +202,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABBA200", table[0].Values[0]);
+        Assert.AreEqual("ABBA200", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -226,7 +226,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         Assert.AreEqual("Time", table.Columns.ElementAt(0).ColumnName);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(DateTime.MinValue, table[0].Values[0]);
+        Assert.AreEqual(DateTime.MinValue, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -252,12 +252,12 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(6, table.Count, "Table should have 6 entries");
 
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 1), "First entry should be 1");
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 2), "Second entry should be 2");
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 3), "Third entry should be 3");
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 4), "Fourth entry should be 4");
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 5), "Fifth entry should be 5");
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 6), "Sixth entry should be 6");
+        Assert.IsTrue(table.Any(entry => (int)entry.ReadValues()[0] == 1), "First entry should be 1");
+        Assert.IsTrue(table.Any(entry => (int)entry.ReadValues()[0] == 2), "Second entry should be 2");
+        Assert.IsTrue(table.Any(entry => (int)entry.ReadValues()[0] == 3), "Third entry should be 3");
+        Assert.IsTrue(table.Any(entry => (int)entry.ReadValues()[0] == 4), "Fourth entry should be 4");
+        Assert.IsTrue(table.Any(entry => (int)entry.ReadValues()[0] == 5), "Fifth entry should be 5");
+        Assert.IsTrue(table.Any(entry => (int)entry.ReadValues()[0] == 6), "Sixth entry should be 6");
     }
 
     [TestMethod]
@@ -284,8 +284,8 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1.0m, table[0].Values[0]);
-        Assert.AreEqual(-1.0m, table[0].Values[1]);
+        Assert.AreEqual(1.0m, table[0].ReadValues()[0]);
+        Assert.AreEqual(-1.0m, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -316,16 +316,16 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Name" && (string)row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "City" && (string)row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Country" && (string)row[2] == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Name" && (string)row.ReadValue(2) == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "City" && (string)row.ReadValue(2) == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Country" && (string)row.ReadValue(2) == "System.String"));
         Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "Self" && (string)row[2] == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Money" && (string)row[2] == "System.Decimal"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Month" && (string)row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Time" && (string)row[2] == "System.DateTime"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Id" && (string)row[2] == "System.Int32"));
-        Assert.IsTrue(table.Any(row => (string)row[0] == "NullableValue" && (string)row[2] ==
+            (string)row.ReadValue(0) == "Self" && (string)row.ReadValue(2) == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Money" && (string)row.ReadValue(2) == "System.Decimal"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Month" && (string)row.ReadValue(2) == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Time" && (string)row.ReadValue(2) == "System.DateTime"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Id" && (string)row.ReadValue(2) == "System.Int32"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "NullableValue" && (string)row.ReadValue(2) ==
             typeof(int?).FullName));
     }
 
@@ -348,7 +348,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("entities", table[0][0]);
+        Assert.AreEqual("entities", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -371,8 +371,8 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(2, table.Count);
 
-        Assert.AreEqual("empty", table[0][0]);
-        Assert.AreEqual("entities", table[1][0]);
+        Assert.AreEqual("empty", table[0].ReadValue(0));
+        Assert.AreEqual("entities", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -395,8 +395,8 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => (string)row[0] == "A") &&
-                      table.Any(row => (string)row[0] == "B"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "A") &&
+                      table.Any(row => (string)row.ReadValue(0) == "B"),
             "Expected rows with values A and B");
     }
 
@@ -418,7 +418,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("A,B", table[0][0]);
+        Assert.AreEqual("A,B", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -441,7 +441,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice, Bob, Carol", table[0][0]);
+        Assert.AreEqual("Alice, Bob, Carol", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -464,7 +464,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("X | Y | Z", table[0][0]);
+        Assert.AreEqual("X | Y | Z", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -488,11 +488,11 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        var nycRow = table.First(r => (string)r[0] == "NYC");
-        var laRow = table.First(r => (string)r[0] == "LA");
+        var nycRow = table.First(r => (string)r.ReadValue(0) == "NYC");
+        var laRow = table.First(r => (string)r.ReadValue(0) == "LA");
 
-        Assert.AreEqual("Alice, Carol", nycRow[1]);
-        Assert.AreEqual("Bob", laRow[1]);
+        Assert.AreEqual("Alice, Carol", nycRow.ReadValue(1));
+        Assert.AreEqual("Bob", laRow.ReadValue(1));
     }
 
     [TestMethod]
@@ -513,7 +513,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -533,7 +533,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -553,7 +553,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("c", table[0][0]);
+        Assert.AreEqual("c", table[0].ReadValue(0));
     }
 
 }

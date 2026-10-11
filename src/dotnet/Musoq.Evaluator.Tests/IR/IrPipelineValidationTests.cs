@@ -406,12 +406,12 @@ public class IrPipelineValidationTests
         }
 
         var expectedRows = expected
-            .Select(row => Enumerable.Range(0, expectedColumns.Count).Select(i => row[i]).ToArray())
+            .Select(row => Enumerable.Range(0, expectedColumns.Count).Select(i => row.ReadValue(i)).ToArray())
             .OrderBy(row => string.Join("|", row.Select(v => v?.ToString() ?? "NULL")))
             .ToList();
 
         var actualRows = actual
-            .Select(row => Enumerable.Range(0, actualColumns.Count).Select(i => row[i]).ToArray())
+            .Select(row => Enumerable.Range(0, actualColumns.Count).Select(i => row.ReadValue(i)).ToArray())
             .OrderBy(row => string.Join("|", row.Select(v => v?.ToString() ?? "NULL")))
             .ToList();
 
@@ -434,7 +434,7 @@ public class IrPipelineValidationTests
 
         for (var row = 0; row < expected.Count; row++)
             for (var col = 0; col < expectedColumns.Count; col++)
-                Assert.AreEqual(expected[row][col], actual[row][col],
+                Assert.AreEqual(expected[row].ReadValue(col), actual[row].ReadValue(col),
                     $"Value mismatch at row {row}, column '{expectedColumns[col].ColumnName}' for query: {query}");
     }
 

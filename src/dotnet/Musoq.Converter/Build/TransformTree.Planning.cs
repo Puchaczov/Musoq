@@ -1,4 +1,3 @@
-using System.Runtime.ExceptionServices;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -167,15 +166,13 @@ public partial class TransformTree
         catch (SchemaProviderFailureException providerFailure)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
-            throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
+            return DataSourceInputDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is not null)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             var providerFailure = EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex)!;
-            ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
-            throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
+            return DataSourceInputDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {

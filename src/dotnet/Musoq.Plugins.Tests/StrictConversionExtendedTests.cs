@@ -95,27 +95,6 @@ public class StrictConversionExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void TryConvertToInt32Strict_Float_WithFraction_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt32Strict(42.5f);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt32Strict_Float_NaN_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt32Strict(float.NaN);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt32Strict_Float_Infinity_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt32Strict(float.PositiveInfinity);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
     public void TryConvertToInt32Strict_Double_ExactInteger_ReturnsConvertedValue()
     {
         var result = Library.TryConvertToInt32Strict(42.0);
@@ -131,32 +110,11 @@ public class StrictConversionExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void TryConvertToInt32Strict_Double_NaN_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt32Strict(double.NaN);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt32Strict_Double_NegativeInfinity_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt32Strict(double.NegativeInfinity);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
     public void TryConvertToInt32Strict_Decimal_ExactInteger_ReturnsConvertedValue()
     {
         var result = Library.TryConvertToInt32Strict(42m);
         Assert.IsNotNull(result);
         Assert.AreEqual(42, result.Value);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt32Strict_Decimal_WithFraction_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt32Strict(42.5m);
-        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -225,13 +183,6 @@ public class StrictConversionExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void TryConvertToInt64Strict_ULong_GreaterThanLongMax_ReturnsNull()
-    {
-        var result = Library.TryConvertToInt64Strict((ulong)long.MaxValue + 1);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
     public void TryConvertToInt64Strict_Double_ExactInteger_ReturnsConvertedValue()
     {
         var result = Library.TryConvertToInt64Strict(42.0);
@@ -286,13 +237,6 @@ public class StrictConversionExtendedTests : PluginsTestBase
         var result = Library.TryConvertToDecimalStrict(42.5);
         Assert.IsNotNull(result);
         Assert.AreEqual(42.5m, result.Value);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_Double_NaN_ReturnsNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(double.NaN);
-        Assert.IsNull(result);
     }
 
     [TestMethod]

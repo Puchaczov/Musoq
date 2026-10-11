@@ -155,14 +155,14 @@ public partial class TypoAndUxDiagnosticProbeTests
         var columnNames = table.Columns.Select(static column => column.ColumnName).ToArray();
         Assert.HasCount(9, columnNames);
         Assert.AreEqual("Id", columnNames[0]);
-        Assert.IsTrue(columnNames[1].EndsWith(".Name", StringComparison.Ordinal));
+        Assert.AreEqual("Name", columnNames[1]);
         Assert.AreEqual("Age", columnNames[2]);
         Assert.AreEqual("City", columnNames[3]);
         Assert.AreEqual("Salary", columnNames[4]);
         Assert.AreEqual("BirthDate", columnNames[5]);
         Assert.AreEqual("ManagerId", columnNames[6]);
         Assert.AreEqual("Email", columnNames[7]);
-        Assert.IsTrue(columnNames[8].EndsWith(".Name", StringComparison.Ordinal));
+        Assert.AreEqual("Name", columnNames[8]);
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1, "Alice", 25, "London", 50000m, new DateTime(1999, 1, 15), null, "alice@test.com", "Alice"],

@@ -161,7 +161,9 @@ internal static class PortableSubsetLowerer
             @case.ElseExpression is null ? null : LowerExpression(@case.ElseExpression, state)),
         ExecutionInCheck @in => new PortableInExpression(
             LowerExpression(@in.Expression, state),
-            Array.AsReadOnly(@in.Values.Select(value => LowerExpression(value, state)).ToArray())),
+            Array.AsReadOnly(@in.Values.Select(value => LowerExpression(value, state)).ToArray()),
+            @in.UsesSqlNullSemantics,
+            @in.IsNegated),
         ExecutionStrictCast cast => new PortableStrictCastExpression(
             LowerExpression(cast.Expression, state),
             cast.TargetTypeName),

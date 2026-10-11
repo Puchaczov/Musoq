@@ -5,90 +5,36 @@ namespace Musoq.Evaluator.Helpers;
 
 public static class ScriptParameterBinder
 {
-    public static void ValidateNoUnknownParameters(
-        IReadOnlyDictionary<string, object?> parameters,
-        IReadOnlyCollection<string> declaredNames)
+    public static T GetRequired<T>(ExecutionState state, string name) =>
+        state.TypedParameters.GetRequired<T>(name);
+
+    public static T GetOptional<T>(ExecutionState state, string name, T defaultValue) =>
+        state.TypedParameters.Contains(name) ? state.TypedParameters.GetRequired<T>(name) : defaultValue;
+
+    public static T? GetRequiredNullable<T>(ExecutionState state, string name) where T : struct =>
+        state.TypedParameters.GetRequiredNullable<T>(name);
+
+    public static T? GetOptionalNullable<T>(ExecutionState state, string name, T? defaultValue) where T : struct =>
+        state.TypedParameters.Contains(name) ? state.TypedParameters.GetRequiredNullable<T>(name) : defaultValue;
+
+    public static IReadOnlyList<T> GetRequiredCollection<T>(ExecutionState state, string name) =>
+        state.TypedParameters.GetRequiredCollection<T>(name);
+
+    public static void ValidateMembershipCollection<T>(IReadOnlyList<T>? values, string name)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
-        ArgumentNullException.ThrowIfNull(declaredNames);
-
-        if (parameters.Count == 0)
-            return;
-
-        var declared = new HashSet<string>(declaredNames, StringComparer.Ordinal);
-        foreach (var parameter in parameters.Keys)
-        {
-            if (!declared.Contains(parameter))
-                throw ScriptParameterBindingException.Unknown(parameter);
-        }
-    }
-
-    public static T GetRequired<T>(IReadOnlyDictionary<string, object?> parameters, string name)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        if (!parameters.TryGetValue(name, out var value))
-            throw ScriptParameterBindingException.MissingRequired(name);
-
-        ValidateNull<T>(name, value);
-        return Cast<T>(name, value);
-    }
-
-    public static T GetOptional<T>(IReadOnlyDictionary<string, object?> parameters, string name, T defaultValue)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        if (!parameters.TryGetValue(name, out var value))
-            return defaultValue;
-
-        ValidateNull<T>(name, value);
-        return Cast<T>(name, value);
-    }
-
-    public static IReadOnlyList<T> GetRequiredCollection<T>(IReadOnlyDictionary<string, object?> parameters, string name)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        if (!parameters.TryGetValue(name, out var value))
-            throw ScriptParameterBindingException.MissingRequired(name);
-
-        if (value == null)
+        if (values is null)
             throw ScriptParameterBindingException.NullNotAllowed(name, typeof(IReadOnlyList<T>));
-
-        return CastCollection<T>(name, value);
     }
 
-    private static T Cast<T>(string name, object? value)
+    public static void ValidateNoUnknownParameters(ExecutionState state, IReadOnlyCollection<string> declaredNames)
     {
-        try
-        {
-            return (T)value!;
-        }
-        catch (InvalidCastException ex)
-        {
-            throw ScriptParameterBindingException.TypeMismatch(name, typeof(T), value, ex);
-        }
-    }
-
-    private static IReadOnlyList<T> CastCollection<T>(string name, object value)
-    {
-        if (value is IReadOnlyList<T> readOnlyList)
-            return readOnlyList;
-
-        throw ScriptParameterBindingException.TypeMismatch(
-            name,
-            typeof(IReadOnlyList<T>),
-            value,
-            new InvalidCastException());
-    }
-
-    private static void ValidateNull<T>(string name, object? value)
-    {
-        if (value != null)
+        if (state.TypedParameters.Count == 0)
             return;
-
-        var parameterType = typeof(T);
-        if (parameterType.IsValueType && Nullable.GetUnderlyingType(parameterType) == null)
-            throw ScriptParameterBindingException.NullNotAllowed(name, parameterType);
+        var declared = new HashSet<string>(declaredNames, StringComparer.Ordinal);
+        foreach (var name in state.TypedParameters.Names)
+        {
+            if (!declared.Contains(name))
+                throw ScriptParameterBindingException.Unknown(name);
+        }
     }
 }

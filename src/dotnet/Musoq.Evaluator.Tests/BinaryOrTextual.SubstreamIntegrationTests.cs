@@ -30,10 +30,10 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x07, table[0][0]);
-        Assert.AreEqual((byte)0x0A, table[0][1]);
-        Assert.AreEqual((byte)0x0B, table[0][2]);
-        Assert.AreEqual((byte)0x99, table[0][3]);
+        Assert.AreEqual((byte)0x07, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x0B, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0x99, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -60,9 +60,9 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x2A, table[0][0]);
-        Assert.AreEqual((byte)0x55, table[0][1]);
-        Assert.AreEqual((byte)0x7E, table[0][2]);
+        Assert.AreEqual((byte)0x2A, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x55, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x7E, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -82,9 +82,9 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x10, table[0][0]);
-        CollectionAssert.AreEqual(new byte[] { 0xDE, 0xAD, 0xBE, 0xEF }, (byte[])table[0][1]);
-        Assert.AreEqual((byte)0x20, table[0][2]);
+        Assert.AreEqual((byte)0x10, table[0].ReadValue(0));
+        CollectionAssert.AreEqual(new byte[] { 0xDE, 0xAD, 0xBE, 0xEF }, (byte[])table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x20, table[0].ReadValue(2));
     }
 
     private Table RunQuery(string query, byte[] content)

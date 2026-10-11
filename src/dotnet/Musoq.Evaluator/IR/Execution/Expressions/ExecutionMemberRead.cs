@@ -37,4 +37,6 @@ public sealed record ExecutionMemberRead : ExecutionExpression
     public string MemberName { get; }
 
     public bool IsDynamic { get; }
+
+    public bool IsNullSafe { get; init; }
 }

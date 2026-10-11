@@ -31,7 +31,7 @@ public sealed class Core015ScalarQuantifiedSubqueryTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -64,56 +64,27 @@ public sealed class Core015ScalarQuantifiedSubqueryTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void ScalarValuesWithTwoRows_ShouldReportExactCardinalityDiagnostic()
+    public void ScalarValuesWithTwoRows_ShouldReportRuntimeCardinalityDiagnostic()
     {
         const string query = "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) as Value from #A.Entities() a";
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
-        var envelope = exception.PrimaryEnvelope;
-        var expectedStart = query.IndexOf("Value", query.IndexOf("select Value", StringComparison.Ordinal), StringComparison.Ordinal);
-        var expectedEnd = expectedStart + "Value".Length - 1;
-
-        Assert.AreEqual(DiagnosticCode.MQ3095_ScalarSubqueryCardinality, envelope.Code);
-        Assert.AreEqual(DiagnosticPhase.Bind, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
-        Assert.AreEqual(expectedStart, envelope.Offset);
-        Assert.AreEqual(expectedEnd - expectedStart + 1, envelope.Length);
-        StringAssert.Contains(envelope.Message, "Scalar subquery may return more than one row");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
-        Assert.AreEqual(
-            "A scalar subquery must be provably single-row before its value can be used as a scalar.",
-            envelope.Explanation);
-        Assert.AreEqual("Core Spec - Subqueries", envelope.DocsReference);
-        CollectionAssert.AreEqual(
-            new[]
-            {
-                "Add an aggregate, TAKE 1, or another predicate that guarantees one row.",
-                "Use IN or EXISTS when multiple rows are intended."
-            },
-            envelope.SuggestedFixes.ToArray());
-        Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
-        Assert.HasCount(0, envelope.Arguments);
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
+        Assert.AreEqual(DiagnosticSourceKind.Runtime, exception.Envelope!.SourceKind);
+        Assert.IsNull(exception.Envelope.Offset);
+        Assert.IsNull(exception.Envelope.Length);
+        Assert.IsNotEmpty(exception.Envelope.SuggestedFixes);
+        Assert.AreEqual("Core Spec - Subqueries", exception.Envelope.DocsReference);
     }
 
     [TestMethod]
-    public void ScalarSubqueryRuntimeCardinalityViolation_ShouldUseInternalExecutionEnvelope()
+    public void ScalarSubqueryRuntimeCardinalityViolation_ShouldUseSpecificRuntimeEnvelope()
     {
         const string query = "select (select b.City from #B.Entities() b where b.Country = 'POLAND') as City from #A.Entities() a";
-        var vm = CreateAndRunVirtualMachine(query, CreateSources());
-
-        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
-        var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a structured runtime envelope.");
-
-        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, envelope.Code);
-        Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
-        Assert.AreEqual(DiagnosticPhase.Internal, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Internal, envelope.SourceKind);
-        Assert.IsNull(envelope.Offset);
-        Assert.IsNull(envelope.Length);
-        Assert.IsTrue(envelope.Arguments.ContainsKey("correlationId"));
-        Assert.IsTrue(envelope.Arguments.ContainsKey("exceptionType"));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.CorrelationId));
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
+        Assert.AreEqual(DiagnosticSourceKind.Runtime, exception.Envelope!.SourceKind);
         Assert.IsNotNull(exception.InnerException);
     }
 
@@ -172,7 +143,7 @@ public sealed class Core015ScalarQuantifiedSubqueryTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"]);
 
     }

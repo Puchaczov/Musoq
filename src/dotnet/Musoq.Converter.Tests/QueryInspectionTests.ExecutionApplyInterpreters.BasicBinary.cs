@@ -35,9 +35,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual("INFO", table[0][1]);
-        Assert.AreEqual("ready", table[0][2]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual("INFO", table[0].ReadValue(1));
+        Assert.AreEqual("ready", table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -83,10 +83,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("valid", table[0][0]);
-        Assert.AreEqual("ready", table[0][1]);
-        Assert.AreEqual("invalid", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        Assert.AreEqual("valid", table[0].ReadValue(0));
+        Assert.AreEqual("ready", table[0].ReadValue(1));
+        Assert.AreEqual("invalid", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -96,7 +96,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("InterpretSource [OptionalPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
-        Assert.Contains("p.Value: int? <- field p_Value", result.ExecutionPlanText);
+        Assert.Contains("Value: int? <- field Value", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -129,12 +129,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("present", table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual(expectedPacketValue, table[0][2]);
-        Assert.AreEqual("missing", table[1][0]);
-        Assert.AreEqual((byte)0, table[1][1]);
-        Assert.IsNull(table[1][2]);
+        Assert.AreEqual("present", table[0].ReadValue(0));
+        Assert.AreEqual((byte)1, table[0].ReadValue(1));
+        Assert.AreEqual(expectedPacketValue, table[0].ReadValue(2));
+        Assert.AreEqual("missing", table[1].ReadValue(0));
+        Assert.AreEqual((byte)0, table[1].ReadValue(1));
+        Assert.IsNull(table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -145,7 +145,7 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("InterpretSource [IndexedPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
         Assert.Contains("Magic: int <- property Magic", result.ExecutionPlanText);
-        Assert.Contains("p.Data: int <- field p_Data", result.ExecutionPlanText);
+        Assert.Contains("Data: int <- field Data", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -171,10 +171,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("indexed", table[0][0]);
-        Assert.AreEqual(IndexedPacketHeaderSize, table[0][1]);
-        Assert.AreEqual(IndexedPacketDataOffset, table[0][2]);
-        Assert.AreEqual(expectedData, table[0][3]);
+        Assert.AreEqual("indexed", table[0].ReadValue(0));
+        Assert.AreEqual(IndexedPacketHeaderSize, table[0].ReadValue(1));
+        Assert.AreEqual(IndexedPacketDataOffset, table[0].ReadValue(2));
+        Assert.AreEqual(expectedData, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -208,10 +208,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("rectangle", table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(5, table[0][2]);
-        Assert.AreEqual(50, table[0][3]);
+        Assert.AreEqual("rectangle", table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(5, table[0].ReadValue(2));
+        Assert.AreEqual(50, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -246,10 +246,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("vertex", table[0][0]);
-        Assert.AreEqual(7, table[0][1]);
-        Assert.AreEqual(1.5f, table[0][2]);
-        Assert.AreEqual(2.5f, table[0][3]);
+        Assert.AreEqual("vertex", table[0].ReadValue(0));
+        Assert.AreEqual(7, table[0].ReadValue(1));
+        Assert.AreEqual(1.5f, table[0].ReadValue(2));
+        Assert.AreEqual(2.5f, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -284,10 +284,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("inline", table[0][0]);
-        Assert.AreEqual(0x12345678, table[0][1]);
-        Assert.AreEqual((short)258, table[0][2]);
-        Assert.AreEqual((byte)0xFF, table[0][3]);
+        Assert.AreEqual("inline", table[0].ReadValue(0));
+        Assert.AreEqual(0x12345678, table[0].ReadValue(1));
+        Assert.AreEqual((short)258, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("InterpretSource [TextPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
-        Assert.Contains("p.Text: string <- field p_Text", result.ExecutionPlanText);
+        Assert.Contains("Text: string <- field Text", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -321,9 +321,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("text", table[0][0]);
-        Assert.AreEqual((byte)5, table[0][1]);
-        Assert.AreEqual("Ada", table[0][2]);
+        Assert.AreEqual("text", table[0].ReadValue(0));
+        Assert.AreEqual((byte)5, table[0].ReadValue(1));
+        Assert.AreEqual("Ada", table[0].ReadValue(2));
     }
 
 }

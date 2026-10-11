@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 namespace Musoq.Examples.DataSources.Git.Tests;
 
 [TestClass]
@@ -9,11 +10,11 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
         var table = Run("select ShortSha, AuthorName, Subject from #git.commits() order by AuthoredAt");
 
         Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("d4e5f60", table[0][0]);
-        Assert.AreEqual("Cara Docs", table[0][1]);
-        Assert.AreEqual("Document query samples", table[0][2]);
-        Assert.AreEqual("e5f6012", table[4][0]);
-        Assert.AreEqual("Bob Evaluator", table[4][1]);
+        Assert.AreEqual("d4e5f60", table[0].ReadValue(0));
+        Assert.AreEqual("Cara Docs", table[0].ReadValue(1));
+        Assert.AreEqual("Document query samples", table[0].ReadValue(2));
+        Assert.AreEqual("e5f6012", table[4].ReadValue(0));
+        Assert.AreEqual("Bob Evaluator", table[4].ReadValue(1));
     }
 
     [TestMethod]
@@ -22,8 +23,8 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
         var table = Run("select Repository, Count(1) from #git.commits('musoq') group by Repository");
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("musoq", table[0][0]);
-        Assert.AreEqual(3, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual("musoq", table[0].ReadValue(0));
+        Assert.AreEqual(3, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     [TestMethod]
@@ -33,12 +34,12 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             "select AuthorName, Count(1) as Commits from #git.commits() where Branch = 'main' group by AuthorName order by AuthorName");
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Alice Runtime", table[0][0]);
-        Assert.AreEqual(1, Convert.ToInt32(table[0][1]));
-        Assert.AreEqual("Bob Evaluator", table[1][0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[1][1]));
-        Assert.AreEqual("Cara Docs", table[2][0]);
-        Assert.AreEqual(1, Convert.ToInt32(table[2][1]));
+        Assert.AreEqual("Alice Runtime", table[0].ReadValue(0));
+        Assert.AreEqual(1, Convert.ToInt32(table[0].ReadValue(1)));
+        Assert.AreEqual("Bob Evaluator", table[1].ReadValue(0));
+        Assert.AreEqual(2, Convert.ToInt32(table[1].ReadValue(1)));
+        Assert.AreEqual("Cara Docs", table[2].ReadValue(0));
+        Assert.AreEqual(1, Convert.ToInt32(table[2].ReadValue(1)));
     }
 
     [TestMethod]
@@ -48,8 +49,8 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             "select ShortSha, Subject from #git.commits() where AuthorName = 'Bob Evaluator' order by AuthoredAt desc skip 0 take 1");
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("e5f6012", table[0][0]);
-        Assert.AreEqual("Refresh runtime docs", table[0][1]);
+        Assert.AreEqual("e5f6012", table[0].ReadValue(0));
+        Assert.AreEqual("Refresh runtime docs", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -60,8 +61,8 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             options: CreateOptionsWithRepository("docs"));
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("docs", table[0][0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual("docs", table[0].ReadValue(0));
+        Assert.AreEqual(2, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     [TestMethod]
@@ -72,8 +73,8 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             options: CreateOptionsWithRepository("docs"));
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("musoq", table[0][0]);
-        Assert.AreEqual(3, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual("musoq", table[0].ReadValue(0));
+        Assert.AreEqual(3, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     [TestMethod]
@@ -99,7 +100,7 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             new GitSchemaProvider(store));
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(240, table[0][0]);
+        Assert.AreEqual(240, table[0].ReadValue(0));
         Assert.AreEqual(3, store.StatsLoadCount);
     }
 
@@ -113,7 +114,7 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             new GitSchemaProvider(store));
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Add runtime planner", table[0][0]);
+        Assert.AreEqual("Add runtime planner", table[0].ReadValue(0));
         Assert.AreEqual(5, store.StatsLoadCount);
     }
 
@@ -129,7 +130,7 @@ public sealed class GitQueryExecutionTests : GitExampleTestBase
             new GitSchemaProvider(store));
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Refresh runtime docs", table[0][0]);
+        Assert.AreEqual("Refresh runtime docs", table[0].ReadValue(0));
         Assert.AreEqual(2, store.StatsLoadCount);
     }
 

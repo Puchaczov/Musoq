@@ -56,7 +56,7 @@ public sealed class NullableBooleanPredicateSingleEvaluationTests
                 if (name == "where")
                     Assert.AreEqual(expectedValue ? 1 : 0, table.Count);
                 else
-                    Assert.AreEqual(expectedValue ? "yes" : "no", table[0][0]);
+                    Assert.AreEqual(expectedValue ? "yes" : "no", table[0].ReadValue(0));
             }
         }
     }

@@ -1,10 +1,10 @@
 # Musoq TABLE and COUPLE Statements Specification
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Status:** Specification  
 **Author:** Jakub Puchała
 
-> **Compatibility note:** TABLE/COUPLE syntax is defined at language level, but successful execution also depends on target schema plugin implementation and host/runtime version alignment.
+> Core §3 defines logical types and core §6.1 defines source signatures. Provider capabilities determine which sources can honor a TABLE contract. Examples naming external providers are informative templates, not required installed sources.
 
 ---
 
@@ -30,7 +30,7 @@
 
 ### 1.1 Purpose
 
-This document specifies the TABLE and COUPLE statements in Musoq. TABLE defines explicit row shapes for data sources that return untyped, dynamically-typed, or object-based rows. COUPLE creates query-local aliases for schema methods and can bind those aliases to a table shape, a source runtime settings profile, or both.
+This document specifies the TABLE and COUPLE statements in Musoq. TABLE defines the visible column selection and order for coupled sources. Typed sources retain their exact provider types; TABLE-defined sources use the declared types. COUPLE creates query-local aliases for schema methods and can bind those aliases to a table shape, a source runtime settings profile, or both.
 
 ### 1.2 Scope
 
@@ -80,7 +80,7 @@ An implementation that claims conformance to the TABLE/COUPLE profile MUST imple
 Musoq schema providers expose data sources with varying levels of type information:
 
 1. **Strongly-typed sources**: Return entities with well-defined column names and types (e.g., git commits, file metadata)
-2. **Dynamically-typed sources**: Return rows where column types are determined at runtime (e.g., CSV files, JSON data, ExpandoObject collections)
+2. **Dynamically-typed sources**: Return rows where column types are determined at runtime (e.g., CSV files, JSON data, collections of named records)
 3. **Unknown sources**: Return `object` or `dynamic` typed values that require explicit type declarations
 
 For dynamically-typed and unknown sources, the query engine cannot infer types at compile time, leading to:
@@ -158,7 +158,7 @@ table TableName {
 | `TableName` | Identifier naming the table structure (case-sensitive) |
 | `{` `}` | Braces enclosing column definitions |
 | `Column` | Column name identifier |
-| `type` | Type keyword or fully-qualified type name |
+| `type` | Core keyword or visible query-local enum; qualified names are host extensions (§6.4) |
 | `?` | Optional suffix indicating nullable type |
 | read modifier | Optional column-local datasource hint such as `encoding`, `culture`, `format`, `trim`, or `source codec` |
 | `,` | Column separator (trailing comma is optional) |
@@ -176,9 +176,9 @@ Each column definition consists of:
 **Valid column definitions:**
 
 ```sql
-Name: string           -- Non-nullable string
-Age: int               -- Nullable int (value types are auto-nullable)
-Price: decimal         -- Nullable decimal
+Name: string           -- nullable logical string
+Age: int               -- int for typed sources; int? for TABLE-defined sources
+Price: decimal         -- decimal for typed sources; decimal? for TABLE-defined sources
 IsActive: bool?        -- Explicitly nullable boolean
 Date: datetimeoffset?  -- Explicitly nullable DateTimeOffset
 ```
@@ -231,17 +231,21 @@ Read modifiers are not CSV-specific. Different datasources may interpret them di
 
 ### 3.6 Semantics
 
-1. TABLE creates a named schema structure stored in memory
+1. TABLE declares a named ordered logical column contract
 2. The structure is registered and available for COUPLE statements
 3. Column order in the definition determines column indices (0-based)
-4. Value types are automatically promoted to nullable to handle dynamic data
+4. TABLE-defined sources automatically promote scalar types to nullable; provider-defined sources require exact declared types, including scalar nullability
 5. Column read modifiers are stored with the corresponding column metadata
 
 ### 3.7 Enum Columns
 
 A column type may name a query-local enum declared earlier in the batch, using
-case-insensitive type-name matching, or a native CLR enum using its exact fully
-qualified name:
+case-insensitive type-name matching. Host-native enum type names, including nullable
+forms, MUST NOT be named in TABLE declarations. Binding fails with
+`MQ2012_InvalidSchemaDefinition` at the offending column, even if the column is
+not selected or the datasource supports logical scalar reads. The diagnostic
+identifies the table, column, enum type, and underlying primitive type to use
+instead. A query-local ENUM is also supported:
 
 ```sql
 enum JobStatus : int {
@@ -263,8 +267,8 @@ fails with a source contract diagnostic. There is no object-valued fallback.
 
 Read modifiers do not encode enum member maps. A datasource may define
 representation-specific modifiers in a later profile, but the enum descriptor
-always remains separate logical metadata. The initial SeparatedValues profile
-accepts no non-empty modifiers for enum columns.
+always remains separate logical metadata. Provider-specific restrictions belong
+to the provider contract, not this profile.
 
 ---
 
@@ -327,7 +331,7 @@ couple A.Entities with table MyTable as Source;
 ### 4.4 Semantics
 
 1. COUPLE binds a schema method to a query-local alias
-2. A `table` option supplies explicit column metadata for dynamic sources
+2. A `table` option defines the visible column subset and order; type matching follows the source table's explicit schema origin
 3. A `settings` option selects a named source runtime settings profile for that source context
 4. Settings-only couples infer table metadata from the underlying schema
 5. Table-and-settings couples use the declared table shape and selected profile
@@ -335,7 +339,7 @@ couple A.Entities with table MyTable as Source;
 7. The alias behaves like a method and is invoked with parentheses
 8. Arguments can be passed to the aliased source at query time
 
-Arguments at invocation time may use the reflected table-constructor names:
+Arguments at invocation time may use the published source parameter names:
 
 ```sql
 select * from Data(limit: 2, required: '4')
@@ -343,10 +347,10 @@ select * from Data('4', limit: 2)
 ```
 
 Names are case-insensitive and may be reordered after a positional prefix.
-Optional reflected defaults are applied when omitted. The TABLE declaration
-controls output shape only; it does not rename constructor parameters. Named
-arguments require `GetRawConstructors()` metadata and are lowered to the same
-canonical positional vector used by direct schema calls.
+Optional declared defaults are applied when omitted. The TABLE declaration
+controls output shape only; it does not rename source parameters. Named
+arguments require complete source-signature metadata and use the same
+ordered argument binding as direct schema calls (core §6.1).
 9. Setting values are resolved by the host and are not written inline in SQL
 
 Duplicate `table` options, duplicate `settings` options, and `couple ... with` statements without at least one option are invalid.
@@ -519,7 +523,11 @@ desc settings ProdItems;
 
 ### 6.1 Supported Type Keywords
 
-| Type Keyword | .NET Type | Description |
+The nullable logical types below apply to `TableDefined` sources. For
+`ProviderDefined` sources, the declaration's explicit scalar nullability
+is preserved and must match the provider.
+
+| Type Keyword | Logical type | Description |
 |--------------|-----------|-------------|
 | `byte` | `byte?` | Unsigned 8-bit integer |
 | `sbyte` | `sbyte?` | Signed 8-bit integer |
@@ -536,24 +544,44 @@ desc settings ProdItems;
 | `bool` | `bool?` | Boolean |
 | `boolean` | `bool?` | Alias for bool |
 | `bit` | `bool?` | Alias for bool |
-| `char` | `char?` | Single Unicode character |
+| `char` | `char?` | One UTF-16 code unit |
 | `string` | `string` | Unicode text (nullable by nature) |
 | `datetime` | `DateTime?` | Date and time |
 | `datetimeoffset` | `DateTimeOffset?` | Date, time, and timezone offset |
 | `timespan` | `TimeSpan?` | Time duration |
 | `guid` | `Guid?` | Globally unique identifier |
-| `object` | `object` | Any object type |
+| `object` | `object` | Dynamic logical value |
 
 ### 6.2 Nullable Types
 
-**Automatic Nullability:**
-- All value types are automatically promoted to nullable (`int` → `int?`)
-- This allows handling of dynamic sources where values may be null
-- Reference types (`string`, `object`) are inherently nullable
+The provider explicitly declares one of two schema origins:
 
-**Explicit Nullability:**
-- The `?` suffix can be used for documentation purposes: `int?`, `decimal?`
-- Semantically identical to the base type for value types in TABLE context
+- `ProviderDefined` is the default. TABLE types MUST match provider logical column types
+  exactly, including nullable scalar types and logical enum identity. `Id: int`
+  matches `int`, but not `int?` or `long`; `Age: int?` matches `int?`, but not
+  `int`. Type synonyms (`bool`/`boolean`/`bit`, and
+  `money`/`decimal`) resolve before comparison. No implicit conversion occurs.
+- `TableDefined` is an explicit provider opt-in. TABLE supplies the schema and
+  retains automatic nullable lifting (`int` and `int?` both supply `int?`).
+  CSV and JSON providers accepting TABLE type metadata use this origin.
+- String, dynamic and record values admit null. `string` and `string?` denote
+  the same nullable logical string. Host annotation conventions are irrelevant.
+
+Both origins expose only declared columns in declaration order. Each column
+binds through the provider's existing name-resolution policy. The source's
+storage indexes, source read types, row/entity metadata, stability, and supported
+read modifiers MUST be preserved independently of output positions. Declaring
+an existing column first MUST NOT change the storage field read for that column.
+
+Every declared column is validated before row sources open, even if unselected.
+Missing columns fail with `MQ3001`; ambiguous matches with `MQ3002`; type or
+logical-identity mismatches with `MQ3005`. Diagnostics identify the TABLE and
+column, point to the declaration, and suggest a matching source declaration.
+
+Direct source calls and settings-only COUPLE preserve the source's original
+schema. A provider may return arrays or dictionaries with either origin; row
+representation MUST NOT be used to infer schema origin. Existing external
+TABLE-aware providers must opt in to `TableDefined` when adopting this contract.
 
 ### 6.3 Type Keywords Are Case-Insensitive
 
@@ -569,26 +597,23 @@ table Example {
 
 ### 6.4 Fully-Qualified Type Names
 
-Types not in the keyword list can be specified using their fully-qualified .NET type name:
-
-```sql
-table Example {
-    CustomData: System.SomeCustomType
-};
-```
-
-**Note**: The type must be loadable at runtime. If the type cannot be resolved, a `TypeNotFoundException` is raised.
+Portable type references name core keywords or visible query-local enums.
+Qualified identifiers remain syntactically recognizable for host extensions,
+but do not acquire portable meaning from their spelling. A portable query MUST
+NOT depend on host-qualified type names or loadable host types. Unknown portable
+types fail during binding. No host-type loading mechanism is required.
 
 ### 6.5 Enum Type References
 
-Query-local enum names are resolved before primitive or CLR type lookup and are
-case-insensitive. Native enum references MUST be exact fully qualified CLR
-names. Both forms use a primitive integral `ColumnType`, an exact
-source-facing `SourceReadType`, and portable `EnumType` metadata. Ordinary
-columns use the same `ColumnType` and `SourceReadType` and have no enum
-metadata.
+Query-local enum names are resolved before primitive type lookup and are
+case-insensitive. Host-native enum type references in TABLE are rejected with
+`MQ2012_InvalidSchemaDefinition`; use the underlying primitive type or a
+query-local ENUM instead. Query-local enum columns carry their primitive backing type and nominal enum
+metadata. Provider-defined enum columns supplied directly by a datasource remain
+supported. Logical output position, underlying source storage position, read type
+and enum identity are separate parts of the source contract.
 
-TABLE's automatic value-type nullability applies to enum carriers. The logical
+TABLE's automatic scalar nullability applies to enum carriers. The logical
 identity survives nullable lifting, CTEs, derived tables, joins, grouping,
 sets, and projection.
 
@@ -612,24 +637,23 @@ sets, and projection.
 
 | Error | Cause | Example |
 |-------|-------|---------|
-| **TypeNotFoundException** | Unrecognized type name | `table T { Name: banana }` |
+| **Unknown Type** | Unrecognized type name | `table T { Name: banana }` |
 | **Invalid Schema Definition** | Empty table or structural issues | `table Empty {}` |
 | **Duplicate Column Names** | Same column name used twice | `table T { Name: string, Name: int }` |
 | **Undefined Table Reference** | COUPLE references non-existent TABLE | `couple A.X with table Unknown as Y` |
 | **Undefined Alias** | Query references uncoupled alias | `select * from NonExistent()` |
 | **Missing Source Runtime Setting** | Required source runtime setting was not resolved | `select * from SecureApi()` |
 | **Source Contract Error** | Datasource reports that the TABLE contract or read modifiers cannot be honored | `table T { Name: string encoding 'x-unknown' }` |
-| **Constructor Not Found** | Internal adapter type generated for a schema source does not expose the expected constructor | `couple separatedvalues.comma with table CsvRow as Csv` |
 
 ### 7.3 Source Contract Diagnostics
 
-Datasources may report contract diagnostics from `DescribeSource` or `TryPlanSource`.
+Datasources may report contract diagnostics when describing or validating a source contract, before any rows are read.
 
 | Severity | Normal diagnostic behavior |
 |----------|----------------------------|
 | `Info` | Appears in planning text only |
 | `Warning` | Reported as `MQ5013_SourceContractWarning` and appears in planning text |
-| `Error` | Reported as `MQ3071_SourceContractError`, stops compilation, and appears in planning text |
+| `Error` | Reported as `MQ3071_SourceContractError`, stops binding, and appears in source inspection |
 
 When a diagnostic references a TABLE column and modifier, normal diagnostics SHOULD point at the modifier text. If only the column is referenced, they SHOULD point at the column declaration. Diagnostics without table-origin metadata use the normal empty-span fallback while keeping the datasource message.
 
@@ -644,24 +668,11 @@ No diagnostic is required when modifiers are absent. Missing modifiers mean the 
 
 ### 7.4 Runtime Adapter Diagnostics [Informative]
 
-When COUPLE is used with dynamic file-based sources (for example separated values), host/runtime internals may route through generated adapter/helper types. In stack traces, names such as `memoryMapped` can appear.
+Host integration failures do not make a valid TABLE/COUPLE query syntactically invalid. Host adapter troubleshooting is outside the language contract and is documented separately.
 
-If execution fails with an error similar to:
+<a id="74-diagnostic-codes"></a>
 
-```text
-Constructor on type '...memoryMapped' not found
-```
-
-treat this as a **runtime/plugin integration issue**, not as invalid TABLE/COUPLE query syntax.
-
-Recommended checks:
-
-1. Verify schema plugin package version matches the engine version.
-2. Validate source method signature and arguments independently (without COUPLE).
-3. Retry with non-memory-mapped source mode, if the plugin exposes one.
-4. Reproduce in another host (API/runtime) to distinguish host-preprocessor issues from engine/plugin issues.
-
-### 7.4 Diagnostic Codes
+### 7.5 Diagnostic Codes
 
 | Code | Description |
 |------|-------------|
@@ -698,9 +709,10 @@ type_name ::= identifier
 qualified_type_name ::= identifier { '.' identifier }
 ```
 
-An unqualified `type_name` may resolve to a visible query-local enum. A
-`qualified_type_name` may resolve to a reachable native CLR enum. Resolution
-does not make other CLR enum types globally visible.
+An unqualified `type_name` may resolve to a visible query-local enum.
+`qualified_type_name` is reserved for host extensions (§6.4). Host-native enum
+TABLE declarations, including nullable forms, are rejected during binding with
+`MQ2012_InvalidSchemaDefinition`.
 
 ### 8.2 Couple Statement Grammar
 
@@ -720,7 +732,8 @@ In FROM clauses:
 ```ebnf
 coupled_source ::= alias_identifier '(' [ arg_list ] ')' [ table_alias ]
 
-arg_list ::= expression { ',' expression }
+arg_list ::= source_arg { ',' source_arg }
+source_arg ::= expression | identifier ':' expression
 
 table_alias ::= identifier
 ```
@@ -864,7 +877,7 @@ If `Total` omitted `culture` and `format`, the datasource would receive an empty
 
 ### 10.1 With CTEs (Common Table Expressions)
 
-TABLE/COUPLE definitions MUST appear before CTEs:
+TABLE/COUPLE definitions MUST appear before CTEs that use them:
 
 ```sql
 -- Correct order
@@ -963,7 +976,8 @@ select Id, Name from SourceB();
 
 ### 10.6 Statement Order Requirements
 
-Within a query batch, statements MUST follow this order:
+Within a query batch, the following dependency order applies (leading parameters
+and earlier enum/let declarations follow core §4):
 
 1. **TABLE definitions** (if any)
 2. **COUPLE statements** (after any TABLE definitions they reference)
@@ -1037,31 +1051,16 @@ select columns from AliasName([args]) [alias]
 | **TABLE/COUPLE** | Explicit schema and settings profile binding for source aliases | Query batch |
 | **CTE** | Named subquery result | Query batch |
 | **binary/text schema** | Parse binary/text data | Query batch |
-| **ISchemaTable** | Built-in schema definition | Schema provider |
+| **Provider schema** | Source-declared logical column contract | Schema provider |
 
 ---
 
 ## Appendix C: Type Mapping Table
 
-| Musoq Keyword | .NET Type (Nullable) | SQL Server Equivalent |
-|---------------|---------------------|----------------------|
-| `byte` | `byte?` | `TINYINT` |
-| `sbyte` | `sbyte?` | `SMALLINT` |
-| `short` | `short?` | `SMALLINT` |
-| `int` | `int?` | `INT` |
-| `long` | `long?` | `BIGINT` |
-| `ushort` | `ushort?` | `INT` |
-| `uint` | `uint?` | `BIGINT` |
-| `ulong` | `ulong?` | `DECIMAL(20,0)` |
-| `float` | `float?` | `REAL` |
-| `double` | `double?` | `FLOAT` |
-| `decimal` | `decimal?` | `DECIMAL` |
-| `money` | `decimal?` | `MONEY` |
-| `bool` | `bool?` | `BIT` |
-| `char` | `char?` | `NCHAR(1)` |
-| `string` | `string` | `NVARCHAR` |
-| `datetime` | `DateTime?` | `DATETIME` |
-| `datetimeoffset` | `DateTimeOffset?` | `DATETIMEOFFSET` |
-| `timespan` | `TimeSpan?` | `TIME` |
-| `guid` | `Guid?` | `UNIQUEIDENTIFIER` |
-| `object` | `object` | N/A |
+The keyword aliases and value domains are defined by core §3. TABLE uses those
+logical types without host mappings. For `TableDefined`, scalar and enum types
+are nullable; for `ProviderDefined`, scalar nullability must match the provider
+exactly (§6.2). String, dynamic and record types admit null.
+
+Integer keywords retain their explicit widths: byte/sbyte 8, short/ushort 16,
+int/uint 32, and long/ulong 64 bits. `money` is decimal; `boolean` and `bit` are bool.

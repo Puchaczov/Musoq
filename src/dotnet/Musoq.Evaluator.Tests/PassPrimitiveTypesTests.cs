@@ -86,8 +86,9 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext communicator, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext communicator, TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
             return EnsureSourceType<T, TestEntity>(name, new EntitySource<TestEntity>([entities], new Dictionary<string, int>(),
                 new Dictionary<int, Func<TestEntity, object?>>()));

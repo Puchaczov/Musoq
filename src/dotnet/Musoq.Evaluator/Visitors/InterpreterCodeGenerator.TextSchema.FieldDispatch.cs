@@ -7,9 +7,14 @@ public partial class InterpreterCodeGenerator
 {
     private string GenerateTextFieldReadCode(TextFieldDefinitionNode field)
     {
-        var builder = new StringBuilder();
         var localVar = GetLocalVarName(field.Name);
         var isDiscard = field.IsDiscard;
+        return GenerateTextFieldReadCode(field, localVar, isDiscard);
+    }
+
+    private string GenerateTextFieldReadCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
+    {
+        var builder = new StringBuilder();
         var isOptional = (field.Modifiers & TextFieldModifier.Optional) != 0;
 
         if (isOptional && !isDiscard)

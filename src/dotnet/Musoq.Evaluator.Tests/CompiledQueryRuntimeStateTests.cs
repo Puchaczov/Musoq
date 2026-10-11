@@ -18,17 +18,26 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
-        query.Parameters["value"] = 1;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
 
         var firstRun = StartLongRunning(() => query.Run());
-        Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        try
+        {
+            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        }
+        catch
+        {
+            runnable.Release.Set();
+            throw;
+        }
 
         using var secondRunStarted = new ManualResetEventSlim();
         var secondRun = StartLongRunning(() =>
         {
             secondRunStarted.Set();
-            query.Parameters["value"] = 2;
-            return query.Run();
+            var values = new TypedParameterValues();
+            values.Set("value", 2);
+            return query.Run(new TypedQueryRunOptions { TypedParameters = values.Capture() });
         });
 
         Assert.IsTrue(secondRunStarted.Wait(TimeSpan.FromSeconds(5)));
@@ -37,8 +46,8 @@ public sealed class CompiledQueryRuntimeStateTests
         var firstResult = await firstRun;
         var secondResult = await secondRun;
 
-        Assert.AreEqual(1, firstResult[0][0]);
-        Assert.AreEqual(2, secondResult[0][0]);
+        Assert.AreEqual(1, firstResult[0].ReadValue(0));
+        Assert.AreEqual(2, secondResult[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -46,10 +55,18 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingParameterizedRunnable();
         var query = new CompiledQuery(runnable);
-        query.Parameters["value"] = 3;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
 
         var run = StartLongRunning(() => query.Run());
-        Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        try
+        {
+            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        }
+        catch
+        {
+            runnable.Release.Set();
+            throw;
+        }
 
         var dispose = StartLongRunning(query.Dispose);
 
@@ -67,25 +84,39 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingContextualRunnable();
         using var query = new CompiledQuery(runnable);
-        query.Parameters["value"] = 1;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
 
         var firstRun = StartLongRunning(() => query.Run());
-        Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        try
+        {
+            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        }
+        catch
+        {
+            runnable.Release.Set();
+            throw;
+        }
 
         var secondRun = StartLongRunning(() =>
         {
-            query.Parameters["value"] = 2;
-            return query.Run();
+            var values = new TypedParameterValues();
+            values.Set("value", 2);
+            return query.Run(new TypedQueryRunOptions { TypedParameters = values.Capture() });
         });
 
-        Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        Assert.AreEqual(2, runnable.MaximumConcurrentRuns);
-
-        runnable.Release.Set();
+        try
+        {
+            Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
+            Assert.AreEqual(2, runnable.MaximumConcurrentRuns);
+        }
+        finally
+        {
+            runnable.Release.Set();
+        }
         var firstResult = await firstRun;
         var secondResult = await secondRun;
 
-        CollectionAssert.AreEquivalent(new[] { 1, 2 }, new[] { firstResult[0][0], secondResult[0][0] });
+        CollectionAssert.AreEquivalent(new[] { 1, 2 }, new[] { firstResult[0].ReadValue(0), secondResult[0].ReadValue(0) });
     }
 
     [TestMethod]
@@ -93,10 +124,18 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingContextualRunnable();
         var query = new CompiledQuery(runnable);
-        query.Parameters["value"] = 3;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
 
         var firstRun = StartLongRunning(() => query.Run());
-        Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        try
+        {
+            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
+        }
+        catch
+        {
+            runnable.Release.Set();
+            throw;
+        }
         var secondRun = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
@@ -125,7 +164,7 @@ public sealed class CompiledQueryRuntimeStateTests
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
 
-    private sealed class BlockingParameterizedRunnable : ITableRunnable, IParameterizedRunnable, IDisposable
+    private sealed class BlockingParameterizedRunnable : ITableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable, IDisposable
     {
         internal readonly ManualResetEventSlim FirstRunStarted = new(false);
         internal readonly ManualResetEventSlim Release = new(false);
@@ -145,7 +184,7 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public ILogger Logger { get; set; } = NullLogger.Instance;
 
-        public IDictionary<string, object?> Parameters { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
 
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 
@@ -172,7 +211,7 @@ public sealed class CompiledQueryRuntimeStateTests
             {
                 Release.Wait(token);
 
-                var value = (int)Parameters["value"]!;
+                var value = TypedParameters.GetRequired<int>("value");
                 var table = new Table("result", [new Column("Value", typeof(int), 0)]);
                 table.Add(new ValueRow(value));
                 return table;
@@ -197,11 +236,12 @@ public sealed class CompiledQueryRuntimeStateTests
 
         private sealed class ValueRow(int value) : Row
         {
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+                => TypedColumnVisit.Apply(0, value, ref visitor);
+
             public override int Count => 1;
 
-            public override object this[int columnNumber] => columnNumber == 0
-                ? value
-                : throw new IndexOutOfRangeException();
+
         }
 
         private sealed class ThrowingSchemaProvider : ISchemaProvider
@@ -211,7 +251,7 @@ public sealed class CompiledQueryRuntimeStateTests
         }
     }
 
-    private sealed class BlockingContextualRunnable : IContextTableRunnable, IParameterizedRunnable, IDisposable
+    private sealed class BlockingContextualRunnable : IContextTableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable, IDisposable
     {
         private int _activeRuns;
         private int _maximumConcurrentRuns;
@@ -234,7 +274,7 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public ILogger Logger { get; set; } = NullLogger.Instance;
 
-        public IDictionary<string, object?> Parameters { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
 
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 
@@ -268,8 +308,8 @@ public sealed class CompiledQueryRuntimeStateTests
             try
             {
                 Release.Wait(context.CancellationToken);
-                var value = context.RuntimeParameters.TryGetValue("value", out var parameter)
-                    ? (int)parameter!
+                var value = context.TypedParameters.Contains("value")
+                    ? context.TypedParameters.GetRequired<int>("value")
                     : 0;
                 var table = new Table("result", [new Column("Value", typeof(int), 0)]);
                 table.Add(new ValueRow(value));
@@ -300,11 +340,12 @@ public sealed class CompiledQueryRuntimeStateTests
 
         private sealed class ValueRow(int value) : Row
         {
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+                => TypedColumnVisit.Apply(0, value, ref visitor);
+
             public override int Count => 1;
 
-            public override object this[int columnNumber] => columnNumber == 0
-                ? value
-                : throw new IndexOutOfRangeException();
+
         }
 
         private sealed class ThrowingSchemaProvider : ISchemaProvider

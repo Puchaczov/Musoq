@@ -21,6 +21,8 @@ public sealed record ExecutionSetOperation : ExecutionNode
         FieldIndexes = ExecutionIrCollections.Freeze(fieldIndexes);
         FieldTypes = ExecutionIrCollections.Freeze(fieldTypes);
         Strategy = strategy;
+        DistinctFieldIndexes = kind == SetOpKind.Intersect ? FieldIndexes : [];
+        DistinctFieldTypes = kind == SetOpKind.Intersect ? FieldTypes : [];
     }
 
     public ExecutionVariable Target { get; init; }
@@ -30,6 +32,8 @@ public sealed record ExecutionSetOperation : ExecutionNode
     public IReadOnlyList<int> FieldIndexes { get; init; }
     public IReadOnlyList<ExecutionTypeRef> FieldTypes { get; init; }
     public ExecutionSetOperationStrategy Strategy { get; init; }
+    public IReadOnlyList<int> DistinctFieldIndexes { get; init; }
+    public IReadOnlyList<ExecutionTypeRef> DistinctFieldTypes { get; init; }
 
     internal ExecutionSetOperation(
         ExecutionVariable target,

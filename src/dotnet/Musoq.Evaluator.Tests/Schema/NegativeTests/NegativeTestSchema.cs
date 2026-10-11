@@ -20,7 +20,7 @@ public class NegativeTestSchema(IReadOnlyDictionary<string, (ISchemaTable Table,
         throw new TableNotFoundException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         if (tables.TryGetValue(name, out var entry))
             return EnsureSourceType<T>(name, entry.Source);

@@ -59,11 +59,11 @@ internal static partial class ExecutionNodeFacts
             case ExecutionCreateBoundedRecordList createList:
                 yield return createList.List;
                 break;
-            case ExecutionAdaptExpando adapt:
-                yield return adapt.Target;
-                break;
             case ExecutionCreateObject createObject:
                 yield return createObject.Target;
+                break;
+            case ExecutionInitializeAggregateState initialize:
+                yield return initialize.Target;
                 break;
             case ExecutionCreateGeneratedRow createRow:
                 yield return createRow.Row;
@@ -91,9 +91,6 @@ internal static partial class ExecutionNodeFacts
             case ExecutionMaterializeFilteredList materialize:
                 yield return materialize.Buffer;
                 yield return materialize.Item;
-                break;
-            case ExecutionMaterializeExpandoList materialize:
-                yield return materialize.Buffer;
                 break;
             case ExecutionCreateHash createHash:
                 yield return createHash.Hash;

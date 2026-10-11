@@ -45,9 +45,9 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        var payload = (byte[])table[0][2];
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(3, table[0].ReadValue(1));
+        var payload = (byte[])table[0].ReadValue(2);
         Assert.HasCount(3, payload);
         Assert.AreEqual((byte)0xAA, payload[0]);
     }
@@ -84,7 +84,7 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
     }
 
     #endregion
@@ -119,8 +119,8 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(12345, table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(12345, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -148,8 +148,8 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     #endregion
@@ -184,8 +184,8 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)255, table[0][0]);
-        Assert.AreEqual((short)500, table[0][1]);
+        Assert.AreEqual((byte)255, table[0].ReadValue(0));
+        Assert.AreEqual((short)500, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -213,8 +213,8 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     #endregion
@@ -251,9 +251,9 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        Assert.AreEqual(100, table[0][1]);
-        Assert.AreEqual(0xABCD, table[0][2]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        Assert.AreEqual(100, table[0].ReadValue(1));
+        Assert.AreEqual(0xABCD, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -285,9 +285,9 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(100, table[0][1]);
-        Assert.IsNull(table[0][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(100, table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
     }
 
     #endregion
@@ -322,8 +322,8 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual(999, table[0][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual(999, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -354,8 +354,8 @@ public class BinaryConditionalFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((short)100, table[0][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((short)100, table[0].ReadValue(1));
     }
 
     #endregion

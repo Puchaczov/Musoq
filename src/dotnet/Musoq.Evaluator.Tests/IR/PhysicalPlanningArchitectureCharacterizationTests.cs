@@ -52,7 +52,7 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     }
 
     [TestMethod]
-    public void PhysicalOptimizer_WhenShapeResolverIdentifiesExpandoHashJoin_ShouldFallbackToNestedLoop()
+    public void PhysicalOptimizer_WhenShapeResolverIdentifiesExpandoHashJoin_ShouldRejectErasedSourceContract()
     {
         var left = CreateSchemaScan("a", ("Id", typeof(int)));
         var right = CreateSchemaScan("b", ("UserId", typeof(int)));
@@ -72,15 +72,14 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 ["b"] = typeof(ExpandoObject)
             });
 
-        var result = new PhysicalOptimizer().Optimize(
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => new PhysicalOptimizer().Optimize(
             candidate,
             CreateEmptyProperties(),
             new CompilationOptions(),
-            new ExecutionPlanningShapeResolverAdapter(shapeResolver));
-
-        Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
-        Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
-        StringAssert.Contains(result.Decisions[0].Reason, "dynamic or expando");
+            new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]
@@ -162,7 +161,7 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     }
 
     [TestMethod]
-    public void PhysicalOptimizer_WhenShapeResolverIdentifiesExpandoRangeJoin_ShouldFallbackToNestedLoop()
+    public void PhysicalOptimizer_WhenShapeResolverIdentifiesExpandoRangeJoin_ShouldRejectErasedSourceContract()
     {
         var left = CreateSchemaScan("a", ("Age", typeof(int)));
         var right = CreateSchemaScan("b", ("Age", typeof(int)));
@@ -182,15 +181,14 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 ["b"] = typeof(ExpandoObject)
             });
 
-        var result = new PhysicalOptimizer().Optimize(
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => new PhysicalOptimizer().Optimize(
             candidate,
             CreateEmptyProperties(),
             new CompilationOptions(),
-            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver));
-
-        Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
-        Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
-        StringAssert.Contains(result.Decisions[0].Reason, "range join lowering");
+            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]
@@ -265,12 +263,12 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     [TestMethod]
     public void ExecutionStrategyPlan_WhenEquivalentProjectWasNotPlanned_ShouldNotReturnStrategy()
     {
-        var project = CreateMethodProject(CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int))));
+        var project = CreateMethodProject(CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int))) with { SourceContextId = "p" });
         var result = ExecutionStrategyPlanner.Plan(
             project,
             new CompilationOptions(),
             null,
-            CreatePlanningShapeResolver(typeof(Person)));
+            CreatePlanningShapeResolver(typeof(Person)), AuthorizedSourcePlanningFixture.Describe(project));
         var equivalentUnplannedProject = CreateMethodProject(CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int))));
 
         Assert.IsTrue(result.Strategies.CanUseParallelFilterProject(project));
@@ -317,6 +315,7 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         Assert.AreEqual("Musoq.Evaluator.IR.Planning", pipelineType.Namespace);
     }
 
+    [Musoq.Plugins.Attributes.BindableMethod(ExecutionPermissions = Musoq.Plugins.FunctionExecutionPermissions.ConcurrentInvocations)]
     public static string StableMethod(string value)
     {
         return value;

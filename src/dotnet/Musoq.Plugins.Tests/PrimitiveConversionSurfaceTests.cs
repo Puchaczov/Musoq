@@ -36,7 +36,7 @@ public class PrimitiveConversionSurfaceTests : PluginsTestBase
     {
         var methods = typeof(LibraryBase)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-            .Where(method => method.GetCustomAttribute<BindableMethodAttribute>() != null)
+            .Where(method => method.IsDefined(typeof(BindableMethodAttribute), true))
             .Select(method => method.Name)
             .ToHashSet(StringComparer.Ordinal);
 

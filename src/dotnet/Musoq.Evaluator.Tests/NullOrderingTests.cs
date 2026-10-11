@@ -102,7 +102,7 @@ public sealed class NullOrderingTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             result,
             ("Name", typeof(string)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             result,
             ["One", 30m],

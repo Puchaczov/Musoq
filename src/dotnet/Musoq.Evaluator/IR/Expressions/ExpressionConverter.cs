@@ -8,6 +8,7 @@ using Musoq.Schema;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Expressions;
+
 public sealed partial class ExpressionConverter
 {
     private int _windowIndex;
@@ -43,7 +44,7 @@ public sealed partial class ExpressionConverter
             ScriptVariableReferenceNode variable => StructuralReferenceExpressionFactory.CreateVariable(variable.Name, RequireReturnType(variable), expectedType),
             AggregateIdentifierNode n => new Literal(n.ObjValue, RequireReturnType(n), n.DisplayName),
             ConstantValueNode n => new Literal(n.ObjValue, RequireReturnType(n)),
-            NullNode n => new Literal(null, RequireReturnType(n)),
+            NullNode n => new Literal(null, expectedType ?? RequireReturnType(n)),
             AddNode n => ConvertBinaryOp(n, n.ReturnType == typeof(string) ? BinaryOpKind.StringConcatenate : BinaryOpKind.Add),
             HyphenNode n => ConvertBinaryOp(n, BinaryOpKind.Subtract),
             StarNode n => ConvertBinaryOp(n, BinaryOpKind.Multiply),
@@ -113,7 +114,7 @@ public sealed partial class ExpressionConverter
             return BuildIndexedAccess(node, arrayAccess.PropertyInfo.PropertyType, new Literal(arrayAccess.Token.Index, typeof(int)));
 
         // When an indexer appears in the middle of a dot-chain (for example Complex.Array[0].Id), encode
-        // the indexer into the path string so EvaluationHelper can apply it during runtime resolution.
+        // the indexer into the path string for concrete member/indexed operation binding.
         if (ContainsIndexerNode(node))
         {
             var (indexerAlias, indexerName) = ExtractPathWithIndexers(node);
@@ -157,7 +158,8 @@ public sealed partial class ExpressionConverter
     {
         var left = Convert(node.Left);
         var right = Convert(node.Right);
-        return new(kind, left, right, IrExpressionNullSemantics.NullableBooleanResult(kind, left, right) ?? RequireReturnType(node))
+        (left, right) = NumericComparisonBinding.Normalize(kind, left, right);
+        return new(kind, left, right, IrExpressionNullSemantics.BinaryResultType(kind, left, right, RequireReturnType(node)))
         { UsesSqlNullSemantics = IrExpressionNullSemantics.IsSqlComparison(kind) };
     }
 
@@ -192,17 +194,17 @@ public sealed partial class ExpressionConverter
         if (EnumIntrinsicMethodFacts.TryGetKind(node.Method, out var intrinsic))
             return ConvertEnumIntrinsic(node, args, intrinsic);
 
-        return new MethodCall(node.Method, args, node.Alias, RequireReturnType(node))
+        return new MethodCall(node.Method, args, node.Alias, NormalizeNativeEnumReturnType(RequireReturnType(node)))
         {
             EnumType = ResolveNativeEnumType(node)
         };
     }
 
     private InCheck ConvertInNode(InNode node) =>
-        new InCheck(Convert(node.Left), ((ArgsListNode)node.Right).Args.Select(Convert).ToList(), RequireReturnType(node));
+        new InCheck(Convert(node.Left), ((ArgsListNode)node.Right).Args.Select(Convert).ToList(), typeof(bool?)) { SqlSemantics = true };
 
     private InCheck ConvertContainsNode(ContainsNode node) =>
-        new InCheck(Convert(node.Left), node.ToCompareExpression.Args.Select(Convert).ToList(), RequireReturnType(node));
+        new InCheck(Convert(node.Left), node.ToCompareExpression.Args.Select(Convert).ToList(), RequireReturnType(node)) { SqlSemantics = false };
 
     private CaseWhen ConvertCaseNode(CaseNode node)
     {
@@ -226,35 +228,5 @@ public sealed partial class ExpressionConverter
     private WindowFunctionRef ConvertWindowFunctionCore(WindowFunctionNode node) =>
         new(_windowIndex++, RequireReturnType(node));
 
-    private ArrayAccess ConvertArrayAccess(ArrayIndexNode node)
-    {
-        var arrayExpr = Convert(node.Array);
-        var indexExpr = Convert(node.Index);
 
-        var returnType = RequireReturnType(node);
-        return new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
-    }
-
-    private ArrayAccess ConvertAccessObjectArray(AccessObjectArrayNode node)
-    {
-        // AccessObjectArrayNode represents indexed access like Name[0] or str[1]
-        var columnAccessNode = new AccessColumnNode(node.ObjectName, node.TableAlias ?? string.Empty, RequireReturnType(node, node.ColumnType), TextSpan.Empty, node.IntendedTypeName);
-        var arrayExpr = ConvertColumnAccess(columnAccessNode);
-        var indexExpr = new Literal(node.Token.Index, typeof(int));
-
-        var returnType = RequireReturnType(node);
-        return new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
-    }
-
-    private static ArrayAccess ConvertAccessObjectKey(AccessObjectKeyNode node)
-    {
-        if (node.PropertyInfo == null)
-            throw new InvalidOperationException($"AccessObjectKeyNode '{node}' is missing PropertyInfo; cannot lower to IR.");
-
-        var indexableType = node.PropertyInfo.PropertyType;
-        var arrayExpr = new ColumnRef(string.Empty, node.ObjectName, indexableType);
-        var indexExpr = new Literal(node.Token.Key, typeof(string));
-        var returnType = RequireReturnType(node);
-        return new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
-    }
 }

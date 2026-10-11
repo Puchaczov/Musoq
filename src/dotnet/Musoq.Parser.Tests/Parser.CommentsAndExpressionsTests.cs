@@ -23,7 +23,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -38,7 +38,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -53,7 +53,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -100,7 +100,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -130,7 +130,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -145,7 +145,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -160,7 +160,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -175,7 +175,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -192,7 +192,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]
@@ -207,7 +207,7 @@ public class ParserCommentsAndExpressionsTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        Assert.IsNotNull(parser.ComposeAll());
     }
 
     [TestMethod]

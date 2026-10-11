@@ -14,153 +14,6 @@ public class TablesTests
     private static object?[] RequireContexts(TestRow row) =>
         row.Contexts ?? throw new AssertFailedException("Expected row contexts.");
 
-    #region Key Tests
-
-    [TestMethod]
-    public void Key_Constructor_ShouldSetValuesAndColumns()
-    {
-        // Arrange
-        var values = new object[] { "A", 1, true };
-        var columns = new[] { 0, 1, 2 };
-
-        // Act
-        var key = new Key(values, columns);
-
-        // Assert
-        Assert.AreEqual(values, key.Values);
-        Assert.AreEqual(columns, key.Columns);
-    }
-
-    [TestMethod]
-    public void Key_Equals_SameKey_ShouldReturnTrue()
-    {
-        // Arrange
-        var key1 = new Key(["A", 1], [0, 1]);
-        var key2 = new Key(["A", 1], [0, 1]);
-
-        // Act & Assert
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_DifferentValues_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new Key(["A", 1], [0, 1]);
-        var key2 = new Key(["B", 1], [0, 1]);
-
-        // Act & Assert
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_DifferentColumns_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new Key(["A", 1], [0, 1]);
-        var key2 = new Key(["A", 1], [0, 2]);
-
-        // Act & Assert
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Null_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new Key(["A"], [0]);
-
-        // Act & Assert
-        Assert.IsFalse(key1.Equals(null));
-    }
-
-    [TestMethod]
-    public void Key_Equals_SameReference_ShouldReturnTrue()
-    {
-        // Arrange
-        var key = new Key(["A"], [0]);
-
-        // Act & Assert
-        Assert.IsTrue(key.Equals(key));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Object_ShouldWork()
-    {
-        // Arrange
-        var key1 = new Key(["A"], [0]);
-        object key2 = new Key(["A"], [0]);
-
-        // Act & Assert
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_DifferentType_ShouldReturnFalse()
-    {
-        // Arrange
-        var key = new Key(["A"], [0]);
-
-        // Act & Assert
-        Assert.IsFalse(key.Equals("key"));
-    }
-
-    [TestMethod]
-    public void Key_ToString_ShouldReturnFormattedString()
-    {
-        // Arrange
-        var key = new Key(["A", 1], [0, 1]);
-
-        // Act
-        var result = key.ToString();
-
-        // Assert
-        Assert.Contains("0", result);
-        Assert.Contains("A", result);
-        Assert.Contains("1", result);
-    }
-
-    [TestMethod]
-    public void Key_GetHashCode_SameKey_ShouldBeSame()
-    {
-        // Arrange
-        var key1 = new Key(["A", 1], [0, 1]);
-        var key2 = new Key(["A", 1], [0, 1]);
-
-        // Act & Assert
-        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
-    }
-
-    [TestMethod]
-    public void Key_DoesRowMatchKey_ShouldDelegateToRow()
-    {
-        // Arrange
-        var key = new Key(["A"], [0]);
-        var row = new TestRow(["A", 1]);
-
-        // Act
-        var result = key.DoesRowMatchKey(row);
-
-        // Assert
-        Assert.IsTrue(result);
-    }
-
-    [TestMethod]
-    public void Key_DoesRowMatchKey_NoMatch_ShouldReturnFalse()
-    {
-        // Arrange
-        var key = new Key(["B"], [0]);
-        var row = new TestRow(["A", 1]);
-
-        // Act
-        var result = key.DoesRowMatchKey(row);
-
-        // Assert
-        Assert.IsFalse(result);
-    }
-
-    #endregion
-
     #region TestRow Tests
 
     [TestMethod]
@@ -174,9 +27,9 @@ public class TablesTests
 
         // Assert
         Assert.AreEqual(3, row.Count);
-        Assert.AreEqual("A", row[0]);
-        Assert.AreEqual(1, row[1]);
-        Assert.IsTrue((bool?)row[2]);
+        Assert.AreEqual("A", row.ReadValue(0));
+        Assert.AreEqual(1, row.ReadValue(1));
+        Assert.IsTrue((bool?)row.ReadValue(2));
     }
 
     [TestMethod]
@@ -258,14 +111,16 @@ public class TablesTests
     }
 
     [TestMethod]
-    public void TestRow_Values_ShouldReturnOriginalArray()
+    public void TestRow_TypedSnapshot_ShouldPreserveValuesWithoutSharingTheInputArray()
     {
         // Arrange
         var values = new object[] { "A", 1 };
         var row = new TestRow(values);
 
         // Act & Assert
-        Assert.AreSame(values, row.Values);
+        var snapshot = row.ReadValues();
+        CollectionAssert.AreEqual(values, snapshot);
+        Assert.AreNotSame(values, snapshot);
     }
 
     [TestMethod]
@@ -333,48 +188,6 @@ public class TablesTests
         Assert.AreEqual(row1.GetHashCode(), row2.GetHashCode());
     }
 
-    [TestMethod]
-    public void TestRow_FitsTheIndex_ShouldCheckKey()
-    {
-        // Arrange
-        var row = new TestRow(["A", 1]);
-        var key = new Key(["A"], [0]);
-
-        // Act
-        var result = row.FitsTheIndex(key);
-
-        // Assert
-        Assert.IsTrue(result);
-    }
-
-    [TestMethod]
-    public void TestRow_CheckWithKey_ShouldMatchKey()
-    {
-        // Arrange
-        var row = new TestRow(["A", 1, true]);
-        var key = new Key([1], [1]);
-
-        // Act
-        var result = row.CheckWithKey(key);
-
-        // Assert
-        Assert.IsTrue(result);
-    }
-
-    [TestMethod]
-    public void TestRow_CheckWithKey_NoMatch_ShouldReturnFalse()
-    {
-        // Arrange
-        var row = new TestRow(["A", 1]);
-        var key = new Key([2], [1]);
-
-        // Act
-        var result = row.CheckWithKey(key);
-
-        // Assert
-        Assert.IsFalse(result);
-    }
-
     #endregion
 
     #region Table Tests
@@ -433,7 +246,7 @@ public class TablesTests
         var retrievedRow = table[0];
 
         // Assert
-        Assert.AreEqual("value1", retrievedRow[0]);
+        Assert.AreEqual("value1", retrievedRow.ReadValue(0));
     }
 
     [TestMethod]
@@ -497,9 +310,9 @@ public class TablesTests
 
         // Assert
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("value1", table[0][0]);
-        Assert.AreEqual("value2", table[1][0]);
-        Assert.AreEqual("value3", table[2][0]);
+        Assert.AreEqual("value1", table[0].ReadValue(0));
+        Assert.AreEqual("value2", table[1].ReadValue(0));
+        Assert.AreEqual("value3", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -524,9 +337,9 @@ public class TablesTests
 
         // Assert
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("value1", table[0][0]);
-        Assert.AreEqual("value2", table[1][0]);
-        Assert.AreEqual("value3", table[2][0]);
+        Assert.AreEqual("value1", table[0].ReadValue(0));
+        Assert.AreEqual("value2", table[1].ReadValue(0));
+        Assert.AreEqual("value3", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -546,8 +359,8 @@ public class TablesTests
 
         // Assert
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("value1", table[0][0]);
-        Assert.AreEqual("value2", table[1][0]);
+        Assert.AreEqual("value1", table[0].ReadValue(0));
+        Assert.AreEqual("value2", table[1].ReadValue(0));
     }
 
     #endregion

@@ -25,8 +25,8 @@ select packages.Name, packages.Score";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("packages.Name", typeof(string)),
-            ("packages.Score", typeof(int)));
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Legacy.Package", 20]);
     }
 
@@ -57,8 +57,8 @@ where policy.Approved = false";
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.IsFalse((bool)table[0][1]);
+        Assert.AreEqual("Legacy.Package", table[0].ReadValue(0));
+        Assert.IsFalse((bool)table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -82,8 +82,8 @@ where rightPolicy.Approved = false";
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.IsFalse((bool)table[0][1]);
+        Assert.AreEqual("Legacy.Package", table[0].ReadValue(0));
+        Assert.IsFalse((bool)table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -104,8 +104,8 @@ take 1";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.AreEqual(20, table[0][1]);
+        Assert.AreEqual("Legacy.Package", table[0].ReadValue(0));
+        Assert.AreEqual(20, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -122,11 +122,11 @@ order by packages.Name";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertColumn(table, 1, "packages.Score", typeof(int?));
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.AreEqual(20, table[0][1]);
-        Assert.AreEqual("Newtonsoft.Json", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        AssertColumn(table, 1, "Score", typeof(int?));
+        Assert.AreEqual("Legacy.Package", table[0].ReadValue(0));
+        Assert.AreEqual(20, table[0].ReadValue(1));
+        Assert.AreEqual("Newtonsoft.Json", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -143,9 +143,9 @@ order by scores.Score";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertColumn(table, 1, "scores.Score", typeof(uint));
-        Assert.AreEqual(10u, table[0][1]);
-        Assert.AreEqual(20u, table[1][1]);
+        AssertColumn(table, 1, "Score", typeof(uint));
+        Assert.AreEqual(10u, table[0].ReadValue(1));
+        Assert.AreEqual(20u, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -201,46 +201,46 @@ from values {
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        AssertColumn(table, 0, "literals.PlainInt", typeof(int));
-        AssertColumn(table, 1, "literals.IntSuffix", typeof(int));
-        AssertColumn(table, 2, "literals.UIntSuffix", typeof(uint));
-        AssertColumn(table, 3, "literals.LongSuffix", typeof(long));
-        AssertColumn(table, 4, "literals.ULongSuffix", typeof(ulong));
-        AssertColumn(table, 5, "literals.ShortSuffix", typeof(short));
-        AssertColumn(table, 6, "literals.UShortSuffix", typeof(ushort));
-        AssertColumn(table, 7, "literals.SByteSuffix", typeof(sbyte));
-        AssertColumn(table, 8, "literals.ByteSuffix", typeof(byte));
-        AssertColumn(table, 9, "literals.DecimalSuffix", typeof(decimal));
-        AssertColumn(table, 10, "literals.DecimalPoint", typeof(decimal));
-        AssertColumn(table, 11, "literals.DecimalPointSuffix", typeof(decimal));
-        AssertColumn(table, 12, "literals.HexValue", typeof(long));
-        AssertColumn(table, 13, "literals.BinaryValue", typeof(long));
-        AssertColumn(table, 14, "literals.OctalValue", typeof(long));
-        AssertColumn(table, 15, "literals.NegativeInt", typeof(int));
-        AssertColumn(table, 16, "literals.NegativeDecimal", typeof(decimal));
-        AssertColumn(table, 17, "literals.StringValue", typeof(string));
-        AssertColumn(table, 18, "literals.BooleanValue", typeof(bool));
-        AssertColumn(table, 19, "literals.NullValue", typeof(object));
+        AssertColumn(table, 0, "PlainInt", typeof(int));
+        AssertColumn(table, 1, "IntSuffix", typeof(int));
+        AssertColumn(table, 2, "UIntSuffix", typeof(uint));
+        AssertColumn(table, 3, "LongSuffix", typeof(long));
+        AssertColumn(table, 4, "ULongSuffix", typeof(ulong));
+        AssertColumn(table, 5, "ShortSuffix", typeof(short));
+        AssertColumn(table, 6, "UShortSuffix", typeof(ushort));
+        AssertColumn(table, 7, "SByteSuffix", typeof(sbyte));
+        AssertColumn(table, 8, "ByteSuffix", typeof(byte));
+        AssertColumn(table, 9, "DecimalSuffix", typeof(decimal));
+        AssertColumn(table, 10, "DecimalPoint", typeof(decimal));
+        AssertColumn(table, 11, "DecimalPointSuffix", typeof(decimal));
+        AssertColumn(table, 12, "HexValue", typeof(long));
+        AssertColumn(table, 13, "BinaryValue", typeof(long));
+        AssertColumn(table, 14, "OctalValue", typeof(long));
+        AssertColumn(table, 15, "NegativeInt", typeof(int));
+        AssertColumn(table, 16, "NegativeDecimal", typeof(decimal));
+        AssertColumn(table, 17, "StringValue", typeof(string));
+        AssertColumn(table, 18, "BooleanValue", typeof(bool));
+        AssertColumn(table, 19, "NullValue", typeof(System.DBNull));
 
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(11, table[0][1]);
-        Assert.AreEqual(12u, table[0][2]);
-        Assert.AreEqual(13L, table[0][3]);
-        Assert.AreEqual(14UL, table[0][4]);
-        Assert.AreEqual((short)15, table[0][5]);
-        Assert.AreEqual((ushort)16, table[0][6]);
-        Assert.AreEqual((sbyte)17, table[0][7]);
-        Assert.AreEqual((byte)18, table[0][8]);
-        Assert.AreEqual(19m, table[0][9]);
-        Assert.AreEqual(20.5m, table[0][10]);
-        Assert.AreEqual(21.5m, table[0][11]);
-        Assert.AreEqual(16L, table[0][12]);
-        Assert.AreEqual(10L, table[0][13]);
-        Assert.AreEqual(15L, table[0][14]);
-        Assert.AreEqual(-22, table[0][15]);
-        Assert.AreEqual(-23.5m, table[0][16]);
-        Assert.AreEqual("literal", table[0][17]);
-        Assert.IsTrue((bool)table[0][18]);
-        Assert.IsNull(table[0][19]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(11, table[0].ReadValue(1));
+        Assert.AreEqual(12u, table[0].ReadValue(2));
+        Assert.AreEqual(13L, table[0].ReadValue(3));
+        Assert.AreEqual(14UL, table[0].ReadValue(4));
+        Assert.AreEqual((short)15, table[0].ReadValue(5));
+        Assert.AreEqual((ushort)16, table[0].ReadValue(6));
+        Assert.AreEqual((sbyte)17, table[0].ReadValue(7));
+        Assert.AreEqual((byte)18, table[0].ReadValue(8));
+        Assert.AreEqual(19m, table[0].ReadValue(9));
+        Assert.AreEqual(20.5m, table[0].ReadValue(10));
+        Assert.AreEqual(21.5m, table[0].ReadValue(11));
+        Assert.AreEqual(16L, table[0].ReadValue(12));
+        Assert.AreEqual(10L, table[0].ReadValue(13));
+        Assert.AreEqual(15L, table[0].ReadValue(14));
+        Assert.AreEqual(-22, table[0].ReadValue(15));
+        Assert.AreEqual(-23.5m, table[0].ReadValue(16));
+        Assert.AreEqual("literal", table[0].ReadValue(17));
+        Assert.IsTrue((bool)table[0].ReadValue(18));
+        Assert.IsNull(table[0].ReadValue(19));
     }
 }

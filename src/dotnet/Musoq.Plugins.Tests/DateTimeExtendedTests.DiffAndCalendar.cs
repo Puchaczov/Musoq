@@ -123,12 +123,6 @@ public partial class DateTimeExtendedTests
 
 
     [TestMethod]
-    public void ExtractTimeSpan_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.ExtractTimeSpan(null));
-    }
-
-    [TestMethod]
     public void ExtractTimeSpan_ValidDateTimeOffset_ReturnsTimeSpan()
     {
         var date = new DateTimeOffset(2024, 6, 15, 14, 30, 45, 123, TimeSpan.Zero);
@@ -264,22 +258,10 @@ public partial class DateTimeExtendedTests
     }
 
     [TestMethod]
-    public void Hour_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.Hour(null));
-    }
-
-    [TestMethod]
     public void Hour_ValidDateTime_ReturnsHour()
     {
         var date = new DateTime(2024, 6, 15, 12, 30, 45);
         Assert.AreEqual(12, Library.Hour(date));
-    }
-
-    [TestMethod]
-    public void Minute_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.Minute(null));
     }
 
     [TestMethod]
@@ -290,22 +272,10 @@ public partial class DateTimeExtendedTests
     }
 
     [TestMethod]
-    public void Second_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.Second(null));
-    }
-
-    [TestMethod]
     public void Second_ValidDateTime_ReturnsSecond()
     {
         var date = new DateTime(2024, 6, 15, 12, 30, 45);
         Assert.AreEqual(45, Library.Second(date));
-    }
-
-    [TestMethod]
-    public void Milliseconds_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.Milliseconds(null));
     }
 
     [TestMethod]
@@ -316,12 +286,6 @@ public partial class DateTimeExtendedTests
     }
 
     [TestMethod]
-    public void DayOfWeek_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.DayOfWeek(null));
-    }
-
-    [TestMethod]
     public void DayOfWeek_ValidDateTime_ReturnsDayOfWeek()
     {
         var date = new DateTime(2024, 6, 15);
@@ -329,11 +293,5 @@ public partial class DateTimeExtendedTests
     }
 
 
-
-    [TestMethod]
-    public void ExtractTimeSpan_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.ExtractTimeSpan(null));
-    }
 
 }

@@ -68,8 +68,6 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return context.Join.Residual == null &&
                context.KeyType != typeof(object) &&
-               context.Sides.Build.Shape is not ExpandoAdapterShape &&
-               context.Sides.Probe.Shape is not ExpandoAdapterShape &&
                CanBuildPayloadFreeKeySet(context);
     }
 

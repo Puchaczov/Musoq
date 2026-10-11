@@ -1,143 +1,43 @@
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
+using System.Collections.Generic;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TypedOutput;
 
 namespace Musoq.Converter;
 
-internal sealed class TableTypedRowProjector<TOut>
+internal sealed class TableTypedRowProjector<TOut>(System.Func<Row, TOut> project)
 {
-    private readonly ConstructorInfo? _constructor;
-    private readonly Func<TOut>? _createDefault;
-    private readonly TypedOutputConstructorBinding[] _constructorBindings;
-    private readonly MemberBinding[] _memberBindings;
+    private readonly System.Func<Row, TOut> _project = project;
 
-    private TableTypedRowProjector(
-        ConstructorInfo? constructor,
-        Func<TOut>? createDefault,
-        TypedOutputConstructorBinding[] constructorBindings,
-        MemberBinding[] memberBindings)
+    public static TableTypedRowProjector<TOut> Create(IReadOnlyList<TypedOutputColumn> columns)
     {
-        _constructor = constructor;
-        _createDefault = createDefault;
-        _constructorBindings = constructorBindings;
-        _memberBindings = memberBindings;
-    }
-
-    public static TableTypedRowProjector<TOut> Create(Table table)
-    {
-        ArgumentNullException.ThrowIfNull(table);
-
-        var columns = table.Columns
-            .OrderBy(static column => column.ColumnIndex)
-            .Select(static column => new TypedOutputColumn(column.ColumnName, column.ColumnIndex, column.ColumnType))
-            .ToArray();
-        var plan = TypedOutputBinder.Create(typeof(TOut), columns);
-
-        return new TableTypedRowProjector<TOut>(
-            plan.Constructor,
-            CreateDefaultFactory(plan.Constructor),
-            plan.ConstructorBindings.ToArray(),
-            plan.MemberBindings
-                .Select(static binding => new MemberBinding(
-                    binding.MemberName,
-                    binding.TargetType,
-                    binding.Column,
-                    CreateSetter(binding.Member)))
-                .ToArray());
+        var binding = TypedOutputBinder.Create(typeof(TOut), columns);
+        var row = Expression.Parameter(typeof(Row), "row");
+        var output = CreateOutput(binding, row);
+        return new TableTypedRowProjector<TOut>(Expression.Lambda<System.Func<Row, TOut>>(output, row).Compile());
     }
 
     public TOut Project(Row row)
     {
         ArgumentNullException.ThrowIfNull(row);
-
-        if (_constructor != null)
-        {
-            var values = new object?[_constructorBindings.Length];
-            for (var index = 0; index < values.Length; index++)
-            {
-                var binding = _constructorBindings[index];
-                values[index] = ReadValue(row, binding.Column, binding.TargetType);
-            }
-
-            try
-            {
-                return (TOut)_constructor.Invoke(values);
-            }
-            catch (TargetInvocationException ex) when (ex.InnerException != null)
-            {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                throw;
-            }
-        }
-
-        var output = (_createDefault ?? throw new InvalidOperationException(
-            $"Could not create typed output '{typeof(TOut).FullName}'.")).Invoke();
-        if (output == null)
-            throw new InvalidOperationException($"Could not create typed output '{typeof(TOut).FullName}'.");
-
-        foreach (var binding in _memberBindings)
-        {
-            var value = ReadValue(row, binding.Column, binding.TargetType);
-            try
-            {
-                binding.Set(output, value);
-            }
-            catch (TargetInvocationException ex) when (ex.InnerException != null)
-            {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                throw;
-            }
-        }
-
-        return output;
+        return _project(row);
     }
 
-    private static object? ReadValue(Row row, TypedOutputColumn column, Type targetType)
+    private static Expression CreateOutput(TypedOutputBindingPlan binding, ParameterExpression row)
     {
-        var value = row[column.Index];
-        if (value == null || targetType == typeof(object))
-            return value;
+        if (binding.Constructor is not null)
+            return Expression.New(binding.Constructor, binding.ConstructorBindings.Select(argument =>
+                ReadColumn(row, argument.Column, argument.TargetType)));
 
-        return value;
+        return Expression.MemberInit(Expression.New(typeof(TOut)), binding.MemberBindings.Select(member =>
+            Expression.Bind(member.Member, ReadColumn(row, member.Column, member.TargetType))));
     }
 
-    private static Func<TOut>? CreateDefaultFactory(ConstructorInfo? constructor)
+    private static Expression ReadColumn(ParameterExpression row, TypedOutputColumn column, System.Type targetType)
     {
-        if (constructor != null)
-            return null;
-
-        NewExpression create;
-        if (typeof(TOut).IsValueType)
-        {
-            create = Expression.New(typeof(TOut));
-        }
-        else
-        {
-            var defaultConstructor = typeof(TOut).GetConstructor(Type.EmptyTypes) ??
-                                     throw new InvalidOperationException(
-                                         $"Could not create typed output '{typeof(TOut).FullName}'.");
-            create = Expression.New(defaultConstructor);
-        }
-
-        return Expression.Lambda<Func<TOut>>(create).Compile();
+        var accessor = typeof(Row).GetMethod(nameof(Row.GetValue))!.MakeGenericMethod(column.Type);
+        var read = Expression.Call(row, accessor, Expression.Constant(column.Index));
+        return column.Type == targetType ? read : Expression.Convert(read, targetType);
     }
-
-    private static Action<TOut, object?> CreateSetter(MemberInfo member)
-    {
-        return member switch
-        {
-            PropertyInfo property => (target, value) => property.SetValue(target, value),
-            FieldInfo field => (target, value) => field.SetValue(target, value),
-            _ => throw new InvalidOperationException($"Typed output member '{member.Name}' is not supported.")
-        };
-    }
-
-    private sealed record MemberBinding(
-        string Name,
-        Type TargetType,
-        TypedOutputColumn Column,
-        Action<TOut, object?> Set);
 }

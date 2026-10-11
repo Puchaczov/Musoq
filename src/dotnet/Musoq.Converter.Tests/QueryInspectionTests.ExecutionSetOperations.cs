@@ -10,16 +10,16 @@ namespace Musoq.Converter.Tests;
 public partial class QueryInspectionTests
 {
     [TestMethod]
-    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForUnionAll_ShouldStreamIntoFinalShapes()
+    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForUnionAll_ShouldStreamIntoFinalRows()
     {
         var result = Inspect("select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e",
             new CompilationOptions());
 
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: d.Dummy)]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: e.Dummy)]", result.ExecutionPlanText);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(d.Dummy));", result.GeneratedCSharpCode);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(e.Dummy));", result.GeneratedCSharpCode);
+        Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: d.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: e.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(d.Dummy));", result.GeneratedCSharpCode);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(e.Dummy));", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("result.AddDirect(new ResultRow0", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
@@ -34,8 +34,8 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateFilteredUnionAllQuery(),
             new CompilationOptions());
 
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: dummy)]", result.ExecutionPlanText);
+        Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: dummy)]", result.ExecutionPlanText);
         Assert.Contains("If [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
@@ -49,9 +49,9 @@ public partial class QueryInspectionTests
         var result = Inspect("select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: d.Dummy)]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: e.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: d.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: e.Dummy)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -66,8 +66,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[1][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -79,7 +79,7 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -92,11 +92,11 @@ public partial class QueryInspectionTests
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
         Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
         Assert.Contains("StoreTable [__parallelCteLevel0Task1Result -> _cteRowResults.Slot1", result.ExecutionPlanText);
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", result.ExecutionPlanText);
+        Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
         Assert.Contains("ForEach [l in _cteRowResults.Slot0]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: l.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: l.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("ForEach [r in _cteRowResults.Slot1]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: r.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: r.Dummy)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
     }
@@ -110,8 +110,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[1][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -138,9 +138,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[1][0]);
-        Assert.AreEqual("single", table[2][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[1].ReadValue(0));
+        Assert.AreEqual("single", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -152,8 +152,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("single!", table[0][0]);
-        Assert.AreEqual("single?", table[1][0]);
+        Assert.AreEqual("single!", table[0].ReadValue(0));
+        Assert.AreEqual("single?", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -174,10 +174,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Warsaw:PL", table[0][0]);
-        Assert.AreEqual("Berlin:DE", table[1][0]);
-        Assert.AreEqual("Krakow:PL", table[2][0]);
-        Assert.AreEqual("Munich:DE", table[3][0]);
+        Assert.AreEqual("Warsaw:PL", table[0].ReadValue(0));
+        Assert.AreEqual("Berlin:DE", table[1].ReadValue(0));
+        Assert.AreEqual("Krakow:PL", table[2].ReadValue(0));
+        Assert.AreEqual("Munich:DE", table[3].ReadValue(0));
     }
 
     [TestMethod]
@@ -199,9 +199,9 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Warsaw", table[0][0]);
-        Assert.AreEqual("Berlin", table[1][0]);
-        Assert.AreEqual("Prague", table[2][0]);
+        Assert.AreEqual("Warsaw", table[0].ReadValue(0));
+        Assert.AreEqual("Berlin", table[1].ReadValue(0));
+        Assert.AreEqual("Prague", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -221,14 +221,14 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("PL", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("DE", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
-        Assert.AreEqual("PL", table[2][0]);
-        Assert.AreEqual(1L, table[2][1]);
-        Assert.AreEqual("DE", table[3][0]);
-        Assert.AreEqual(1L, table[3][1]);
+        Assert.AreEqual("PL", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("DE", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
+        Assert.AreEqual("PL", table[2].ReadValue(0));
+        Assert.AreEqual(1L, table[2].ReadValue(1));
+        Assert.AreEqual("DE", table[3].ReadValue(0));
+        Assert.AreEqual(1L, table[3].ReadValue(1));
     }
 
     [TestMethod]
@@ -274,10 +274,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("single", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("single", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -319,8 +319,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("a", table[0][0]);
-        Assert.AreEqual("b", table[1][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
+        Assert.AreEqual("b", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -478,9 +478,9 @@ public partial class QueryInspectionTests
         for (var rowIndex = 0; rowIndex < table.Count; rowIndex++)
         {
             if (expectDouble)
-                Assert.IsTrue(double.IsNaN((double)table[rowIndex][0]));
+                Assert.IsTrue(double.IsNaN((double)table[rowIndex].ReadValue(0)));
             else
-                Assert.IsTrue(float.IsNaN((float)table[rowIndex][0]));
+                Assert.IsTrue(float.IsNaN((float)table[rowIndex].ReadValue(0)));
         }
     }
 

@@ -34,11 +34,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!TryResolveHashJoinSides(join, joinSources, out var hashSides))
             return TableBuildResult.Unsupported("Execution IR hash join lowering cannot map build/probe keys to flat join inputs.");
 
-        if (HasDynamicHashJoinInput(joinSources))
-        {
-            return TableBuildResult.Unsupported(
-                "Execution IR hash join lowering received dynamic join inputs. Physical planning must select nested-loop before Execution IR lowering.");
-        }
+
 
         var sidecarIndex = join.Kind == JoinKind.FullOuter
             ? null
@@ -92,11 +88,7 @@ internal sealed partial class PhysicalLoweringImplementation
         };
     }
 
-    private static bool HasDynamicHashJoinInput(JoinSources joinSources)
-    {
-        return joinSources.Left.Shape is ExpandoAdapterShape ||
-               joinSources.Right.Shape is ExpandoAdapterShape;
-    }
+
 
     private CteSidecarIndexSpec? TryResolveCteSidecarIndex(
         PhysicalHashJoinNode join,

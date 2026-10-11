@@ -58,7 +58,7 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
                           metadataContext.AllColumns.Count > 0
                 ? metadataContext.AllColumns.ToArray()
                 : _definition.Columns;
-            return new GeneratedQueryRowSampleTable(columns);
+            return new GeneratedQueryRowSampleTable(columns, _queryScopedRowsEnabled ? typeof(QueryScopedRowContract) : typeof(DeclaredQueryRowSample));
         }
 
         return base.GetTableByName(name, metadataContext, parameters);
@@ -94,24 +94,25 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
         };
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (!string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
-            return base.GetRowSource<T>(name, executionContext, parameters);
-        if (typeof(T) != typeof(object[]))
-            throw new InvalidOperationException($"Legacy query-row sample requested unsupported row type '{typeof(T)}'.");
-
-        return (RowSource<T>)(object)new GeneratedQueryRowSampleLegacySource(_definition.Rows);
+            return base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
+        if (_shape != GeneratedQueryRowSampleShape.Narrow)
+            throw new InvalidOperationException("Declared-entity sample requires its concrete narrow shape.");
+        var rows = _definition.Rows.Select(row => new DeclaredQueryRowSample((int)row[0]!, (string)row[1]!)).ToArray();
+        return EnsureSourceType<T, DeclaredQueryRowSample>(name, new DeclaredQueryRowSampleSource(rows));
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (!_queryScopedRowsEnabled)
             throw new InvalidOperationException("Query-scoped rows were not enabled for this sample.");
@@ -131,11 +132,11 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
     }
 }
 
-public sealed class GeneratedQueryRowSampleTable(ISchemaColumn[] columns) : ISchemaTable
+public sealed class GeneratedQueryRowSampleTable(ISchemaColumn[] columns, Type? entityType = null) : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(object[]));
+    public SchemaTableMetadata Metadata { get; } = new(entityType ?? typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name)
     {
@@ -150,13 +151,12 @@ public sealed class GeneratedQueryRowSampleTable(ISchemaColumn[] columns) : ISch
     }
 }
 
-public sealed class GeneratedQueryRowSampleLegacySource(IReadOnlyList<object?[]> rows)
-    : RowSourceBase<object[]>
+public sealed record DeclaredQueryRowSample(int Id, string Name);
+
+public sealed class DeclaredQueryRowSampleSource(IReadOnlyList<DeclaredQueryRowSample> rows)
+    : RowSourceBase<DeclaredQueryRowSample>
 {
-    protected override void CollectChunks(IChunkWriter<object[]> writer)
-    {
-        writer.Write(rows.Cast<object[]>().ToArray());
-    }
+    protected override void CollectChunks(IChunkWriter<DeclaredQueryRowSample> writer) => writer.Write(rows);
 }
 
 public sealed class GeneratedQueryRowSampleSource<TRow, TMaterializer>(

@@ -48,8 +48,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("TotalValue", typeof(int?)),
             ("RecordCount", typeof(long)),
-            ("AvgValue", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, [1000, 4L, 250]);
+            ("AvgValue", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1000, 4L, 250m]);
     }
 
     [TestMethod]
@@ -97,7 +97,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("t.Category", typeof(byte)),
+            ("Category", typeof(byte)),
             ("TotalAmount", typeof(int?)),
             ("TransactionCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -152,7 +152,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("s.Region", typeof(byte)),
+            ("Region", typeof(byte)),
             ("TotalSales", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

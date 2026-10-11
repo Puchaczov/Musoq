@@ -18,8 +18,19 @@ public sealed class PreparedLikeMatcher
         LikePatternClassificationResult classification,
         Func<string, bool>? legacyMatcher,
         CultureInfo preparationCulture)
+        : this(originalPattern, classification, legacyMatcher, preparationCulture, Runtime.RuntimeCacheOptions.DefaultRegexTimeout)
+    {
+    }
+
+    internal PreparedLikeMatcher(
+        string originalPattern,
+        LikePatternClassificationResult classification,
+        Func<string, bool>? legacyMatcher,
+        CultureInfo preparationCulture,
+        TimeSpan timeout)
     {
         ArgumentNullException.ThrowIfNull(originalPattern);
+        MatchTimeout = Runtime.RegexMatchTimeoutPolicy.Validate(timeout);
 
         OriginalPattern = originalPattern;
         _classification = classification.Classification;
@@ -43,13 +54,15 @@ public sealed class PreparedLikeMatcher
         if (_classification is { Domain: LikePatternCharacterDomain.Ascii })
         {
             _asciiLegacyMatcher = new Lazy<Func<string, bool>>(
-                () => Operators.CreateLegacyLikeMatcherUnderCulture(OriginalPattern, preparationCulture),
+                () => Operators.CreateLegacyLikeMatcherUnderCulture(OriginalPattern, preparationCulture, MatchTimeout),
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
     }
 
     /// <summary>Gets the original SQL LIKE pattern.</summary>
     public string OriginalPattern { get; }
+
+    internal TimeSpan MatchTimeout { get; }
 
     /// <summary>Gets the zero-based start of the classified literal in <see cref="OriginalPattern"/>.</summary>
     public int LiteralStart { get; }

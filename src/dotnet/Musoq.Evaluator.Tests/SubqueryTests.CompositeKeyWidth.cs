@@ -135,7 +135,7 @@ public partial class SubqueryTests
     {
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("ExistsResult", typeof(string)),
             ("NotExistsResult", typeof(string)),
             ("Lookup", typeof(string)));

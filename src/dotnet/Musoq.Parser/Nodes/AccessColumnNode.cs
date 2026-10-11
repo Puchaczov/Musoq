@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Nodes;
+namespace Musoq.Parser.Nodes;
 
 public class AccessColumnNode(string column, string alias, Type type, TextSpan span)
     : IdentifierNode(column, null, span)
@@ -18,6 +18,8 @@ public class AccessColumnNode(string column, string alias, Type type, TextSpan s
     }
 
     public string Alias { get; } = alias;
+
+    public int? SourceColumnIndex { get; init; }
 
     public override Type ReturnType => _type;
 

@@ -29,14 +29,14 @@ public sealed class DirectTypedProfilingTests
         var first = query
             .RunWithProfile(new TypedQueryRunOptions(
                 CancellationToken.None,
-                new Dictionary<string, object?> { ["expected"] = "single" }))
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["expected"] = "single" })))
             .Rows
             .Select(static row => row.Name)
             .ToArray();
         var second = query
             .RunWithProfile(new TypedQueryRunOptions(
                 CancellationToken.None,
-                new Dictionary<string, object?> { ["expected"] = "missing" }))
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["expected"] = "missing" })))
             .Rows
             .Select(static row => row.Name)
             .ToArray();
@@ -56,14 +56,14 @@ public sealed class DirectTypedProfilingTests
         var firstTask = Task.Run(() => query
             .RunWithProfile(new TypedQueryRunOptions(
                 CancellationToken.None,
-                new Dictionary<string, object?> { ["expected"] = "single" },
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["expected"] = "single" }),
                 (_, _) => Interlocked.Increment(ref firstPhaseCount)))
             .Rows
             .ToArray());
         var secondTask = Task.Run(() => query
             .RunWithProfile(new TypedQueryRunOptions(
                 CancellationToken.None,
-                new Dictionary<string, object?> { ["expected"] = "missing" },
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["expected"] = "missing" }),
                 (_, _) => Interlocked.Increment(ref secondPhaseCount)))
             .Rows
             .ToArray());
@@ -86,7 +86,7 @@ public sealed class DirectTypedProfilingTests
         var secondPhaseCount = 0;
         var options = new TypedQueryRunOptions(
             CancellationToken.None,
-            parameters,
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters),
             (_, _) => Interlocked.Increment(ref firstPhaseCount));
         parameters["expected"] = "missing";
 
@@ -106,7 +106,7 @@ public sealed class DirectTypedProfilingTests
         var query = Compile(
             "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected");
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
-        var options = new TypedQueryRunOptions { Parameters = parameters };
+        var options = new TypedQueryRunOptions { TypedParameters= global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters)};
         parameters["expected"] = "missing";
 
         var rows = query

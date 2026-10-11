@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -22,8 +21,7 @@ internal static class StructuralSourcePreparation
             var prepared = state.Prepare(original);
             preparedArguments[index] = structuralArgumentLimits is { Count: > 0 } &&
                                        index < structuralArgumentLimits.Count &&
-                                       structuralArgumentLimits[index] is { } limits &&
-                                       IsStructured(prepared)
+                                       structuralArgumentLimits[index] is { } limits
                 ? AttachLimitBinding(
                     prepared,
                     limits,
@@ -118,22 +116,6 @@ internal static class StructuralSourcePreparation
                 expression.ReturnType);
             Preparations.Add(new ExecutionLet(variable, expression, ExecutionLetCacheMode.SuppressMethodCache));
             return new ExecutionVariableRead(variable);
-        }
-    }
-
-    private static bool IsStructured(ExecutionExpression expression)
-    {
-        if (expression is ExecutionStructuralRecord or ExecutionStructuralArray or ExecutionCteCollectionInput)
-            return true;
-
-        try
-        {
-            var type = expression.ReturnType.ResolveClrType();
-            return StructuralTypeDescriptor.FromClrType(type).Kind != StructuralTypeKind.Scalar;
-        }
-        catch (Exception)
-        {
-            return false;
         }
     }
 

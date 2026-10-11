@@ -31,9 +31,33 @@ internal static class IrExpressionNullSemantics
         (kind is BinaryOpKind.And or BinaryOpKind.Or && (IsNullableBoolean(left) || IsNullableBoolean(right))) ||
         (IsSqlComparison(kind) && (CanBeNull(left) || CanBeNull(right))) ? typeof(bool?) : null;
 
-    internal static Type CaseResultType(Type returnType, CaseWhenBranch[] branches, IrExpression? elseExpression) =>
-        returnType == typeof(bool) &&
-        (elseExpression is null || branches.Any(static branch => CanBeNull(branch.Result)) || CanBeNull(elseExpression))
-            ? typeof(bool?)
+    internal static Type BinaryResultType(BinaryOpKind kind, IrExpression left, IrExpression right, Type declaredType)
+    {
+        if (NullableBooleanResult(kind, left, right) is { } booleanType)
+            return booleanType;
+        if (kind is BinaryOpKind.Add or BinaryOpKind.Subtract or BinaryOpKind.Multiply or BinaryOpKind.Divide or BinaryOpKind.Modulo &&
+            Nullable.GetUnderlyingType(declaredType) is null &&
+            Musoq.Evaluator.Visitors.BinaryOperatorTypeRules.IsNumericType(declaredType) &&
+            (Nullable.GetUnderlyingType(left.ReturnType) != null || Nullable.GetUnderlyingType(right.ReturnType) != null))
+            return typeof(Nullable<>).MakeGenericType(declaredType);
+        return declaredType;
+    }
+
+    internal static Type CaseResultType(Type returnType, CaseWhenBranch[] branches, IrExpression? elseExpression)
+    {
+        if (!returnType.IsValueType || Nullable.GetUnderlyingType(returnType) != null)
+            return returnType;
+        foreach (var branch in branches)
+        {
+            if (branch.Condition is Literal { Value: false })
+                continue;
+            if (CanBeNull(branch.Result))
+                return typeof(Nullable<>).MakeGenericType(returnType);
+            if (branch.Condition is Literal { Value: true })
+                return returnType;
+        }
+        return elseExpression is null || CanBeNull(elseExpression)
+            ? typeof(Nullable<>).MakeGenericType(returnType)
             : returnType;
+    }
 }

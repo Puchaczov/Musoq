@@ -142,8 +142,8 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
         Assert.AreEqual(typed.Count, dynamic.Count, caseId);
         for (var rowIndex = 0; rowIndex < typed.Count; rowIndex++)
         {
-            var expected = typed[rowIndex].Values;
-            var actual = dynamic[rowIndex].Values;
+            var expected = typed[rowIndex].ReadValues();
+            var actual = dynamic[rowIndex].ReadValues();
             Assert.AreEqual(expected.Length, actual.Length, caseId);
             for (var columnIndex = 0; columnIndex < expected.Length; columnIndex++)
                 Assert.AreEqual(expected[columnIndex], actual[columnIndex], $"{caseId} row {rowIndex}, column {columnIndex}");

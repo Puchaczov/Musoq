@@ -31,8 +31,8 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "A1"]);
     }
 
@@ -56,8 +56,8 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [2, "A2"]);
     }
 
@@ -86,9 +86,9 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
             table,
             ("LeftState", typeof(string)),
             ("RightState", typeof(string)),
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int?)),
-            ("b.NullableValue", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)),
+            ("NullableValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { "LeftPresent", "RightPresent", 1, 1, null },

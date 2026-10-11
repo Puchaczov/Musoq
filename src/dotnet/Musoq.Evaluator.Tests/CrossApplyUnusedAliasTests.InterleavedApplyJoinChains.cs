@@ -43,10 +43,10 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("t1.Money", typeof(decimal)),
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)),
             ("Money2", typeof(decimal)),
-            ("j.Month", typeof(string)));
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, 1000m, "March"]);
@@ -89,9 +89,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("j.Month", typeof(string)),
-            ("t.Money", typeof(decimal)));
+            ("City", typeof(string)),
+            ("Month", typeof(string)),
+            ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", "March", 1000m]);
@@ -138,9 +138,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.City", typeof(string)),
-            ("j.Month", typeof(string)),
-            ("t.Money", typeof(decimal)));
+            ("City", typeof(string)),
+            ("Month", typeof(string)),
+            ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", "March", 1000m]);
@@ -184,9 +184,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("t1.Money", typeof(decimal)),
-            ("j.Month", typeof(string)),
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
             ("Money2", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -230,8 +230,8 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("c.Money", typeof(decimal)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 5000m]);
@@ -263,7 +263,7 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"]);
     }
 
@@ -298,7 +298,7 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"]);
     }
 }

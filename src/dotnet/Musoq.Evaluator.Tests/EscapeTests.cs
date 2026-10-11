@@ -21,7 +21,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(@"\", table[0].Values[0]);
+        Assert.AreEqual(@"\", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -34,7 +34,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(@"\\", table[0].Values[0]);
+        Assert.AreEqual(@"\\", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -47,7 +47,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("'", table[0].Values[0]);
+        Assert.AreEqual("'", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -60,7 +60,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\n", table[0].Values[0]);
+        Assert.AreEqual("\n", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -73,7 +73,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\t", table[0].Values[0]);
+        Assert.AreEqual("\t", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -86,7 +86,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\r", table[0].Values[0]);
+        Assert.AreEqual("\r", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -99,7 +99,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("A", table[0].Values[0]);
+        Assert.AreEqual("A", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -112,7 +112,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("A", table[0].Values[0]);
+        Assert.AreEqual("A", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -125,7 +125,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("Hello\nWorld\tΔ\\test", table[0].Values[0]);
+        Assert.AreEqual("Hello\nWorld\tΔ\\test", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -138,7 +138,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(@"\test\", table[0].Values[0]);
+        Assert.AreEqual(@"\test\", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -151,7 +151,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(@"\\\\", table[0].Values[0]);
+        Assert.AreEqual(@"\\\\", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -164,7 +164,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\0\b\f\u001B", table[0].Values[0]);
+        Assert.AreEqual("\0\b\f\u001B", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -177,7 +177,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\\z\\y\\q", table[0].Values[0]);
+        Assert.AreEqual("\\z\\y\\q", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -190,7 +190,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(@"\'", table[0].Values[0]);
+        Assert.AreEqual(@"\'", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -214,9 +214,9 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual(@"\", table[0].Values[0]);
-        Assert.AreEqual("\n", table[0].Values[1]);
-        Assert.AreEqual("A", table[0].Values[2]);
+        Assert.AreEqual(@"\", table[0].ReadValues()[0]);
+        Assert.AreEqual("\n", table[0].ReadValues()[1]);
+        Assert.AreEqual("A", table[0].ReadValues()[2]);
     }
 
     [TestMethod]
@@ -229,7 +229,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\\\nA", table[0].Values[0]);
+        Assert.AreEqual("\\\nA", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -242,7 +242,7 @@ public class EscapeTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\u0001\uFFFF\u0000", table[0].Values[0]);
+        Assert.AreEqual("\u0001\uFFFF\u0000", table[0].ReadValues()[0]);
     }
 
     [TestMethod]

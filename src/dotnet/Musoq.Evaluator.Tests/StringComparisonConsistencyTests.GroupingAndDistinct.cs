@@ -30,9 +30,9 @@ public partial class StringComparisonConsistencyTests
 
         Assert.AreEqual(3, table.Count, "GROUP BY should treat different cases as different groups");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello" && (long)row.Values[1] == 2L));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Hello" && (long)row.Values[1] == 1L));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "HELLO" && (long)row.Values[1] == 1L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello" && (long)row.ReadValues()[1] == 2L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Hello" && (long)row.ReadValues()[1] == 1L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "HELLO" && (long)row.ReadValues()[1] == 1L));
     }
 
     [TestMethod]
@@ -57,8 +57,8 @@ public partial class StringComparisonConsistencyTests
 
         Assert.AreEqual(2, table.Count, "GROUP BY ToLower should merge case variants");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello" && (long)row.Values[1] == 3L));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "world" && (long)row.Values[1] == 1L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello" && (long)row.ReadValues()[1] == 3L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "world" && (long)row.ReadValues()[1] == 1L));
     }
 
 
@@ -133,9 +133,9 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(3, table.Count, "LIKE should match all case variants");
 
 
-        Assert.AreEqual("TEST_A", table[0].Values[0]);
-        Assert.AreEqual("Test_B", table[1].Values[0]);
-        Assert.AreEqual("test_c", table[2].Values[0]);
+        Assert.AreEqual("TEST_A", table[0].ReadValues()[0]);
+        Assert.AreEqual("Test_B", table[1].ReadValues()[0]);
+        Assert.AreEqual("test_c", table[2].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -163,8 +163,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 city groups");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Warsaw" && (long)row.Values[1] == 2L));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Krakow" && (long)row.Values[1] == 1L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Warsaw" && (long)row.ReadValues()[1] == 2L));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Krakow" && (long)row.ReadValues()[1] == 1L));
     }
 
     [TestMethod]
@@ -194,7 +194,7 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(3, table.Count, "LIKE and query should match 3 rows");
 
 
-        Assert.IsTrue(table.All(row => (bool?)row.Values[1] == true),
+        Assert.IsTrue(table.All(row => (bool?)row.ReadValues()[1] == true),
             "Contains should agree with LIKE on case-insensitive matching");
     }
 
@@ -218,7 +218,7 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "hello"),
+        Assert.IsTrue(table.All(row => (string)row.ReadValues()[0] == "hello"),
             "ToLower(ToUpper()) should normalize all case variants to lowercase");
     }
 
@@ -268,8 +268,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "DISTINCT ToLower should merge case variants");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "world"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "world"));
     }
 
 }

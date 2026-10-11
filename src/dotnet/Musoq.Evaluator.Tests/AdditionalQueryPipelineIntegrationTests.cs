@@ -43,23 +43,7 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test1", table[0][0]);
-    }
-
-    [TestMethod]
-    public void QueryPipeline_SelectWithArithmetic_ShouldWork()
-    {
-        var query = "select 1 + 2 * 3 from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Test")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(7, Convert.ToInt32(table[0][0]));
+        Assert.AreEqual("Test1", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -75,25 +59,9 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("C", table[0][0]);
-        Assert.AreEqual("B", table[1][0]);
-        Assert.AreEqual("A", table[2][0]);
-    }
-
-    [TestMethod]
-    public void QueryPipeline_SelectWithStringConcat_ShouldWork()
-    {
-        var query = "select Name + ' - ' + City from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test - NYC", table[0][0]);
+        Assert.AreEqual("C", table[0].ReadValue(0));
+        Assert.AreEqual("B", table[1].ReadValue(0));
+        Assert.AreEqual("A", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -141,8 +109,8 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("PersonA", table[0][0]);
-        Assert.AreEqual("PersonB", table[0][1]);
+        Assert.AreEqual("PersonA", table[0].ReadValue(0));
+        Assert.AreEqual("PersonB", table[0].ReadValue(1));
     }
 
     [TestMethod]

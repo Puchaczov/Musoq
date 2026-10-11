@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Musoq.Plugins.Attributes;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Nodes;
@@ -21,7 +24,9 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
-        var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
+        ExecutionExpression value = new ExecutionLiteral(1, typeof(int));
+        if (registration.ValueArguments.Length > 0)
+            value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
         var arguments = new List<ExecutionExpression>(Math.Max(0, registration.ValueArguments.Length - 1));
         var rowScopedArguments = new List<bool>(Math.Max(0, registration.ValueArguments.Length - 1));
         for (var index = 1; index < registration.ValueArguments.Length; index++)
@@ -31,12 +36,26 @@ internal sealed partial class PhysicalLoweringImplementation
             rowScopedArguments.Add(ContainsRowScopedRead(argument));
         }
 
+        if (registration.Function?.GetCustomAttribute<WindowFunctionAttribute>()?.ContextType is not null)
+        {
+            var parameters = registration.Function.GetParameters();
+            for (var index = arguments.Count + 1; index < parameters.Length; index++)
+            {
+                if (!parameters[index].HasDefaultValue)
+                    throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                        $"Window '{registration.FunctionName}' is missing required argument '{parameters[index].Name}'.",
+                        Musoq.Parser.TextSpan.Empty);
+                arguments.Add(new ExecutionLiteral(parameters[index].DefaultValue, parameters[index].ParameterType));
+                rowScopedArguments.Add(false);
+            }
+        }
+
         return PluginWindowArgumentsBuildResult.Success(value, arguments, rowScopedArguments, []);
     }
 
     private static ExecutionWindowFrame? CreatePluginWindowFrame(WindowRegistration registration)
     {
-        if (IsNtileWindowFunction(registration.FunctionName))
+        if (registration.Function?.GetCustomAttribute<WindowFunctionAttribute>()?.IgnoresFrame == true)
             return null;
 
         return CreateAggregateWindowFrame(registration);

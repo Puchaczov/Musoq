@@ -752,10 +752,9 @@ public sealed class ExpressionCseHoistingPassTests
     }
 
     [TestMethod]
-    public void Optimize_WhenAggregateBlockHasExpandoAdapter_ShouldHoistAfterAdapter()
+    public void Optimize_WhenAggregateBlockCreatesNativeRow_ShouldHoistAfterRowCreation()
     {
         var adapter = new ExecutionVariable("ko3iko", typeof(object));
-        var resolver = new ExecutionVariable("ko3ikoResolver", typeof(object));
         var fieldRead = new ExecutionFieldRead("ko3iko", "Category", typeof(string));
         var aggregatePlan = CreateAggregatePlan();
         var rootGroup = new ExecutionVariable("rootGroup", typeof(object));
@@ -763,17 +762,16 @@ public sealed class ExpressionCseHoistingPassTests
         var groupsToFinalize = new ExecutionVariable("groupsToFinalize", typeof(object));
         var group = new ExecutionVariable("group", typeof(object));
         var capturedField = new AggregateCapturedField("category", "__category", typeof(string));
-        var expandoShape = new ExpandoAdapterShape(
-            "ko3iko",
-            "ko3ikoDynamicRow0",
-            typeof(object),
-            [new FieldBinding("Category", "Category", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Category"))]);
+        var rowShape = new GeneratedRowShape("NativeCategoryRow",
+            [new FieldBinding("Category", "Category", 0, typeof(string), FieldNullability.Unknown,
+                new GeneratedFieldAccess("Category"))], []);
         var plan = new ExecutionPlan(
             "compiled",
             [],
             new ExecutionBlock(
             [
-                new ExecutionAdaptExpando(adapter, resolver, expandoShape),
+                new ExecutionCreateGeneratedRow(adapter, rowShape,
+                    [new ExecutionRowValue("Category", new ExecutionLiteral("category", typeof(string)))], []),
                 new ExecutionGetOrAddSingleKeyAggregateGroup(
                     rootGroup,
                     groups,
@@ -795,7 +793,7 @@ public sealed class ExpressionCseHoistingPassTests
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
         Assert.IsTrue(result.IsChanged);
-        Assert.IsInstanceOfType<ExecutionAdaptExpando>(result.Plan.Body.Nodes[0]);
+        Assert.IsInstanceOfType<ExecutionCreateGeneratedRow>(result.Plan.Body.Nodes[0]);
         var let = (ExecutionLet)result.Plan.Body.Nodes[1];
         var getOrAdd = (ExecutionGetOrAddSingleKeyAggregateGroup)result.Plan.Body.Nodes[2];
         var capturedValue = (ExecutionAggregateCapturedValueSet)result.Plan.Body.Nodes[3];

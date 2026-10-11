@@ -50,18 +50,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
             "        If [(p.Name = 'Ada')]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      If [NOT oHasMatch]",
             "        If [(p.Name = 'Ada')]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -103,16 +103,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, NextAge: (o.PersonAge + 1))]",
+            "        AppendShape [result <- ResultRow0(Name: p.Name, NextAge: (o.PersonAge + 1))]",
             "      If [NOT oHasMatch]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, NextAge: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name, NextAge: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -156,12 +156,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      EnumerableSource [JustReturnArrayOfString() -> bRows]",
             "      ChunkedForEach [b in bRows]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, Value: b.Value)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name, Value: b.Value)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -194,7 +194,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         StringAssert.Contains(planText, "ChunkedForEach [n in nRows]");
         StringAssert.Contains(planText, "EnumerableSource [i.Numbers -> mRows]");
         StringAssert.Contains(planText, "ChunkedForEach [m in mRows]");
-        StringAssert.Contains(planText, "AppendShape [result <- ResultShape0(Name: i.Name, FirstValue: n.Value, SecondValue: m.Value)]");
+        StringAssert.Contains(planText, "AppendShape [result <- ResultRow0(Name: i.Name, FirstValue: n.Value, SecondValue: m.Value)]");
     }
 
     [TestMethod]

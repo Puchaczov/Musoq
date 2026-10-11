@@ -30,10 +30,10 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(4, table.Count);
 
 
-        Assert.AreEqual("Apple", table[0].Values[0]);
-        Assert.AreEqual("Banana", table[1].Values[0]);
-        Assert.AreEqual("banana", table[2].Values[0]);
-        Assert.AreEqual("cherry", table[3].Values[0]);
+        Assert.AreEqual("Apple", table[0].ReadValues()[0]);
+        Assert.AreEqual("Banana", table[1].ReadValues()[0]);
+        Assert.AreEqual("banana", table[2].ReadValues()[0]);
+        Assert.AreEqual("cherry", table[3].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -59,10 +59,10 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(4, table.Count);
 
 
-        Assert.AreEqual("cherry", table[0].Values[0]);
-        Assert.AreEqual("banana", table[1].Values[0]);
-        Assert.AreEqual("Banana", table[2].Values[0]);
-        Assert.AreEqual("Apple", table[3].Values[0]);
+        Assert.AreEqual("cherry", table[0].ReadValues()[0]);
+        Assert.AreEqual("banana", table[1].ReadValues()[0]);
+        Assert.AreEqual("Banana", table[2].ReadValues()[0]);
+        Assert.AreEqual("Apple", table[3].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -88,10 +88,10 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(4, table.Count);
 
 
-        Assert.AreEqual("Abc", table[0].Values[0]);
-        Assert.AreEqual("abc", table[1].Values[0]);
-        Assert.AreEqual("zzz", table[2].Values[0]);
-        Assert.AreEqual("Ąbc", table[3].Values[0]);
+        Assert.AreEqual("Abc", table[0].ReadValues()[0]);
+        Assert.AreEqual("abc", table[1].ReadValues()[0]);
+        Assert.AreEqual("zzz", table[2].ReadValues()[0]);
+        Assert.AreEqual("Ąbc", table[3].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -114,9 +114,9 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(100m, table[0].Values[0]);
-        Assert.AreEqual(200m, table[1].Values[0]);
-        Assert.AreEqual(300m, table[2].Values[0]);
+        Assert.AreEqual(100m, table[0].ReadValues()[0]);
+        Assert.AreEqual(200m, table[1].ReadValues()[0]);
+        Assert.AreEqual(300m, table[2].ReadValues()[0]);
     }
 
 
@@ -211,8 +211,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "HELLO WORLD"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ZAŻÓŁĆ"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "HELLO WORLD"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ZAŻÓŁĆ"));
     }
 
     [TestMethod]
@@ -234,8 +234,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello world"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "zażółć"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello world"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "zażółć"));
     }
 
     [TestMethod]
@@ -258,7 +258,7 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => ((string)row.Values[0]).StartsWith("Hi")),
+        Assert.IsTrue(table.All(row => ((string)row.ReadValues()[0]).StartsWith("Hi")),
             "Replace should be case-insensitive and replace all case variants");
     }
 
@@ -282,7 +282,7 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (int?)row.Values[0] == 6),
+        Assert.IsTrue(table.All(row => (int?)row.ReadValues()[0] == 6),
             "IndexOf should be case-insensitive and return 6 for all rows");
     }
 

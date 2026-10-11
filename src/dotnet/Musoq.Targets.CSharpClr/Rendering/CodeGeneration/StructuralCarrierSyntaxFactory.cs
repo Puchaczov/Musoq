@@ -20,8 +20,16 @@ namespace Musoq.Targets.CSharpClr;
 /// </summary>
 internal static class StructuralCarrierSyntaxFactory
 {
-    private const string CarrierPrefix = "__musoqStructuralCarrier_";
     private const string AdapterPrefix = "__musoqStructuralAdapt_";
+
+    internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
+        IReadOnlyList<ExecutionStructuralCarrier> carriers)
+    {
+        var members = new List<MemberDeclarationSyntax>();
+        foreach (var carrier in carriers)
+            AddCarrierMembers(members, StructuralCarrierDescriptors.FromShape(carrier.Shape), carrier.DefinitionIndex, []);
+        return members;
+    }
 
     internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
         IReadOnlyList<ScriptVariableDefinition> definitions,
@@ -246,6 +254,7 @@ internal static class StructuralCarrierSyntaxFactory
             }
 
             members.Add(CreateCarrierStruct(descriptor, definitionIndex, path));
+            members.Add(NativeStructuralJsonSyntax.Create(descriptor, definitionIndex, path));
             return;
         }
 
@@ -263,6 +272,7 @@ internal static class StructuralCarrierSyntaxFactory
         var presenceCount = Math.Max(1, (descriptor.Fields.Count + 63) / 64);
         var lines = new List<string>
         {
+            $"[global::System.Text.Json.Serialization.JsonConverter(typeof({NativeStructuralJsonSyntax.ConverterName(definitionIndex, path)}))]",
             $"private readonly struct {name}",
             "{"
         };
@@ -312,6 +322,33 @@ internal static class StructuralCarrierSyntaxFactory
         if (descriptor.IsNullable && descriptor.Kind != StructuralTypeKind.Scalar)
             text += "?";
         return text;
+    }
+
+    internal static string CreateArrayAllocation(string elementType, string count)
+    {
+        var arrayType = (ArrayTypeSyntax)SyntaxFactory.ParseTypeName(elementType.Replace("[]?", "[]", StringComparison.Ordinal) + "[]");
+        var rank = SyntaxFactory.ArrayRankSpecifier(
+            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ParseExpression(count)));
+        arrayType = arrayType.WithRankSpecifiers(arrayType.RankSpecifiers.Replace(arrayType.RankSpecifiers[0], rank));
+        return SyntaxFactory.ArrayCreationExpression(arrayType).NormalizeWhitespace().ToFullString();
+    }
+
+    internal static string? GetReadStorageType(
+        ExecutionExpression expression,
+        IReadOnlyList<ScriptVariableDefinition> variables,
+        IReadOnlyList<ScriptParameterDefinition> parameters)
+    {
+        if (expression is ExecutionScriptVariableRead variableRead &&
+            TryFindDefinition(variables, variableRead.Name, out var variableIndex, out var variable) &&
+            variable.StructuralType is { } variableType)
+            return CreateStorageType(variableType, variableIndex, []);
+
+        if (expression is ExecutionScriptParameterRead parameterRead &&
+            TryFindParameter(parameters, parameterRead.Name, out var parameterIndex, out var parameter) &&
+            parameter.Contract.StructuralType is { } parameterType)
+            return CreateStorageType(parameterType, variables.Count + parameterIndex, []);
+
+        return null;
     }
 
     internal static ExpressionSyntax CreateValueExpression(
@@ -624,11 +661,7 @@ internal static class StructuralCarrierSyntaxFactory
 
     internal static string CreateCarrierName(int definitionIndex, IReadOnlyList<int> path)
     {
-        var suffix = path.Count == 0
-            ? "root"
-            : string.Join("_", path.Select(static value =>
-                value < 0 ? "a" : value.ToString(CultureInfo.InvariantCulture)));
-        return CarrierPrefix + definitionIndex.ToString(CultureInfo.InvariantCulture) + "_" + suffix;
+        return StructuralCarrierNaming.Create(definitionIndex, path);
     }
 
     private static bool TryFindDefinition(

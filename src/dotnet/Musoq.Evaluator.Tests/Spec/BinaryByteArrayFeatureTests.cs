@@ -47,9 +47,9 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var header = (byte[])table[0][0];
-        var body = (byte[])table[0][1];
-        var footer = (byte[])table[0][2];
+        var header = (byte[])table[0].ReadValue(0);
+        var body = (byte[])table[0].ReadValue(1);
+        var footer = (byte[])table[0].ReadValue(2);
 
         Assert.HasCount(4, header);
         Assert.HasCount(8, body);
@@ -85,7 +85,7 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var payload = (byte[])table[0][0];
+        var payload = (byte[])table[0].ReadValue(0);
         Assert.HasCount(4, payload);
         Assert.AreEqual((byte)0x01, payload[0]);
         Assert.AreEqual((byte)0x04, payload[3]);
@@ -115,8 +115,8 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        var payload = (byte[])table[0][1];
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        var payload = (byte[])table[0].ReadValue(1);
         Assert.IsEmpty(payload);
     }
 
@@ -144,7 +144,7 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var payload = (byte[])table[0][0];
+        var payload = (byte[])table[0].ReadValue(0);
         Assert.HasCount(256, payload);
         Assert.AreEqual((byte)0, payload[0]);
         Assert.AreEqual((byte)255, payload[255]);
@@ -178,8 +178,8 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
-        var payload = (byte[])table[0][1];
+        Assert.AreEqual((byte)5, table[0].ReadValue(0));
+        var payload = (byte[])table[0].ReadValue(1);
         Assert.HasCount(5, payload);
         Assert.AreEqual((byte)0xAA, payload[0]);
         Assert.AreEqual((byte)0xEE, payload[4]);
@@ -210,8 +210,8 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)8, table[0][0]);
-        var payload = (byte[])table[0][1];
+        Assert.AreEqual((short)8, table[0].ReadValue(0));
+        var payload = (byte[])table[0].ReadValue(1);
         Assert.HasCount(8, payload);
     }
 
@@ -240,8 +240,8 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3, table[0][0]);
-        var payload = (byte[])table[0][1];
+        Assert.AreEqual(3, table[0].ReadValue(0));
+        var payload = (byte[])table[0].ReadValue(1);
         Assert.HasCount(3, payload);
     }
 
@@ -274,8 +274,8 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        var items = (byte[])table[0][1];
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        var items = (byte[])table[0].ReadValue(1);
         Assert.HasCount(6, items);
     }
 
@@ -305,9 +305,9 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
-        var payload = (byte[])table[0][2];
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
+        var payload = (byte[])table[0].ReadValue(2);
         Assert.HasCount(5, payload);
     }
 
@@ -343,7 +343,7 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("image.png", table[0][0]);
+        Assert.AreEqual("image.png", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -368,10 +368,10 @@ public class BinaryByteArrayFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x10, table[0][0]);
-        Assert.AreEqual((byte)0x20, table[0][1]);
-        Assert.AreEqual((byte)0x30, table[0][2]);
-        Assert.AreEqual((byte)0x40, table[0][3]);
+        Assert.AreEqual((byte)0x10, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x20, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x30, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0x40, table[0].ReadValue(3));
     }
 
     #endregion

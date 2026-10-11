@@ -145,7 +145,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 expression.Value,
                 values.Value,
                 inCheck.ReturnType,
-                isNegated: inCheck.IsNegated))
+                isNegated: inCheck.IsNegated)
+            { UsesSqlNullSemantics = inCheck.SqlSemantics, TypedBinding = ExecutionMembershipBindingResolver.Bind(inCheck) })
             : LoweringAttempt<ExecutionExpression>.Unsupported(values.UnsupportedReason);
     }
 

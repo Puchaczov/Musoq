@@ -481,10 +481,10 @@ public sealed class DiagnosticREC097ActionableNameAndOverloadTests
             return new RecoverySourceTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
                 name,

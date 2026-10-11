@@ -43,7 +43,7 @@ public class BugProbeAdditionalIssuesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var value = table[0][0];
+        var value = table[0].ReadValue(0);
         Assert.IsInstanceOfType<byte>(value, $"bits[8] should return byte, got {value?.GetType()?.Name}");
         Assert.AreEqual((byte)255, value);
     }
@@ -75,8 +75,8 @@ public class BugProbeAdditionalIssuesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("52.5200", table[0][0]);
-        Assert.AreEqual("13.4050", table[0][1]);
+        Assert.AreEqual("52.5200", table[0].ReadValue(0));
+        Assert.AreEqual("13.4050", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -107,10 +107,10 @@ public class BugProbeAdditionalIssuesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("a_valid.bin", table[0][0]);
-        Assert.AreEqual((byte)0x42, table[0][1]);
-        Assert.AreEqual("b_invalid.bin", table[1][0]);
-        Assert.IsNull(table[1][1]); // OUTER APPLY should produce NULL
+        Assert.AreEqual("a_valid.bin", table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x42, table[0].ReadValue(1));
+        Assert.AreEqual("b_invalid.bin", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1)); // OUTER APPLY should produce NULL
     }
 
     /// <summary>
@@ -141,8 +141,8 @@ public class BugProbeAdditionalIssuesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((byte)0xFF, table[0][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -167,8 +167,8 @@ public class BugProbeAdditionalIssuesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual((byte)0xFF, table[0][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -203,9 +203,9 @@ public class BugProbeAdditionalIssuesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.AreEqual((short)100, table[0][1]);
-        Assert.AreEqual((byte)1, table[1][0]);
-        Assert.AreEqual((short)200, table[1][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.AreEqual((short)100, table[0].ReadValue(1));
+        Assert.AreEqual((byte)1, table[1].ReadValue(0));
+        Assert.AreEqual((short)200, table[1].ReadValue(1));
     }
 }

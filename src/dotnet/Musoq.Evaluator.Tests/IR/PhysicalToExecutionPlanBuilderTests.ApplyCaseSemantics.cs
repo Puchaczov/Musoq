@@ -56,18 +56,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
             "        If [(COALESCE(o.Description, 'missing') = 'missing')]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      If [NOT oHasMatch]",
             "        If [('missing' = 'missing')]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -187,16 +187,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      EnumerableSource [JustReturnArrayOfString() -> bRows]",
             "      Let [bHasMatch: bool = FALSE]",
             "      ChunkedForEach [b in bRows]",
             "        Assign [bHasMatch = TRUE]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, Value: b.Value)]",
+            "        AppendShape [result <- ResultRow0(Name: p.Name, Value: b.Value)]",
             "      If [NOT bHasMatch]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, Value: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name, Value: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

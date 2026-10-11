@@ -6,6 +6,9 @@ namespace Musoq.Plugins;
 
 public static class WindowDecimalAggregateKernel
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     public struct State
     {
         public List<decimal>? Values;

@@ -128,9 +128,9 @@ public partial class SafeDataAccessTests
 
         // Assert
         Assert.AreEqual(3, row.Count);
-        Assert.AreEqual(1, row[0]);
-        Assert.AreEqual("test", row[1]);
-        Assert.AreEqual(3.14, row[2]);
+        Assert.AreEqual(1, row.ReadValue(0));
+        Assert.AreEqual("test", row.ReadValue(1));
+        Assert.AreEqual(3.14, row.ReadValue(2));
     }
 
     [TestMethod]
@@ -191,17 +191,20 @@ public partial class SafeDataAccessTests
     }
 
     [TestMethod]
-    public void TestRow_Values_ReturnsValuesArray()
+    public void TestRow_TypedVisitation_ShouldPreserveEveryConcreteValue()
     {
         // Arrange
         var values = new object[] { 1, 2, 3 };
         var row = new TestRow(values);
 
         // Act
-        var result = row.Values;
+        var result = row.ReadValues();
 
         // Assert
-        Assert.AreSame(values, result);
+        CollectionAssert.AreEqual(values, result);
+        Assert.AreEqual(1, row.GetValue<int>(0));
+        Assert.AreEqual(2, row.GetValue<int>(1));
+        Assert.AreEqual(3, row.GetValue<int>(2));
     }
 
     #endregion
@@ -303,7 +306,7 @@ public partial class SafeDataAccessTests
         var searchRow = new TestRow([1]);
 
         // Act
-        var result = table.Contains(searchRow, (r1, r2) => (int)r1[0] == (int)r2[0]);
+        var result = table.Contains(searchRow, (r1, r2) => (int)r1.ReadValue(0) == (int)r2.ReadValue(0));
 
         // Assert
         Assert.IsTrue(result);
@@ -320,64 +323,48 @@ public partial class SafeDataAccessTests
         var searchRow = new TestRow([99]);
 
         // Act
-        var result = table.Contains(searchRow, (r1, r2) => (int)r1[0] == (int)r2[0]);
+        var result = table.Contains(searchRow, (r1, r2) => (int)r1.ReadValue(0) == (int)r2.ReadValue(0));
 
         // Assert
         Assert.IsFalse(result);
     }
 
     [TestMethod]
-    public void Table_ContainsWithKey_EmptyTable_ReturnsFalse()
+    public void TypedQuery_MatchingRows_EmptyTypedQuery_ReturnsFalse()
     {
-        // Arrange
-        var table = new Table("test", [
-            new Column("Value", typeof(int), 0)
-        ]);
-
-        var row = new TestRow([1]);
-        var key = new Key(["key"], [0]);
-
-        // Act
-        var result = table.Contains(key, row);
-
-        // Assert
-        Assert.IsFalse(result);
+        const string query = "select s.Value as Value from #schema.first() s where s.Value = 999";
+        using var compiled = CreateAndRunVirtualMachine<NativeLookupInput>(query, new[] { new NativeLookupInput(1) });
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
-    public void Table_ContainsKey_NotPresent_ReturnsFalse()
+    public void TypedQuery_MatchingKey_NotPresent_ReturnsFalse()
     {
-        // Arrange
-        var table = new Table("test", [
-            new Column("Value", typeof(int), 0)
-        ]) { new TestRow([1]) };
-
-        var key = new Key(["nonexistent"], [0]);
-
-        // Act
-        var result = table.ContainsKey(key);
-
-        // Assert
-        Assert.IsFalse(result);
+        const string query = "select s.Value as Value from #schema.first() s where s.Value = 999";
+        using var compiled = CreateAndRunVirtualMachine<NativeLookupInput>(query, new[] { new NativeLookupInput(1) });
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
-    public void Table_TryGetIndexedValues_KeyNotFound_ReturnsFalseWithEmptyList()
+    public void TypedQuery_Lookup_KeyNotFound_ReturnsFalseWithEmptyList()
     {
-        // Arrange
-        var table = new Table("test", [
-            new Column("Value", typeof(int), 0)
-        ]) { new TestRow([1]) };
-
-        var key = new Key(["missing"], [0]);
-
-        // Act
-        var result = table.TryGetIndexedValues(key, out var values);
-
-        // Assert
-        Assert.IsFalse(result);
-        Assert.IsEmpty(values);
+        const string query = "with rows as (select s.Value as Value from #schema.first() s) select r.Value as Value from rows r where r.Value = 999";
+        using var compiled = CreateAndRunVirtualMachine<NativeLookupInput>(query, new[] { new NativeLookupInput(1) });
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     #endregion
+    public sealed record NativeLookupInput(int Value);
 }

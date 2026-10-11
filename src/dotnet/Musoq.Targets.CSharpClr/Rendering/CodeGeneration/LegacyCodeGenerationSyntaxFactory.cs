@@ -13,8 +13,9 @@ internal static class LegacyCodeGenerationSyntaxFactory
         return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(Column)))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
                 SyntaxFactory.Argument(CreateStringLiteral(field.Name)),
-                SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(
-                    ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration(field)))),
+                SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(field.GeneratedTypeName is { } generatedType
+                    ? SyntaxFactory.ParseTypeName(generatedType)
+                    : CreateTypeOfTypeSyntax(ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration(field)))),
                 SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(field.Index)))

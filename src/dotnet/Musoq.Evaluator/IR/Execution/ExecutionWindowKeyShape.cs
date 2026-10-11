@@ -18,6 +18,9 @@ public sealed record ExecutionWindowKeyShape
         this.GeneratedParts = GeneratedParts == null ? null : ExecutionIrCollections.Freeze(GeneratedParts);
     }
 
+    /// <summary>Gets the concrete projection of captured order keys available to a typed context.</summary>
+    public ExecutionTypeRef? RawValueType { get; init; }
+
     public ExecutionTypeRef ElementType { get; init; }
 
     public bool IsTyped { get; init; }

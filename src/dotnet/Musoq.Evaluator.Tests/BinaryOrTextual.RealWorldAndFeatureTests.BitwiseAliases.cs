@@ -39,7 +39,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x80L, table[0][0]);
+        Assert.AreEqual(0x80L, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0xFF, Convert.ToInt32(table[0][0]));
+        Assert.AreEqual(0xFF, Convert.ToInt32(table[0].ReadValue(0)));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0xFF, Convert.ToInt32(table[0][0]));
+        Assert.AreEqual(0xFF, Convert.ToInt32(table[0].ReadValue(0)));
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0xF0, Convert.ToInt32(table[0][0]));
+        Assert.AreEqual(0xF0, Convert.ToInt32(table[0].ReadValue(0)));
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x0F, Convert.ToInt32(table[0][0]));
+        Assert.AreEqual(0x0F, Convert.ToInt32(table[0].ReadValue(0)));
     }
 
     /// <summary>
@@ -209,8 +209,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(0x0A, Convert.ToInt32(table[0][0]));
-        Assert.AreEqual(0x0BL, table[0][1]);
+        Assert.AreEqual(0x0A, Convert.ToInt32(table[0].ReadValue(0)));
+        Assert.AreEqual(0x0BL, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -247,10 +247,10 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x80L, table[0][0]);
-        Assert.AreEqual(0x07L, table[0][1]);
-        Assert.AreEqual(0x00L, table[0][2]);
-        Assert.AreEqual(0x07L, table[0][3]);
+        Assert.AreEqual(0x80L, table[0].ReadValue(0));
+        Assert.AreEqual(0x07L, table[0].ReadValue(1));
+        Assert.AreEqual(0x00L, table[0].ReadValue(2));
+        Assert.AreEqual(0x07L, table[0].ReadValue(3));
     }
 
     #endregion

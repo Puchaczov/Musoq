@@ -10,6 +10,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<byte>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public byte? SumDistinct(byte? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<byte?>();
     [AggregateFunction(
@@ -17,6 +18,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<sbyte>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public sbyte? SumDistinct(sbyte? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<sbyte?>();
     [AggregateFunction(
@@ -24,6 +26,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<short>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public short? SumDistinct(short? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<short?>();
     [AggregateFunction(
@@ -31,6 +34,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<ushort>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public ushort? SumDistinct(ushort? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<ushort?>();
     [AggregateFunction(
@@ -38,6 +42,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<int>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public int? SumDistinct(int? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<int?>();
     [AggregateFunction(
@@ -45,6 +50,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<uint>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public uint? SumDistinct(uint? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<uint?>();
     [AggregateFunction(
@@ -52,6 +58,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<long>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public long? SumDistinct(long? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<long?>();
     [AggregateFunction(
@@ -59,6 +66,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<ulong>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public ulong? SumDistinct(ulong? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<ulong?>();
     [AggregateFunction(
@@ -66,6 +74,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<float>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public float? SumDistinct(float? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<float?>();
     [AggregateFunction(
@@ -73,6 +82,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<double>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public double? SumDistinct(double? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<double?>();
     [AggregateFunction(
@@ -80,6 +90,7 @@ public partial class LibraryBase
         Name = nameof(SumDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(SumDistinctAggregateKernel<decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public decimal? SumDistinct(decimal? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<decimal?>();
 }

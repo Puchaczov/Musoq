@@ -241,8 +241,8 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         for (var rowIndex = 0; rowIndex < expected.Count; rowIndex++)
         {
             CollectionAssert.AreEqual(
-                expected[rowIndex].Values,
-                actual[rowIndex].Values,
+                expected[rowIndex].ReadValues(),
+                actual[rowIndex].ReadValues(),
                 $"Row {rowIndex} differs.");
         }
     }

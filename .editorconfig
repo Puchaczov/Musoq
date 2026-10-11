@@ -486,3 +486,6 @@ dotnet_diagnostic.CA1819.severity = none
 [src/dotnet/Musoq.Schema/Exceptions/MethodResolutionException.cs]
 # Method-resolution diagnostics preserve array-shaped metadata for callers inspecting failures.
 dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/generated-code-samples/**/*.cs]
+end_of_line = lf

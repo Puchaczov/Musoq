@@ -11,10 +11,7 @@ public static partial class ExecutionExpressionConverter
         IReadOnlyDictionary<string, RowShape> sourceShapes)
     {
         if (TryCreateDirectPresenceSource(rowPresence.Alias, sourceShapes, out var directSource))
-            return directSource.ReturnType.ResolveClrType().IsValueType &&
-                   Nullable.GetUnderlyingType(directSource.ReturnType.ResolveClrType()) == null
-                ? new ExecutionLiteral(rowPresence.IsPresent, typeof(bool))
-                : new ExecutionRowPresence(rowPresence.Alias, rowPresence.IsPresent, directSource);
+            return new ExecutionRowPresence(rowPresence.Alias, rowPresence.IsPresent, directSource);
 
         if (TryCreateTableContextPresenceSource(rowPresence.Alias, sourceShapes, out var contextSource))
             return new ExecutionRowPresence(rowPresence.Alias, rowPresence.IsPresent, contextSource);
@@ -55,7 +52,10 @@ public static partial class ExecutionExpressionConverter
             if (context == null)
                 continue;
 
-            source = new ExecutionFieldRead(tableRow.Alias, context.Name, context.Type, context.AccessStrategy);
+            var presenceType = context.Type;
+            if (presenceType.ResolveClrType().IsValueType)
+                presenceType = ExecutionClrBindingFactory.FromClr(typeof(object));
+            source = new ExecutionFieldRead(tableRow.Alias, context.Name, presenceType, context.AccessStrategy);
             return true;
         }
 

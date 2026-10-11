@@ -21,13 +21,13 @@ public partial class QueryInspectionTests
     {
         var result = CreateInspection();
 
-        Assert.Contains("__dSchema.GetRowSource", result.GeneratedCSharpCode);
+        Assert.Contains("SourceInvocation<", result.GeneratedCSharpCode);
         Assert.Contains("private sealed class ResultRow0", result.GeneratedCSharpCode);
         Assert.Contains("private IEnumerable<ResultRow0> ComputeRows_compiled_0(", result.GeneratedCSharpCode);
         Assert.Contains("QueryTableEnumerable<ResultRow0>", result.GeneratedCSharpCode);
         Assert.Contains("TableProjectionRows.ProjectRowsSerial<", result.GeneratedCSharpCode);
         Assert.Contains("new ResultRow0(d.Dummy", result.GeneratedCSharpCode);
-        Assert.Contains("d_Dummy = __value0;", result.GeneratedCSharpCode);
+        Assert.Contains("Dummy = __value0;", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("If [(dummy <> dummy1)]", result.ExecutionPlanText);
-        Assert.Contains("e.Dummy: NULL", result.ExecutionPlanText);
+        Assert.Contains("Dummy: NULL", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -130,8 +130,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -140,9 +140,11 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateDynamicAsOfJoinQuery(), CreateDynamicRowsSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("ExpandoAdapter [l: lDynamicRow0]", result.ExecutionPlanText);
-        Assert.Contains("ExpandoAdapter [r: rDynamicRow0]", result.ExecutionPlanText);
-        Assert.Contains("AsOfProbe [r <- rAsOfRows", result.ExecutionPlanText);
+        Assert.Contains("SourceScan [l: QueryRow_", result.ExecutionPlanText);
+        Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
+        Assert.Contains("SourceScan [r: QueryRow_", result.ExecutionPlanText);
+        Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
+        Assert.Contains("AsOfProbe [r <- resultrAsOfRowsTyped", result.ExecutionPlanText);
         Assert.Contains("EvaluationHelper.CreateAsOfIndex<", result.GeneratedCSharpCode);
         Assert.Contains("resultAsOfIndex.Find", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -157,12 +159,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ada", table[0][0]);
-        Assert.AreEqual("ada", table[0][1]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual("bea", table[1][1]);
-        Assert.AreEqual("cid", table[2][0]);
-        Assert.AreEqual("cid", table[2][1]);
+        Assert.AreEqual("ada", table[0].ReadValue(0));
+        Assert.AreEqual("ada", table[0].ReadValue(1));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual("bea", table[1].ReadValue(1));
+        Assert.AreEqual("cid", table[2].ReadValue(0));
+        Assert.AreEqual("cid", table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -171,11 +173,13 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateDynamicCteBackedAsOfJoinQuery(), CreateDynamicRowsSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("ExpandoAdapter [d: dDynamicRow0]", result.ExecutionPlanText);
-        Assert.Contains("ExpandoAdapter [l: lDynamicRow0]", result.ExecutionPlanText);
+        Assert.Contains("SourceScan [d: QueryRow_", result.ExecutionPlanText);
+        Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
+        Assert.Contains("SourceScan [l: QueryRow_", result.ExecutionPlanText);
+        Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
         Assert.Contains("AsOfProbe [r <- _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int>", result.GeneratedCSharpCode);
+        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int, string>", result.GeneratedCSharpCode);
         Assert.Contains("resultAsOfIndex.Find", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
@@ -190,12 +194,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ada", table[0][0]);
-        Assert.AreEqual("ada", table[0][1]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual("bea", table[1][1]);
-        Assert.AreEqual("cid", table[2][0]);
-        Assert.AreEqual("cid", table[2][1]);
+        Assert.AreEqual("ada", table[0].ReadValue(0));
+        Assert.AreEqual("ada", table[0].ReadValue(1));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual("bea", table[1].ReadValue(1));
+        Assert.AreEqual("cid", table[2].ReadValue(0));
+        Assert.AreEqual("cid", table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -245,7 +249,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         Assert.Contains(
-            "(int)new Musoq.Plugins.LibraryBase().Rand()",
+            "(int)__resultLibraryBase0.Rand()",
             result.GeneratedCSharpCode);
         Assert.Contains("+ 1", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -257,7 +261,7 @@ public partial class QueryInspectionTests
         var result = Inspect("select -Rand() from #system.dual() d");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("new Musoq.Plugins.LibraryBase().Rand()", result.GeneratedCSharpCode);
+        Assert.Contains("__resultLibraryBase0.Rand()", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -269,7 +273,7 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.Contains("var __resultLibraryBase0 = new Musoq.Plugins.LibraryBase();", result.GeneratedCSharpCode);
         Assert.Contains("__resultLibraryBase0.ToString", result.GeneratedCSharpCode);
-        Assert.Contains("new Musoq.Plugins.LibraryBase().Rand()", result.GeneratedCSharpCode);
+        Assert.Contains("__resultLibraryBase0.Rand()", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -355,7 +359,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
 
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -367,7 +371,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
 
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -379,7 +383,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
 
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -388,7 +392,7 @@ public partial class QueryInspectionTests
         var result = Inspect("select d.Dummy from #system.dual() d order by d.Dummy skip 0 take 1");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by d.Dummy ASC, skip 0, take 1]", result.ExecutionPlanText);
+        Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Dummy ASC, skip 0, take 1]", result.ExecutionPlanText);
         Assert.Contains("MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0]", result.ExecutionPlanText);
         Assert.Contains("new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(0, 1, ResultRow0WithSortKeysComparer.Instance)", result.GeneratedCSharpCode);
         Assert.Contains("resultOrderRecords", result.GeneratedCSharpCode);
@@ -410,7 +414,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
 
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -442,7 +446,7 @@ public partial class QueryInspectionTests
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:p -> FuseReadOnce", result.PlanningText);
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:q -> FuseReadOnce", result.PlanningText);
         Assert.Contains("ForEach [d in dRows]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: dummy)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [p in _tableResults[0].Rows]", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte1 -> _tableResults[1]]", StringComparison.Ordinal));
@@ -462,7 +466,7 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -515,8 +519,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[0].ReadValue(1));
     }
 
 }

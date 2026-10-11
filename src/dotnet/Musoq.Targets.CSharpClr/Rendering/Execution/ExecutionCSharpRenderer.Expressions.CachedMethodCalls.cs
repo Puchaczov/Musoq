@@ -27,7 +27,7 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateTypeSyntax(methodCall.ReturnType)
             ])));
 
-        var methodName = CreateMethodNameSyntax(methodCall.Method.RequireClrMethod());
+        var methodName = CreateMethodNameSyntax(methodCall);
         var factory = SyntaxFactory.ParenthesizedLambdaExpression(
                 SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(

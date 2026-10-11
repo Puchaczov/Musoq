@@ -49,31 +49,31 @@ order by numbers.IntLong";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        AssertColumn(table, 0, "numbers.SmallSigned", typeof(int));
-        AssertColumn(table, 1, "numbers.IntLong", typeof(long));
-        AssertColumn(table, 2, "numbers.IntUInt", typeof(uint));
-        AssertColumn(table, 3, "numbers.UIntLong", typeof(long));
-        AssertColumn(table, 4, "numbers.UIntULong", typeof(ulong));
-        AssertColumn(table, 5, "numbers.IntDecimal", typeof(decimal));
-        AssertColumn(table, 6, "numbers.HexInt", typeof(long));
-        AssertColumn(table, 7, "numbers.NullUInt", typeof(uint?));
+        AssertColumn(table, 0, "SmallSigned", typeof(int));
+        AssertColumn(table, 1, "IntLong", typeof(long));
+        AssertColumn(table, 2, "IntUInt", typeof(uint));
+        AssertColumn(table, 3, "UIntLong", typeof(long));
+        AssertColumn(table, 4, "UIntULong", typeof(ulong));
+        AssertColumn(table, 5, "IntDecimal", typeof(decimal));
+        AssertColumn(table, 6, "HexInt", typeof(long));
+        AssertColumn(table, 7, "NullUInt", typeof(uint?));
 
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual(1u, table[0][2]);
-        Assert.AreEqual(1L, table[0][3]);
-        Assert.AreEqual(1UL, table[0][4]);
-        Assert.AreEqual(1m, table[0][5]);
-        Assert.AreEqual(16L, table[0][6]);
-        Assert.IsNull(table[0][7]);
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
-        Assert.AreEqual(2u, table[1][2]);
-        Assert.AreEqual(2L, table[1][3]);
-        Assert.AreEqual(2UL, table[1][4]);
-        Assert.AreEqual(2m, table[1][5]);
-        Assert.AreEqual(2L, table[1][6]);
-        Assert.AreEqual(3u, table[1][7]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual(1u, table[0].ReadValue(2));
+        Assert.AreEqual(1L, table[0].ReadValue(3));
+        Assert.AreEqual(1UL, table[0].ReadValue(4));
+        Assert.AreEqual(1m, table[0].ReadValue(5));
+        Assert.AreEqual(16L, table[0].ReadValue(6));
+        Assert.IsNull(table[0].ReadValue(7));
+        Assert.AreEqual(2, table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
+        Assert.AreEqual(2u, table[1].ReadValue(2));
+        Assert.AreEqual(2L, table[1].ReadValue(3));
+        Assert.AreEqual(2UL, table[1].ReadValue(4));
+        Assert.AreEqual(2m, table[1].ReadValue(5));
+        Assert.AreEqual(2L, table[1].ReadValue(6));
+        Assert.AreEqual(3u, table[1].ReadValue(7));
     }
 
     [TestMethod]
@@ -111,7 +111,7 @@ from values {{
         Assert.AreEqual(pairs.Count, table.Columns.Count());
 
         for (var i = 0; i < pairs.Count; i++)
-            AssertColumn(table, i, $"numbers.{pairs[i].Column}", pairs[i].ExpectedType);
+            AssertColumn(table, i, $"{pairs[i].Column}", pairs[i].ExpectedType);
     }
 
     [TestMethod]
@@ -140,9 +140,9 @@ from values {{
 
         for (var i = 0; i < cases.Length; i++)
         {
-            AssertColumn(table, i, $"numbers.Null_{cases[i].Name}", typeof(Nullable<>).MakeGenericType(cases[i].Type));
-            Assert.IsNull(table[0][i]);
-            Assert.IsNotNull(table[1][i]);
+            AssertColumn(table, i, $"Null_{cases[i].Name}", typeof(Nullable<>).MakeGenericType(cases[i].Type));
+            Assert.IsNull(table[0].ReadValue(i));
+            Assert.IsNotNull(table[1].ReadValue(i));
         }
     }
 

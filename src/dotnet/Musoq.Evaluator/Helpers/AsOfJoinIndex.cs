@@ -4,19 +4,20 @@ using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.Helpers;
 
-public sealed partial class AsOfJoinIndex<T, TKey>
+public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
     where T : class
+    where TEquality : notnull
 {
     private readonly BinaryOpKind _comparisonKind;
     private readonly IComparer<TKey> _comparer;
     private readonly IAsOfJoinBucket? _singleBucket;
-    private readonly Dictionary<object, IAsOfJoinBucket>? _buckets;
+    private readonly Dictionary<TEquality, IAsOfJoinBucket>? _buckets;
 
     private AsOfJoinIndex(
         BinaryOpKind comparisonKind,
         IComparer<TKey> comparer,
         IAsOfJoinBucket? singleBucket,
-        Dictionary<object, IAsOfJoinBucket>? buckets)
+        Dictionary<TEquality, IAsOfJoinBucket>? buckets)
     {
         _comparisonKind = comparisonKind;
         _comparer = comparer;
@@ -24,9 +25,9 @@ public sealed partial class AsOfJoinIndex<T, TKey>
         _buckets = buckets;
     }
 
-    public static AsOfJoinIndex<T, TKey> Create(
+    public static AsOfJoinIndex<T, TKey, TEquality> Create(
         IEnumerable<T> candidates,
-        Func<T, object?>? equalityKeySelector,
+        Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind)
     {
@@ -41,9 +42,9 @@ public sealed partial class AsOfJoinIndex<T, TKey>
             : CreatePartitionedBuckets(candidates, equalityKeySelector, keySelector, comparisonKind, comparer);
     }
 
-    public static AsOfJoinIndex<T, TKey> CreateFromChunks(
+    public static AsOfJoinIndex<T, TKey, TEquality> CreateFromChunks(
         IEnumerable<IReadOnlyList<T>> candidateChunks,
-        Func<T, object?>? equalityKeySelector,
+        Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind)
     {
@@ -58,9 +59,9 @@ public sealed partial class AsOfJoinIndex<T, TKey>
             : CreatePartitionedBucketsFromChunks(candidateChunks, equalityKeySelector, keySelector, comparisonKind, comparer);
     }
 
-    public static AsOfJoinIndex<T, TKey> Create<TTie>(
+    public static AsOfJoinIndex<T, TKey, TEquality> Create<TTie>(
         IEnumerable<T> candidates,
-        Func<T, object?>? equalityKeySelector,
+        Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind,
         Func<T, TTie> tieBreakKeySelector,
@@ -93,9 +94,9 @@ public sealed partial class AsOfJoinIndex<T, TKey>
                 tieBreakComparer);
     }
 
-    public static AsOfJoinIndex<T, TKey> CreateFromChunks<TTie>(
+    public static AsOfJoinIndex<T, TKey, TEquality> CreateFromChunks<TTie>(
         IEnumerable<IReadOnlyList<T>> candidateChunks,
-        Func<T, object?>? equalityKeySelector,
+        Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind,
         Func<T, TTie> tieBreakKeySelector,
@@ -128,14 +129,14 @@ public sealed partial class AsOfJoinIndex<T, TKey>
                 tieBreakComparer);
     }
 
-    public T? Find(object? equalityKey, TKey probeValue)
+    public T? Find(NativeEqualityKey<TEquality> equalityKey, TKey probeValue)
     {
         if (probeValue is null)
             return null;
 
         if (_buckets != null)
         {
-            if (equalityKey is null || !_buckets.TryGetValue(equalityKey, out var bucket))
+            if (!equalityKey.HasValue || !_buckets.TryGetValue(equalityKey.Value, out var bucket))
                 return null;
 
             return bucket.Find(probeValue, _comparisonKind, _comparer);
@@ -146,9 +147,7 @@ public sealed partial class AsOfJoinIndex<T, TKey>
 
     private static IComparer<TKey> CreateComparer()
     {
-        return typeof(TKey) == typeof(object)
-            ? (IComparer<TKey>)(object)AsOfObjectKeyComparer.Instance
-            : Comparer<TKey>.Default;
+        return Comparer<TKey>.Default;
     }
 
     private static void ValidateComparisonKind(BinaryOpKind comparisonKind)

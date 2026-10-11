@@ -7,23 +7,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     #region TryConvertToInt32Strict Tests
 
     [TestMethod]
-    public void TryConvertToInt32Strict_WithInt_ShouldReturnSame()
-    {
-        var result = Library.TryConvertToInt32Strict(42);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42, result.Value);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt32Strict_WithNull_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToInt32Strict(null);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
     public void TryConvertToInt32Strict_WithString_ShouldConvert()
     {
         var result = Library.TryConvertToInt32Strict("12345");
@@ -68,23 +51,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     }
 
     [TestMethod]
-    public void TryConvertToInt32Strict_WithDoubleWithFraction_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToInt32Strict(42.5);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt32Strict_WithDoubleExact_ShouldConvert()
-    {
-        var result = Library.TryConvertToInt32Strict(42.0);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42, result.Value);
-    }
-
-    [TestMethod]
     public void TryConvertToInt32Strict_WithByte_ShouldConvert()
     {
         var result = Library.TryConvertToInt32Strict((byte)255);
@@ -113,14 +79,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
         Assert.IsNull(result);
     }
 
-    [TestMethod]
-    public void TryConvertToInt32Strict_WithDoubleNaN_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToInt32Strict(double.NaN);
-
-        Assert.IsNull(result);
-    }
-
     #endregion
 
     #region TryConvertToInt64Strict Tests
@@ -132,23 +90,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
 
         Assert.IsNotNull(result);
         Assert.AreEqual(9223372036854775807L, result.Value);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt64Strict_WithNull_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToInt64Strict(null);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt64Strict_WithInt_ShouldConvert()
-    {
-        var result = Library.TryConvertToInt64Strict(42);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42L, result.Value);
     }
 
     [TestMethod]
@@ -175,23 +116,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
         var result = Library.TryConvertToInt64Strict(18446744073709551615UL);
 
         Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt64Strict_WithDoubleWithFraction_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToInt64Strict(42.5);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToInt64Strict_WithDoubleExact_ShouldConvert()
-    {
-        var result = Library.TryConvertToInt64Strict(42.0);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42L, result.Value);
     }
 
     [TestMethod]

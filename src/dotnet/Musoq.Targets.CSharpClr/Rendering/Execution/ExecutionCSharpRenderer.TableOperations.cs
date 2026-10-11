@@ -44,14 +44,9 @@ public sealed partial class ExecutionCSharpRenderer
         int sourceIndex,
         Type targetType)
     {
-        var value = CreateElementAccess(
-            SyntaxFactory.IdentifierName(rowVariableName),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(sourceIndex)));
-
         if (targetType == typeof(object))
-            return value;
-
-        return SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
+            throw new InvalidOperationException("Native table projections require a concrete column type.");
+        return CreateNativeRowValueRead(SyntaxFactory.IdentifierName(rowVariableName), sourceIndex, CreateTypeSyntax(targetType));
     }
 
     private ExpressionStatementSyntax RenderStoreTable(ExecutionStoreTable store, ExecutionRenderContext context)
@@ -80,7 +75,8 @@ public sealed partial class ExecutionCSharpRenderer
         TypedStoredTableResult typedResult,
         ExecutionRenderContext context)
     {
-        return TryGetTypedRowBufferShape(table.Name, context, out _) ||
+        return typedResult.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer ||
+               TryGetTypedRowBufferShape(table.Name, context, out _) ||
                string.Equals(
                    table.GeneratedRowTypeName,
                    $"List<{typedResult.RowShape.TypeName}>",

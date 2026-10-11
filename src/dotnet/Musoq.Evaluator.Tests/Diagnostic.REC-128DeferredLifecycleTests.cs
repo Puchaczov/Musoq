@@ -94,19 +94,19 @@ public sealed class REC128DeferredLifecycleTests
                     .GetSchema(SchemaName));
                 return;
             case "OC-S-ROW":
-                AssertCancellation(() => DataSourceLifecycle.OpenRowSource<int>(
-                    new CancellingSchema(), SourceName, CreateContext(), [], SchemaName, Alias, ContextId));
+                AssertCancellation(() => DataSourceLifecycle.OpenRowSource<int, EmptySourceArguments>(
+                    new CancellingSchema(), SourceName, CreateContext(), SourceArguments.Empty, SchemaName, Alias, ContextId));
                 return;
             case "OC-S-WRAPPED-ROW":
             {
                 var schema = DataSourceLifecycle.OpenSchema(
                     new StaticProvider(new CancellingSchema()), SchemaName, SourceName, Alias, ContextId);
-                AssertCancellation(() => schema.GetRowSource<int>(SourceName, CreateContext()));
+                AssertCancellation(() => global::Musoq.Schema.SourceInvocation<int>.Open(schema, SourceName, CreateContext(), global::Musoq.Schema.SourceArguments.Empty));
                 return;
             }
             case "OC-S-QUERY-ROW":
-                AssertCancellation(() => DataSourceLifecycle.OpenQueryScopedRowSource<int, EmptyMaterializer>(
-                    new CancellingSchema(), SourceName, CreateQueryScopedRequest(), [],
+                AssertCancellation(() => DataSourceLifecycle.OpenQueryScopedRowSource<int, EmptyMaterializer, EmptySourceArguments>(
+                    new CancellingSchema(), SourceName, CreateQueryScopedRequest(), SourceArguments.Empty,
                     SchemaName, Alias, ContextId));
                 return;
             case "OC-S-WRAPPED-QUERY-ROW":
@@ -114,8 +114,7 @@ public sealed class REC128DeferredLifecycleTests
                 var schema = DataSourceLifecycle.OpenSchema(
                     new StaticProvider(new CancellingSchema()), SchemaName, SourceName, Alias, ContextId);
                 var queryScoped = (IQueryScopedRowSourceSchema)schema;
-                AssertCancellation(() => queryScoped.GetQueryScopedRowSource<int, EmptyMaterializer>(
-                    SourceName, CreateQueryScopedRequest(), []));
+                AssertCancellation(() => global::Musoq.Schema.QuerySourceInvocation<int, EmptyMaterializer>.Open(queryScoped, SourceName, CreateQueryScopedRequest(), global::Musoq.Schema.SourceArguments.Empty));
                 return;
             }
         }
@@ -596,14 +595,15 @@ public sealed class REC128DeferredLifecycleTests
         public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters) =>
             SourcePlanResult.RejectAll(request);
 
-        public RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters) =>
+        public RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
             throw new OperationCanceledException("rec128-row-open-cancellation");
 
-        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
             string name,
             QueryScopedRowSourceRequest request,
-            params object?[] parameters)
-            where TMaterializer : struct, IQueryRowMaterializer<TRow> =>
+            TArguments parameters)
+            where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
             throw new OperationCanceledException("rec128-query-row-open-cancellation");
 
         public SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) => [];

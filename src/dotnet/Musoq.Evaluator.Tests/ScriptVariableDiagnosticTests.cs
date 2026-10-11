@@ -10,7 +10,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class ScriptVariableDiagnosticTests : EnvironmentVariablesTestBase
+public sealed partial class ScriptVariableDiagnosticTests : EnvironmentVariablesTestBase
 {
     [TestMethod]
     [DataRow(

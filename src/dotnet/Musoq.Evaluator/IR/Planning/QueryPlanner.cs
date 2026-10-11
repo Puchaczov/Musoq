@@ -70,7 +70,7 @@ internal sealed class QueryPlanner
             physicalPlan,
             context.CompilationOptions,
             context.CteExecutionPlan,
-            context.ShapeResolver);
+            context.ShapeResolver, planFacts.SourcePlanning.SourceDescriptorsBySourceId);
         context.CancellationToken.ThrowIfCancellationRequested();
         var executionStrategies = executionStrategyResult.Strategies
             .WithSourceBoundaryStrategies(planFacts.SourcePlanning.SourceBoundaryStrategyPlans)

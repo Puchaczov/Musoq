@@ -9,7 +9,7 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class Core026WindowTests : BasicEntityTestBase
+public sealed partial class Core026WindowTests : BasicEntityTestBase
 {
     [TestMethod]
     public void WindowFrames_ImplicitRangeAndExplicitRows_ShouldDistinguishPeers()

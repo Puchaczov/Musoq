@@ -41,10 +41,10 @@ asof join #B.entities() deploys on errors.Country = deploys.Country and errors.T
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("errors.Name", typeof(string)),
-            ("errors.Time", typeof(DateTime)),
-            ("deploys.Name", typeof(string)),
-            ("deploys.Time", typeof(DateTime)));
+            ("Name", typeof(string)),
+            ("Time", typeof(DateTime)),
+            ("Name", typeof(string)),
+            ("Time", typeof(DateTime)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Error-Auth", new DateTime(2025, 3, 10, 14, 30, 0), "Deploy-Auth-v2", new DateTime(2025, 3, 10, 14, 0, 0)],

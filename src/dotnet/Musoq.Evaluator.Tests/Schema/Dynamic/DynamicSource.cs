@@ -16,7 +16,7 @@ public class DynamicSource(IEnumerable<dynamic> values) : RowSourceBase<IReadOnl
         writer.Write(_values.ToList());
     }
 
-    private static IReadOnlyDictionary<string, object?> ToDictionary(object value)
+    internal static IReadOnlyDictionary<string, object?> ToDictionary(object value)
     {
         if (value is IReadOnlyDictionary<string, object?> readOnlyDictionary)
             return readOnlyDictionary;
@@ -35,8 +35,9 @@ public class DynamicSource(IEnumerable<dynamic> values) : RowSourceBase<IReadOnl
                     hint => GetDynamicMember(dynamicObject, hint.Name));
         }
 
-        throw new NotSupportedException(
-            $"Dynamic source rows must be dictionaries. Row type '{value?.GetType().FullName ?? "<null>"}' is not supported.");
+        return value.GetType().GetProperties()
+            .Where(property => property.GetIndexParameters().Length == 0)
+            .ToDictionary(property => property.Name, property => property.GetValue(value));
     }
 
     private static object? GetDynamicMember(DynamicObject value, string name)

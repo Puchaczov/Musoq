@@ -193,7 +193,7 @@ public partial class HashOptionalSchemaComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Match", "Warsaw"]);
     }
 
@@ -258,7 +258,7 @@ public partial class HashOptionalSchemaComprehensiveTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Match", "Match", "Match"]);
     }
 

@@ -27,8 +27,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("filled", table[0][0]);
-        Assert.AreEqual(7, table[0][1]);
+        Assert.AreEqual("filled", table[0].ReadValue(0));
+        Assert.AreEqual(7, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -53,8 +53,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("filled", table[0][0]);
-        Assert.AreEqual(7, table[0][1]);
+        Assert.AreEqual("filled", table[0].ReadValue(0));
+        Assert.AreEqual(7, table[0].ReadValue(1));
     }
 
 }

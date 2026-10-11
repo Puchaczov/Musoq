@@ -91,7 +91,7 @@ public sealed class FusedSiblingAliasRewriterTests
 
     private static ExecutionExpression CreateComplexExpression(ExecutionVariable source)
     {
-        return new ExecutionCompositeKey(
+        return new ExecutionValueTupleKey(
         [
             new ExecutionBinary(BinaryOpKind.Add, Read(source), Literal(1), typeof(int)),
             new ExecutionUnary(UnaryOpKind.Negate, Read(source), typeof(int)),
@@ -112,7 +112,7 @@ public sealed class FusedSiblingAliasRewriterTests
                 new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(source), 1),
                 new ExecutionContextSegment(ExecutionContextSegmentKind.Array, new ExecutionRowContextsRead(source), 2)
             ])
-        ]);
+        ], typeof((int, int, int, object, bool, bool, bool, bool, object, object, object, object)));
     }
 
     private static ExecutionContextLayout CreateContextLayout(ExecutionVariable source)

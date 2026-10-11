@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class ScriptParameterTypeCompatibilityTests : NegativeTestsBase
+public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTestsBase
 {
     [TestMethod]
     public void CompileForExecution_WhenIntColumnIsComparedToStringParameter_ShouldUseParameterAwareTypeMismatch()
@@ -76,7 +76,7 @@ public sealed class ScriptParameterTypeCompatibilityTests : NegativeTestsBase
             LoggerResolver,
             TestCompilationOptions);
 
-        Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "ScriptParameterBinder.GetRequired<int>(__musoqExecutionState.Parameters, \"age\")"));
+        Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"age\")"));
         StringAssert.Contains(inspection.GeneratedCSharpCode, "paramAge");
         Assert.DoesNotContain("TryConvertToInt32", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("TryConvertToInt64", inspection.GeneratedCSharpCode);

@@ -14,7 +14,7 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
     [TestMethod]
-    public void Build_WhenSourceIsExpando_ShouldReturnAdapterShape()
+    public void Build_WhenSourceIsErasedExpando_ShouldRejectLegacyTransfer()
     {
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
@@ -27,27 +27,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             });
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
-        var result = builder.Build(project, "Q_Dynamic");
-        var plan = RequireExecutionPlan(result);
-
-        var expected = string.Join("\n",
-            "ExecutionPlan [Q_Dynamic]",
-            "  Shapes",
-            "    ExpandoAdapter [p: pDynamicRow0]",
-            "      Name: string <- expando key \"Name\"",
-            "      Age: int <- expando key \"Age\"",
-            "    Generated [ResultRow0]",
-            "      Name: string <- field Name",
-            string.Empty,
-            "  Body",
-            "    SourceScan [p: ExpandoObject] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
-            "    ChunkedForEach [pResolver in pRows]",
-            "      AdaptExpando [p: pDynamicRow0 <- pResolver]",
-            "      AppendShape [result <- ResultShape0(Name: p.Name)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
-
-        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => builder.Build(project, "Q_ErasedSource"));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]
@@ -89,7 +72,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     }
 
     [TestMethod]
-    public void Build_WhenAsOfJoinRightSourceIsExpando_ShouldMaterializeAdapterCandidates()
+    public void Build_WhenAsOfJoinRightSourceIsErasedExpando_ShouldRejectLegacyTransfer()
     {
         var left = CreateScan();
         var right = CreateScan("q");
@@ -113,17 +96,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             });
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
-        var result = builder.Build(project, "Q_DynamicAsOf");
-
-        Assert.IsTrue(result.Supported);
-        var plan = RequireExecutionPlan(result);
-        var materialization = CollectNodes<ExecutionMaterializeExpandoList>(plan.Body).Single();
-        var createIndex = CollectNodes<ExecutionCreateAsOfIndex>(plan.Body).Single();
-        var probe = CollectNodes<ExecutionAsOfProbe>(plan.Body).Single();
-
-        Assert.AreEqual("qDynamicRow0", materialization.Shape.TypeName);
-        Assert.AreEqual(materialization.Shape.TypeName, createIndex.Candidate.GeneratedRowTypeName);
-        Assert.AreEqual(createIndex.Index, probe.Index);
-        Assert.AreEqual(materialization.Shape.TypeName, probe.Match.GeneratedRowTypeName);
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => builder.Build(project, "Q_DynamicAsOf"));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 }

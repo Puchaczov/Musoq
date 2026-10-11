@@ -17,10 +17,10 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Other", typeof(string)),
-            ("a.Score", typeof(int)),
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Other", typeof(string)),
+            ("Score", typeof(int)),
             ("CopyId", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -40,9 +40,9 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Other", typeof(string)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Other", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", "source-column"]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
     }
@@ -60,12 +60,12 @@ public sealed partial class ProjectionSensitiveWildcardTests
         var columnNames = table.Columns.Select(static column => column.ColumnName).ToArray();
 
         Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(new[] { "a.Id", "a.Name", "a.Score", "rn" }, columnNames);
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual("Ada", table[0].Values[1]);
-        Assert.AreEqual(10, table[0].Values[2]);
+        CollectionAssert.AreEqual(new[] { "Id", "Name", "Score", "rn" }, columnNames);
+        Assert.AreEqual(1, table[0].ReadValues()[0]);
+        Assert.AreEqual("Ada", table[0].ReadValues()[1]);
+        Assert.AreEqual(10, table[0].ReadValues()[2]);
         Assert.AreEqual(typeof(long), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual(1L, table[0].Values[3]);
+        Assert.AreEqual(1L, table[0].ReadValues()[3]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
     }
 }

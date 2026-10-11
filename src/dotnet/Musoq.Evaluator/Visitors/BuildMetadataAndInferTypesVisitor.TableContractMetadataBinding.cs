@@ -71,8 +71,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             var remappedType = EvaluationHelper.RemapPrimitiveTypes(declaredTypeName);
             var type = EvaluationHelper.RemapPrimitiveTypeAsNullable(remappedType);
 
-            if (type == null && TryResolveExactNativeEnum(declaredTypeName, out var nativeEnumType))
-                type = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(nativeEnumType);
+            new NativeTableEnumDeclarationValidator(_provider, _methodResolution.Assemblies)
+                .Validate(node, column, declaredTypeName, type);
 
             if (type == null)
             {
@@ -85,7 +85,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             tableColumns.Add(CreateSchemaColumn(column, i, type));
         }
 
-        var table = new DynamicTable(tableColumns.ToArray(), caseSensitive: true);
+        var table = new DeclaredTableSchema(node, tableColumns.ToArray());
         if (!_sourceBinding.ExplicitlyDefinedTables.ContainsKey(node.Name))
             _sourceBinding.ExplicitlyDefinedTables.Add(node.Name, table);
         _sourceBinding.ExplicitlyDefinedTableDiagnosticLocations[node.Name] =
@@ -94,39 +94,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         PushSemanticNode(((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
             .WithSpan(node.Span)
             .WithFullSpan(node.FullSpan));
-    }
-
-    private bool TryResolveExactNativeEnum(string typeName, out Type enumType)
-    {
-        enumType = null!;
-        if (!typeName.Contains('.', StringComparison.Ordinal))
-            return false;
-
-        var assemblies = new List<System.Reflection.Assembly>();
-        for (var provider = _provider; provider != null; provider = provider is TransitionSchemaProvider transition
-                 ? transition.InnerProvider
-                 : null)
-        {
-            if (!assemblies.Contains(provider.GetType().Assembly))
-                assemblies.Add(provider.GetType().Assembly);
-        }
-
-        foreach (var assembly in _methodResolution.Assemblies)
-            if (!assemblies.Contains(assembly))
-                assemblies.Add(assembly);
-
-        foreach (var assembly in assemblies)
-        {
-            var candidate = assembly.GetType(typeName, throwOnError: false, ignoreCase: false);
-            if (candidate is not { IsEnum: true })
-                continue;
-
-            enumType = candidate;
-            AddAssembly(assembly);
-            return true;
-        }
-
-        return false;
     }
 
     private bool TryReportInvalidSchemaDefinition(string message, TextSpan span)

@@ -40,7 +40,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xAB, table[0][0]);
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((sbyte)-1, table[0][0]);
+        Assert.AreEqual((sbyte)-1, table[0].ReadValue(0));
     }
 
     #endregion
@@ -93,7 +93,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)0x1234, table[0][0]);
+        Assert.AreEqual((short)0x1234, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((ushort)65535, table[0][0]);
+        Assert.AreEqual((ushort)65535, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -143,7 +143,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(uint.MaxValue, table[0][0]);
+        Assert.AreEqual(uint.MaxValue, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x0102030405060708L, table[0][0]);
+        Assert.AreEqual(0x0102030405060708L, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -218,7 +218,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(ulong.MaxValue, table[0][0]);
+        Assert.AreEqual(ulong.MaxValue, table[0].ReadValue(0));
     }
 
     #endregion
@@ -247,7 +247,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)0x1234, table[0][0]);
+        Assert.AreEqual((short)0x1234, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x0102030405060708L, table[0][0]);
+        Assert.AreEqual(0x0102030405060708L, table[0].ReadValue(0));
     }
 
     #endregion
@@ -326,7 +326,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3.14f, (float)table[0][0], 0.001f);
+        Assert.AreEqual(3.14f, (float)table[0].ReadValue(0), 0.001f);
     }
 
     /// <summary>
@@ -351,7 +351,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3.141592653589793, (double)table[0][0], 0.0000001);
+        Assert.AreEqual(3.141592653589793, (double)table[0].ReadValue(0), 0.0000001);
     }
 
     /// <summary>
@@ -377,7 +377,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3.14f, (float)table[0][0], 0.001f);
+        Assert.AreEqual(3.14f, (float)table[0].ReadValue(0), 0.001f);
     }
 
     #endregion
@@ -417,10 +417,10 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual((short)256, table[0][1]);
-        Assert.AreEqual((byte)255, table[0][2]);
-        Assert.AreEqual((byte)0, table[0][3]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
+        Assert.AreEqual((short)256, table[0].ReadValue(1));
+        Assert.AreEqual((byte)255, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0, table[0].ReadValue(3));
     }
 
     /// <summary>
@@ -452,8 +452,8 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual(0x12345678, table[0][1]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
+        Assert.AreEqual(0x12345678, table[0].ReadValue(1));
     }
 
     #endregion
@@ -482,7 +482,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(-1, table[0][0]);
+        Assert.AreEqual(-1, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -506,7 +506,7 @@ public class BinaryPrimitivesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(int.MinValue, table[0][0]);
+        Assert.AreEqual(int.MinValue, table[0].ReadValue(0));
     }
 
     #endregion

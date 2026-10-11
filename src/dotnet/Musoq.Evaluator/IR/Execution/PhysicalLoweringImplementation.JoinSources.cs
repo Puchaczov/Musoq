@@ -89,7 +89,16 @@ internal sealed partial class PhysicalLoweringImplementation
         var rows = CreateSourceRowsExpression(source, shape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
 
         return SourceBuildResult.Success(new JoinSource(
-            source, shape, variable, setup, rows, [shape], source is PhysicalSchemaScanNode ? 1 : 0));
+            source,
+            shape,
+            variable,
+            setup,
+            rows,
+            [shape],
+            source is PhysicalSchemaScanNode ? 1 : 0,
+            GeneratedRowShape: source is PhysicalCteRefNode cteSource
+                ? ResolveCteGeneratedRowShape(cteSource, cteShapesByName)
+                : SourceGeneratedRowShapeResolver.Resolve(shape)));
     }
 
     private SourceBuildResult BuildFilteredJoinSource(
@@ -113,11 +122,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!baseSource.IsBuilt)
             return baseSource;
 
-        if (baseSource.Source.Shape is ExpandoAdapterShape)
-        {
-            return SourceBuildResult.Unsupported(
-                "Execution IR join prefilter lowering keeps dynamic source inputs on the existing runtime path.");
-        }
+
 
         var filteredRows = CreateMaterializedRowsBufferVariable(
             CreateIdentifierCandidate($"{baseSource.Source.Variable.Name}PrefilteredRows", 0),

@@ -16,14 +16,16 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return new CapturedLocal(
             GetScriptParameterLocalName(parameterRead.Name),
-            parameterRead.ReturnType.RequireClrType());
+            parameterRead.ReturnType.RequireClrType(),
+            StructuralCarrierSyntaxFactory.GetReadStorageType(parameterRead, _scriptVariableDefinitions, _scriptParameterDefinitions));
     }
 
     private CapturedLocal CreateCapturedLocal(ExecutionScriptVariableRead variableRead)
     {
         return new CapturedLocal(
             GetScriptVariableLocalName(variableRead.Name),
-            variableRead.ReturnType.RequireClrType());
+            variableRead.ReturnType.RequireClrType(),
+            StructuralCarrierSyntaxFactory.GetReadStorageType(variableRead, _scriptVariableDefinitions, _scriptParameterDefinitions));
     }
 
     private static ParameterSyntax CreateCapturedLocalParameter(CapturedLocal capture)

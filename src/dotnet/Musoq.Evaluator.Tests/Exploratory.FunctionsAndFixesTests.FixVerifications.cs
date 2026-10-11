@@ -24,7 +24,7 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("fallback", table[0].Values[0]);
+        Assert.AreEqual("fallback", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("fallback", table[0].Values[0]);
+        Assert.AreEqual("fallback", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -64,7 +64,7 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0].Values[0]);
+        Assert.AreEqual(42, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0].Values[0]);
+        Assert.AreEqual("Alice", table[0].ReadValues()[0]);
     }
 
     #endregion
@@ -113,8 +113,8 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Charlie", table[0].Values[0]);
-        Assert.AreEqual("Eve", table[1].Values[0]);
+        Assert.AreEqual("Charlie", table[0].ReadValues()[0]);
+        Assert.AreEqual("Eve", table[1].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -139,8 +139,8 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0].Values[0]);
-        Assert.AreEqual("Bob", table[1].Values[0]);
+        Assert.AreEqual("Alice", table[0].ReadValues()[0]);
+        Assert.AreEqual("Bob", table[1].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -163,7 +163,7 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Eve", table[0].Values[0]);
+        Assert.AreEqual("Eve", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -188,9 +188,9 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Alice", table[0].Values[0]);
-        Assert.AreEqual("Bob", table[1].Values[0]);
-        Assert.AreEqual("Charlie", table[2].Values[0]);
+        Assert.AreEqual("Alice", table[0].ReadValues()[0]);
+        Assert.AreEqual("Bob", table[1].ReadValues()[0]);
+        Assert.AreEqual("Charlie", table[2].ReadValues()[0]);
     }
 
     #endregion
@@ -221,10 +221,10 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(30, table[0].Values[0]);
-        Assert.AreEqual(2L, table[0].Values[1]);
-        Assert.AreEqual(40, table[1].Values[0]);
-        Assert.AreEqual(2L, table[1].Values[1]);
+        Assert.AreEqual(30, table[0].ReadValues()[0]);
+        Assert.AreEqual(2L, table[0].ReadValues()[1]);
+        Assert.AreEqual(40, table[1].ReadValues()[0]);
+        Assert.AreEqual(2L, table[1].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -280,9 +280,9 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("thirty", table[0].Values[0]);
-        Assert.AreEqual("twenty-five", table[1].Values[0]);
-        Assert.AreEqual("other", table[2].Values[0]);
+        Assert.AreEqual("thirty", table[0].ReadValues()[0]);
+        Assert.AreEqual("twenty-five", table[1].ReadValues()[0]);
+        Assert.AreEqual("other", table[2].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -310,9 +310,9 @@ public partial class ExploratoryFunctionsAndFixesTests
 
         Assert.IsNotNull(table);
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual(2, table[1].Values[0]);
-        Assert.AreEqual(0, table[2].Values[0]);
+        Assert.AreEqual(1, table[0].ReadValues()[0]);
+        Assert.AreEqual(2, table[1].ReadValues()[0]);
+        Assert.AreEqual(0, table[2].ReadValues()[0]);
     }
 
     #endregion

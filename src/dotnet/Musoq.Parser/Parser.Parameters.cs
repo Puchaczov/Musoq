@@ -73,7 +73,9 @@ public partial class Parser
 
         var span = name.Span.Through(defaultValue?.Span ?? typeSpan);
         if (TryGetLegacyTypeParts(typeSyntax, out var typeName, out var isNullable) &&
-            defaultValue is not ArrayLiteralNode)
+            defaultValue is not ArrayLiteralNode &&
+            !(typeSyntax.Kind == StructuralTypeSyntaxKind.Collection &&
+              (typeSyntax.IsNullable || defaultValue != null)))
             return new ParameterDeclarationNode(name.Value, typeName, isNullable, defaultValue, span);
 
         return new ParameterDeclarationNode(name.Value, typeSyntax, defaultValue, span);

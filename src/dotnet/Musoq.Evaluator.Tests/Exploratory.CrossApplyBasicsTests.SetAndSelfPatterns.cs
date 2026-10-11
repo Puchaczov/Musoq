@@ -34,7 +34,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["John", "older"], ["Jane", "younger"]);
     }
 
@@ -95,7 +95,7 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)), ("t.Value", typeof(string)), ("o.OrderId", typeof(int)));
+            ("Name", typeof(string)), ("Value", typeof(string)), ("OrderId", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", 1]);
     }
 

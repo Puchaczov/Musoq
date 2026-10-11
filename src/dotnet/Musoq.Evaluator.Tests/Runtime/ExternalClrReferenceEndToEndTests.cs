@@ -35,8 +35,8 @@ public sealed class ExternalClrReferenceEndToEndTests
         {
             TableMaterializationTestHelper.AssertColumns(
                 emptyTable,
-                ("r.InheritedName", typeof(string)),
-                ("r.Marker", typeof(string)),
+                ("InheritedName", typeof(string)),
+                ("Marker", typeof(string)),
                 ("r.Payload.Nested.Value", typeof(int)));
             TableMaterializationTestHelper.AssertRowsInOrder(emptyTable);
         }
@@ -83,12 +83,12 @@ public sealed class ExternalClrReferenceEndToEndTests
             table,
             ("r.Payload.Nested.Value", typeof(int)),
             ("r.Payload.Leaves", typeof(ExternalLeaf[])),
-            ("r.Status", typeof(int?)));
+            ("Status", typeof(int?)));
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(7, table[0].Values[0]);
-        Assert.AreEqual((int)ExternalStatus.Ready, table[0].Values[2]);
-        Assert.IsNotInstanceOfType<Enum>(table[0].Values[2]);
-        var leaves = (ExternalLeaf[])table[0].Values[1];
+        Assert.AreEqual(7, table[0].ReadValues()[0]);
+        Assert.AreEqual((int)ExternalStatus.Ready, table[0].ReadValues()[2]);
+        Assert.IsNotInstanceOfType<Enum>(table[0].ReadValues()[2]);
+        var leaves = (ExternalLeaf[])table[0].ReadValues()[1];
         Assert.HasCount(1, leaves);
         Assert.AreEqual(11, leaves[0].Value);
 
@@ -132,10 +132,10 @@ public sealed class ExternalClrReferenceEndToEndTests
             ("GetLeaf(r.Payload)", typeof(ExternalLeaf)),
             ("GetMarker(r.Payload)", typeof(string)));
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0].Values[0]);
-        Assert.AreEqual(42, table[0].Values[1]);
-        Assert.AreEqual(7, ((ExternalLeaf)table[0].Values[2]).Value);
-        Assert.AreEqual("external-payload", table[0].Values[3]);
+        Assert.AreEqual(42, table[0].ReadValues()[0]);
+        Assert.AreEqual(42, table[0].ReadValues()[1]);
+        Assert.AreEqual(7, ((ExternalLeaf)table[0].ReadValues()[2]).Value);
+        Assert.AreEqual("external-payload", table[0].ReadValues()[3]);
         AssertFixtureReferenceDelta(query, [typeof(ExternalLibrary).Assembly, typeof(ExternalPayload).Assembly]);
     }
 
@@ -158,7 +158,7 @@ public sealed class ExternalClrReferenceEndToEndTests
             provider,
             _loggerResolver,
             CreateOptions());
-        StringAssert.Contains(generated.GeneratedCSharpCode, "GetRowSource<Musoq.Evaluator.Tests.External.Rows.ExternalRow>");
+        StringAssert.Contains(generated.GeneratedCSharpCode, "SourceInvocation<Musoq.Evaluator.Tests.External.Rows.ExternalRow>");
         AssertFixtureReferenceDelta(
             inspection,
             [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly]);

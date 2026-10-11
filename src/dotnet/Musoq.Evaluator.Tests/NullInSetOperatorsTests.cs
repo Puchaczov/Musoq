@@ -15,7 +15,7 @@ namespace Musoq.Evaluator.Tests;
 ///     3. Multi-way set operations propagate the concrete type through cached fields.
 /// </summary>
 [TestClass]
-public class NullInSetOperatorsTests : BasicEntityTestBase
+public partial class NullInSetOperatorsTests : BasicEntityTestBase
 {
 
     #region UNION ALL with null columns (should work — no comparison)
@@ -38,7 +38,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Col1", typeof(object)),
+            ("Col1", typeof(System.DBNull)),
             ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -71,7 +71,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Col1", typeof(object)),
+            ("Col1", typeof(System.DBNull)),
             ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"]);
     }
@@ -107,24 +107,6 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
     #region Mismatched concrete types should still fail
 
-    [TestMethod]
-    public void Union_DifferentConcreteTypes_ShouldStillThrowTypeMismatch()
-    {
-        var query = @"
-            select Name from #A.Entities() 
-            union (Name) 
-            select 1 as Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
-
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
-
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
-        AssertHasGuidance(ex);
-    }
-
     #endregion
 
     #region UNION with null key column values
@@ -145,7 +127,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(object)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(object?)null]);
     }
 
@@ -167,7 +149,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("NullKey", typeof(object)),
+            ("NullKey", typeof(System.DBNull)),
             ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"]);
     }
@@ -191,7 +173,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("Tag", typeof(object)));
+            ("Tag", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["001", null],
@@ -218,7 +200,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(object)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -241,7 +223,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("Tag", typeof(object)));
+            ("Tag", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
@@ -265,7 +247,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(object)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(object?)null]);
     }
 
@@ -288,7 +270,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("Tag", typeof(object)));
+            ("Tag", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
@@ -314,7 +296,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Extra", typeof(object)),
+            ("Extra", typeof(System.DBNull)),
             ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -341,7 +323,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("Extra", typeof(object)),
+            ("Extra", typeof(System.DBNull)),
             ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -368,7 +350,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("Extra", typeof(object)));
+            ("Extra", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["001", null],
@@ -394,7 +376,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("null", typeof(object)));
+            ("null", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["001", null],

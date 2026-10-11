@@ -48,18 +48,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
             "        If [(o.Description = 'paid')]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      If [NOT oHasMatch]",
             "        If [FALSE]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -109,18 +109,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
             "        If [((p.Name = 'Ada') OR (o.Description = 'paid'))]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      If [NOT oHasMatch]",
-            "        If [(p.Name = 'Ada')]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        If [(((p.Name = 'Ada') OR NULL) = TRUE)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -160,18 +160,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
             "        If [o.Description IS NULL]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      If [NOT oHasMatch]",
             "        If [TRUE]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -229,18 +229,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      SourceScan [o: Order] -> oRows",
             "      Let [oHasMatch: bool = FALSE]",
             "      ChunkedForEach [o in oRows]",
             "        Assign [oHasMatch = TRUE]",
             "        If [(o.PersonAge BETWEEN 18 AND 30 OR (o.Description LIKE 'p%' OR o.Description IN ('paid')))]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      If [NOT oHasMatch]",
-            "        If [FALSE]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        If [((NULL OR (FALSE OR NULL IN ('paid'))) = TRUE)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

@@ -12,7 +12,9 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     [TestMethod]
     public void PassInferredColumnsTest()
     {
-        var query = "select Name, Surname, ContactNumber from #test.whatever() where Country = 'Poland'";
+        const string query = "table Persons { Name: string, Surname: string, ContactNumber: string, Country: string }; " +
+                             "couple #test.whatever with table Persons as SourceOfPersons; " +
+                             "select Name, Surname, ContactNumber from SourceOfPersons() where Country = 'Poland'";
 
         dynamic first = new ExpandoObject();
         first.Name = "Roland";
@@ -35,16 +37,16 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
 
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("Surname", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("ContactNumber", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(object), table.Columns.ElementAt(2).ColumnType);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Roland", table[0].Values[0]);
-        Assert.AreEqual("Muchowski", table[0].Values[1]);
-        Assert.AreEqual("123456789", table[0].Values[2]);
+        Assert.AreEqual("Roland", table[0].ReadValues()[0]);
+        Assert.AreEqual("Muchowski", table[0].ReadValues()[1]);
+        Assert.AreEqual("123456789", table[0].ReadValues()[2]);
     }
 
     [TestMethod]
@@ -84,8 +86,8 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Roland", table[0].Values[0]);
-        Assert.AreEqual(21, table[0].Values[1]);
+        Assert.AreEqual("Roland", table[0].ReadValues()[0]);
+        Assert.AreEqual(21, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -126,29 +128,29 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("p1.Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("p1.Age", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("Age", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("p2.Name", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual("Name", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("p2.Age", table.Columns.ElementAt(3).ColumnName);
+        Assert.AreEqual("Age", table.Columns.ElementAt(3).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(3).ColumnType);
 
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Roland" &&
-                (int)row.Values[1] == 21 &&
-                (string)row.Values[2] == "Mateusz" &&
-                (int)row.Values[3] == 22),
+                (string)row.ReadValues()[0] == "Roland" &&
+                (int)row.ReadValues()[1] == 21 &&
+                (string)row.ReadValues()[2] == "Mateusz" &&
+                (int)row.ReadValues()[3] == 22),
             "Row with Roland and Mateusz not found");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Mateusz" &&
-                (int)row.Values[1] == 22 &&
-                (string)row.Values[2] == "Roland" &&
-                (int)row.Values[3] == 21),
+                (string)row.ReadValues()[0] == "Mateusz" &&
+                (int)row.ReadValues()[1] == 22 &&
+                (string)row.ReadValues()[2] == "Roland" &&
+                (int)row.ReadValues()[3] == 21),
             "Row with Mateusz and Roland not found");
     }
 
@@ -199,18 +201,18 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Roland" &&
-                (int)row.Values[1] == 21),
+                (string)row.ReadValues()[0] == "Roland" &&
+                (int)row.ReadValues()[1] == 21),
             "Row with Roland age 21 not found");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Mateusz" &&
-                (int)row.Values[1] == 22),
+                (string)row.ReadValues()[0] == "Mateusz" &&
+                (int)row.ReadValues()[1] == 22),
             "Row with Mateusz age 22 not found");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "John" &&
-                (int)row.Values[1] == 22),
+                (string)row.ReadValues()[0] == "John" &&
+                (int)row.ReadValues()[1] == 22),
             "Row with John age 22 not found");
     }
 }

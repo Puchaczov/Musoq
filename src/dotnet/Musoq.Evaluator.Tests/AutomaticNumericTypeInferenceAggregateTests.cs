@@ -35,7 +35,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0].Values[0]);
+        Assert.AreEqual("A", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -96,7 +96,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0].Values[0]);
+        Assert.AreEqual("A", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -125,7 +125,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2L, table[0].Values[0]);
+        Assert.AreEqual(2L, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -158,7 +158,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0].Values[0]);
+        Assert.AreEqual("A", table[0].ReadValues()[0]);
     }
 
 

@@ -213,29 +213,27 @@ public class Library : LibraryBase
         throw new MethodCallThrownException();
     }
 
-    [WindowFunction(Name = "RunningProduct")]
-    public IWindowFunction<decimal?, decimal> WindowRunningProduct()
+    [WindowFunction(typeof(RunningProductKernel), WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition | WindowEvaluationModes.RecomputeFrames, AggregateEmptyResultBehavior.Zero,
+        Name = "RunningProduct")]
+    public decimal RunningProduct(decimal? value) => AggregateFunction.NotInvoked<decimal>();
+
+    public static class RunningProductKernel
     {
-        return new RunningProductWindowFunction();
-    }
-
-    private sealed class RunningProductWindowFunction : IWindowFunction<decimal?, decimal>
-    {
-        private decimal _product;
-
-        public void PartitionStart() => _product = 1;
-
-        public void Accumulate(decimal? value)
+        public struct State { public decimal Product; }
+        public static void Reset(ref State state) => state.Product = 1m;
+        public static void Set(ref State state, decimal? value)
         {
             if (value.HasValue)
-                _product *= value.GetValueOrDefault();
+                state.Product *= value.Value;
         }
-
-        public decimal GetValue() => _product;
+        public static decimal Get(in State state) => state.Product;
     }
 
     public static class CustomRowCountAggregateKernel
     {
+        /// <summary>Initializes independently owned kernel state.</summary>
+        public static void Reset(ref State state) => state = default;
+
         public struct State
         {
             public long Count;

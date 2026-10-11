@@ -150,7 +150,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         var argTypes = new Type[args.Args.Length];
 
         for (var i = 0; i < args.Args.Length; i++)
-            argTypes[i] = args.Args[i].ReturnType ?? typeof(object);
+            argTypes[i] = ScalarArgumentTypeMetadata.Resolve(args.Args[i]) ?? typeof(object);
 
         return argTypes;
     }

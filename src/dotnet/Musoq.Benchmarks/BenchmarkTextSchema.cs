@@ -14,7 +14,7 @@ public class BenchmarkTextSchema(IEnumerable<IReadOnlyList<BenchmarkTextEntity>>
         return new BenchmarkTextEntityTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, BenchmarkTextEntity>(name, new BenchmarkEntitySource<BenchmarkTextEntity>(
             chunks,

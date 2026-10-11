@@ -16,6 +16,9 @@ public sealed record SourceDescriptor
 
     public SourceTransferCapabilities TransferCapabilities { get; init; }
 
+    /// <summary>Gets permissions explicitly granted for source calls and supplied row processing.</summary>
+    public SourceExecutionPermissions ExecutionPermissions { get; init; } = SourceExecutionPermissions.None;
+
     /// <summary>Optional typed predicates the source explicitly agrees to evaluate.</summary>
     public SourcePredicateCapabilities PredicateCapabilities { get; init; } = SourcePredicateCapabilities.None;
 

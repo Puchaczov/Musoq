@@ -244,31 +244,33 @@ internal static class RecursiveCteHandwrittenBaseline
 
     private sealed class NarrowResultRow(int id, int depth) : Row
     {
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+        {
+            TypedColumnVisit.Apply(0, id, ref visitor);
+            TypedColumnVisit.Apply(1, depth, ref visitor);
+        }
+
         public override int Count => 2;
 
-        public override object this[int columnNumber] => columnNumber switch
-        {
-            0 => id,
-            1 => depth,
-            _ => throw new IndexOutOfRangeException()
-        };
+
     }
 
     private sealed class WideResultRow(WideState state) : Row
     {
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+        {
+            TypedColumnVisit.Apply(0, state.Id, ref visitor);
+            TypedColumnVisit.Apply(1, state.Depth, ref visitor);
+            TypedColumnVisit.Apply(2, state.P1, ref visitor);
+            TypedColumnVisit.Apply(3, state.P2, ref visitor);
+            TypedColumnVisit.Apply(4, state.P3, ref visitor);
+            TypedColumnVisit.Apply(5, state.P4, ref visitor);
+            TypedColumnVisit.Apply(6, state.P5, ref visitor);
+            TypedColumnVisit.Apply(7, state.P6, ref visitor);
+        }
+
         public override int Count => 8;
 
-        public override object this[int columnNumber] => columnNumber switch
-        {
-            0 => state.Id,
-            1 => state.Depth,
-            2 => state.P1,
-            3 => state.P2,
-            4 => state.P3,
-            5 => state.P4,
-            6 => state.P5,
-            7 => state.P6,
-            _ => throw new IndexOutOfRangeException()
-        };
+
     }
 }

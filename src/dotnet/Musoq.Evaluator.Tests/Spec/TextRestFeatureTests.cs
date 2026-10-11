@@ -76,7 +76,7 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("This is the entire content", table[0][0]);
+        Assert.AreEqual("This is the entire content", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -102,8 +102,8 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
-        Assert.AreEqual("World123", table[0][1]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
+        Assert.AreEqual("World123", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -129,8 +129,8 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("key", table[0][0]);
-        Assert.AreEqual("value and more", table[0][1]);
+        Assert.AreEqual("key", table[0].ReadValue(0));
+        Assert.AreEqual("value and more", table[0].ReadValue(1));
     }
 
     #endregion
@@ -159,7 +159,7 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("trimmed content", table[0][0]);
+        Assert.AreEqual("trimmed content", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -184,7 +184,7 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("  content", table[0][0]);
+        Assert.AreEqual("  content", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("content  ", table[0][0]);
+        Assert.AreEqual("content  ", table[0].ReadValue(0));
     }
 
     #endregion
@@ -241,9 +241,9 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ERROR", table[0][0]);
-        Assert.AreEqual("E001", table[0][1]);
-        Assert.AreEqual("Something went wrong", table[0][2]);
+        Assert.AreEqual("ERROR", table[0].ReadValue(0));
+        Assert.AreEqual("E001", table[0].ReadValue(1));
+        Assert.AreEqual("Something went wrong", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -274,10 +274,10 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Hello there!", table[0][1]);
-        Assert.AreEqual("Bob", table[1][0]);
-        Assert.AreEqual("Hi Alice!", table[1][1]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("Hello there!", table[0].ReadValue(1));
+        Assert.AreEqual("Bob", table[1].ReadValue(0));
+        Assert.AreEqual("Hi Alice!", table[1].ReadValue(1));
     }
 
     #endregion
@@ -307,8 +307,8 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("1234567890", table[0][0]);
-        Assert.AreEqual("", table[0][1]);
+        Assert.AreEqual("1234567890", table[0].ReadValue(0));
+        Assert.AreEqual("", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -334,8 +334,8 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(">>>", table[0][0]);
-        Assert.AreEqual("Special: @#$%^&*()!", table[0][1]);
+        Assert.AreEqual(">>>", table[0].ReadValue(0));
+        Assert.AreEqual("Special: @#$%^&*()!", table[0].ReadValue(1));
     }
 
     #endregion

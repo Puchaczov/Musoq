@@ -36,6 +36,13 @@ internal static class DynamicEntityBoundary
     }
 
     /// <summary>
+    /// Identifies the supported name-indexed dynamic source contracts during compilation.
+    /// Custom dynamic providers require an authoritative native row shape.
+    /// </summary>
+    public static bool IsNameIndexedSource(Type entityType) =>
+        entityType == ExpandoType || IsAssignableToStringObjectDictionary(entityType);
+
+    /// <summary>
     /// True when the type implements <see cref="IDynamicMetaObjectProvider"/>.
     /// </summary>
     public static bool IsDynamicMetaObjectProvider(Type type)

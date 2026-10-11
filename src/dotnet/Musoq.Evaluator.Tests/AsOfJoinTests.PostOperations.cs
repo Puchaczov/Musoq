@@ -39,8 +39,8 @@ where a.Name <> 'A2'";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1"]);
     }
 
@@ -77,7 +77,7 @@ group by a.Country";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("Count(a.Name)", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -118,8 +118,8 @@ take 2";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A3", "B1"],
@@ -153,8 +153,8 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -183,8 +183,8 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -222,8 +222,8 @@ asof join rightCte r on l.Population >= r.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("l.Name", typeof(string)),
-            ("r.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"]);
     }
 
@@ -263,9 +263,9 @@ inner join #C.entities() c on a.Country = c.Country";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("c.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1", "C1"]);
     }
 
@@ -301,8 +301,8 @@ asof join #B.entities() b on a.Country = b.Country and a.City = b.City and a.Pop
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1"],

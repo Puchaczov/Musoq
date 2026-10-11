@@ -4,6 +4,8 @@ using System.Reflection;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Parser;
 using AggregateRefRewriter = Musoq.Evaluator.IR.Expressions.AggregateRefRewriter;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
 
@@ -16,7 +18,7 @@ public sealed partial class LogicalPlanBuilder
         IReadOnlyList<IrExpression> arguments)
     {
         if (method.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
-            return AggregateKernelDescriptor.Create(method);
+            return CreateValidatedAggregateKernel(method);
 
         return method.DeclaringType?
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
@@ -24,8 +26,17 @@ public sealed partial class LogicalPlanBuilder
                 string.Equals(candidate.Name, method.Name, StringComparison.Ordinal) &&
                 candidate.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
             .Where(candidate => CanBindAggregateKernelDeclaration(candidate, arguments))
-            .Select(AggregateKernelDescriptor.Create)
+            .Select(CreateValidatedAggregateKernel)
             .FirstOrDefault();
+    }
+
+    private static AggregateKernelDescriptor CreateValidatedAggregateKernel(MethodInfo method)
+    {
+        try { return AggregateKernelDescriptor.Create(method); }
+        catch (InvalidOperationException exception)
+        {
+            throw new SourcePlanContractException(exception.Message, TextSpan.Empty);
+        }
     }
 
     private static bool CanBindAggregateKernelDeclaration(

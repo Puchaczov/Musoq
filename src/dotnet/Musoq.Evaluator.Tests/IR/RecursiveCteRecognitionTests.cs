@@ -65,7 +65,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(7, table.Single().Values[0]);
+        Assert.AreEqual(7, table.Single().ReadValues()[0]);
     }
 
     [TestMethod]

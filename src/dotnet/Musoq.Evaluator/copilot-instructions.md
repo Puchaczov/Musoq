@@ -38,7 +38,7 @@ Musoq.Evaluator/
 │   └── CodeGeneration/                 # Legacy visitor code-generation and interpretation-schema syntax helpers
 ├── Tables/                             # Runtime table types
 │   ├── Table.cs                        # Main table implementation
-│   ├── Row.cs                          # Row with Contexts[] array
+│   ├── Row.cs                          # Typed row access and column visitation
 │   ├── ContextMaterializer.cs          # Shared lazy row context materialization helpers
 │   ├── DescriptionRows.cs              # Self-contained typed rows for DESC metadata output
 │   ├── Column.cs                       # Column definition
@@ -47,9 +47,6 @@ Musoq.Evaluator/
 │   ├── TransitionLibrary.cs           # Transition table function library
 │   ├── TransitionSchema.cs            # Transition table schema
 │   ├── VariableTable.cs               # Variable storage table
-│   ├── IndexedList.cs                 # Indexed list for lookups
-│   ├── Key.cs                          # Generic key type
-│   └── IValue.cs                       # Value interface
 ├── Runtime/                            # Runtime compilation support
 │   ├── MetadataReferenceCache.cs       # Caches assembly references for Roslyn
 │   ├── RoslynSharedFactory.cs          # Shared Roslyn workspace/compilation
@@ -227,7 +224,7 @@ Key planner rules:
 - Boundary row-shape and row-width pruning decisions belong to planning. Execution lowering may consume selected `RowWidthPruningPlan` metadata, but must not construct new boundary row-shape or row-width pruning plans.
 - Parser-shape subquery and distinct rewrites must run through `PreLogicalNormalizer`. Do not call `SubqueryToCteRewriteVisitor`, `SubqueryToCteRewriteTraverseVisitor`, `DistinctToGroupByVisitor`, or `DistinctToGroupByTraverseVisitor` directly from other production stages.
 - Aggregate binding pairs refresh/set methods with getter methods. Identifier normalization strips qualifiers and whitespace, so `Sum(r.Val)` and `Sum(Val)` can match.
-- Runtime-v2 aggregate hot paths should use static typed aggregate kernels declared through `[AggregateFunction]`. A kernel owns a concrete `State` type, `Set(ref State, args...)`, `Get(in State)`, and optional `Merge(ref State, in State)`. The generated code should pass concrete aggregate arguments directly and store concrete query-specific state fields.
+- Runtime-v2 aggregate hot paths should use static typed aggregate kernels declared through `[AggregateFunction]`. A kernel owns a concrete `State` type, `Reset(ref State)`, `Set(ref State, args...)`, `Get(in State)`, and optional `Merge(ref State, in State)`. Validate exact operation signatures before rendering. Group construction and custom scalar-subquery empty-state lowering must invoke the registered reset operation. The generated code should pass concrete aggregate arguments directly and store concrete query-specific state fields.
 - Multi-argument aggregate kernels expose tuple-shaped metadata for planning, but C# target hot paths should still call `Set` with separate concrete arguments when the kernel declares them that way.
 - Keep the deleted plugin `Group` model and legacy aggregate injection markers out of normal runtime-v2 aggregate lowering. Captured aggregate values must use typed captured-field Execution IR, not object-backed group value reads or writes.
 - Aggregate group ownership is planned explicitly through `AggregateGroupPlan`: root, prefix, and leaf levels are generated only when required. Parent-depth aggregate ownership is computed once as `ownerPrefixLength = max(0, keyCount - parentDepth)`, and leaf groups keep typed owner references instead of target renderer code walking parent chains.
@@ -251,20 +248,20 @@ Key planner rules:
 - Callable/plugin target coverage belongs in fake non-CLR package e2e tests through `CompileTargetPackageWithDiagnostics`. Keep callable compatibility requirements, plugin runtime-contract entries, typed `TargetPluginInvocationAbiDetails`, pre-render capability rejection, typed export entrypoints, optional inspection, and zero-host-import package paths covered.
 - `TargetRenderResult` and finalization use structured `TargetDiagnostic` failures for expected capability/lowering limits. Keep programming-contract violations as exceptions and do not let a renderer bypass catalog validation.
 - `Musoq.Targets.TestPortable` consumes Execution IR directly, lowers its supported subset to immutable `PortableSubsetProgram`, and executes with `PortableValue`. It must not access CLR sidecars or reference Converter, CSharpClr, Roslyn, reflection activation, or target analysis implementations, and it must not be production registered. This is an intentional breaking change to the public-looking Execution IR surface; there is no public target selector.
-- `TargetContractVersions` versions Execution IR, host ABI, and target package format independently. Version changes require updated capability checks, manifests, and portable conformance coverage; the public artifact format remains version `2` until deliberately migrated.
+- `TargetContractVersions` versions Execution IR, host ABI, and target package format independently. Version changes require updated capability checks, manifests, and portable conformance coverage; target package format remains version `2`; the breaking typed compiled-query artifact format is version `5`.
 - Lowerer decomposition is likewise strict. Aggregate, join, CTE, and window lowering behavior belongs in `IR/Execution/Lowering` coordinators when practical; set operations remain in their focused lowerer partials. Avoid rebuilding source, group, and finalization setup ad hoc in unrelated lowerer partials.
 - Before touching IR code, read [architecture.md](../../../.claude/rules/architecture.md).
 
 ## Generated Code Samples & Runtime Optimization
 
-Musoq compiles SQL queries into C# code at runtime. The generated-code sample corpus is tracked under `generated-code-samples/current/` and `generated-code-samples/profiled/` and is governed by catalog-driven tests in `Musoq.Evaluator.Tests`:
+Musoq compiles SQL queries into C# code at runtime. The generated-code sample corpus is tracked under `src/dotnet/generated-code-samples/current/` and `src/dotnet/generated-code-samples/profiled/` and is governed by catalog-driven tests in `Musoq.Evaluator.Tests`:
 
 - `GeneratedCodeSamplesCatalog` is the source of truth for all generated sample names, SQL queries, categories, output formats, and schema-provider factories. `GeneratedCodeSamplesShapeTests.ExpectedSampleFileCount` records the current expected corpus size.
 - `GeneratedCodeSamplesSnapshotTests` validates tracked sample files against deterministic catalog output; CI shape coverage also generates current catalog output in memory.
 - `GeneratedInterpretationCodeDumpTests` keeps the binary/text interpretation samples (`Q16` and `Q17`) on the same parity path as the catalog.
 - `GeneratedCodeSamplesShapeTests` checks fast structural budgets for generated-code patterns and guards that retired helper shapes such as `GetColumnValue`, `SmartForEach`, `ConvertTableToSource`, `TableRowSource`, discarded-context conversions, and inline `IN` array allocations stay absent unless a test explicitly documents a transitional allowance.
 - `RuntimeV2MaintainabilityBudgetTests` enforces source-file maintainability budgets. Runtime-v2 Execution files should stay at or below 900 lines unless the test carries a concrete temporary justification, and `EvaluationHelper` must remain split into small domain partials rather than growing back into a catch-all helper.
-- Generated query rows are self-contained `Row` subclasses emitted per query. Do not reintroduce a shared `GeneratedRow` base or eager `object[]` storage; `Values` should stay a lazy public-compatibility boundary.
+- Generated query rows are self-contained `Row` subclasses emitted per query. Do not reintroduce a shared `GeneratedRow` base or eager `object[]` storage; result consumption uses concrete `GetValue<T>` and typed column visitation.
 
 ### How to Validate Samples
 
@@ -289,7 +286,7 @@ The snapshot tests compile each catalog query through `InstanceCreator.CreateFor
 ### Legacy Codegen Patterns That Should Stay Absent
 
 - **`EvaluationHelper.ConvertTableToSource(...)`, `EvaluationHelper.SmartForEach(...)`, and `TableRowSource`** — deleted old-renderer table/resolver adapters. Runtime v2 should materialize typed rows or iterate `Table.Rows` through explicit Execution IR table-row shapes.
-- **`score[@"alias.Column"]` and hot-loop `EvaluationHelper.GetColumnValue(...)`** — string-keyed resolver lookup. Keep dynamic/object access at explicit adapter boundaries, then operate on typed source or generated rows.
+- **`score[@"alias.Column"]` and hot-loop `EvaluationHelper.GetColumnValue(...)`** — string-keyed resolver lookup. Require authoritative concrete source fields and native query-scoped decoding; diagnose erased query data before rendering.
 - **Repeated inline casts** (`((BasicEntity)row.Contexts[0]).Prop`) — multiple casts of the same entity per loop iteration. Runtime v2 should hoist repeated entity reads or render direct typed row access whenever shape metadata permits it.
 - **`: GeneratedRow`, `GroupLayout`, `GroupSlot`, `GroupKey`, `new Group(...)`, `.GetValue<...>` aggregate reads, and `.SetValue(...)` aggregate writes** — retired generated-code shapes for normal runtime-v2 queries. Add or extend static typed aggregate kernel metadata instead of routing awkward aggregates through object-backed groups.
 - **`EvaluationHelper.AggregateSingleKeyParallel(...)` and `AggregateSingleKeyParallel_...` generated names** — retired generic parallel aggregate helper paths. Parallel single-key aggregation should use generated query-specific loops named for the concrete query shape.
@@ -319,7 +316,7 @@ The Evaluator enforces the generic-style interpretation function syntax (`Interp
 | `RewriteQueryVisitor` | Main AST transformer — normalizes structure for code generation |
 | `BuildMetadataAndInferTypesVisitor` | Semantic analysis facade — type inference, method resolution, symbol tables, and focused services |
 | `Table` | Runtime table — stores rows with column definitions |
-| `Row` | Runtime row — `Contexts[]` array holds entity objects per source |
+| `Row` | Native `GetValue<T>` and concrete column visitation; source context transport is a separate execution boundary |
 
 ## Dependencies
 

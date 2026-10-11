@@ -1,10 +1,20 @@
 using System;
 using Musoq.Evaluator.Tables;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 
 public sealed class TestRow : Row
 {
+    public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+    {
+        for (var index = 0; index < _values.Length; index++)
+            VisitColumn(index, ref visitor);
+    }
+
+    public override void VisitColumn<TVisitor>(int columnIndex, ref TVisitor visitor) =>
+        FixtureColumnVisit.Apply(columnIndex, _values[columnIndex], ref visitor);
+
     private readonly LazyContextKind _lazyContextKind;
     private readonly object?[]? _leftContexts;
     private readonly object?[]? _rightContexts;
@@ -66,34 +76,15 @@ public sealed class TestRow : Row
         _lazyContextKind = LazyContextKind.SingleAndArray;
     }
 
-    public override object this[int columnNumber] => _values[columnNumber];
 
-    public override object this[string name]
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
 
-            if (name.StartsWith("Value", StringComparison.Ordinal) &&
-                int.TryParse(name.AsSpan("Value".Length), out var valueIndex) &&
-                valueIndex >= 0 &&
-                valueIndex < _values.Length)
-            {
-                return _values[valueIndex];
-            }
 
-            throw new NotSupportedException(
-                $"String-keyed access for column '{name}' is not directly supported on TestRow. " +
-                "Use integer indexing or the Value{n} fallback.");
-        }
-    }
 
     public override int Count => _values.Length;
 
-    public override object[] Values => _values;
 
-    public override object?[]? Contexts
+
+    public object?[]? Contexts
     {
         get
         {
@@ -119,17 +110,17 @@ public sealed class TestRow : Row
 
     private object?[] MaterializeArrayPairContexts()
     {
-        return ContextMaterializer.MergePreservingNullSegments(_leftContexts, _rightContexts);
+        return FixtureContextArrays.MergePreservingNullSegments(_leftContexts, _rightContexts);
     }
 
     private object?[] MaterializeArrayAndSingleContexts()
     {
-        return ContextMaterializer.AppendPreservingNullSegment(_leftContexts, _rightContext);
+        return FixtureContextArrays.AppendPreservingNullSegment(_leftContexts, _rightContext);
     }
 
     private object?[] MaterializeSingleAndArrayContexts()
     {
-        return ContextMaterializer.PrependPreservingNullSegment(_leftContext, _rightContexts);
+        return FixtureContextArrays.PrependPreservingNullSegment(_leftContext, _rightContexts);
     }
 
     private enum LazyContextKind

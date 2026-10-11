@@ -40,7 +40,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Dictionary implements IEnumerable and should work");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Dictionary", columnName, "Should show the relative property name");
     }
 
@@ -72,7 +72,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Columns.Count(), "Should have 3 columns: Name, Index, Type");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one row for the nested array property");
 
-        var firstColumnName = (string)table[0][0];
+        var firstColumnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Children", firstColumnName, "First row should show the relative property name");
     }
 
@@ -98,7 +98,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         Assert.AreEqual("Children", columnNames[0], "First row should be the base element type");
@@ -151,7 +151,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         var expectedNestedComplexProperties = new[]
@@ -199,10 +199,10 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "Should return one row for primitive array element type");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Array", columnName, "Should show the relative property name");
 
-        var typeName = (string)table[0][2];
+        var typeName = (string)table[0].ReadValue(2);
         Assert.Contains("Int32", typeName, "Array element should be Int32 type");
     }
 
@@ -232,7 +232,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Should return rows for the deeply nested array property");
 
-        var firstColumnName = (string)table[0][0];
+        var firstColumnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Children", firstColumnName, "First row should show the relative property name");
     }
 
@@ -258,7 +258,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "Should return one row for primitive array");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Array", columnName, "Should show the relative property name");
     }
 

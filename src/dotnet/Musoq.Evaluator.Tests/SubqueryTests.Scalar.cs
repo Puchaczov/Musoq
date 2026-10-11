@@ -19,7 +19,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -92,7 +92,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("Total", typeof(long?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -114,7 +114,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("Total", typeof(long?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -288,7 +288,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["PARIS"]);
     }
 

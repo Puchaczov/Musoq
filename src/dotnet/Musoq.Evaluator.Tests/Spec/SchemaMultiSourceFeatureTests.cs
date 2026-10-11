@@ -51,9 +51,9 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("good.bin", table[0][0]);
-        Assert.AreEqual(0x12345678, table[0][1]);
-        Assert.AreEqual((byte)2, table[0][2]);
+        Assert.AreEqual("good.bin", table[0].ReadValue(0));
+        Assert.AreEqual(0x12345678, table[0].ReadValue(1));
+        Assert.AreEqual((byte)2, table[0].ReadValue(2));
     }
 
     #endregion
@@ -87,10 +87,10 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("host", table[0][1]);
-        Assert.AreEqual("localhost", table[0][2]);
-        Assert.AreEqual("port", table[1][1]);
-        Assert.AreEqual("8080", table[1][2]);
+        Assert.AreEqual("host", table[0].ReadValue(1));
+        Assert.AreEqual("localhost", table[0].ReadValue(2));
+        Assert.AreEqual("port", table[1].ReadValue(1));
+        Assert.AreEqual("8080", table[1].ReadValue(2));
     }
 
     #endregion
@@ -127,12 +127,12 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)2, table[0][1]);
-        Assert.AreEqual((byte)3, table[1][0]);
-        Assert.AreEqual((byte)4, table[1][1]);
-        Assert.AreEqual((byte)5, table[2][0]);
-        Assert.AreEqual((byte)6, table[2][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[0].ReadValue(1));
+        Assert.AreEqual((byte)3, table[1].ReadValue(0));
+        Assert.AreEqual((byte)4, table[1].ReadValue(1));
+        Assert.AreEqual((byte)5, table[2].ReadValue(0));
+        Assert.AreEqual((byte)6, table[2].ReadValue(1));
     }
 
     #endregion
@@ -168,15 +168,15 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("a.bin", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual((byte)10, table[0][2]);
-        Assert.AreEqual("b.bin", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual((byte)20, table[1][2]);
-        Assert.AreEqual("c.bin", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual((byte)30, table[2][2]);
+        Assert.AreEqual("a.bin", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual((byte)10, table[0].ReadValue(2));
+        Assert.AreEqual("b.bin", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual((byte)20, table[1].ReadValue(2));
+        Assert.AreEqual("c.bin", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual((byte)30, table[2].ReadValue(2));
     }
 
     #endregion
@@ -214,8 +214,8 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)0xFF, table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(1));
     }
 
     #endregion
@@ -251,8 +251,8 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)36, table[0][0]);
-        Assert.AreEqual(5L, table[0][1]);
+        Assert.AreEqual((byte)36, table[0].ReadValue(0));
+        Assert.AreEqual(5L, table[0].ReadValue(1));
     }
 
     #endregion
@@ -284,7 +284,7 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
     }
 
     #endregion
@@ -318,7 +318,7 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(5L, table[0][0]);
+        Assert.AreEqual(5L, table[0].ReadValue(0));
     }
 
     #endregion

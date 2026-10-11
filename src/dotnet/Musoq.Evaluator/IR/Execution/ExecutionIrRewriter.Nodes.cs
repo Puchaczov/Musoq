@@ -176,9 +176,9 @@ internal abstract partial class ExecutionIrRewriter
 
     protected virtual ExecutionNode RewriteBreak(ExecutionBreak node) => node;
 
-    protected virtual ExecutionNode RewriteAdaptExpando(ExecutionAdaptExpando node) => node;
 
     protected virtual ExecutionNode RewriteCreateObject(ExecutionCreateObject node) => node;
+    protected virtual ExecutionNode RewriteInitializeAggregateState(ExecutionInitializeAggregateState node) => node;
 
     protected virtual ExecutionNode RewriteMethodTargetDeclarationCandidate(ExecutionMethodTargetDeclarationCandidate node) => node;
 
@@ -247,14 +247,6 @@ internal abstract partial class ExecutionIrRewriter
             : node with { Source = source, Predicate = predicate };
     }
 
-    protected virtual ExecutionNode RewriteMaterializeExpandoList(ExecutionMaterializeExpandoList node)
-    {
-        var source = RewriteExpression(node.Source);
-        var predicate = RewriteOptionalExpression(node.Predicate);
-        return ReferenceEquals(source, node.Source) && ReferenceEquals(predicate, node.Predicate)
-            ? node
-            : node with { Source = source, Predicate = predicate };
-    }
 
     protected virtual ExecutionNode RewriteWindowKernelPlan(ExecutionWindowKernelPlan node)
     {
@@ -322,12 +314,13 @@ internal abstract partial class ExecutionIrRewriter
         var orderKeys = RewriteWindowOrderKeys(node.OrderKeys);
         var value = RewriteExpression(node.Value);
         var filterPredicate = RewriteOptionalExpression(node.FilterPredicate);
+        var libraryArguments = RewriteExpressionList(node.LibraryArguments);
         return ReferenceEquals(partitionKey, node.PartitionKey) &&
                ReferenceEquals(orderKeys, node.OrderKeys) &&
                ReferenceEquals(value, node.Value) &&
-               ReferenceEquals(filterPredicate, node.FilterPredicate)
+               ReferenceEquals(filterPredicate, node.FilterPredicate) && ReferenceEquals(libraryArguments, node.LibraryArguments)
             ? node
-            : node with { PartitionKey = partitionKey, OrderKeys = orderKeys, Value = value, FilterPredicate = filterPredicate };
+            : node with { PartitionKey = partitionKey, OrderKeys = orderKeys, Value = value, FilterPredicate = filterPredicate, LibraryArguments = libraryArguments };
     }
 
     protected virtual ExecutionNode RewriteCreateHash(ExecutionCreateHash node)

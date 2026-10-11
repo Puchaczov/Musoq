@@ -15,6 +15,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
+    internal void SetApplyInputSource(string identifier) => _sourceBinding.Identifier = identifier;
+
     public override void Visit(JoinSourcesTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -122,7 +124,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         var interpretCall = PopSemanticNode();
         _sourceBinding.Identifier = node.Alias;
 
-
         string? schemaName = null;
         if (interpretCall is InterpretCallNode icn)
             schemaName = icn.SchemaName;
@@ -142,7 +143,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (schemaName != null && SchemaRegistry != null)
         {
             var interpretTable = interpretCall is PartialInterpretCallNode or PartialParseCallNode
-                ? CreatePartialInterpretTable()
+                ? CreatePartialInterpretTable(schemaName)
                 : CreateInterpretTable(schemaName);
 
             Type? returnType = null;

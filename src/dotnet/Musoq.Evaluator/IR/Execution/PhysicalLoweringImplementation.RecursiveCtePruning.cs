@@ -35,7 +35,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 }
 
                 foreach (var field in invariant.Fields)
-                    invariantColumns.Add(GetColumnRoot(field.OutputName));
+                    invariantColumns.Add(CteColumnUsageCollector.GetColumnRoot(field.OutputName));
             }
 
             if (recursive.UnionKind == RecursiveCteUnionKind.FullRow)
@@ -51,7 +51,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 continue;
             }
 
-            var selfAliases = CollectCteRefsByAlias(
+            var selfAliases = CteColumnUsageCollector.CollectCteRefsByAlias(
                     recursive.RecursiveMember,
                     new HashSet<string>([recursive.Name], StringComparer.OrdinalIgnoreCase))
                 .Keys
@@ -176,7 +176,7 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         if (!ReferenceEquals(node, outputProject))
         {
-            foreach (var expression in EnumerateNodeExpressions(node))
+            foreach (var expression in CteColumnUsageCollector.EnumerateNodeExpressions(node))
                 AddSelfColumns(expression, selfAliases, recursiveOutputSchema, required);
         }
 
@@ -196,9 +196,9 @@ internal sealed partial class PhysicalLoweringImplementation
             if (string.IsNullOrWhiteSpace(column.Alias) || !selfAliases.Contains(column.Alias))
                 continue;
 
-            var normalized = NormalizeColumnName(column.ColumnName, column.Alias);
+            var normalized = CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, column.Alias);
             var match = outputSchema.FindByName(normalized) ??
-                        outputSchema.FindByName(GetColumnRoot(normalized));
+                        outputSchema.FindByName(CteColumnUsageCollector.GetColumnRoot(normalized));
             if (match != null)
                 changed |= required.Add(match.Name);
         }

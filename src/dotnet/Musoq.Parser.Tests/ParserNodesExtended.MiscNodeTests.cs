@@ -108,14 +108,6 @@ public class ParserNodesExtendedMiscNodeTests
     #region PutTrueNode Tests
 
     [TestMethod]
-    public void PutTrueNode_Constructor_SetsReturnType()
-    {
-        var node = new PutTrueNode();
-
-        Assert.AreEqual(typeof(bool), node.ReturnType);
-    }
-
-    [TestMethod]
     public void PutTrueNode_Id_IsNotEmpty()
     {
         var node = new PutTrueNode();

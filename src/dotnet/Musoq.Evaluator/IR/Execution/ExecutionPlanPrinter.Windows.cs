@@ -61,7 +61,7 @@ public static partial class ExecutionPlanPrinter
     private static string FormatWindowAggregateKernelNodeName(
         ExecutionWindowAggregateKernelDescriptor descriptor)
     {
-        return $"Compute{descriptor.Function}WindowKernel[{descriptor.Mode}]";
+        return $"Compute{descriptor.LibraryKernel?.FunctionName ?? descriptor.Function.ToString()}WindowKernel[{descriptor.Mode}]";
     }
 
     private static string NormalizeWindowFunctionName(string functionName)

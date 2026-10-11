@@ -43,17 +43,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.ParsedFields", typeof(Dictionary<string, object?>)),
-            ("p.ErrorField", typeof(string)),
-            ("p.ErrorMessage", typeof(string)),
-            ("p.BytesConsumed", typeof(int)));
+            ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "DebugPacket")),
+            ("ErrorField", typeof(string)),
+            ("ErrorMessage", typeof(string)),
+            ("BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual(0x12345678, parsedFields["Magic"]);
         Assert.AreEqual((byte)7, parsedFields["Version"]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual(5, table[0][3]);
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual(5, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -87,17 +87,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.ParsedFields", typeof(Dictionary<string, object?>)),
-            ("p.ErrorField", typeof(string)),
-            ("p.ErrorMessage", typeof(string)),
-            ("p.BytesConsumed", typeof(int)));
+            ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "DebugPacket")),
+            ("ErrorField", typeof(string)),
+            ("ErrorMessage", typeof(string)),
+            ("BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual(0x12345678, parsedFields["Magic"]);
         Assert.IsFalse(parsedFields.ContainsKey("Version"));
-        Assert.AreEqual("Version", table[0][1]);
-        StringAssert.Contains((string)table[0][2]!, "ISE0001");
-        Assert.AreEqual(4, table[0][3]);
+        Assert.AreEqual("Version", table[0].ReadValue(1));
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "ISE0001");
+        Assert.AreEqual(4, table[0].ReadValue(3));
     }
 
     [TestMethod]

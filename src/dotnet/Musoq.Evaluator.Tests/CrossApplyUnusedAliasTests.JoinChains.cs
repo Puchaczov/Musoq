@@ -39,8 +39,8 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("c.Country", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", "Country1"]);
@@ -83,9 +83,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("t.Money", typeof(decimal)),
-            ("c.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, "March"]);
@@ -130,9 +130,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("t.Money", typeof(decimal)),
-            ("c.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, "March"],
@@ -179,9 +179,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("t.Money", typeof(decimal?)),
-            ("c.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1000m, "March"],
@@ -225,9 +225,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("t.Money", typeof(decimal?)),
-            ("c.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, "March"]);

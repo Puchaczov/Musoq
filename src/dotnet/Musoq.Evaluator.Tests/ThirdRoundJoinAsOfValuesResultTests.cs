@@ -35,10 +35,10 @@ public sealed class ThirdRoundJoinAsOfValuesResultTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Name", typeof(string)),
-            ("b.Population", typeof(decimal?)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A1", 100m, "B-Zulu", 90m],
@@ -77,9 +77,9 @@ public sealed class ThirdRoundJoinAsOfValuesResultTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("c.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A-DE", "B-DE-1", "C-DE"],
@@ -109,8 +109,8 @@ public sealed class ThirdRoundJoinAsOfValuesResultTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Name", typeof(string)),
-            ("scores.Score", typeof(int?)),
+            ("Name", typeof(string)),
+            ("Score", typeof(int?)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

@@ -12,7 +12,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements = node switch
             {
                 ExecutionParallelFilterProjectLoop parallelProject when renderContext.Session != null => renderer.RenderParallelFilterProjectLoop(parallelProject, renderContext),
-                ExecutionCreateHashPayload createPayload => [renderer.RenderCreateHashPayload(createPayload)],
+                ExecutionCreateHashPayload createPayload => [renderer.RenderCreateHashPayload(createPayload, renderContext)],
                 ExecutionCreateHash createHash => [renderer.RenderCreateHash(createHash, renderContext)],
                 ExecutionHashAdd hashAdd => renderer.RenderHashAdd(hashAdd),
                 ExecutionHashProbe hashProbe => renderer.RenderHashProbe(hashProbe, renderContext),

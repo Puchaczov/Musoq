@@ -30,7 +30,6 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionContinue => true,
             ExecutionContinueIf continueIf => CanRenderExpression(continueIf.Condition),
             ExecutionBreak => true,
-            ExecutionAdaptExpando => true,
             ExecutionCreateObject createObject => CanRenderDefaultConstructibleObject(createObject.Target.Type.RequireClrType()),
             ExecutionIf branch => CanRenderExpression(branch.Condition) && CanRenderBlock(branch.Body),
             ExecutionCreateGeneratedRow createRow => CanRenderRowConstruction(createRow.Values, createRow.Contexts, createRow.ContextLayout),
@@ -45,9 +44,6 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionMaterializeFilteredList materialize => CanRenderExpression(materialize.Source) &&
                                                                    CanRenderExpression(materialize.Predicate) &&
                                                                    CanUseIndexedLoopItem(materialize.Item, materialize.RowAccessMode),
-            ExecutionMaterializeExpandoList materialize => CanRenderExpression(materialize.Source) &&
-                                                                  CanRenderExpandoAdapterShape(materialize.Shape) &&
-                                                                  CanRenderOptionalExpression(materialize.Predicate),
             ExecutionWindowKernelPlan plan => plan.Kernels.All(CanRenderNode),
             ExecutionComputeRankingWindow ranking => CanRenderRankingWindow(ranking),
             ExecutionComputeOffsetWindow offset => CanRenderOffsetWindow(offset),
@@ -66,6 +62,8 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCreateRangeIndex createIndex => CanRenderCreateRangeIndex(createIndex),
             ExecutionRangeProbe rangeProbe => CanRenderRangeProbe(rangeProbe),
             ExecutionCreateAggregateLibrary => true,
+            ExecutionInitializeAggregateState initialize => CanReferenceType(initialize.Target.Type) &&
+                CanReferenceType(initialize.ResetMethod.RequireClrMethod().DeclaringType!),
             ExecutionCreateAggregateContext context => CanRenderAggregateGroupPlan(context.GroupPlan),
             ExecutionEnsureAggregateGroup ensureGroup => CanRenderAggregateGroupPlan(ensureGroup.GroupPlan),
             ExecutionCreateSingleKeyAggregateContext context => CanReferenceType(context.KeyType) &&

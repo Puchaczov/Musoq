@@ -1,4 +1,3 @@
-using System.Runtime.ExceptionServices;
 using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.IR.Optimization.Logical;
@@ -111,11 +110,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
 
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
-                {
-                    ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
-                    throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
-                }
+                DataSourceInputDiagnosticReporter.ReportOrRethrowProviderFailure(ex, context.DiagnosticContext);
 
                 if (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex) &&
                     !context.DiagnosticContext.HasErrors)

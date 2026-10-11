@@ -46,8 +46,8 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(2, result.Count);
-        Assert.IsTrue(result.Any(r => (string)r[0] == "a"));
-        Assert.IsTrue(result.Any(r => (string)r[0] == "c"));
+        Assert.IsTrue(result.Any(r => (string)r.ReadValue(0) == "a"));
+        Assert.IsTrue(result.Any(r => (string)r.ReadValue(0) == "c"));
     }
 
     [TestMethod]
@@ -62,8 +62,8 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(2, result.Count);
-        Assert.IsTrue(result.Any(r => (string)r[0] == "b"));
-        Assert.IsTrue(result.Any(r => (string)r[0] == "c"));
+        Assert.IsTrue(result.Any(r => (string)r.ReadValue(0) == "b"));
+        Assert.IsTrue(result.Any(r => (string)r.ReadValue(0) == "c"));
     }
 
     #endregion
@@ -78,7 +78,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual("hello world", result[0][0]);
+        Assert.AreEqual("hello world", result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(-42L, Convert.ToInt64(result[0][0]));
+        Assert.AreEqual(-42L, Convert.ToInt64(result[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -120,7 +120,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(15L, Convert.ToInt64(result[0][0]));
+        Assert.AreEqual(15L, Convert.ToInt64(result[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -131,7 +131,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(255L, Convert.ToInt64(result[0][0]));
+        Assert.AreEqual(255L, Convert.ToInt64(result[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(240L, Convert.ToInt64(result[0][0]));
+        Assert.AreEqual(240L, Convert.ToInt64(result[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(8L, Convert.ToInt64(result[0][0]));
+        Assert.AreEqual(8L, Convert.ToInt64(result[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -164,7 +164,7 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(4L, Convert.ToInt64(result[0][0]));
+        Assert.AreEqual(4L, Convert.ToInt64(result[0].ReadValue(0)));
     }
 
     #endregion
@@ -184,9 +184,9 @@ public partial class BranchCoverageImprovementTests
         var vm = CreateAndRunVirtualMachine("select Name from #schema.first() order by Name asc", source);
         var result = vm.Run();
 
-        Assert.AreEqual("Alice", result[0][0]);
-        Assert.AreEqual("Bob", result[1][0]);
-        Assert.AreEqual("Charlie", result[2][0]);
+        Assert.AreEqual("Alice", result[0].ReadValue(0));
+        Assert.AreEqual("Bob", result[1].ReadValue(0));
+        Assert.AreEqual("Charlie", result[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -202,9 +202,9 @@ public partial class BranchCoverageImprovementTests
         var vm = CreateAndRunVirtualMachine("select Name from #schema.first() order by Name desc", source);
         var result = vm.Run();
 
-        Assert.AreEqual("Charlie", result[0][0]);
-        Assert.AreEqual("Bob", result[1][0]);
-        Assert.AreEqual("Alice", result[2][0]);
+        Assert.AreEqual("Charlie", result[0].ReadValue(0));
+        Assert.AreEqual("Bob", result[1].ReadValue(0));
+        Assert.AreEqual("Alice", result[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -221,11 +221,11 @@ public partial class BranchCoverageImprovementTests
             "select Name, City from #schema.first() order by Name asc, City asc", source);
         var result = vm.Run();
 
-        Assert.AreEqual("A", result[0][0]);
-        Assert.AreEqual("X", result[0][1]);
-        Assert.AreEqual("A", result[1][0]);
-        Assert.AreEqual("Z", result[1][1]);
-        Assert.AreEqual("B", result[2][0]);
+        Assert.AreEqual("A", result[0].ReadValue(0));
+        Assert.AreEqual("X", result[0].ReadValue(1));
+        Assert.AreEqual("A", result[1].ReadValue(0));
+        Assert.AreEqual("Z", result[1].ReadValue(1));
+        Assert.AreEqual("B", result[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -242,10 +242,10 @@ public partial class BranchCoverageImprovementTests
             "select Name, City from #schema.first() order by Name asc, City desc", source);
         var result = vm.Run();
 
-        Assert.AreEqual("A", result[0][0]);
-        Assert.AreEqual("Z", result[0][1]);
-        Assert.AreEqual("A", result[1][0]);
-        Assert.AreEqual("X", result[1][1]);
+        Assert.AreEqual("A", result[0].ReadValue(0));
+        Assert.AreEqual("Z", result[0].ReadValue(1));
+        Assert.AreEqual("A", result[1].ReadValue(0));
+        Assert.AreEqual("X", result[1].ReadValue(1));
     }
 
     #endregion

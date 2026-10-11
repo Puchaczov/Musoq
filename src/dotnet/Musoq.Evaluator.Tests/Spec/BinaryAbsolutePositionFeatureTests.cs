@@ -42,7 +42,7 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xAB, table[0][0]);
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(0));
     }
 
     #endregion
@@ -78,8 +78,8 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(8, table[0][0]);
-        Assert.AreEqual(42, table[0][1]);
+        Assert.AreEqual(8, table[0].ReadValue(0));
+        Assert.AreEqual(42, table[0].ReadValue(1));
     }
 
     #endregion
@@ -115,8 +115,8 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(4, table[0][0]);
-        Assert.AreEqual((short)42, table[0][1]);
+        Assert.AreEqual(4, table[0].ReadValue(0));
+        Assert.AreEqual((short)42, table[0].ReadValue(1));
     }
 
     #endregion
@@ -152,9 +152,9 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(2, table[0].ReadValue(1));
+        Assert.AreEqual(1, table[0].ReadValue(2));
     }
 
     #endregion
@@ -192,9 +192,9 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)0x5A4D, table[0][0]);
-        Assert.AreEqual(8, table[0][1]);
-        Assert.AreEqual(0x00004550, table[0][2]);
+        Assert.AreEqual((short)0x5A4D, table[0].ReadValue(0));
+        Assert.AreEqual(8, table[0].ReadValue(1));
+        Assert.AreEqual(0x00004550, table[0].ReadValue(2));
     }
 
     #endregion
@@ -228,7 +228,7 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -254,7 +254,7 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)10, table[0][0]);
+        Assert.AreEqual((short)10, table[0].ReadValue(0));
     }
 
     #endregion
@@ -292,9 +292,9 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(20, table[0][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(20, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -322,9 +322,9 @@ public class BinaryAbsolutePositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.IsNull(table[0][2]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
     }
 
     #endregion

@@ -6,6 +6,50 @@ namespace Musoq.Evaluator.Tests;
 public partial class JoinFullOuterJoinTests
 {
     [TestMethod]
+    public void FullOuterJoin_BetweenInlineValuesSources_ShouldReturnMatchedRow()
+    {
+        const string query = """
+                             select a.Id, b.Id
+                             from values { ( Id: 1 ) } a
+                             full outer join values { ( Id: 1 ) } b on a.Id = b.Id
+                             """;
+        var vm = CreateAndRunVirtualMachine(query, CreateSources([], []));
+        var table = vm.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 1]);
+    }
+
+    [TestMethod]
+    public void FullOuterJoin_InlineValuesDiff_ShouldClassifyChangedSameRemovedAndAddedRows()
+    {
+        const string query = """
+                             SELECT CASE WHEN a IS MISSING THEN b.Id ELSE a.Id END AS Id,
+                                    CASE WHEN a IS MISSING THEN 'added' WHEN b IS MISSING THEN 'removed'
+                                         WHEN a.Value IS DISTINCT FROM b.Value THEN 'changed' ELSE 'same' END AS Change
+                             FROM values { (Id: 1, Value: 'old'), (Id: 2, Value: 'steady'), (Id: 3, Value: 'gone') } a
+                             FULL OUTER JOIN values { (Id: 1, Value: 'new'), (Id: 2, Value: 'steady'), (Id: 4, Value: 'fresh') } b ON a.Id = b.Id
+                             ORDER BY Id
+                             """;
+        var vm = CreateAndRunVirtualMachine(query, CreateSources([], []));
+        var table = vm.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Change", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [1, "changed"],
+            [2, "same"],
+            [3, "removed"],
+            [4, "added"]);
+    }
+
+    [TestMethod]
     public void FullOuterJoin_WindowAndQualify_ShouldKeepMatchedAndUnmatchedRows()
     {
         const string query = """

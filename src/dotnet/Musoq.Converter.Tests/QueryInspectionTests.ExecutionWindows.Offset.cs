@@ -13,11 +13,11 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeLagWindow [resultLags <- resultWindowRows value d.Dummy order by d.Dummy ASC offset 1 default NULL]", result.ExecutionPlanText);
+        Assert.Contains("ComputeLagWindow [resultLags <- resultWindowRows value d.Dummy order by d.Dummy ASC frame range between unbounded preceding and current row args 1, NULL]", result.ExecutionPlanText);
         Assert.Contains("var resultLagsOrderKeys = new WindowResultLagsOrderKeysKey[resultWindowRows.Count];", result.GeneratedCSharpCode);
         Assert.Contains("resultLagsValues", result.GeneratedCSharpCode);
         Assert.Contains("var resultLags = new string[resultWindowRows.Count];", result.GeneratedCSharpCode);
-        Assert.Contains("resultLagsSourcePartitionIndex >= 0", result.GeneratedCSharpCode);
+        Assert.Contains("LagReferenceKernel<string>.Get(in resultLagsContext", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
     }
 
@@ -38,18 +38,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("a", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual("amy", table[0][2]);
-        Assert.IsNull(table[0][3]);
-        Assert.AreEqual("a", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual("bea", table[1][2]);
-        Assert.AreEqual(1, table[1][3]);
-        Assert.AreEqual("b", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual("cal", table[2][2]);
-        Assert.IsNull(table[2][3]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual("amy", table[0].ReadValue(2));
+        Assert.IsNull(table[0].ReadValue(3));
+        Assert.AreEqual("a", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual("bea", table[1].ReadValue(2));
+        Assert.AreEqual(1, table[1].ReadValue(3));
+        Assert.AreEqual("b", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual("cal", table[2].ReadValue(2));
+        Assert.IsNull(table[2].ReadValue(3));
     }
 
     [TestMethod]
@@ -69,18 +69,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("a", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual("amy", table[0][2]);
-        Assert.AreEqual(2, table[0][3]);
-        Assert.AreEqual("a", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual("bea", table[1][2]);
-        Assert.IsNull(table[1][3]);
-        Assert.AreEqual("b", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual("cal", table[2][2]);
-        Assert.IsNull(table[2][3]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual("amy", table[0].ReadValue(2));
+        Assert.AreEqual(2, table[0].ReadValue(3));
+        Assert.AreEqual("a", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual("bea", table[1].ReadValue(2));
+        Assert.IsNull(table[1].ReadValue(3));
+        Assert.AreEqual("b", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual("cal", table[2].ReadValue(2));
+        Assert.IsNull(table[2].ReadValue(3));
     }
 
     [TestMethod]
@@ -98,8 +98,8 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeLagWindow [resultLags0 <- resultWindowRows value c.Score order by c.Score ASC offset 1 default NULL]", result.ExecutionPlanText);
-        Assert.Contains("ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Score order by c.Score ASC offset 1 default NULL]", result.ExecutionPlanText);
+        Assert.Contains("ComputeLagWindow [resultLags0 <- resultWindowRows value c.Score order by c.Score ASC frame rows between current row and current row args 1, NULL]", result.ExecutionPlanText);
+        Assert.Contains("ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row args 1, NULL]", result.ExecutionPlanText);
     }
 
     [TestMethod]
@@ -122,18 +122,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual(2, table[0][3]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(1, table[1][2]);
-        Assert.AreEqual(3, table[1][3]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual(2, table[2][2]);
-        Assert.IsNull(table[2][3]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual(2, table[0].ReadValue(3));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual(1, table[1].ReadValue(2));
+        Assert.AreEqual(3, table[1].ReadValue(3));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual(2, table[2].ReadValue(2));
+        Assert.IsNull(table[2].ReadValue(3));
     }
 
     [TestMethod]
@@ -151,12 +151,12 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeLagWindow [resultLags0 <- resultWindowRows value c.Name order by c.Score ASC offset c.Step default c.Fallback]", result.ExecutionPlanText);
-        Assert.Contains("ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Name order by c.Score ASC offset c.Step default c.Fallback]", result.ExecutionPlanText);
-        Assert.Contains("resultLags0Offsets", result.GeneratedCSharpCode);
-        Assert.Contains("resultLags0Defaults", result.GeneratedCSharpCode);
-        Assert.Contains("resultLeads1Offsets", result.GeneratedCSharpCode);
-        Assert.Contains("resultLeads1Defaults", result.GeneratedCSharpCode);
+        Assert.Contains("ComputeLagWindow [resultLags0 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Step, c.Fallback]", result.ExecutionPlanText);
+        Assert.Contains("ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Step, c.Fallback]", result.ExecutionPlanText);
+        Assert.Contains("resultLags0Argument0", result.GeneratedCSharpCode);
+        Assert.Contains("resultLags0Argument1", result.GeneratedCSharpCode);
+        Assert.Contains("resultLeads1Argument0", result.GeneratedCSharpCode);
+        Assert.Contains("resultLeads1Argument1", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLead", StringComparison.Ordinal));
     }
@@ -181,18 +181,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual("fallback-amy", table[0][2]);
-        Assert.AreEqual("bea", table[0][3]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual("fallback-bea", table[1][2]);
-        Assert.AreEqual("fallback-bea", table[1][3]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual("bea", table[2][2]);
-        Assert.AreEqual("fallback-cal", table[2][3]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual("fallback-amy", table[0].ReadValue(2));
+        Assert.AreEqual("bea", table[0].ReadValue(3));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual("fallback-bea", table[1].ReadValue(2));
+        Assert.AreEqual("fallback-bea", table[1].ReadValue(3));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual("bea", table[2].ReadValue(2));
+        Assert.AreEqual("fallback-cal", table[2].ReadValue(3));
     }
 
 }

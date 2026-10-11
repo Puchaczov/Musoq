@@ -24,13 +24,13 @@ public partial class ExploratoryComplexPatternsTests
         var table = vm.Run(TestContext.CancellationToken);
         var after = System.DateTimeOffset.Now;
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("CurrentYear", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("CurrentYear", typeof(int?)));
         var rows = table.Rows;
         Assert.HasCount(1, rows);
         var row = rows[0];
-        Assert.AreEqual("John", row[0]);
+        Assert.AreEqual("John", row.ReadValue(0));
 
-        var year = (int)row[1]!;
+        var year = (int)row.ReadValue(1)!;
         Assert.IsTrue(
             year == before.Year || year == after.Year,
             $"Expected current year {before.Year} or {after.Year}, but received {year}.");

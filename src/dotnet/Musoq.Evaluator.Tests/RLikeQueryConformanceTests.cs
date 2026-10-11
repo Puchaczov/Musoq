@@ -65,7 +65,7 @@ public sealed class RLikeQueryConformanceTests : BasicEntityTestBase
             if (testCase.Parameters is not null)
             {
                 foreach (var parameter in testCase.Parameters)
-                    query.Parameters[parameter.Key] = parameter.Value;
+                    global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, parameter.Key, parameter.Value);
             }
 
             AssertSnapshot(testCase, culture, query.Run(TestContext.CancellationToken));
@@ -85,7 +85,7 @@ public sealed class RLikeQueryConformanceTests : BasicEntityTestBase
         Table table)
     {
         var expected = FormatSnapshot(testCase.GetExpectedRows(culture));
-        var actual = FormatSnapshot(table.Select(row => row.Values).ToArray());
+        var actual = FormatSnapshot(table.Select(row => row.ReadValues()).ToArray());
         Assert.AreEqual(expected, actual, $"RLIKE case '{testCase.Id}' failed under '{culture.Name}'.");
 
         TableMaterializationTestHelper.AssertColumns(

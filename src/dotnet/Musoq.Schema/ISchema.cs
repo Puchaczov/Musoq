@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Collections.Immutable;
+using System.Linq;
+using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
@@ -22,7 +25,8 @@ public interface ISchema
 
     SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters);
 
-    RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters);
+    RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
+        where TArguments : struct, ISourceArguments;
 
     SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext);
 
@@ -43,5 +47,12 @@ public interface ISchema
 
     bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out MethodInfo? methodInfo);
 
+    bool TryResolveWindowFunction(string method, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        => TryResolveWindowFunction(method, out methodInfo);
+
     IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods();
+
+    ImmutableArray<SqlFunctionDescriptor> GetAllLibraryFunctions()
+        => GetAllLibraryMethods().Values.SelectMany(static methods => methods).Distinct()
+            .SelectMany(static method => SqlFunctionDeclarations.Read(method)).ToImmutableArray();
 }

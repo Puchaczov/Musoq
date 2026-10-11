@@ -261,14 +261,18 @@ public sealed partial class CSharpRenderer
         TableViaRowsResultInfo? finalShapeResultInfo,
         bool omitFinalShapeClass)
     {
+        var target = _context.ResultMode == QueryResultMode.TypedEnumerable
+            ? FinalProjectionSinkTarget.TypedRows
+            : FinalProjectionSinkTarget.TableRows;
         if (_context.InstrumentationMode == QueryInstrumentationMode.Disabled)
         {
-            foreach (var classMember in executionRenderer.RenderClassMembers(
+            foreach (var classMember in executionRenderer.RenderFinalOutputClassMembers(
                          plan,
                          finalShapeResultInfo?.TableName,
                          finalShapeResultInfo?.ShapeTypeName,
                          finalShapeResultInfo?.ShapeFields,
-                         omitFinalShapeClass))
+                         omitFinalShapeClass,
+                         target))
             {
                 if (classMember is ClassDeclarationSyntax classDeclaration &&
                     ContainsClassMember(classDeclaration.Identifier.ValueText))
@@ -282,12 +286,13 @@ public sealed partial class CSharpRenderer
             return;
         }
 
-        foreach (var classMember in executionRenderer.RenderClassMembers(
+        foreach (var classMember in executionRenderer.RenderFinalOutputClassMembers(
                      plan,
                      finalShapeResultInfo?.TableName,
                      finalShapeResultInfo?.ShapeTypeName,
                      finalShapeResultInfo?.ShapeFields,
-                     omitFinalShapeClass))
+                     omitFinalShapeClass,
+                     target))
         {
             var memberIdentity = CreateClassMemberIdentity(classMember);
             var existingMember = _context.ClassMembers

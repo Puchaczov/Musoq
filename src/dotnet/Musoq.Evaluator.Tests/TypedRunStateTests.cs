@@ -23,9 +23,10 @@ public sealed class TypedRunStateTests
             new ScriptParameterDefinition("limit", typeof(int), true, 10)
         };
 
-        var state = new TypedRunState(definitions, parameters);
+        var state = new TypedRunState(definitions, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters));
 
-        CollectionAssert.AreEquivalent(parameters.ToArray(), state.Parameters.ToArray());
+        Assert.AreEqual("Ada", state.TypedParameters.Capture().GetRequired<string>("name"));
+        Assert.AreEqual(1, state.TypedParameters.Count);
         Assert.HasCount(2, state.ParameterDefinitions);
         Assert.HasCount(1, state.RequiredParameters);
         Assert.AreEqual("name", state.RequiredParameters[0].Name);
@@ -35,13 +36,13 @@ public sealed class TypedRunStateTests
     public void CreateOptions_ShouldSnapshotParameters()
     {
         var state = new TypedRunState();
-        state.Parameters["name"] = "Ada";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(state.TypedParameters, state.ParameterDefinitions, "name", "Ada");
 
         var options = state.CreateOptions(CancellationToken.None);
-        state.Parameters["name"] = "Grace";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(state.TypedParameters, state.ParameterDefinitions, "name", "Grace");
 
-        Assert.IsNotNull(options.Parameters);
-        Assert.AreEqual("Ada", options.Parameters["name"]);
+        Assert.AreEqual(1, options.TypedParameters.Count);
+        Assert.AreEqual("Ada", options.TypedParameters.GetRequired<string>("name"));
     }
 
     [TestMethod]

@@ -11,6 +11,23 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class ExecutionExpressionConverterTests
 {
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Convert_WhenStructSourcePresenceIsChecked_ShouldPreserveAliasUntilJoinLowering(bool isPresent)
+    {
+        var shape = new SourceEntityShape("r", typeof(SpecStressCoupledRow), []);
+        var expression = ExecutionExpressionConverter.Convert(
+            new RowPresence("r", isPresent, typeof(bool)),
+            new Dictionary<string, RowShape> { ["r"] = shape });
+
+        Assert.IsInstanceOfType<ExecutionRowPresence>(expression);
+        var presence = (ExecutionRowPresence)expression;
+        Assert.AreEqual("r", presence.Alias);
+        Assert.AreEqual(isPresent, presence.IsPresent);
+        Assert.AreEqual(typeof(SpecStressCoupledRow), presence.PresenceSource.ReturnType.ResolveClrType());
+    }
+
+    [TestMethod]
     public void Convert_WhenScriptParameterRef_ShouldCreateExecutionScriptParameterRead()
     {
         var expression = ExecutionExpressionConverter.Convert(new ScriptParameterRef("author", typeof(string)));

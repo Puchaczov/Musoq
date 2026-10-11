@@ -176,6 +176,12 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
     internal static Type InferComputedFieldType(Node expression, List<ISchemaColumn> contextColumns)
     {
+        if (expression is IntegerNode or DecimalNode or BooleanNode && expression.ReturnType is { } literalType)
+            return literalType;
+
+        if (expression is IdentifierNode)
+            return InferOperandType(expression, contextColumns);
+
         if (expression is EqualityNode or IsDistinctFromNode or DiffNode or GreaterNode or GreaterOrEqualNode
             or LessNode or LessOrEqualNode or AndNode or OrNode)
             return typeof(bool);

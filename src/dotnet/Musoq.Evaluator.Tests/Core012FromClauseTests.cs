@@ -33,8 +33,8 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("source.City", typeof(string)),
-            ("b.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN", "BERLIN"], ["WARSAW", "WARSAW"]);
     }
 
@@ -147,8 +147,8 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("rows.City", typeof(string)),
-            ("rows.Population", typeof(decimal)));
+            ("City", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", 250m],
@@ -168,7 +168,7 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
         CollectionAssert.AreEqual(
             new object[] { 1, 2, 3, 4 },
-            table.Select(row => row.Values[0]).ToArray());
+            table.Select(row => row.ReadValues()[0]).ToArray());
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateFromSources()
@@ -208,6 +208,11 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
             AddSource<RangeSource>("range");
             AddTable<RangeTable>("range");
         }
+
+        public override RowSource<T> GetRowSource<T, TArguments>(string name,
+            SourceExecutionContext context, TArguments arguments)
+            => EnsureSourceType<T, RangeRow>(name,
+                new RangeSource(arguments.GetValue<int>(0), arguments.GetValue<int>(1)));
     }
 
     public sealed class RangeSource(int start, int end) : RowSourceBase<RangeRow>

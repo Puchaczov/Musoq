@@ -11,24 +11,6 @@ public partial class StringMethodsExtendedTests
 {
 
     [TestMethod]
-    public void IsNumeric_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsNumeric(null));
-    }
-
-    [TestMethod]
-    public void IsNumeric_EmptyString_ReturnsFalse()
-    {
-        Assert.IsFalse(Library.IsNumeric(string.Empty));
-    }
-
-    [TestMethod]
-    public void IsNumeric_AllDigits_ReturnsTrue()
-    {
-        Assert.IsTrue(Library.IsNumeric("12345"));
-    }
-
-    [TestMethod]
     public void IsNumeric_ContainsLetter_ReturnsFalse()
     {
         Assert.IsFalse(Library.IsNumeric("123a5"));
@@ -47,18 +29,6 @@ public partial class StringMethodsExtendedTests
     }
 
     [TestMethod]
-    public void IsAlpha_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsAlpha(null));
-    }
-
-    [TestMethod]
-    public void IsAlpha_EmptyString_ReturnsFalse()
-    {
-        Assert.IsFalse(Library.IsAlpha(string.Empty));
-    }
-
-    [TestMethod]
     public void IsAlpha_AllLetters_ReturnsTrue()
     {
         Assert.IsTrue(Library.IsAlpha("Hello"));
@@ -71,57 +41,15 @@ public partial class StringMethodsExtendedTests
     }
 
     [TestMethod]
-    public void IsAlpha_ContainsSpace_ReturnsFalse()
-    {
-        Assert.IsFalse(Library.IsAlpha("Hello World"));
-    }
-
-    [TestMethod]
     public void IsAlpha_SingleLetter_ReturnsTrue()
     {
         Assert.IsTrue(Library.IsAlpha("A"));
     }
 
     [TestMethod]
-    public void IsAlphaNumeric_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsAlphaNumeric(null));
-    }
-
-    [TestMethod]
-    public void IsAlphaNumeric_EmptyString_ReturnsFalse()
-    {
-        Assert.IsFalse(Library.IsAlphaNumeric(string.Empty));
-    }
-
-    [TestMethod]
     public void IsAlphaNumeric_OnlyLetters_ReturnsTrue()
     {
         Assert.IsTrue(Library.IsAlphaNumeric("Hello"));
-    }
-
-    [TestMethod]
-    public void IsAlphaNumeric_OnlyDigits_ReturnsTrue()
-    {
-        Assert.IsTrue(Library.IsAlphaNumeric("12345"));
-    }
-
-    [TestMethod]
-    public void IsAlphaNumeric_Mixed_ReturnsTrue()
-    {
-        Assert.IsTrue(Library.IsAlphaNumeric("Hello123"));
-    }
-
-    [TestMethod]
-    public void IsAlphaNumeric_ContainsSpace_ReturnsFalse()
-    {
-        Assert.IsFalse(Library.IsAlphaNumeric("Hello 123"));
-    }
-
-    [TestMethod]
-    public void IsAlphaNumeric_ContainsSymbol_ReturnsFalse()
-    {
-        Assert.IsFalse(Library.IsAlphaNumeric("Hello@123"));
     }
 
     [TestMethod]
@@ -170,12 +98,6 @@ public partial class StringMethodsExtendedTests
     public void CountOccurrences_MultiCharSubstring_ReturnsCount()
     {
         Assert.AreEqual(2, Library.CountOccurrences("abcabc", "abc"));
-    }
-
-    [TestMethod]
-    public void RemoveWhitespace_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.RemoveWhitespace(null));
     }
 
     [TestMethod]

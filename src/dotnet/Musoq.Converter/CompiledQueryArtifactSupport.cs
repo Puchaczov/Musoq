@@ -157,6 +157,11 @@ internal static class CompiledQueryArtifactSupport
         AppendColumns(builder, "UsedColumns", facts.PortableUsedColumns, cancellationToken);
         AppendAliasColumns(builder, "PipelineInferredColumns", facts.PortablePipelineInferredColumns, cancellationToken);
         AppendSourceIdentities(builder, facts.PortableSourcePlanSignatures, cancellationToken);
+        foreach (var source in facts.SourceScheduling.OrderBy(static source => source.SourceId, StringComparer.Ordinal))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            builder.Append("SourceScheduling=").Append(source.SourceId).Append(':').Append(source.Permissions).AppendLine();
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
         return ComputeHash(builder.ToString());

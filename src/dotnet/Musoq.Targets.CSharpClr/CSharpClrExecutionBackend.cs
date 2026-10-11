@@ -164,7 +164,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         var nodes = plan.Body.Nodes;
         return nodes.Any(static node => node is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
         {
-            Type: Musoq.Evaluator.IR.Logical.Nodes.DescType.Arguments
+            Type: Musoq.Evaluator.IR.Logical.Nodes.DescType.Arguments or Musoq.Evaluator.IR.Logical.Nodes.DescType.Query
         }) &&
                nodes.All(static node => node is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
                    or Musoq.Evaluator.IR.Execution.ExecutionPhaseBoundary);

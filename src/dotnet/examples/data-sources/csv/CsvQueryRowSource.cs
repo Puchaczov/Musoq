@@ -23,7 +23,7 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
     public CsvQueryRowSource(
         CsvSourceOptions options,
         QueryScopedRowSourceRequest request)
-        : base(request.ExecutionContext, CsvFileSource.SourceName)
+        : base(request.ExecutionContext, CsvTextFormat.SourceName)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(request);
@@ -40,7 +40,7 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
         _path = options.Path;
         _hasHeader = options.HasHeader;
         _skipRows = options.SkipRows;
-        _delimiter = CsvFileSource.ResolveDelimiter(options.Delimiter);
+        _delimiter = CsvTextFormat.ResolveDelimiter(options.Delimiter);
         _encoding = ResolveEncoding(_shape.Fields);
     }
 
@@ -49,22 +49,22 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
         var token = writer.CancellationToken;
         token.ThrowIfCancellationRequested();
 
-        _context.ReportDataSourceBegin(CsvFileSource.SourceName);
+        _context.ReportDataSourceBegin(CsvTextFormat.SourceName);
         var rowsRead = 0L;
 
         try
         {
             if (string.IsNullOrWhiteSpace(_path))
             {
-                _context.ReportDataSourceRowsKnown(CsvFileSource.SourceName, 0);
+                _context.ReportDataSourceRowsKnown(CsvTextFormat.SourceName, 0);
                 return;
             }
 
             using var stream = File.OpenRead(_path);
             using var reader = new StreamReader(stream, _encoding, detectEncodingFromByteOrderMarks: true);
-            using var records = CsvFileSource.ReadRecords(reader, _delimiter, token).GetEnumerator();
+            using var records = CsvTextFormat.ReadRecords(reader, _delimiter, token).GetEnumerator();
 
-            CsvFileSource.SkipRecords(records, _skipRows, token);
+            CsvTextFormat.SkipRecords(records, _skipRows, token);
             var header = _hasHeader && records.MoveNext()
                 ? records.Current
                 : null;
@@ -85,19 +85,19 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
                     continue;
 
                 rowsRead += WriteChunk(writer, chunk);
-                _context.ReportDataSourceRowsRead(CsvFileSource.SourceName, rowsRead);
+                _context.ReportDataSourceRowsRead(CsvTextFormat.SourceName, rowsRead);
             }
 
             var finalRows = WriteChunk(writer, chunk);
             if (finalRows > 0)
             {
                 rowsRead += finalRows;
-                _context.ReportDataSourceRowsRead(CsvFileSource.SourceName, rowsRead);
+                _context.ReportDataSourceRowsRead(CsvTextFormat.SourceName, rowsRead);
             }
         }
         finally
         {
-            _context.ReportDataSourceEnd(CsvFileSource.SourceName, rowsRead);
+            _context.ReportDataSourceEnd(CsvTextFormat.SourceName, rowsRead);
         }
     }
 
@@ -123,7 +123,7 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
             }
         }
 
-        return CsvFileSource.ResolveEncoding(requestedEncoding);
+        return CsvTextFormat.ResolveEncoding(requestedEncoding);
     }
 
     private static IEnumerable<CsvRawQueryRow> ReadRows(
@@ -143,20 +143,19 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
         SourceExecutionPlan plan,
         CsvQueryFieldMapping[] mappings)
     {
+        var native = plan.Properties.TryGetValue(CsvNativeExecutionPlan.PropertyName, out var bound)
+            ? bound as CsvNativeExecutionPlan : null;
+        if ((plan.AcceptedPredicate is not null || plan.AcceptedOrderBy.Count > 0) && native is null)
+            throw new InvalidOperationException("CSV execution requires a compiled native plan.");
         var query = rows;
-        if (plan.AcceptedPredicate != null)
-        {
-            query = query.Where(row => CsvSourcePlan.EvaluatePredicate(
-                plan.AcceptedPredicate,
-                row.ReadValue));
-        }
-
-        if (plan.AcceptedOrderBy.Count > 0)
-        {
-            query = query.OrderBy(
-                static row => row,
-                new CsvRawQueryRowComparer(plan.AcceptedOrderBy));
-        }
+        if (native?.Predicate is { } predicate)
+            query = query.Where(row =>
+            {
+                var reader = row.CreateReader();
+                return predicate.Matches(ref reader);
+            });
+        if (native?.Ordering.Count > 0)
+            query = query.OrderBy(static row => row, new CsvRawQueryRowComparer(native));
 
         if (plan.AcceptedSkip.HasValue)
             query = query.Skip(checked((int)plan.AcceptedSkip.Value));
@@ -254,42 +253,21 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
 
         private CsvQueryFieldMapping[] Mappings { get; }
 
-        public object? ReadValue(string name)
-        {
-            foreach (var mapping in Mappings)
-            {
-                if (!string.Equals(mapping.Field.Name, name, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                var rawValue = mapping.SourceIndex < Record.Length
-                    ? Record[mapping.SourceIndex]
-                    : null;
-                return CsvFileSource.ConvertValue(rawValue, mapping.Column);
-            }
-
-            throw new InvalidOperationException(
-                $"CSV source has no execution column '{name}'.");
-        }
+        public CsvFieldReader CreateReader() => new(Record, Mappings);
     }
 
-    private sealed class CsvRawQueryRowComparer(IReadOnlyList<OrderByExpression> orderBy)
-        : IComparer<CsvRawQueryRow>
+    private sealed class CsvRawQueryRowComparer(CsvNativeExecutionPlan plan) : IComparer<CsvRawQueryRow>
     {
         public int Compare(CsvRawQueryRow x, CsvRawQueryRow y)
         {
-            foreach (var order in orderBy)
+            var left = x.CreateReader();
+            var right = y.CreateReader();
+            for (var index = 0; index < plan.Ordering.Count; index++)
             {
-                var comparison = CsvSourcePlan.CompareValues(
-                    x.ReadValue(order.Column.Name),
-                    y.ReadValue(order.Column.Name));
-                if (comparison == 0)
-                    continue;
-
-                return order.Direction == OrderDirection.Descending
-                    ? -comparison
-                    : comparison;
+                var comparison = plan.Ordering[index].Compare(ref left, ref right);
+                if (comparison != 0)
+                    return comparison;
             }
-
             return 0;
         }
     }
@@ -309,6 +287,15 @@ internal ref struct CsvFieldReader : IQuerySourceFieldReader
         _mappings = mappings;
     }
 
+    public T Read<T>(string name)
+    {
+        for (var slot = 0; slot < _mappings.Length; slot++)
+            if (string.Equals(_mappings[slot].Field.Name, name, StringComparison.OrdinalIgnoreCase))
+                return Read<T>(slot);
+        throw new InvalidOperationException($"CSV source has no execution column '{name}'.");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Read<T>(int slot)
     {
         if ((uint)slot >= (uint)_mappings.Length)
@@ -329,112 +316,235 @@ internal sealed record CsvQueryFieldMapping(
 
 internal static class CsvValueReader
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Read<T>(string? rawValue, ISchemaColumn column)
+        => Decoder<T>.Read(rawValue, column);
+
+    public static bool Supports(Type type)
     {
-        var text = Normalize(rawValue, column);
-        if (typeof(T) == typeof(string))
-        {
-            string? value = text;
-            return Cast<string?, T>(value);
-        }
-
-        var targetType = Nullable.GetUnderlyingType(typeof(T));
-        var isNullable = targetType != null || !typeof(T).IsValueType;
-        if (text == null || (text.Length == 0 && targetType != typeof(string) && isNullable))
-            return default!;
-
-        var culture = CsvFileSource.ResolveCulture(column.ReadModifiers);
-        var actualType = targetType ?? typeof(T);
-        var nullableTarget = targetType != null;
-
-        if (actualType == typeof(int))
-        {
-            var value = int.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<int?, T>(value) : Cast<int, T>(value);
-        }
-        if (actualType == typeof(long))
-        {
-            var value = long.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<long?, T>(value) : Cast<long, T>(value);
-        }
-        if (actualType == typeof(short))
-        {
-            var value = short.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<short?, T>(value) : Cast<short, T>(value);
-        }
-        if (actualType == typeof(byte))
-        {
-            var value = byte.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<byte?, T>(value) : Cast<byte, T>(value);
-        }
-        if (actualType == typeof(uint))
-        {
-            var value = uint.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<uint?, T>(value) : Cast<uint, T>(value);
-        }
-        if (actualType == typeof(ulong))
-        {
-            var value = ulong.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<ulong?, T>(value) : Cast<ulong, T>(value);
-        }
-        if (actualType == typeof(float))
-        {
-            var value = float.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<float?, T>(value) : Cast<float, T>(value);
-        }
-        if (actualType == typeof(double))
-        {
-            var value = double.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<double?, T>(value) : Cast<double, T>(value);
-        }
-        if (actualType == typeof(decimal))
-        {
-            var value = decimal.Parse(text, NumberStyles.Any, culture);
-            return nullableTarget ? Cast<decimal?, T>(value) : Cast<decimal, T>(value);
-        }
-        if (actualType == typeof(bool))
-        {
-            var value = bool.Parse(text);
-            return nullableTarget ? Cast<bool?, T>(value) : Cast<bool, T>(value);
-        }
-        if (actualType == typeof(Guid))
-        {
-            var value = Guid.Parse(text);
-            return nullableTarget ? Cast<Guid?, T>(value) : Cast<Guid, T>(value);
-        }
-        if (actualType == typeof(DateTime))
-        {
-            var value = CsvFileSource.ParseDateTime(text, column.ReadModifiers, culture);
-            return nullableTarget ? Cast<DateTime?, T>(value) : Cast<DateTime, T>(value);
-        }
-        if (actualType == typeof(DateTimeOffset))
-        {
-            var value = CsvFileSource.ParseDateTimeOffset(text, column.ReadModifiers, culture);
-            return nullableTarget ? Cast<DateTimeOffset?, T>(value) : Cast<DateTimeOffset, T>(value);
-        }
-
-        if (actualType == typeof(TimeSpan))
-        {
-            var value = CsvFileSource.ParseTimeSpan(text, column.ReadModifiers, culture);
-            return nullableTarget ? Cast<TimeSpan?, T>(value) : Cast<TimeSpan, T>(value);
-        }
-
-        var converted = CsvFileSource.ConvertValue(text, column);
-        return converted is null ? default! : (T)converted;
+        var concreteType = Nullable.GetUnderlyingType(type) ?? type;
+        return concreteType == typeof(string) || SupportedValueTypes.Contains(concreteType);
     }
 
+    private static readonly HashSet<Type> SupportedValueTypes =
+    [
+        typeof(int), typeof(long), typeof(short), typeof(byte), typeof(uint), typeof(ulong),
+        typeof(float), typeof(double), typeof(decimal), typeof(bool), typeof(Guid),
+        typeof(DateTime), typeof(DateTimeOffset), typeof(TimeSpan), typeof(sbyte), typeof(ushort), typeof(char)
+    ];
+
+    private static class Decoder<T>
+    {
+        internal static readonly Func<string?, ISchemaColumn, T> Read = Bind();
+
+        private static Func<string?, ISchemaColumn, T> Bind()
+        {
+            if (typeof(T) == typeof(string))
+                return (rawValue, column) => Cast<string?, T>(Normalize(rawValue, column));
+
+            if (typeof(T) == typeof(int))
+                return Required<int>(Parseint);
+            if (typeof(T) == typeof(int?))
+                return Optional<int>(Parseint);
+            if (typeof(T) == typeof(long))
+                return Required<long>(Parselong);
+            if (typeof(T) == typeof(long?))
+                return Optional<long>(Parselong);
+            if (typeof(T) == typeof(short))
+                return Required<short>(Parseshort);
+            if (typeof(T) == typeof(short?))
+                return Optional<short>(Parseshort);
+            if (typeof(T) == typeof(byte))
+                return Required<byte>(Parsebyte);
+            if (typeof(T) == typeof(byte?))
+                return Optional<byte>(Parsebyte);
+            if (typeof(T) == typeof(uint))
+                return Required<uint>(Parseuint);
+            if (typeof(T) == typeof(uint?))
+                return Optional<uint>(Parseuint);
+            if (typeof(T) == typeof(ulong))
+                return Required<ulong>(Parseulong);
+            if (typeof(T) == typeof(ulong?))
+                return Optional<ulong>(Parseulong);
+            if (typeof(T) == typeof(float))
+                return Required<float>(Parsefloat);
+            if (typeof(T) == typeof(float?))
+                return Optional<float>(Parsefloat);
+            if (typeof(T) == typeof(double))
+                return Required<double>(Parsedouble);
+            if (typeof(T) == typeof(double?))
+                return Optional<double>(Parsedouble);
+            if (typeof(T) == typeof(decimal))
+                return Required<decimal>(Parsedecimal);
+            if (typeof(T) == typeof(decimal?))
+                return Optional<decimal>(Parsedecimal);
+            if (typeof(T) == typeof(bool))
+                return Required<bool>(Parsebool);
+            if (typeof(T) == typeof(bool?))
+                return Optional<bool>(Parsebool);
+            if (typeof(T) == typeof(Guid))
+                return Required<Guid>(ParseGuid);
+            if (typeof(T) == typeof(Guid?))
+                return Optional<Guid>(ParseGuid);
+            if (typeof(T) == typeof(DateTime))
+                return Required<DateTime>(ParseDateTime);
+            if (typeof(T) == typeof(DateTime?))
+                return Optional<DateTime>(ParseDateTime);
+            if (typeof(T) == typeof(DateTimeOffset))
+                return Required<DateTimeOffset>(ParseDateTimeOffset);
+            if (typeof(T) == typeof(DateTimeOffset?))
+                return Optional<DateTimeOffset>(ParseDateTimeOffset);
+            if (typeof(T) == typeof(TimeSpan))
+                return Required<TimeSpan>(ParseTimeSpan);
+            if (typeof(T) == typeof(TimeSpan?))
+                return Optional<TimeSpan>(ParseTimeSpan);
+            if (typeof(T) == typeof(sbyte))
+                return Required<sbyte>(Parsesbyte);
+            if (typeof(T) == typeof(sbyte?))
+                return Optional<sbyte>(Parsesbyte);
+            if (typeof(T) == typeof(ushort))
+                return Required<ushort>(Parseushort);
+            if (typeof(T) == typeof(ushort?))
+                return Optional<ushort>(Parseushort);
+            if (typeof(T) == typeof(char))
+                return Required<char>(Parsechar);
+            if (typeof(T) == typeof(char?))
+                return Optional<char>(Parsechar);
+            throw new InvalidOperationException($"CSV has no native decoder for '{typeof(T)}'.");
+        }
+
+        private static Func<string?, ISchemaColumn, T> Required<TValue>(Func<string, ISchemaColumn, TValue> parse)
+            where TValue : struct
+            => (rawValue, column) =>
+            {
+                var text = Normalize(rawValue, column);
+                if (text is null)
+                    return default!;
+                return Cast<TValue, T>(parse(text, column));
+            };
+
+        private static Func<string?, ISchemaColumn, T> Optional<TValue>(Func<string, ISchemaColumn, TValue> parse)
+            where TValue : struct
+            => (rawValue, column) =>
+            {
+                var text = Normalize(rawValue, column);
+                if (string.IsNullOrEmpty(text))
+                    return default!;
+                TValue? value = parse(text, column);
+                return Cast<TValue?, T>(value);
+            };
+    }
+
+    private static int Parseint(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return int.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static long Parselong(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return long.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static short Parseshort(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return short.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static byte Parsebyte(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return byte.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static uint Parseuint(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return uint.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static ulong Parseulong(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return ulong.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static float Parsefloat(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return float.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static double Parsedouble(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return double.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static decimal Parsedecimal(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return decimal.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static bool Parsebool(string text, ISchemaColumn column)
+    {
+        return bool.Parse(text);
+    }
+
+    private static Guid ParseGuid(string text, ISchemaColumn column)
+    {
+        return Guid.Parse(text);
+    }
+
+    private static DateTime ParseDateTime(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return CsvTextFormat.ParseDateTime(text, column.ReadModifiers, culture);
+    }
+
+    private static DateTimeOffset ParseDateTimeOffset(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return CsvTextFormat.ParseDateTimeOffset(text, column.ReadModifiers, culture);
+    }
+
+    private static TimeSpan ParseTimeSpan(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return CsvTextFormat.ParseTimeSpan(text, column.ReadModifiers, culture);
+    }
+
+    private static sbyte Parsesbyte(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return sbyte.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static ushort Parseushort(string text, ISchemaColumn column)
+    {
+        var culture = CsvTextFormat.ResolveCulture(column.ReadModifiers);
+        return ushort.Parse(text, NumberStyles.Any, culture);
+    }
+
+    private static char Parsechar(string text, ISchemaColumn column)
+    {
+        return char.Parse(text);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string? Normalize(string? rawValue, ISchemaColumn column)
     {
-        if (rawValue == null)
+        if (rawValue is null)
             return null;
-
-        return column.ReadModifiers.ContainsKey(ColumnReadModifiers.Trim)
-            ? rawValue.Trim()
-            : rawValue;
+        if (column.ReadModifiers.ContainsKey(ColumnReadModifiers.Trim))
+            return rawValue.Trim();
+        return rawValue;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T Cast<TValue, T>(TValue value)
-    {
-        return Unsafe.As<TValue, T>(ref value);
-    }
+        => Unsafe.As<TValue, T>(ref value);
 }

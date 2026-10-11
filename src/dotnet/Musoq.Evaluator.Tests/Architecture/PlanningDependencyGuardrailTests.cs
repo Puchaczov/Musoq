@@ -45,6 +45,7 @@ public sealed class PlanningDependencyGuardrailTests
             "Musoq.Evaluator",
             "IR",
             "Planning",
+            "Permissions",
             "ParallelPlanningEligibilityRules.cs");
         var text = File.ReadAllText(file);
         string[] broadTraversalMarkers =

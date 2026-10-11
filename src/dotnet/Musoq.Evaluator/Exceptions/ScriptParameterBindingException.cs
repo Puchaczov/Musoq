@@ -56,6 +56,18 @@ public sealed class ScriptParameterBindingException : InvalidOperationException,
             $"Script parameter '{name}' expected a non-null value of type '{FormatType(expectedType)}'.");
     }
 
+    public static ScriptParameterBindingException TypeMismatch(string name, Type expectedType, Type actualType)
+    {
+        return new ScriptParameterBindingException(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
+            $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{FormatType(actualType)}'.");
+    }
+
+    public static ScriptParameterBindingException TypeMismatch(string name, Type expectedType, Type actualType, Exception innerException)
+    {
+        return new ScriptParameterBindingException(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
+            $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{FormatType(actualType)}'.", innerException);
+    }
+
     public static ScriptParameterBindingException Unknown(string name)
     {
         return new ScriptParameterBindingException(

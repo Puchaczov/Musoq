@@ -4,10 +4,10 @@ namespace Musoq.Plugins.Attributes;
 ///     Declares a SQL aggregate function and the static typed kernel used by runtime-v2 lowering.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class AggregateFunctionAttribute(Type kernelType) : AggregationMethodAttribute
+public class AggregateFunctionAttribute(Type kernelType) : BindableMethodAttribute
 {
     /// <summary>
-    ///     Gets the static kernel type that owns State, Set, Get, and optional Merge members.
+    ///     Gets the static kernel type that owns State, Reset, Set, Get, and optional Merge members.
     /// </summary>
     public Type KernelType { get; } = kernelType ?? throw new ArgumentNullException(nameof(kernelType));
 

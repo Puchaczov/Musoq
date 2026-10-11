@@ -25,13 +25,13 @@ public class PluginsAttributesTests
 
     #endregion
 
-    #region AggregationMethodAttribute Tests
+    #region AggregateFunctionAttribute Tests
 
     [TestMethod]
-    public void AggregationMethodAttribute_IsBindableMethodAttribute()
+    public void AggregateFunctionAttribute_IsBindableMethodAttribute()
     {
         // Arrange & Act
-        var attr = new AggregationMethodAttribute();
+        var attr = new AggregateFunctionAttribute(typeof(CountAllAggregateKernel));
 
         // Assert
         Assert.IsInstanceOfType<BindableMethodAttribute>(attr);
@@ -65,12 +65,10 @@ public class PluginsAttributesTests
         public int VolatileProperty => 1;
 
         [BindableMethod]
-        [AggregationMethod]
+        [AggregateFunction(typeof(CountAllAggregateKernel))]
         [NonDeterministic]
         [MethodCategory("TestCategory")]
-        public void SampleMethod()
-        {
-        }
+        public long SampleMethod() => AggregateFunction.NotInvoked<long>();
 
         [DynamicObjectPropertyTypeHint("First", typeof(string))]
         [DynamicObjectPropertyTypeHint("Second", typeof(int))]

@@ -287,7 +287,7 @@ public sealed class DiagnosticREC122OriginalSourceLocationTests
         new("R01", "select d.Dummy from #system.dual() d where d.Dummy = 'x'", nameof(EqualityNode), "d.Dummy = 'x'"),
         new("R02", "select d.Dummy from #system.dual() d where d.Dummy is null", nameof(IsNullNode), "is null"),
         new("R03", "select d.Dummy from #system.dual() d where d.Dummy between 'a' and 'z'", nameof(AndNode), "and", "Dummy between 'a' and 'z'"),
-        new("R04", "select d.Dummy from #system.dual() d where d.Dummy in ('a', 'b')", nameof(OrNode), "or", "Dummy in ('a', 'b')"),
+        new("R04", "select d.Dummy from #system.dual() d where d.Dummy in ('a', 'b')", nameof(InNode), "in", "Dummy in ('a', 'b')"),
         new("R05", "select d.Dummy from #system.dual() d where d.Dummy = 'x' and d.Dummy = 'y'", nameof(AndNode), "and"),
         new("R06", "select d.Dummy from #system.dual() d where d.Dummy = 'x' or d.Dummy = 'y'", nameof(OrNode), "or"),
         new("R07", "select d.Dummy from #system.dual() d order by d.Dummy", nameof(OrderByNode), "order by"),

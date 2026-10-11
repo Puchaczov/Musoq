@@ -51,7 +51,7 @@ internal sealed record EvaluatorQueryRuntimeBinding(
 
 internal sealed record QueryExecutionContext(
     EvaluatorQueryRuntimeBinding Binding,
-    IReadOnlyDictionary<string, object?> Parameters,
+    TypedParameterSnapshot TypedParameters,
     CancellationToken CancellationToken,
     QueryPhaseEventHandler? PhaseChanged,
     DataSourceEventHandler? DataSourceProgress,
@@ -62,7 +62,7 @@ internal sealed record QueryExecutionContext(
 {
     internal static QueryExecutionContext Capture(
         IQueryRunnable runnable,
-        IEnumerable<KeyValuePair<string, object?>> parameters,
+        TypedParameterSnapshot parameters,
         CancellationToken cancellationToken,
         QueryPhaseEventHandler? phaseChanged = null,
         DataSourceEventHandler? dataSourceProgress = null,
@@ -76,7 +76,7 @@ internal sealed record QueryExecutionContext(
 
         return new QueryExecutionContext(
             EvaluatorQueryRuntimeBinding.Capture(runnable),
-            ParameterSnapshot.CaptureReadOnlyOrEmpty(parameters),
+            parameters,
             cancellationToken,
             phaseChanged,
             dataSourceProgress,
@@ -88,9 +88,9 @@ internal sealed record QueryExecutionContext(
 
     internal QueryRunContext ToRunContext()
     {
-        return QueryRunContext.Create(
+        var context = QueryRunContext.Create(
             Binding,
-            Parameters,
+            TypedParameters,
             CancellationToken,
             PhaseChanged,
             DataSourceProgress,
@@ -98,5 +98,6 @@ internal sealed record QueryExecutionContext(
             QueryProgressOptions,
             Sender,
             QueryId);
+        return context;
     }
 }

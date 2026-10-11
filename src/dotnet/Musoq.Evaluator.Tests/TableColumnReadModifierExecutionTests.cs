@@ -69,7 +69,7 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
     private sealed class CapturingReadModifierSchema(
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
         ReadModifierRecorder recorder)
-        : SchemaBase("capture", new MethodsAggregator(new MethodsManager()))
+        : SchemaBase("capture", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
     {
         public override ISchemaTable GetTableByName(
             string name,
@@ -90,7 +90,8 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
             return new SourceDescriptor
             {
                 Identity = context.Identity,
-                RowType = typeof(IReadOnlyDictionary<string, object?>),
+                RowType = typeof(QueryScopedRowContract),
+                TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
                 Columns = columns
             };
         }
@@ -104,16 +105,15 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
             return SourcePlanResult.AcceptAll(request);
         }
 
-        public override RowSource<T> GetRowSource<T>(
-            string name,
-            SourceExecutionContext executionContext,
-            params object?[] parameters)
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+            string name, QueryScopedRowSourceRequest request, TArguments parameters)
+            where TMaterializer : struct, IQueryRowMaterializer<TRow>
+            where TArguments : struct, ISourceArguments
         {
-            recorder.ExecutionColumns.Add(executionContext.AllColumns.ToArray());
-            return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
-                name,
-                new DynamicSource(rows));
+            recorder.ExecutionColumns.Add(request.ExecutionContext.AllColumns.ToArray());
+            return new Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>(rows, request.Shape.Fields);
         }
+
     }
 
     private sealed class CapturingReadModifierTable(ISchemaColumn[] columns) : ISchemaTable
@@ -130,7 +130,7 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
             return Columns.Where(column => column.ColumnName == name).ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object?>));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class ReadModifierRecorder

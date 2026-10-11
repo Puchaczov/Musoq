@@ -42,7 +42,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             var isPartialInterpret = IsPartialResultInterpretFunction(node.Identifier);
             var interpretTable = isPartialInterpret
-                ? CreatePartialInterpretTable()
+                ? CreatePartialInterpretTable(schemaName)
                 : CreateInterpretTable(schemaName);
 
             var schemaRegistration = SchemaRegistry?.TryGetSchema(schemaName, out var registeredSchema) == true
@@ -253,7 +253,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (!isArgumentInventory && !isSettingsInventory)
         {
-            table = GetSchemaSourceTable(
+            table = TableSourceContractBinding.Bind(GetSchemaSourceTable(
                 schema,
                 schemaInfo.Schema,
                 schemaInfo.Method,
@@ -263,7 +263,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 sourceRuntimeSettings,
                 staticSchemaArguments,
                 aliasedSchemaFromNode.HasRequiredRuntimeArguments)
-                ?? table;
+                ?? table ?? new DynamicTable([]), table);
         }
         table ??= new DynamicTable([]);
         var tableSymbol = new TableSymbol(

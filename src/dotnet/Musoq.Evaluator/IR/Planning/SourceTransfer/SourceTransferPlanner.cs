@@ -50,7 +50,7 @@ internal static class SourceTransferPlanner
         SourceTransferUsagePlan usage)
     {
         if (!sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(source.SourceContextId, out var descriptor))
-            return SourceTransferStrategyPlan.Legacy(source.SourceContextId, "source descriptor was unavailable");
+            return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, "source descriptor was unavailable");
 
         context.CancellationToken.ThrowIfCancellationRequested();
         var logicalEnumColumn = FindLogicalScalarEnumColumn(
@@ -74,20 +74,20 @@ internal static class SourceTransferPlanner
 
         if (!descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows))
         {
-            return SourceTransferStrategyPlan.Legacy(
+            return SourceTransferStrategyPlan.DeclaredRows(
                 source.SourceContextId,
                 "source did not advertise query-scoped rows");
         }
 
         if (!context.TargetSourceTransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows))
         {
-            return SourceTransferStrategyPlan.Legacy(
+            return SourceTransferStrategyPlan.DeclaredRows(
                 source.SourceContextId,
                 "selected execution target does not support query-scoped rows");
         }
 
         if (usage.RowRequirement == SourceRowRequirement.DeclaredEntity)
-            return SourceTransferStrategyPlan.Legacy(source.SourceContextId, usage.RowRequirementReason);
+            return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, usage.RowRequirementReason);
 
         context.CancellationToken.ThrowIfCancellationRequested();
         if (!TryCreateShape(
@@ -97,7 +97,12 @@ internal static class SourceTransferPlanner
                 context.CancellationToken,
                 out var shape,
                 out var shapeReason))
-            return SourceTransferStrategyPlan.Legacy(source.SourceContextId, shapeReason);
+        {
+            if (descriptor.RowType == typeof(QueryScopedRowContract))
+                throw new SourcePlanContractException(
+                    $"Native source '{source.SourceContextId}' cannot bind its concrete row shape: {shapeReason}.", TextSpan.Empty);
+            return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, shapeReason);
+        }
 
         context.CancellationToken.ThrowIfCancellationRequested();
         var estimatedPayload = EstimatePayload(shape, context.CancellationToken);
@@ -161,7 +166,7 @@ internal static class SourceTransferPlanner
         }
 
         var fields = new List<QueryRowField>(columns.Length);
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var names = new HashSet<string>(StringComparer.Ordinal);
         var sourceIndexes = new HashSet<int>();
 
         foreach (var column in GetOrderedColumns(columns, cancellationToken))
@@ -296,7 +301,7 @@ internal static class SourceTransferPlanner
         var describedByName = describedColumns
             .Select(static column => column.ColumnName)
             .ToHashSet(
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.Ordinal);
         cancellationToken.ThrowIfCancellationRequested();
         var missing = new List<string>();
         foreach (var required in source.RequiredColumns)
@@ -309,7 +314,7 @@ internal static class SourceTransferPlanner
         missing.Sort((left, right) =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return StringComparer.OrdinalIgnoreCase.Compare(left, right);
+            return StringComparer.Ordinal.Compare(left, right);
         });
         if (missing.Count > 0)
         {
@@ -318,7 +323,7 @@ internal static class SourceTransferPlanner
             return false;
         }
 
-        var requiredNames = new HashSet<string>(source.RequiredColumns, StringComparer.OrdinalIgnoreCase);
+        var requiredNames = new HashSet<string>(source.RequiredColumns, StringComparer.Ordinal);
         var selectedColumns = new List<ISchemaColumn>();
         foreach (var column in describedColumns)
         {
@@ -338,7 +343,7 @@ internal static class SourceTransferPlanner
         CancellationToken cancellationToken,
         out string reason)
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var names = new HashSet<string>(StringComparer.Ordinal);
         var ordinals = new HashSet<int>();
         foreach (var column in columns)
         {

@@ -33,7 +33,7 @@ public class EvaluationHelperTests
             rows,
             1,
             2,
-            [new RowOrderKey(static row => (int)row[0], Descending: false)]);
+            [new RowOrderKey(static row => (int)row.ReadValue(0), Descending: false)]);
 
         CollectionAssert.AreEqual(new Row[] { firstTie, secondTie }, selected.ToArray());
     }
@@ -55,7 +55,7 @@ public class EvaluationHelperTests
             target,
             1,
             2,
-            [new RowOrderKey(static row => (int)row[0], Descending: false)]);
+            [new RowOrderKey(static row => (int)row.ReadValue(0), Descending: false)]);
 
         CollectionAssert.AreEqual(new Row[] { firstTie, secondTie }, target.Rows.ToArray());
     }
@@ -70,7 +70,7 @@ public class EvaluationHelperTests
 
         var ordered = EvaluationHelper.OrderRows(
             rows,
-            [new RowOrderKey(static row => (string?)row[0]!, Descending: true, NullOrdering: 1)])
+            [new RowOrderKey(static row => (string?)row.ReadValue(0)!, Descending: true, NullOrdering: 1)])
             .ToArray();
 
         CollectionAssert.AreEqual(new Row[] { nullRow, high, low }, ordered);
@@ -147,7 +147,7 @@ public class EvaluationHelperTests
     }
 
     [TestMethod]
-    public void GetRowSourceChunks_WhenTypedChunkIsReflected_ShouldUseLazyObjectChunkView()
+    public void GetRowSourceChunks_ShouldRetainConcreteChunkAndEntityIdentity()
     {
         var entities = new[]
         {
@@ -170,15 +170,14 @@ public class EvaluationHelperTests
             new Dictionary<string, string>(),
             NullLogger.Instance);
 
-        var chunks = EvaluationHelper.GetRowSourceChunks(
+        var chunks = EvaluationHelper.GetRowSourceChunks<TypedRowSourceEntity, EmptySourceArguments>(
             schema,
-            typeof(TypedRowSourceEntity),
             "items",
             executionContext,
-            []).ToArray();
+            SourceArguments.Empty).ToArray();
 
         Assert.HasCount(1, chunks);
-        Assert.IsNotInstanceOfType(chunks[0], typeof(List<object>));
+        Assert.IsInstanceOfType<IReadOnlyList<TypedRowSourceEntity>>(chunks[0]);
         Assert.AreSame(entities[0], chunks[0][0]);
         Assert.AreSame(entities[1], chunks[0][1]);
     }
@@ -200,13 +199,13 @@ public class EvaluationHelperTests
             new AsOfIndexTestRow("Exact50", "A", 50),
             new AsOfIndexTestRow("Exact50Later", "A", 50)
         };
-        var index = EvaluationHelper.CreateAsOfIndex(
+        var index = EvaluationHelper.CreateAsOfIndex<AsOfIndexTestRow, int, bool>(
             rows,
             null,
             static row => row.Score,
             comparisonKind);
 
-        var match = index.Find(null, probe);
+        var match = index.Find(default, probe);
 
         Assert.IsNotNull(match);
         Assert.AreEqual(expectedName, match.Name);
@@ -224,21 +223,23 @@ public class EvaluationHelperTests
         };
         var index = EvaluationHelper.CreateAsOfIndex(
             rows,
-            static row => row.Team,
+            static row => new NativeEqualityKey<string>(row.Team != null, row.Team!),
             static row => row.Score,
             BinaryOpKind.GreaterOrEqual);
 
-        Assert.AreEqual("A90", index.Find("A", 100)?.Name);
-        Assert.AreEqual("B80", index.Find("B", 100)?.Name);
-        Assert.IsNull(index.Find(null, 100));
-        Assert.IsNull(index.Find("C", 100));
+        Assert.AreEqual("A90", index.Find(new NativeEqualityKey<string>(true, "A"), 100)?.Name);
+        Assert.AreEqual("B80", index.Find(new NativeEqualityKey<string>(true, "B"), 100)?.Name);
+        Assert.IsNull(index.Find(default, 100));
+        Assert.IsNull(index.Find(new NativeEqualityKey<string>(true, "C"), 100));
     }
 
     [TestMethod]
-    public void CreateAsOfEqualityKey_WhenAnyPartIsNull_ShouldReturnNull()
+    public void NativeAsOfEqualityKey_WhenMissing_ShouldPreserveExplicitPresence()
     {
-        Assert.IsNull(EvaluationHelper.CreateAsOfEqualityKey("A", null, 1));
-        Assert.IsNotNull(EvaluationHelper.CreateAsOfEqualityKey("A", "B", 1));
+        Assert.IsFalse(default(NativeEqualityKey<(string, string, int)>).HasValue);
+        var key = new NativeEqualityKey<(string, string, int)>(true, ("A", "B", 1));
+        Assert.IsTrue(key.HasValue);
+        Assert.AreEqual(("A", "B", 1), key.Value);
     }
 
     [TestMethod]
@@ -408,7 +409,7 @@ public class EvaluationHelperTests
 
         Assert.IsGreaterThan(0, result.Count, "Should return at least one row for the 'Array' column");
         Assert.AreEqual(3, result.Columns.Count(), "Should have 3 columns: Name, Index, Type");
-        Assert.AreEqual("Array", result[0][0], "First row should contain 'Array' column name");
+        Assert.AreEqual("Array", result[0].ReadValue(0), "First row should contain 'Array' column name");
     }
 
     [TestMethod]
@@ -430,7 +431,7 @@ public class EvaluationHelperTests
         var result = EvaluationHelper.GetSpecificColumnDescription(table, "array");
 
         Assert.IsGreaterThan(0, result.Count, "Should find column with case-insensitive match");
-        Assert.AreEqual("Array", result[0][0], "Should return the actual column name (Array)");
+        Assert.AreEqual("Array", result[0].ReadValue(0), "Should return the actual column name (Array)");
     }
 
     [TestMethod]
@@ -529,10 +530,10 @@ public class EvaluationHelperTests
             throw new NotSupportedException();
         }
 
-        public RowSource<T> GetRowSource<T>(
+        public RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments
         {
             return (RowSource<T>)(object)source;
         }

@@ -69,7 +69,7 @@ public sealed class AbiImportDuplicationReproductionTests
             using (var table = directCompiledQuery.Run())
             {
                 Assert.HasCount(1, table);
-                Assert.AreEqual("path", table[0][0]);
+                Assert.AreEqual("path", table[0].ReadValue(0));
             }
 
             for (var attempt = 0; attempt < 3; attempt++)
@@ -99,7 +99,7 @@ public sealed class AbiImportDuplicationReproductionTests
                 using (var table = loadedCompiledQuery.Run())
                 {
                     Assert.HasCount(1, table);
-                    Assert.AreEqual("path", table[0][0]);
+                    Assert.AreEqual("path", table[0].ReadValue(0));
                 }
 
                 var package = InstanceCreator.CompileTargetPackageWithDiagnostics(
@@ -170,10 +170,10 @@ public sealed class PluginArtifactSchema(string value, LibraryBase? library = nu
         return new ArtifactTable(typeof(ArtifactRow), typeof(string));
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource(value));
     }

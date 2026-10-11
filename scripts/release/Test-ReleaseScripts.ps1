@@ -47,6 +47,30 @@ function New-TestWorkflowRun {
 }
 
 $packages = @(Get-ReleasePackages)
+$offlinePackageSources = @(Get-PackageSmokeSources `
+    -PackageDirectory 'C:\candidate-packages' `
+    -GlobalPackagesFolder 'C:\nuget-cache' `
+    -Offline)
+Assert-Equal -Expected 2 -Actual $offlinePackageSources.Count -Message 'Offline package smoke must use only candidate packages and the local global-package cache.'
+Assert-Equal -Expected 'C:\candidate-packages' -Actual $offlinePackageSources[0].Value -Message 'Offline package smoke must include the candidate package feed.'
+Assert-Equal -Expected 'C:\nuget-cache' -Actual $offlinePackageSources[1].Value -Message 'Offline package smoke must include the local global-package cache.'
+if (@($offlinePackageSources | Where-Object { $_.Value -match '^https?://' }).Count -gt 0) {
+    throw 'Offline package smoke must not configure remote package sources.'
+}
+
+$onlinePackageSources = @(Get-PackageSmokeSources -PackageDirectory 'C:\candidate-packages')
+Assert-Equal -Expected 2 -Actual $onlinePackageSources.Count -Message 'Online package smoke must retain its local and NuGet.org sources.'
+Assert-Equal -Expected 'https://api.nuget.org/v3/index.json' -Actual $onlinePackageSources[1].Value -Message 'Online package smoke NuGet.org source changed unexpectedly.'
+
+$offlineMissingCacheRejected = $false
+try {
+    Get-PackageSmokeSources -PackageDirectory 'C:\candidate-packages' -Offline
+}
+catch {
+    $offlineMissingCacheRejected = $true
+}
+Assert-Equal -Expected $true -Actual $offlineMissingCacheRejected -Message 'Offline package smoke must reject a missing local package cache.'
+
 $alphaVersionAllowsBreakingChanges = Test-AlphaReleaseVersion -Version '17.0.9-alpha.1'
 Assert-Equal -Expected $true -Actual $alphaVersionAllowsBreakingChanges -Message 'All-packages alpha versions must allow intentional breaking changes.'
 

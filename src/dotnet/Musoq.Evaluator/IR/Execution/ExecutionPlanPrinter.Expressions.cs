@@ -23,7 +23,7 @@ public static partial class ExecutionPlanPrinter
                 ? fieldRead.FieldName
                 : $"{fieldRead.Alias}.{fieldRead.FieldName}",
             ExecutionMemberRead memberRead =>
-                $"{FormatExpression(memberRead.Receiver)}.{memberRead.MemberName}",
+                $"{FormatExpression(memberRead.Receiver)}{(memberRead.IsNullSafe ? "?." : ".")}{memberRead.MemberName}",
             ExecutionScriptParameterRead parameterRead => $"${parameterRead.Name}",
             ExecutionScriptVariableRead variableRead => $"${variableRead.Name}",
             ExecutionLiteral literal => FormatLiteral(literal.Value.ToClrValue()),
@@ -82,7 +82,7 @@ public static partial class ExecutionPlanPrinter
             ExecutionRowContextsRead contextsRead => $"{contextsRead.Row.Name}.Contexts",
             ExecutionNullContextArray nullContextArray => $"new object[{nullContextArray.Count}]",
             ExecutionContextArray contextArray => $"contexts({string.Join(", ", contextArray.Segments.Select(static segment => FormatExpression(segment.Value)))})",
-            ExecutionCompositeKey compositeKey => FormatCompositeKey(compositeKey),
+
             ExecutionValueTupleKey valueTupleKey => FormatTupleExpression(valueTupleKey.Parts),
             ExecutionWindowValueRead windowValueRead => $"{windowValueRead.Results.Name}[{windowValueRead.Index.Name}]",
             ExecutionAggregateCall aggregateCall => FormatAggregateCall(aggregateCall),

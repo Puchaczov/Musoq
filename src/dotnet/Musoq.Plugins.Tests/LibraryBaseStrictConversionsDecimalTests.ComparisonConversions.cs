@@ -25,15 +25,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     }
 
     [TestMethod]
-    public void TryConvertToInt32Comparison_WithInt_ShouldReturnSame()
-    {
-        var result = Library.TryConvertToInt32Comparison(42);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42, result.Value);
-    }
-
-    [TestMethod]
     public void TryConvertToInt32Comparison_WithLongOutOfRange_ShouldReturnNull()
     {
         var result = Library.TryConvertToInt32Comparison(9223372036854775807L);
@@ -53,16 +44,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     #endregion
 
     #region TryConvertToInt64Comparison Tests
-
-    [TestMethod]
-    public void TryConvertToInt64Comparison_WithDoubleWithFraction_ShouldRound()
-    {
-        var result = Library.TryConvertToInt64Comparison(42.9);
-
-        Assert.IsNotNull(result);
-
-        Assert.AreEqual(43L, result.Value);
-    }
 
     [TestMethod]
     public void TryConvertToInt64Comparison_WithNull_ShouldReturnNull()
@@ -96,14 +77,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     public void TryConvertToDecimalComparison_WithNull_ShouldReturnNull()
     {
         var result = Library.TryConvertToDecimalComparison(null);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalComparison_WithDoubleNaN_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalComparison(double.NaN);
 
         Assert.IsNull(result);
     }

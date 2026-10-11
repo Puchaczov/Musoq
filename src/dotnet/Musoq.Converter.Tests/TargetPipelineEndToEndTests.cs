@@ -75,7 +75,7 @@ public sealed class TargetPipelineEndToEndTests
             throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
         var table = loadedCompiledQuery.Run();
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("loaded", table[0][0]);
+        Assert.AreEqual("loaded", table[0].ReadValue(0));
 
         var inspection = InstanceCreator.CompileForInspection(
             query,
@@ -131,7 +131,7 @@ public sealed class TargetPipelineEndToEndTests
         Assert.IsTrue(second.BuildItems.StopAfterPlanning);
         var secondCompiledQuery = second.CompiledQuery ??
             throw new AssertFailedException("Successful cache activation did not produce a compiled query.");
-        Assert.AreEqual("single", secondCompiledQuery.Run()[0][0]);
+        Assert.AreEqual("single", secondCompiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -186,8 +186,8 @@ public sealed class TargetPipelineEndToEndTests
 
         using var firstTable = first.CompiledQuery!.Run();
         using var secondTable = second.CompiledQuery!.Run();
-        Assert.AreEqual("first", firstTable[0][0]);
-        Assert.AreEqual("second", secondTable[0][0]);
+        Assert.AreEqual("first", firstTable[0].ReadValue(0));
+        Assert.AreEqual("second", secondTable[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -308,7 +308,7 @@ public sealed class TargetPipelineEndToEndTests
 
                 Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
                 using var table = result.CompiledQuery!.Run();
-                return (Index: index, Value: (string)table[0][0]);
+                return (Index: index, Value: (string)table[0].ReadValue(0));
             })));
 
         Assert.HasCount(8, results);
@@ -339,7 +339,7 @@ public sealed class TargetPipelineEndToEndTests
         Assert.IsFalse(second.BuildItems.StopAfterPlanning);
         var secondCompiledQuery = second.CompiledQuery ??
             throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
-        Assert.AreEqual("second", secondCompiledQuery.Run()[0][0]);
+        Assert.AreEqual("second", secondCompiledQuery.Run()[0].ReadValue(0));
     }
 
     private static string FormatDiagnostics(System.Collections.Generic.IEnumerable<Diagnostic> diagnostics)

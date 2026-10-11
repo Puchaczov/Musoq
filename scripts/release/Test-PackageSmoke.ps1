@@ -4,7 +4,9 @@ param(
     [string] $Tag,
 
     [Parameter(Mandatory)]
-    [string] $PackageDirectory
+    [string] $PackageDirectory,
+
+    [switch] $Offline
 )
 
 . (Join-Path $PSScriptRoot 'Release.Common.ps1')
@@ -325,8 +327,28 @@ $packageReferenceXml
 "@
     Set-Content -LiteralPath $projectPath.FullName -Value $projectXml -Encoding UTF8
 
-    $escapedPackageDirectory = [System.Security.SecurityElement]::Escape($resolvedPackageDirectory)
     $escapedGlobalPackagesFolder = [System.Security.SecurityElement]::Escape((Join-Path $tempRoot 'packages'))
+    $globalPackagesCache = if ($Offline) { Get-NuGetGlobalPackagesFolder } else { '' }
+    if ($Offline -and -not (Test-Path -LiteralPath $globalPackagesCache -PathType Container)) {
+        throw 'Offline package smoke requires an existing local NuGet global packages cache.'
+    }
+
+    $packageSources = @(Get-PackageSmokeSources `
+        -PackageDirectory $resolvedPackageDirectory `
+        -GlobalPackagesFolder $globalPackagesCache `
+        -Offline:$Offline)
+    $packageSourcesXml = ($packageSources | ForEach-Object {
+        $key = [System.Security.SecurityElement]::Escape([string]$_.Key)
+        $value = [System.Security.SecurityElement]::Escape([string]$_.Value)
+        $attributes = [System.Collections.Generic.List[string]]::new()
+        $attributes.Add("key=`"$key`"")
+        $attributes.Add("value=`"$value`"")
+        if (-not [string]::IsNullOrWhiteSpace([string]$_.ProtocolVersion)) {
+            $attributes.Add("protocolVersion=`"$([System.Security.SecurityElement]::Escape([string]$_.ProtocolVersion))`"")
+        }
+
+        "    <add $($attributes -join ' ') />"
+    }) -join [Environment]::NewLine
     $nugetConfig = @"
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
@@ -335,15 +357,21 @@ $packageReferenceXml
   </config>
   <packageSources>
     <clear />
-    <add key="local" value="$escapedPackageDirectory" />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+$packageSourcesXml
   </packageSources>
 </configuration>
 "@
     Set-Content -LiteralPath (Join-Path $tempRoot 'NuGet.config') -Value $nugetConfig -Encoding UTF8
     Set-Content -LiteralPath (Join-Path $tempRoot 'Program.cs') -Value (Get-SmokeProgram -Release $release) -Encoding UTF8
 
-    Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments @('restore', $projectPath.FullName, '--nologo', '--verbosity', 'quiet') -WorkingDirectory $tempRoot
+    $restoreArguments = @('restore', $projectPath.FullName, '--nologo', '--verbosity', 'quiet')
+    if ($Offline) {
+        $restoreArguments += '-p:NuGetAudit=false'
+        Write-Host 'Offline package smoke sources:'
+        $packageSources | ForEach-Object { Write-Host "  $($_.Key): $($_.Value)" }
+    }
+
+    Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments $restoreArguments -WorkingDirectory $tempRoot
     Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments @('build', $projectPath.FullName, '--configuration', 'Release', '--no-restore', '--nologo', '--verbosity', 'quiet') -WorkingDirectory $tempRoot
     $assetsPath = Join-Path $tempRoot 'obj/project.assets.json'
     if ((Get-Content -LiteralPath $assetsPath -Raw) -match '"Musoq\.Targets\.') {

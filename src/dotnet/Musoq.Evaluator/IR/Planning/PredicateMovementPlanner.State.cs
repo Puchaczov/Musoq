@@ -15,6 +15,8 @@ internal static partial class PredicateMovementPlanner
         IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans,
         IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans)
     {
+        private readonly IReadOnlyDictionary<string, SourcePredicateTransferBoundary> _whereBoundaries =
+            SourcePredicateTransferBoundaryPlanner.Plan(logicalPlan);
         private readonly Dictionary<string, SourcePlanProperties[]> _sourcesByAlias = sources.Values
             .GroupBy(static source => source.Alias, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
@@ -60,6 +62,9 @@ internal static partial class PredicateMovementPlanner
             foreach (var entry in _wherePredicatesByAlias.OrderBy(static entry => entry.Key, StringComparer.OrdinalIgnoreCase))
             {
                 var alias = entry.Key;
+                if (_sourcesByAlias.TryGetValue(alias, out var scopedSources) &&
+                    scopedSources.Any(source => _whereBoundaries.ContainsKey(source.SourceContextId)))
+                    continue;
                 foreach (var predicate in entry.Value)
                 {
                     var key = CreateMovedWhereKey(alias, predicate);
@@ -85,6 +90,8 @@ internal static partial class PredicateMovementPlanner
 
         private void AddJoinOnMovements(JoinNode join)
         {
+            if (!CanMovePredicate(join.OnPredicate).IsSafe)
+                return;
             foreach (var predicate in SplitConjuncts(join.OnPredicate))
             {
                 var aliases = ExtractAliases(predicate);
@@ -201,8 +208,8 @@ internal static partial class PredicateMovementPlanner
             var result = new Dictionary<string, Dictionary<string, IrExpression>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var plan in sourcePredicatePlans.Values)
-            foreach (var predicate in plan.PushedPredicates)
-                AddWherePredicate(result, plan.Alias, predicate);
+                foreach (var predicate in plan.PushedPredicates)
+                    AddWherePredicate(result, plan.Alias, predicate);
 
             AddFilterPredicates(logicalPlan, result);
 
@@ -219,7 +226,7 @@ internal static partial class PredicateMovementPlanner
             LogicalNode node,
             Dictionary<string, Dictionary<string, IrExpression>> result)
         {
-            if (node is FilterNode filter)
+            if (node is FilterNode filter && CanMovePredicate(filter.Predicate).IsSafe)
             {
                 foreach (var predicate in SplitConjuncts(filter.Predicate))
                 {
@@ -247,6 +254,8 @@ internal static partial class PredicateMovementPlanner
                 result[alias] = predicates;
             }
 
+            if (ExtractAliases(predicate).Any(reference => !string.Equals(reference, alias, StringComparison.OrdinalIgnoreCase)))
+                return;
             predicates.TryAdd(IrExpressionPrinter.Print(predicate), predicate);
         }
     }

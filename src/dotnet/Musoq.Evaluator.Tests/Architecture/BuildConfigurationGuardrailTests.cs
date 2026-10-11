@@ -16,6 +16,22 @@ public sealed class BuildConfigurationGuardrailTests
         RegexOptions.Compiled);
 
     [TestMethod]
+    public void ProductionSourceScan_WhenSamplesAreUnderSourceTree_ShouldExcludeSamplesAndRetainProduction()
+    {
+        var repositoryRoot = RepositorySourceScan.RepositoryRoot();
+        var sampleFiles = RepositorySourceScan.FilesUnder(repositoryRoot, "src/dotnet/generated-code-samples", "*.cs");
+
+        var productionFiles = RepositorySourceScan.ProductionSourceFiles(repositoryRoot);
+
+        Assert.HasCount(GeneratedCodeSamplesCatalog.Samples.Count + GeneratedCodeProfiledSamplesCatalog.Samples.Count,
+            sampleFiles);
+        Assert.IsTrue(sampleFiles.All(file => RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, file)));
+        Assert.IsFalse(productionFiles.Any(file => RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, file)));
+        Assert.Contains(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "CompiledQuery.cs"),
+            productionFiles);
+    }
+
+    [TestMethod]
     public void SolutionProjectReferences_ShouldPointToExistingProjects()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();

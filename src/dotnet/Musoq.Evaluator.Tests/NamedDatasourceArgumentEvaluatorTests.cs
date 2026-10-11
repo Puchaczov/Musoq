@@ -23,7 +23,7 @@ using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class NamedDatasourceArgumentEvaluatorTests
+public sealed partial class NamedDatasourceArgumentEvaluatorTests
 {
     [TestMethod]
     public void NamedArguments_AreCanonicalizedBeforeMetadataInvocation()
@@ -131,8 +131,8 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
 
         var table = EvaluationHelper.GetConstructorsForSpecificMethod(schema, "any", context);
 
-        Assert.AreEqual("first: System.String", table[0][1]);
-        Assert.AreEqual("second: System.Int32 = 7", table[0][2]);
+        Assert.AreEqual("first: System.String", table[0].ReadValue(1));
+        Assert.AreEqual("second: System.Int32 = 7", table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -191,7 +191,7 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
             provider,
             new TestsLoggerResolver());
 
-        vm.Parameters["value"] = "first";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "first");
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -211,7 +211,7 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
             provider,
             new TestsLoggerResolver());
 
-        vm.Parameters["value"] = 7;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", 7);
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -256,7 +256,7 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
             provider,
             new TestsLoggerResolver());
 
-        vm.Parameters["value"] = "value";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "value");
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -299,11 +299,12 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
             return new NamedCaptureTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             capture(parameters);
             return new SingleRowSource<T>();
         }
@@ -328,7 +329,7 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
             _ = second;
         }
 
-        public ISchemaColumn[] Columns => [];
+        public ISchemaColumn[] Columns => [new Musoq.Schema.DataSources.SchemaColumn("Value", 0, typeof(int))];
 
         public ISchemaColumn? GetColumnByName(string name) =>
             Columns.SingleOrDefault(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -339,7 +340,10 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
         public SchemaTableMetadata Metadata { get; } = new(typeof(NamedCaptureEntity));
     }
 
-    public sealed class NamedCaptureEntity;
+    public sealed class NamedCaptureEntity
+    {
+        public int Value { get; init; }
+    }
 
     private sealed class TripleCaptureSchemaProvider(
         Action<object?[]> captureMetadata,
@@ -388,11 +392,12 @@ public sealed class NamedDatasourceArgumentEvaluatorTests
             return new TripleCaptureTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             captureRuntime(parameters);
             return new TripleCaptureRowSource<T>();
         }

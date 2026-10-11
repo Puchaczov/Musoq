@@ -386,7 +386,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "values {( Id: 1, Name: 'root' ), ( Id: 2, Name: 'middle' ), ( Id: 3, Name: 'leaf' )} l " +
             "on w.Id = l.Id",
             new CompilationOptions(),
-            [new("w.Id", typeof(int)), new("l.Name", typeof(string))],
+            [new("Id", typeof(int)), new("Name", typeof(string))],
             [[1, "root"], [2, "middle"], [3, "leaf"]],
             false,
             "Q212_RecursiveOuterJoin"),

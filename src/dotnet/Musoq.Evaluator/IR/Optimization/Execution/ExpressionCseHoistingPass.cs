@@ -411,7 +411,6 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
         private static bool IsPrologueNode(ExecutionNode node)
         {
             return node is ExecutionLet or
-                ExecutionAdaptExpando or
                 ExecutionMethodTargetDeclarationCandidate or
                 ExecutionCreateGeneratedRow or
                 ExecutionCreateAsOfIndex;

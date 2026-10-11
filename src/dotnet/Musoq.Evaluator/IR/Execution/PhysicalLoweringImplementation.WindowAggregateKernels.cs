@@ -13,7 +13,7 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultsName)
     {
         var registration = context.RegistrationResult.Registration!;
-        if (!CanUseWindowAggregateKernel(registration, arguments))
+        if (!CanUseWindowAggregateKernel(registration))
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
         var frame = CreateAggregateWindowFrame(registration);
@@ -22,11 +22,11 @@ internal sealed partial class PhysicalLoweringImplementation
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
         var descriptor = ResolveWindowAggregateCapability(
-            context.RegistrationResult.PluginFactory!,
+            context.RegistrationResult.SqlDeclaration!,
             registration.FunctionName,
             arguments.Value.ReturnType.ResolveClrType(),
             registration.ReturnType,
-            mode.Mode);
+            registration.UseRunningPeers ? ExecutionWindowAggregateMode.Running : mode.Mode);
         if (!descriptor.IsBuilt || descriptor.Descriptor is null)
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
@@ -47,43 +47,30 @@ internal sealed partial class PhysicalLoweringImplementation
             arguments.Value,
             filterPredicate,
             frame,
-            descriptor.Descriptor,
+            descriptor.Descriptor with
+            {
+                CaptureArguments = registration.CaptureArguments,
+                Mode = mode.Mode,
+                UseRunningPeers = registration.UseRunningPeers,
+                LibraryBatch = registration.UseBatchEvaluation ? descriptor.Descriptor.LibraryBatch : null
+            },
             results,
             resources.PartitionKeyArray,
             resources.OrderKeyArray,
             resources.Partitions,
             resources.SortedPartitions,
-            arguments.MethodTargets);
+            arguments.MethodTargets)
+        {
+            LibraryArguments = arguments.Arguments,
+            UseIntegerOrderIndex = registration.UseIntegerOrderIndex
+        };
 
         return (true, WindowComputationBuildResult.Success(registration, node, results));
     }
 
-    private static bool CanUseWindowAggregateKernel(
-        WindowRegistration registration,
-        PluginWindowArgumentsBuildResult arguments)
+    private static bool CanUseWindowAggregateKernel(WindowRegistration registration)
     {
-        return registration.ValueArguments.Length == 1 &&
-               arguments.Arguments.Count == 0 &&
-               arguments.RowScopedArguments.Count == 0 &&
-               (IsCountWindowFunction(registration.FunctionName) ||
-                IsSupportedWindowAggregateKernelInput(arguments.Value.ReturnType.ResolveClrType()));
-    }
-
-    private static bool IsCountWindowFunction(string functionName)
-    {
-        return string.Equals(
-            functionName.Replace("_", string.Empty, StringComparison.Ordinal),
-            "count",
-            StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool IsSupportedWindowAggregateKernelInput(Type inputType)
-    {
-        var valueType = Nullable.GetUnderlyingType(inputType) ?? inputType;
-        return valueType == typeof(decimal) ||
-               valueType == typeof(int) ||
-               valueType == typeof(long) ||
-               valueType == typeof(double);
+        return registration.Function?.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null, ContextType: null };
     }
 
     private static ExecutionWindowFrame? CreateAggregateWindowFrame(WindowRegistration registration)
@@ -133,93 +120,42 @@ internal sealed partial class PhysicalLoweringImplementation
         Type resultType,
         ExecutionWindowAggregateMode mode)
     {
-        var capability = GetWindowAggregateCapability(factoryMethod, functionName, inputType, resultType);
-        if (capability == null || !HasWindowAggregateCapability(capability, mode))
-            return (false, null);
-
-        if (!HasTypedWindowAggregateCapability(capability))
-            return (false, null);
-
-        if (mode == ExecutionWindowAggregateMode.BoundedRows &&
-            !ImplementsRetractableAccumulator(capability, inputType, resultType))
+        if (factoryMethod.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null } declaration)
         {
-            return (false, null);
+            var required = mode switch
+            {
+                ExecutionWindowAggregateMode.WholePartition => WindowEvaluationModes.WholePartition,
+                ExecutionWindowAggregateMode.Running => WindowEvaluationModes.Running,
+                _ => WindowEvaluationModes.RecomputeFrames
+            };
+            if ((declaration.Modes & required) == 0)
+                throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                    $"Window '{functionName}' does not support evaluation mode {required}.", Musoq.Parser.TextSpan.Empty);
+            var kernel = CreateValidatedWindowKernel(factoryMethod);
+            return (true, new ExecutionWindowAggregateKernelDescriptor(ExecutionWindowAggregateFunction.Library,
+                mode, inputType, kernel.ResultType, kernel.StateType)
+            {
+                LibraryKernel = new ExecutionAggregateKernelOperations(kernel),
+                LibraryBatch = CreateWindowBatchLibraryOperation(factoryMethod)
+            });
         }
-
-        return (true, new ExecutionWindowAggregateKernelDescriptor(
-            CreateWindowAggregateFunction(capability.Function),
-            mode,
-            capability.InputType,
-            capability.ResultType,
-            capability.AccumulatorType));
+        throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+            $"Window '{functionName}' must register a concrete typed library kernel; legacy capability providers are unsupported.", Musoq.Parser.TextSpan.Empty);
     }
 
-    private static WindowAggregateCapability? GetWindowAggregateCapability(
-        MethodInfo factoryMethod,
-        string functionName,
-        Type inputType,
-        Type resultType)
+    private static AggregateKernelDescriptor CreateValidatedWindowKernel(MethodInfo declaration)
     {
-        var attribute = factoryMethod.GetCustomAttribute<WindowFunctionAttribute>();
-        var providerType = attribute?.CapabilityProviderType;
-        if (providerType == null ||
-            !typeof(IWindowAggregateCapabilityProvider).IsAssignableFrom(providerType))
+        try
         {
-            return null;
+            return AggregateKernelDescriptor.CreateForWindow(declaration);
         }
-
-        var provider = (IWindowAggregateCapabilityProvider?)Activator.CreateInstance(providerType);
-        return provider?.GetCapability(new WindowAggregateCapabilityContext(functionName, inputType, resultType));
+        catch (InvalidOperationException exception)
+        {
+            throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(exception.Message,
+                Musoq.Parser.TextSpan.Empty);
+        }
     }
 
     private static object CreateClrDefaultValue(Type type) =>
         Activator.CreateInstance(type) ?? throw new InvalidOperationException($"Type {type.FullName} has no non-null CLR default value.");
-
-    private static bool HasWindowAggregateCapability(
-        WindowAggregateCapability capability,
-        ExecutionWindowAggregateMode mode)
-    {
-        var required = mode switch
-        {
-            ExecutionWindowAggregateMode.WholePartition => WindowAggregateCapabilities.WholePartition,
-            ExecutionWindowAggregateMode.Running => WindowAggregateCapabilities.Running,
-            ExecutionWindowAggregateMode.BoundedRows => WindowAggregateCapabilities.BoundedRows,
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
-        };
-
-        return capability.Capabilities.HasFlag(required);
-    }
-
-    private static bool HasTypedWindowAggregateCapability(WindowAggregateCapability capability)
-    {
-        const WindowAggregateCapabilities required =
-            WindowAggregateCapabilities.TypedInput |
-            WindowAggregateCapabilities.TypedResult;
-
-        return (capability.Capabilities & required) == required;
-    }
-
-    private static bool ImplementsRetractableAccumulator(
-        WindowAggregateCapability capability,
-        Type inputType,
-        Type resultType)
-    {
-        var retractableType = typeof(IWindowRetractableAccumulator<,>)
-            .MakeGenericType(inputType, resultType);
-        return retractableType.IsAssignableFrom(capability.AccumulatorType);
-    }
-
-    private static ExecutionWindowAggregateFunction CreateWindowAggregateFunction(
-        WindowAggregateFunction function)
-    {
-        return function switch
-        {
-            WindowAggregateFunction.Sum => ExecutionWindowAggregateFunction.Sum,
-            WindowAggregateFunction.Count => ExecutionWindowAggregateFunction.Count,
-            WindowAggregateFunction.Avg => ExecutionWindowAggregateFunction.Avg,
-            WindowAggregateFunction.Min => ExecutionWindowAggregateFunction.Min,
-            WindowAggregateFunction.Max => ExecutionWindowAggregateFunction.Max,
-            _ => throw new ArgumentOutOfRangeException(nameof(function), function, null)
-        };
-    }
 }

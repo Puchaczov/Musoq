@@ -35,6 +35,18 @@ internal sealed record CsvSourceOptions(
         };
     }
 
+    public static CsvSourceOptions FromNative<TArguments>(TArguments parameters)
+        where TArguments : struct, ISourceArguments
+    {
+        if (parameters.Count > 4)
+            throw new ArgumentException("CSV file source accepts at most four parameters.");
+        return new CsvSourceOptions(
+            parameters.Count > 0 ? parameters.GetValue<string>(0) : null,
+            parameters.Count > 1 && parameters.GetValue<bool>(1),
+            parameters.Count > 2 ? parameters.GetValue<int>(2) : 0,
+            parameters.Count > 3 ? parameters.GetValue<string>(3) : ",");
+    }
+
     private static string RequireString(object? value, string parameterName)
     {
         if (value is string text)
@@ -61,5 +73,3 @@ internal sealed record CsvSourceOptions(
         };
     }
 }
-
-internal sealed record CsvColumnMapping(ISchemaColumn Column, int SourceIndex, int ValueIndex);

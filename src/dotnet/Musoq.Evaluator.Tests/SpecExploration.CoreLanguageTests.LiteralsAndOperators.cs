@@ -21,7 +21,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("\\", table[0][0]);
+        Assert.AreEqual("\\", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -37,7 +37,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("'", table[0][0]);
+        Assert.AreEqual("'", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -53,7 +53,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("\n", table[0][0]);
+        Assert.AreEqual("\n", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0][0]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0][0]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -101,7 +101,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello\nWorld\t\u0394\\test", table[0][0]);
+        Assert.AreEqual("Hello\nWorld\t\u0394\\test", table[0].ReadValue(0));
     }
 
     #endregion

@@ -18,6 +18,6 @@ public class WindowDefinitionNode(string name, WindowSpecificationNode specifica
 
     public override string ToString()
     {
-        return $"{Name} as {Specification}";
+        return $"{Name} as {Specification.ToString()}";
     }
 }

@@ -138,15 +138,18 @@ public sealed partial class CSharpRenderer
         out MethodDeclarationSyntax rowsAdapterMethod,
         out QueryMethodRenderMetadata metadata)
     {
-        if (!CanStreamFinalShapeRows(plan, resultInfo, out metadata))
+        TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan);
+        var output = renderPlan.FinalSinkPlans.TableOutput;
+        metadata = new QueryMethodRenderMetadata(
+            FinalResultSinkKind.TableRowsMaterialized, QueryResultRowPathKind.DirectRows, false);
+        if (!output.IsSupported)
         {
             shapeRowsMethod = null!;
             rowsAdapterMethod = null!;
             return false;
         }
 
-        var bufferFinalShapes = RequiresBufferedFinalShapeRows(plan, resultInfo);
-        var usesGeneratedRowCarrier = ExecutionCSharpRenderer.CanUseGeneratedFinalRowSink(plan, resultInfo.TableName);
+        var bufferFinalShapes = output.BufferFinalRows;
         shapeRowsMethod = executionRenderer.RenderFinalShapeRowsMethod(
             plan,
             shapeRowsMethodName,
@@ -156,13 +159,14 @@ public sealed partial class CSharpRenderer
             resultInfo.ShapeFields,
             useQueryRunContext: useQueryRunContext,
             includeProfileRecorderParameter: includeProfileRecorderParameter,
-            bufferFinalShapes: bufferFinalShapes);
-        rowsAdapterMethod = usesGeneratedRowCarrier
+            outputPlan: output);
+        rowsAdapterMethod = !output.PreserveEnumerationBoundary
             ? CreateTableRowsForwardingMethod(rowsMethodName, shapeRowsMethodName, resultInfo.RowTypeName, useQueryRunContext, includeProfileRecorderParameter)
             : CreateTableRowsAdapterMethod(
                 rowsMethodName,
                 shapeRowsMethodName,
                 resultInfo,
+                output,
                 useQueryRunContext,
                 includeProfileRecorderParameter,
                 wrapProfiledShapeRows: includeProfileRecorderParameter &&
@@ -203,7 +207,11 @@ public sealed partial class CSharpRenderer
         out MethodDeclarationSyntax typedRowsMethod,
         out QueryMethodRenderMetadata metadata)
     {
-        if (!CanStreamFinalShapeRows(plan, resultInfo, out metadata))
+        TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan);
+        var output = renderPlan.FinalSinkPlans.TypedOutput;
+        metadata = new QueryMethodRenderMetadata(
+            FinalResultSinkKind.TableRowsMaterialized, QueryResultRowPathKind.DirectRows, false);
+        if (!output.IsSupported)
         {
             shapeRowsMethod = null!;
             typedRowsMethod = null!;
@@ -218,142 +226,13 @@ public sealed partial class CSharpRenderer
             resultInfo.ShapeTypeName,
             resultInfo.ShapeFields,
             useQueryRunContext: true,
-            bufferFinalShapes: RequiresBufferedFinalShapeRows(plan, resultInfo));
+            outputPlan: output);
         typedRowsMethod = CreateTypedRowsAdapterMethod(rowsMethodName, shapeRowsMethodName, binding, resultInfo);
         metadata = new QueryMethodRenderMetadata(
             FinalResultSinkKind.TypedSerialEnumerable,
             QueryResultRowPathKind.DirectRows,
             false);
         return true;
-    }
-
-    private static bool CanStreamFinalShapeRows(
-        ExecutionPlan plan,
-        TableViaRowsResultInfo resultInfo,
-        out QueryMethodRenderMetadata metadata)
-    {
-        metadata = new QueryMethodRenderMetadata(
-            FinalResultSinkKind.TableRowsMaterialized,
-            QueryResultRowPathKind.DirectRows,
-            false);
-
-        var returnTable = plan.Body.Nodes.OfType<ExecutionReturnTable>().LastOrDefault();
-        if (returnTable == null || returnTable.Table.Name != resultInfo.TableName)
-            return false;
-
-        return CanStreamSerialFinalAppendRows(plan, resultInfo) ||
-               HasSupportedFinalShapeWriter(plan.Body, resultInfo.TableName, resultInfo.Columns.Count);
-    }
-
-    private static bool CanStreamSerialFinalAppendRows(
-        ExecutionPlan plan,
-        TableViaRowsResultInfo resultInfo)
-    {
-        if (!plan.Body.Nodes.OfType<ExecutionCreateTable>().Any(create => create.Table.Name == resultInfo.TableName))
-            return false;
-
-        var sourceLoops = plan.Body.Nodes.OfType<ExecutionSourceLoop>().ToArray();
-        if (sourceLoops.Length != 1)
-            return false;
-
-        var loop = sourceLoops[0];
-        if (plan.Body.Nodes.Any(node => !IsAllowedSerialShapeStreamNode(node, resultInfo.TableName, loop)))
-            return false;
-
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(plan.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(plan.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionAppendExistingRow>(plan.Body)
-                .Any(append => append.Table.Name == resultInfo.TableName))
-        {
-            return false;
-        }
-
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionEnumerableSource>(loop.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddSingleKeyAggregateGroup>(loop.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddValueTupleAggregateGroup>(loop.Body).Any())
-        {
-            return false;
-        }
-
-        var appendRows = ExecutionIrAnalysis.CollectNodes<ExecutionAppendRow>(loop)
-            .Where(append => append.Table.Name == resultInfo.TableName)
-            .ToArray();
-
-        return appendRows.Length == 1 &&
-               appendRows[0].Values.Count == resultInfo.Columns.Count;
-    }
-
-    private static bool IsAllowedSerialShapeStreamNode(
-        ExecutionNode node,
-        string finalTableName,
-        ExecutionSourceLoop loop)
-    {
-        return node switch
-        {
-            ExecutionSourceScan => true,
-            ExecutionInterpretSource => true,
-            ExecutionEnumerableSource => true,
-            ExecutionCreateObject => true,
-            ExecutionCreateValuesRows => true,
-            ExecutionPhaseBoundary => true,
-            ExecutionCreateTable createTable => createTable.Table.Name == finalTableName,
-            ExecutionEnsureTableCapacity ensureCapacity => ensureCapacity.Table.Name == finalTableName,
-            ExecutionReturnTable returnTable => returnTable.Table.Name == finalTableName,
-            ExecutionLet => true,
-            _ when ReferenceEquals(node, loop) => true,
-            _ => false
-        };
-    }
-
-    private static bool HasSupportedFinalShapeWriter(
-        ExecutionBlock block,
-        string finalTableName,
-        int columnCount)
-    {
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionAppendRow>(block)
-            .Any(append => append.Table.Name == finalTableName && append.Values.Count == columnCount))
-        {
-            return true;
-        }
-
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionAppendExistingRow>(block)
-            .Any(append => append.Table.Name == finalTableName))
-        {
-            return true;
-        }
-
-        if (block.Nodes.OfType<ExecutionMaterializeRecordListToTable>()
-            .Any(materialize => materialize.Target.Name == finalTableName && materialize.FieldIndexes.Count == columnCount))
-        {
-            return true;
-        }
-
-        if (block.Nodes.OfType<ExecutionSetOperation>().Any(setOperation => setOperation.Target.Name == finalTableName))
-            return true;
-
-        return block.Nodes.Any(node => IsSupportedFinalShapePostOperation(node, finalTableName));
-    }
-
-    private static bool RequiresBufferedFinalShapeRows(
-        ExecutionPlan plan,
-        TableViaRowsResultInfo resultInfo)
-    {
-        return !CanStreamSerialFinalAppendRows(plan, resultInfo);
-    }
-
-    private static bool IsSupportedFinalShapePostOperation(ExecutionNode node, string finalTableName)
-    {
-        return node switch
-        {
-            ExecutionDistinctTable distinct => distinct.Target.Name == finalTableName,
-            ExecutionSortTable sort => sort.Target.Name == finalTableName,
-            ExecutionTopNTable topN => topN.Target.Name == finalTableName,
-            ExecutionTopOffsetTable topOffset => topOffset.Target.Name == finalTableName,
-            ExecutionSkipTable skip => skip.Target.Name == finalTableName,
-            ExecutionTakeTable take => take.Target.Name == finalTableName,
-            ExecutionSliceTable slice => slice.Target.Name == finalTableName,
-            _ => false
-        };
     }
 
     private static IEnumerable<StatementSyntax> CreateTableRowsChunkedParallelReturnStatements(
@@ -637,6 +516,7 @@ public sealed partial class CSharpRenderer
         string rowsMethodName,
         string shapeRowsMethodName,
         TableViaRowsResultInfo resultInfo,
+        FinalOutputPlan output,
         bool useQueryRunContext,
         bool includeProfileRecorderParameter = false,
         bool wrapProfiledShapeRows = false)
@@ -655,7 +535,7 @@ public sealed partial class CSharpRenderer
                         SyntaxFactory.GenericName(nameof(ProfiledOperatorEnumerable<object>))
                             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                                 SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.ParseTypeName(resultInfo.ShapeTypeName)))),
+                                    SyntaxFactory.ParseTypeName(output.RowTypeName)))),
                         SyntaxFactory.IdentifierName(nameof(ProfiledOperatorEnumerable<object>.Create))))
                 .WithArgumentList(CreateArgumentList(
                     shapeRowsExpression,
@@ -672,16 +552,9 @@ public sealed partial class CSharpRenderer
                             SyntaxFactory.Literal(0)))));
         }
 
-        var rowArguments = resultInfo.ShapeFields
-            .Select(field => SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(shapeRowName),
-                SyntaxFactory.IdentifierName(EscapeIdentifier(GeneratedRowNamingPolicy.GetGeneratedFieldName(field))))))
-            .ToArray();
         var yieldRow = SyntaxFactory.YieldStatement(
             SyntaxKind.YieldReturnStatement,
-            SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(resultInfo.RowTypeName))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(rowArguments))));
+            CreateFinalTableRowExpression(output, shapeRowName));
         var body = SyntaxFactory.Block(SyntaxFactory.ForEachStatement(
             SyntaxFactory.IdentifierName("var"),
             SyntaxFactory.Identifier(shapeRowName),
@@ -694,6 +567,21 @@ public sealed partial class CSharpRenderer
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(CreateTableRowsAdapterParameterList(useQueryRunContext, includeProfileRecorderParameter))
             .WithBody(body);
+    }
+
+    private static ExpressionSyntax CreateFinalTableRowExpression(FinalOutputPlan output, string shapeRowName)
+    {
+        if (output.UsesGeneratedRow)
+            return SyntaxFactory.IdentifierName(shapeRowName);
+
+        var rowArguments = output.Result.ShapeFields
+            .Select(field => SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(shapeRowName),
+                SyntaxFactory.IdentifierName(EscapeIdentifier(GeneratedRowNamingPolicy.GetGeneratedFieldName(field))))))
+            .ToArray();
+        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(output.Result.RowTypeName))
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(rowArguments)));
     }
 
     private static ParameterListSyntax CreateTableRowsAdapterParameterList(

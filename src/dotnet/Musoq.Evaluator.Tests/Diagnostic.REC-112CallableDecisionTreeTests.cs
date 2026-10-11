@@ -437,10 +437,10 @@ public sealed class DiagnosticREC112CallableDecisionTreeTests
             return new MatrixTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
     }
 
     private static class MatrixSignatures

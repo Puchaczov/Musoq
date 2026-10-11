@@ -27,14 +27,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         }
 
         Assert.Contains("Operators.LikeDynamic", samples[1].Content);
-        Assert.Contains("new Musoq.Evaluator.LikeMatcherCacheSlot(false)", samples[1].Content);
+        Assert.Contains("new Musoq.Evaluator.LikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))", samples[1].Content);
         Assert.Contains("Operators.LikeDynamic", samples[2].Content);
         Assert.Contains("Operators.PrepareLike", samples[3].Content);
         Assert.Contains("Operators.LikePrepared", samples[3].Content);
         Assert.Contains("Operators.PrepareRLike", samples[4].Content);
         Assert.Contains("Operators.RLikePrepared", samples[4].Content);
         Assert.Contains("Operators.RLikeDynamic", samples[5].Content);
-        Assert.Contains("new Musoq.Evaluator.RLikeMatcherCacheSlot(false)", samples[5].Content);
+        Assert.Contains("new Musoq.Evaluator.RLikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))", samples[5].Content);
         Assert.Contains("Operators.PrepareRLike", samples[6].Content);
         Assert.Contains("Operators.RLikePrepared", samples[6].Content);
         Assert.Contains("comparison=Ordinal", samples[7].Content);

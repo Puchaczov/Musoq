@@ -43,8 +43,10 @@ internal sealed partial class PhysicalLoweringImplementation
             for (var index = 0; index < tableRow.Contexts.Count; index++)
             {
                 var context = tableRow.Contexts[index];
+                var isNullable = IsNullableContext(context, nullableAliases) || context.Nullability == FieldNullability.Nullable;
                 yield return context with
                 {
+                    Type = ResolveContextStorageType(context.Type, isNullable),
                     AccessStrategy = new ContextAccess(startIndex + index),
                     Nullability = IsNullableContext(context, nullableAliases)
                         ? FieldNullability.Nullable
@@ -60,7 +62,9 @@ internal sealed partial class PhysicalLoweringImplementation
             alias,
             alias,
             startIndex,
-            RowShapeLookup.ResolveSourceRuntimeType(sourceShape),
+            ResolveContextStorageType(
+                ExecutionClrBindingFactory.FromClr(RowShapeLookup.ResolveSourceRuntimeType(sourceShape)),
+                IsNullableContext(alias, nullableAliases)),
             IsNullableContext(alias, nullableAliases)
                 ? FieldNullability.Nullable
                 : FieldNullability.Unknown,
@@ -83,6 +87,15 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         yield return generatedContextBinding;
+    }
+
+    private static ExecutionTypeRef ResolveContextStorageType(ExecutionTypeRef type, bool nullable)
+    {
+        var clrType = type.ResolveClrType();
+        if (!nullable || !clrType.IsValueType || Nullable.GetUnderlyingType(clrType) != null)
+            return type;
+
+        return ExecutionClrBindingFactory.FromClr(typeof(Nullable<>).MakeGenericType(clrType));
     }
 
     private static bool IsNullableContext(

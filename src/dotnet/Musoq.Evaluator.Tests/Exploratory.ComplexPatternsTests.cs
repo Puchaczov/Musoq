@@ -39,9 +39,9 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("Tag", typeof(string)),
-            ("a.City", typeof(string)));
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["John", "vip", "NYC"],
@@ -108,7 +108,7 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("i.ProductName", typeof(string)),
+            ("ProductName", typeof(string)),
             ("PricePlusZero", typeof(decimal)),
             ("QuantityTimesOne", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -151,7 +151,7 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("o.OrderId", typeof(int)),
+            ("OrderId", typeof(int)),
             ("TotalPrice", typeof(decimal?)),
             ("AvgPrice", typeof(decimal?)),
             ("MinPrice", typeof(decimal?)),
@@ -185,8 +185,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("t.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Jane", "a"]);
@@ -223,8 +223,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("o.OrderId", typeof(int)),
-            ("i.ProductName", typeof(string)));
+            ("OrderId", typeof(int)),
+            ("ProductName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [1, "Expensive"]);
@@ -278,7 +278,7 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Age", typeof(int)),
+            ("Age", typeof(int)),
             ("NameCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -309,8 +309,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("t.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "user"],
@@ -340,8 +340,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("t.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "admin"]);
@@ -370,8 +370,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("t.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "admin"],
@@ -401,8 +401,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("t.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "admin"],

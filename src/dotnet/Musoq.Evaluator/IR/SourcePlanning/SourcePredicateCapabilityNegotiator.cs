@@ -17,6 +17,9 @@ internal static partial class SourcePredicateCapabilityNegotiator
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(capabilities);
 
+        if (!SourcePredicateGraphValidator.IsValid(request.Predicate, request.CancellationToken))
+            return new SourcePredicateCapabilityNegotiation(request with { Predicate = null }, null, false);
+
         if (request.Predicate == null)
         {
             return new SourcePredicateCapabilityNegotiation(request, null, false);

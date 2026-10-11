@@ -346,10 +346,10 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             return new BasicEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return EnsureSourceType<T, BasicEntity>(
                 name,

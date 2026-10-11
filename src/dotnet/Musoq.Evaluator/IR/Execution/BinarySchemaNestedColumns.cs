@@ -32,7 +32,8 @@ public sealed partial class ExecutionShapeResolver
             return;
         }
 
-        if (definition.TypeAnnotation is not SchemaReferenceTypeNode reference)
+        var reference = BinarySchemaNestedReference.Resolve(definition.TypeAnnotation);
+        if (reference is null)
             return;
 
         var resolvedReference = BinarySchemaGenericResolver.ResolveReference(reference, context.GenericBindings);

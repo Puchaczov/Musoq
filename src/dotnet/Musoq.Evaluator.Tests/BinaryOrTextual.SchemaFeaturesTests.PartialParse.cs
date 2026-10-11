@@ -40,17 +40,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.ParsedFields", typeof(Dictionary<string, object?>)),
-            ("p.ErrorField", typeof(string)),
-            ("p.ErrorMessage", typeof(string)),
-            ("p.BytesConsumed", typeof(int)));
+            ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "KeyValue")),
+            ("ErrorField", typeof(string)),
+            ("ErrorMessage", typeof(string)),
+            ("BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual("host", parsedFields["Key"]);
         Assert.AreEqual("localhost", parsedFields["Value"]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual("host=localhost".Length, table[0][3]);
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual("host=localhost".Length, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -83,17 +83,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.ParsedFields", typeof(Dictionary<string, object?>)),
-            ("p.ErrorField", typeof(string)),
-            ("p.ErrorMessage", typeof(string)),
-            ("p.BytesConsumed", typeof(int)));
+            ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "KeyValue")),
+            ("ErrorField", typeof(string)),
+            ("ErrorMessage", typeof(string)),
+            ("BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual("host", parsedFields["Key"]);
         Assert.IsFalse(parsedFields.ContainsKey("Value"));
-        Assert.AreEqual("Value", table[0][1]);
-        StringAssert.Contains((string)table[0][2]!, "ISE0001");
-        Assert.AreEqual("host=".Length, table[0][3]);
+        Assert.AreEqual("Value", table[0].ReadValue(1));
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "ISE0001");
+        Assert.AreEqual("host=".Length, table[0].ReadValue(3));
     }
 
     [TestMethod]

@@ -66,9 +66,9 @@ public class EvaluatorExceptionAndTableTests
 
         var row = new TestRow(values, contexts);
 
-        Assert.AreEqual(1, row[0]);
-        Assert.AreEqual("test", row[1]);
-        Assert.AreEqual(3.14, row[2]);
+        Assert.AreEqual(1, row.ReadValue(0));
+        Assert.AreEqual("test", row.ReadValue(1));
+        Assert.AreEqual(3.14, row.ReadValue(2));
     }
 
     [TestMethod]
@@ -215,110 +215,6 @@ public class EvaluatorExceptionAndTableTests
 
         Assert.AreSame(row1, table[0]);
         Assert.AreSame(row2, table[1]);
-    }
-
-    #endregion
-
-    #region Key Tests
-
-    [TestMethod]
-    public void Key_Constructor_SetsValues()
-    {
-        var values = new object[] { 1, "test" };
-        var columns = new[] { 0, 1 };
-        var key = new Key(values, columns);
-
-        Assert.HasCount(2, key.Values);
-        Assert.AreEqual(1, key.Values[0]);
-        Assert.AreEqual("test", key.Values[1]);
-    }
-
-    [TestMethod]
-    public void Key_Equals_SameValues_ReturnsTrue()
-    {
-        var key1 = new Key([1, "test"], [0, 1]);
-        var key2 = new Key([1, "test"], [0, 1]);
-
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_DifferentValues_ReturnsFalse()
-    {
-        var key1 = new Key([1, "test"], [0, 1]);
-        var key2 = new Key([2, "other"], [0, 1]);
-
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Null_ReturnsFalse()
-    {
-        var key1 = new Key([1], [0]);
-
-        Assert.IsFalse(key1.Equals(null));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Self_ReturnsTrue()
-    {
-        var key1 = new Key([1], [0]);
-
-        Assert.IsTrue(key1.Equals(key1));
-    }
-
-    [TestMethod]
-    public void Key_GetHashCode_SameForEqualKeys()
-    {
-        var key1 = new Key([1, "test"], [0, 1]);
-        var key2 = new Key([1, "test"], [0, 1]);
-
-        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
-    }
-
-    [TestMethod]
-    public void Key_ToString_ReturnsFormattedString()
-    {
-        var key = new Key([1, "test"], [0, 1]);
-
-        var str = key.ToString();
-
-        Assert.IsNotNull(str);
-        Assert.Contains("0", str);
-        Assert.Contains("1", str);
-    }
-
-    [TestMethod]
-    public void Key_Equals_Object_SameValues_ReturnsTrue()
-    {
-        var key1 = new Key([1], [0]);
-        object key2 = new Key([1], [0]);
-
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Object_Null_ReturnsFalse()
-    {
-        var key1 = new Key([1], [0]);
-
-        Assert.IsFalse(key1.Equals((object)null!));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Object_Self_ReturnsTrue()
-    {
-        var key1 = new Key([1], [0]);
-
-        Assert.IsTrue(key1.Equals((object)key1));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Object_DifferentType_ReturnsFalse()
-    {
-        var key1 = new Key([1], [0]);
-
-        Assert.IsFalse(key1.Equals("not a key"));
     }
 
     #endregion

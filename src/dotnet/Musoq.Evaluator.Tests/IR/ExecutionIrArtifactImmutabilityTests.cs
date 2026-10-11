@@ -9,6 +9,21 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class ExecutionIrArtifactImmutabilityTests
 {
     [TestMethod]
+    public void GeneratedScalarBindings_ShouldSnapshotTypeNamesAndDistinguishSpecializations()
+    {
+        var method = typeof(Musoq.Plugins.LibraryBase).GetMethod(nameof(Musoq.Plugins.LibraryBase.ToJson))!
+            .MakeGenericMethod(typeof(object));
+        var names = new Dictionary<int, string> { [0] = "Packet" };
+        var call = new ExecutionMethodCall(method, [], null, typeof(string)) { GeneratedGenericArguments = names };
+        names[0] = "Changed";
+        Assert.AreEqual("Packet", call.GeneratedGenericArguments[0]);
+        var changed = call with { GeneratedGenericArguments = names };
+        names.Clear();
+        Assert.AreEqual("Changed", changed.GeneratedGenericArguments[0]);
+        Assert.AreNotEqual(ExecutionExpressionFingerprint.ForHoist(call), ExecutionExpressionFingerprint.ForHoist(changed));
+    }
+
+    [TestMethod]
     public void ExecutionBlock_ShouldSnapshotTheSourceNodeList()
     {
         var nodes = new List<ExecutionNode>();
@@ -68,12 +83,13 @@ public sealed class ExecutionIrArtifactImmutabilityTests
     {
         var parts = new List<ExecutionExpression>
         {
-            new ExecutionCompositeKey([])
+            new ExecutionLiteral(1, typeof(int)),
+            new ExecutionLiteral(2, typeof(int))
         };
-        var expression = new ExecutionCompositeKey(parts);
+        var expression = new ExecutionValueTupleKey(parts, typeof((int, int)));
 
         parts.Clear();
 
-        Assert.AreEqual(1, expression.Parts.Count);
+        Assert.AreEqual(2, expression.Parts.Count);
     }
 }

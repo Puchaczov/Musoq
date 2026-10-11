@@ -110,7 +110,7 @@ public class LoopInvariantQualificationBenchmark
                 throw new InvalidOperationException($"Expected {expectedRows} rows, received {table.Count}.");
 
             foreach (var row in table.Rows)
-                checksum += Convert.ToInt64(row[0]);
+                checksum += NativeBenchmarkColumnConsumption.ReadInteger(row, 0);
         }
 
         var expectedProducerReads = QueryRepetitions * ExpectedProducerReads(enabled);
@@ -199,10 +199,10 @@ public class LoopInvariantQualificationBenchmark
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters)
         {
             if (string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, QualificationRow>(name, new QualificationRowSource(rows));

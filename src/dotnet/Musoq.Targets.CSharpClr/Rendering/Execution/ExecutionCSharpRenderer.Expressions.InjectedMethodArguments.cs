@@ -10,7 +10,8 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax CreateInjectedMethodArgument(
         ExecutionMethodCall methodCall,
         ParameterInfo parameter,
-        InjectTypeAttribute injectAttribute)
+        InjectTypeAttribute injectAttribute,
+        ExecutionRenderContext context)
     {
         if (injectAttribute is InjectQueryStatsAttribute)
         {
@@ -24,7 +25,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (injectAttribute.GetType().Name is nameof(InjectSpecificSourceAttribute) or "InjectSourceAttribute")
         {
             if (methodCall.InjectedSource != null)
-                return CastIfNeeded(RenderExpression(methodCall.InjectedSource), parameter.ParameterType);
+                return CastIfNeeded(RenderExpression(methodCall.InjectedSource, context), parameter.ParameterType);
 
             if (string.IsNullOrWhiteSpace(methodCall.Alias))
                 throw new NotSupportedException("Method source injection requires a source alias.");

@@ -38,8 +38,8 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A2", "B1"]);
     }
 
@@ -74,9 +74,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("c.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1", "C1"]);
     }
 
@@ -104,9 +104,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)),
-            ("b.NullableValue", typeof(int?)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)),
+            ("NullableValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, 1, null },
@@ -137,9 +137,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int)),
-            ("a.NullableValue", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, 1, null },
@@ -173,8 +173,8 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, null },
@@ -208,8 +208,8 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, 10 },

@@ -21,7 +21,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["match"]);
         Assert.Contains("ValueTuple<int, string, decimal>", inspection.ExecutionPlanText);
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
@@ -41,7 +41,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreateCompositeKeySources()).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["left-null"], ["no-match"]);
         Assert.Contains("ValueTuple<int, string, decimal>", inspection.ExecutionPlanText);
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", inspection.PhysicalPlanText);

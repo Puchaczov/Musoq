@@ -54,7 +54,7 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.City", typeof(string)),
+            ("City", typeof(string)),
             ("Appearances", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -83,8 +83,8 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("ct.City", typeof(string)),
-            ("ct.Total", typeof(decimal?)));
+            ("City", typeof(string)),
+            ("Total", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Berlin", 75000m],
@@ -110,8 +110,8 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("g.City", typeof(string)),
-            ("g.Total", typeof(long)));
+            ("City", typeof(string)),
+            ("Total", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Berlin", 1L],
@@ -137,8 +137,8 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("ag.Bucket", typeof(string)),
-            ("ag.Total", typeof(long)));
+            ("Bucket", typeof(string)),
+            ("Total", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Senior", 3L],
@@ -164,7 +164,7 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)));
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob"],
@@ -190,8 +190,8 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Name", typeof(string)),
-            ("c.Source", typeof(string)));
+            ("Name", typeof(string)),
+            ("Source", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "People"],
@@ -229,7 +229,7 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("jd.City", typeof(string)),
+            ("City", typeof(string)),
             ("TotalSpent", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -255,7 +255,7 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("jd.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("OrderCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -499,14 +499,14 @@ public class FeatureCombinationTests : NegativeTestsBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("FilteredWindowSum", typeof(decimal)));
+            ("FilteredWindowSum", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["Alice", 0m],
-            ["Bob", 35m],
-            ["Charlie", 63m],
-            ["Diana", 105m],
-            ["Eve", 136m]);
+            ["Alice", null],
+            ["Bob", 35],
+            ["Charlie", 63],
+            ["Diana", 105],
+            ["Eve", 136]);
     }
 
     [TestMethod]
@@ -537,14 +537,14 @@ public class FeatureCombinationTests : NegativeTestsBase
             table,
             ("Name", typeof(string)),
             ("Age", typeof(int)),
-            ("RangeSum", typeof(decimal)));
+            ("RangeSum", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", 25, 53m],
-            ["Charlie", 28, 84m],
-            ["Eve", 31, 94m],
-            ["Bob", 35, 66m],
-            ["Diana", 42, 42m]);
+            ["Alice", 25, 53],
+            ["Charlie", 28, 84],
+            ["Eve", 31, 94],
+            ["Bob", 35, 66],
+            ["Diana", 42, 42]);
     }
 
     [TestMethod]
@@ -591,8 +591,8 @@ public class FeatureCombinationTests : NegativeTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.City", typeof(string)));
+            ("Name", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob", "Paris"],

@@ -44,8 +44,8 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
-        Assert.AreEqual((byte)0xAB, table[0][1]);
+        Assert.AreEqual((byte)5, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(1));
     }
 
     #endregion
@@ -79,10 +79,10 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)4, table[0][0]);
-        Assert.AreEqual((byte)5, table[0][1]);
-        Assert.AreEqual((byte)0x06, table[0][2]);
-        Assert.AreEqual((short)0x0040, table[0][3]);
+        Assert.AreEqual((byte)4, table[0].ReadValue(0));
+        Assert.AreEqual((byte)5, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x06, table[0].ReadValue(2));
+        Assert.AreEqual((short)0x0040, table[0].ReadValue(3));
     }
 
     #endregion
@@ -147,7 +147,7 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
     }
 
     #endregion
@@ -202,8 +202,8 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0B, table[0][0]);
-        Assert.AreEqual((byte)0x0A, table[0][1]);
+        Assert.AreEqual((byte)0x0B, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -240,9 +240,9 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        Assert.AreEqual((byte)2, table[0][1]);
-        Assert.AreEqual((byte)7, table[0][2]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[0].ReadValue(1));
+        Assert.AreEqual((byte)7, table[0].ReadValue(2));
     }
 
     #endregion

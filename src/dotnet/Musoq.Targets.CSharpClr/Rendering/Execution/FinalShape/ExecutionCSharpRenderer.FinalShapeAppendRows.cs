@@ -8,7 +8,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private ObjectCreationExpressionSyntax CreateFinalShapeCreation(
         string shapeTypeName,
-        ExecutionAppendRow appendRow)
+        ExecutionAppendRow appendRow,
+        ExecutionRenderContext context)
     {
         var arguments = appendRow.Values.Select((value, index) =>
         {
@@ -16,7 +17,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ? appendRow.RowShape.Fields[index].Type.RequireClrType()
                 : value.Value.ReturnType.RequireClrType();
 
-            return SyntaxFactory.Argument(RenderRowConstructorValue(value.Value, targetType));
+            return SyntaxFactory.Argument(RenderRowConstructorValue(value.Value, targetType, context));
         });
 
         return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(shapeTypeName))

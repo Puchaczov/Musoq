@@ -25,7 +25,7 @@ public sealed partial class ExecutionCSharpRenderer
             : methodCall.Method.IsStatic
                 ? CreateTypeSyntax(methodCall.Method.RequireClrMethod().DeclaringType!)
                 : throw new NotSupportedException(CreateMissingMethodTargetMessage(methodCall));
-        var methodName = CreateMethodNameSyntax(methodCall.Method.RequireClrMethod());
+        var methodName = CreateMethodNameSyntax(methodCall);
         var arguments = CreateMethodInvocationArguments(methodCall, context);
 
         var invocation = SyntaxFactory.InvocationExpression(
@@ -35,7 +35,8 @@ public sealed partial class ExecutionCSharpRenderer
                     methodName))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
-        return CastIfNeeded(invocation, methodCall.ReturnType);
+        return methodCall.GeneratedResultTypeName is null
+            ? CastIfNeeded(invocation, methodCall.ReturnType) : invocation;
     }
 
     private bool TryRenderMethodCallWithoutTarget(
@@ -55,7 +56,6 @@ public sealed partial class ExecutionCSharpRenderer
             nameof(LibraryBase.ToDecimal) => RenderLibraryBaseNumericToDecimal(methodCall, context),
             nameof(LibraryBase.__CorrelatedScalarSubqueryResult) =>
                 RenderCorrelatedScalarSubqueryResultAccessor(methodCall, context),
-            _ when ExecutionMethodTargetReuse.CanRenderPerInvocation(methodCall) => RenderPerInvocationMethodCall(methodCall, context),
             _ => null
         };
 
@@ -121,7 +121,8 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(CreateMethodInvocationArguments(methodCall, context))));
 
-        return CastIfNeeded(invocation, methodCall.ReturnType);
+        return methodCall.GeneratedResultTypeName is null
+            ? CastIfNeeded(invocation, methodCall.ReturnType) : invocation;
     }
 
     private static ExpressionSyntax CreateOptionalParameterDefaultExpression(ParameterInfo parameter)
@@ -134,6 +135,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ExpressionSyntax CastIfNeeded(ExpressionSyntax expression, Type targetType)
     {
+        if (expression is BinaryExpressionSyntax or ConditionalExpressionSyntax or
+            AssignmentExpressionSyntax or LambdaExpressionSyntax or SwitchExpressionSyntax or QueryExpressionSyntax)
+            expression = SyntaxFactory.ParenthesizedExpression(expression);
+
         return targetType == typeof(void)
             ? expression
             : SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), expression);

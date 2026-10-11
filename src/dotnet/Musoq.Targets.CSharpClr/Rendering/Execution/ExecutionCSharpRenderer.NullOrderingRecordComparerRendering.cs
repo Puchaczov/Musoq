@@ -32,7 +32,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionOrderField key,
         FieldBinding field)
     {
-        var fieldName = GetGeneratedFieldName(field);
+        var fieldName = EscapeIdentifier(GetGeneratedFieldName(field));
         var left = $"left.{fieldName}";
         var right = $"right.{fieldName}";
         var leftNull = $"leftNull{index}";

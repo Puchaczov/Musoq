@@ -165,7 +165,7 @@ where d.Dummy in $ids";
         var people = People();
         var options = new TypedQueryRunOptions(
             CancellationToken.None,
-            new Dictionary<string, object?> { ["expected"] = "Alice" });
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["expected"] = "Alice" }));
 
         var canonical = CreateTypedBuilder(canonicalScript).Compile<NameDto>();
         var alias = CreateTypedBuilder(aliasScript).Compile<NameDto>();
@@ -346,8 +346,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void SetParameters(CompiledQuery query)
     {
-        query.Parameters["required"] = 7;
-        query.Parameters["ids"] = new[] { "single" };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "required", 7);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "ids", new[] { "single" });
     }
 
     private static void AssertCompiledQueryEquivalent(CompiledQuery expected, CompiledQuery actual)
@@ -510,7 +510,7 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
         {
             Assert.AreEqual(expected[rowIndex].Count, actual[rowIndex].Count);
             for (var columnIndex = 0; columnIndex < expected[rowIndex].Count; columnIndex++)
-                Assert.AreEqual(expected[rowIndex][columnIndex], actual[rowIndex][columnIndex]);
+                Assert.AreEqual(expected[rowIndex].ReadValue(columnIndex), actual[rowIndex].ReadValue(columnIndex));
         }
     }
 

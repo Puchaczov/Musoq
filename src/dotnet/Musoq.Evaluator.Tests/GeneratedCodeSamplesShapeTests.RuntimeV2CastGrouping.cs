@@ -27,7 +27,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "Convert.ChangeType",
             "FieldLink",
             "SourceScan [ko3iko: object]",
-            "GetRowSource<object>",
+            "SourceInvocation<object>",
             "EvaluationHelper.GetNestedValueAccessor",
             "EvaluationHelper.GetNestedValue(",
             "int.Parse(",
@@ -61,7 +61,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("SELECT Population::Int32 as PopulationInt", projection);
         Assert.Contains("SourceScan [ko3iko: RuntimeV2CastGroupingFeatureEntity] -> ko3ikoRows", projection);
-        Assert.Contains("GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity>", projection);
+        Assert.Contains("SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity>", projection);
         Assert.DoesNotContain("CreateObject [__resultLibraryBase0: LibraryBase]", projection);
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population)", projection);
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount)", projection);
@@ -121,7 +121,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("SELECT City as Department, Department as SourceDepartment", conflict);
         Assert.Contains("GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.Department, ko3iko.City)] by Department, City; typed: ResultAggregateGroup]", conflict);
         Assert.Contains("string groupKey0 = ko3iko.Department;", conflict);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(finalGroup.__key1, finalGroup.__key0, finalGroup.__agg0.Count));", conflict);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(finalGroup.__key1, finalGroup.__key0, finalGroup.__agg0.Count));", conflict);
 
         Assert.Contains("GROUP BY ALL", combined);
         Assert.Contains("HAVING cnt > 1 AND total > '10.00'::Decimal", combined);

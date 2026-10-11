@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -149,6 +150,13 @@ public sealed partial class ExecutionCSharpRenderer
         ];
     }
 
+    private StatementSyntax CreateIntersectDistinctState(ExecutionSetOperation operation, ExecutionRenderContext context) =>
+        new IntersectDistinctSyntax(this, context).CreateState(operation);
+
+    private StatementSyntax CreateIntersectDistinctOutput(ExecutionSetOperation operation, string rowName,
+        StatementSyntax output, ExecutionRenderContext context) =>
+        new IntersectDistinctSyntax(this, context).CreateOutput(operation, rowName, output);
+
     private IEnumerable<StatementSyntax> RenderHashSetIntersect(
         ExecutionSetOperation setOperation,
         ExecutionRenderContext context)
@@ -159,6 +167,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
+            CreateIntersectDistinctState(setOperation, context),
             CreateSetKeyHashSetDeclaration(
                 rightKeysName,
                 setOperation.FieldTypes.RequireClrTypes(),
@@ -221,7 +230,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateColumnArrayForSource(setOperation.Left, renderContext)));
     }
 
-    private static LocalDeclarationStatementSyntax CreateSetKeyHashSetDeclaration(
+    internal static LocalDeclarationStatementSyntax CreateSetKeyHashSetDeclaration(
         string variableName,
         IReadOnlyList<Type> fieldTypes,
         ExpressionSyntax? capacity)
@@ -250,9 +259,11 @@ public sealed partial class ExecutionCSharpRenderer
             _ => throw UnsupportedShape.Of($"Set key condition {condition}")
         };
 
-        return SyntaxFactory.IfStatement(
-            conditionExpression,
-            StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(setOperation, rowName, source, context)));
+        var output = CreateSetOperationTargetAddStatement(setOperation, rowName, source, context);
+        return SyntaxFactory.IfStatement(conditionExpression,
+            StatementEmitter.CreateBlock(setOperation.Kind == SetOpKind.Intersect
+                ? CreateIntersectDistinctOutput(setOperation, rowName, output, context)
+                : output));
     }
 
     private ExpressionStatementSyntax CreateHashSetAddStatement(
@@ -271,7 +282,7 @@ public sealed partial class ExecutionCSharpRenderer
             context));
     }
 
-    private InvocationExpressionSyntax CreateHashSetInvocation(
+    internal InvocationExpressionSyntax CreateHashSetInvocation(
         string keysName,
         string methodName,
         string rowName,
@@ -292,9 +303,7 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<Type> fieldTypes,
         ExecutionRenderContext context)
     {
-        var sourceShape = TryGetTypedRowBufferShape(source.Name, context, out var typedSourceShape)
-            ? typedSourceShape
-            : null;
+        var sourceShape = GetSetOperationSourceShape(source, context);
 
         if (fieldIndexes.Count == 1)
             return CreateTypedSetFieldRead(rowName, fieldIndexes[0], fieldTypes[0], sourceShape);
@@ -314,6 +323,9 @@ public sealed partial class ExecutionCSharpRenderer
         if (sourceShape != null && fieldIndex >= 0 && fieldIndex < sourceShape.Fields.Count)
         {
             var sourceField = sourceShape.Fields[fieldIndex];
+            if (sourceField.Type.RequireClrType() == typeof(DBNull) && fieldType != typeof(DBNull))
+                return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldType),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             read = SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(rowName),
@@ -321,9 +333,9 @@ public sealed partial class ExecutionCSharpRenderer
         }
         else
         {
-            read = CreateElementAccess(
-                SyntaxFactory.IdentifierName(rowName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(fieldIndex)));
+            if (fieldType == typeof(object))
+                throw new InvalidOperationException("Set-operation reads require a concrete field type.");
+            read = CreateNativeRowValueRead(SyntaxFactory.IdentifierName(rowName), fieldIndex, CreateTypeSyntax(fieldType));
         }
 
         return fieldType == typeof(object)
@@ -333,9 +345,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax CreateSetRowsRead(ExecutionVariable source, ExecutionRenderContext context)
     {
-        return TryGetTypedRowBufferShape(source.Name, context, out _)
-            ? SyntaxFactory.IdentifierName(source.Name)
-            : CreateTableRowsRead(source.Name);
+        if (TryGetTypedRowBufferShape(source.Name, context, out _))
+            return SyntaxFactory.IdentifierName(source.Name);
+        var rows = CreateTableRowsRead(source.Name);
+        if (!context.Session.TableRowShapesByVariableName.TryGetValue(source.Name, out var shape))
+            return rows;
+        return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
+                nameof(EvaluationHelper.CastGeneratedRows), shape.TypeName))
+            .WithArgumentList(CreateArgumentList(rows));
     }
 
     private ExpressionSyntax CreateCombinedRowsCountRead(
@@ -371,12 +388,11 @@ public sealed partial class ExecutionCSharpRenderer
         if (TryGetFinalShapeSourceBuffer(setOperation.Target.Name, context, out _))
             return CreateFinalShapeCreationFromSetRow(rowName, source, context);
 
-        if (!TryGetTypedRowBufferShape(setOperation.Target.Name, context, out var targetShape))
-            return SyntaxFactory.IdentifierName(rowName);
+        var targetShape = GetSetOperationSourceShape(setOperation.Target, context);
+        if (targetShape is null)
+            throw new InvalidOperationException("Set-operation targets require a lowered row shape.");
 
-        var sourceShape = TryGetTypedRowBufferShape(source.Name, context, out var typedSourceShape)
-            ? typedSourceShape
-            : null;
+        var sourceShape = GetSetOperationSourceShape(source, context);
 
         if (sourceShape != null &&
             string.Equals(sourceShape.TypeName, targetShape.TypeName, StringComparison.Ordinal))
@@ -390,6 +406,13 @@ public sealed partial class ExecutionCSharpRenderer
             .ToArray();
 
         return CreateObjectCreation(targetShape.TypeName, arguments);
+    }
+
+    private GeneratedRowShape? GetSetOperationSourceShape(ExecutionVariable source, ExecutionRenderContext context)
+    {
+        if (TryGetTypedRowBufferShape(source.Name, context, out var typedShape))
+            return typedShape;
+        return context.Session.TableRowShapesByVariableName.TryGetValue(source.Name, out var tableShape) ? tableShape : null;
     }
 
     private enum SetKeyCondition

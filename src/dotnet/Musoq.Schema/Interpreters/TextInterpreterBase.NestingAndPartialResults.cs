@@ -5,7 +5,8 @@ namespace Musoq.Schema.Interpreters;
 
 public abstract partial class TextInterpreterBase<TOut>
 {
-    private Dictionary<string, object?>? _partialParsedFields;
+    private HashSet<string>? _partialParsedFields;
+    private TOut? _partialParsedValue;
     private string? _currentFieldName;
 
     /// <summary>
@@ -19,9 +20,22 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Records a successfully parsed field while a partial result is being captured.
     /// </summary>
-    protected void RecordParsedField(string fieldName, object? value)
+    protected void RecordParsedField(string fieldName)
     {
-        _partialParsedFields?[fieldName] = value;
+        _partialParsedFields?.Add(fieldName);
+    }
+
+    protected void RecordParsedValue(TOut value)
+    {
+        if (_partialParsedFields != null)
+        {
+            _partialParsedValue = value;
+            AttachPartialFieldNames(value, _partialParsedFields);
+        }
+    }
+
+    protected virtual void AttachPartialFieldNames(TOut value, IReadOnlySet<string> completedFields)
+    {
     }
 
     /// <summary>
@@ -68,10 +82,11 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Begins capturing successfully parsed fields for a partial result.
     /// </summary>
-    private PartialCaptureState BeginPartialCapture(Dictionary<string, object?> parsedFields)
+    private PartialCaptureState BeginPartialCapture(HashSet<string> parsedFields)
     {
-        var state = new PartialCaptureState(_partialParsedFields, _currentFieldName);
+        var state = new PartialCaptureState(_partialParsedFields, _partialParsedValue, _currentFieldName);
         _partialParsedFields = parsedFields;
+        _partialParsedValue = default;
         _currentFieldName = null;
         return state;
     }
@@ -79,11 +94,13 @@ public abstract partial class TextInterpreterBase<TOut>
     private void EndPartialCapture(PartialCaptureState state)
     {
         _partialParsedFields = state.ParsedFields;
+        _partialParsedValue = state.ParsedValue;
         _currentFieldName = state.FieldName;
     }
 
     private readonly record struct PartialCaptureState(
-        Dictionary<string, object?>? ParsedFields,
+        HashSet<string>? ParsedFields,
+        TOut? ParsedValue,
         string? FieldName);
 
     private static ParseException AddNestedFieldContext(ParseException exception, string fieldName)
@@ -96,7 +113,7 @@ public abstract partial class TextInterpreterBase<TOut>
                 ? nestedFieldName
                 : $"{fieldName}.{nestedFieldName}";
 
-        return new ParseException(
+        return ParseException.ForText(
             exception.ErrorCode,
             exception.SchemaName,
             qualifiedFieldName,

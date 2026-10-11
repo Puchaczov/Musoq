@@ -70,7 +70,7 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RunningTotal", typeof(decimal)));
+            ("RunningTotal", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m],
@@ -96,14 +96,14 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("CityCount", typeof(int)));
+            ("CityCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", "LA", 2],
-            ["Charlie", "LA", 2],
-            ["Bob", "NYC", 3],
-            ["Diana", "NYC", 3],
-            ["Eve", "NYC", 3]);
+            ["Alice", "LA", 2L],
+            ["Charlie", "LA", 2L],
+            ["Bob", "NYC", 3L],
+            ["Diana", "NYC", 3L],
+            ["Eve", "NYC", 3L]);
     }
 
     [TestMethod]
@@ -124,14 +124,14 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("CityCount", typeof(int)));
+            ("CityCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", "LA", 1],
-            [null, "LA", 1],
-            ["Bob", "NYC", 2],
-            [null, "NYC", 2],
-            ["Charlie", "NYC", 2]);
+            ["Alice", "LA", 1L],
+            [null, "LA", 1L],
+            ["Bob", "NYC", 2L],
+            [null, "NYC", 2L],
+            ["Charlie", "NYC", 2L]);
     }
 
     [TestMethod]
@@ -195,7 +195,7 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("CityTotal", typeof(decimal)));
+            ("CityTotal", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", 400m],
@@ -309,7 +309,7 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("running_average", typeof(decimal)));
+            ("running_average", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m],

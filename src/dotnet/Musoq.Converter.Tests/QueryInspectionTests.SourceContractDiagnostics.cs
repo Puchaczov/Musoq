@@ -144,7 +144,7 @@ public partial class QueryInspectionTests
     }
 
     private sealed class ContractDiagnosticSchema(ContractDiagnosticMode mode)
-        : SchemaBase("contract", CreateLibrary())
+        : SchemaBase("contract", CreateLibrary()), IQueryScopedRowSourceSchema
     {
         public override ISchemaTable GetTableByName(
             string name,
@@ -162,7 +162,7 @@ public partial class QueryInspectionTests
             SourceDescribeContext context,
             params object?[] parameters)
         {
-            var descriptor = base.DescribeSource(name, context, parameters);
+            var descriptor = base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
             var diagnostics = CreateDescriptorDiagnostics(context.MetadataContext.AllColumns);
             return diagnostics.Length == 0
                 ? descriptor
@@ -181,15 +181,21 @@ public partial class QueryInspectionTests
                 : result with { ContractDiagnostics = diagnostics };
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
                 name,
                 new EmptyContractRowSource());
         }
+
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+            string name, QueryScopedRowSourceRequest request, TArguments parameters)
+            where TMaterializer : struct, IQueryRowMaterializer<TRow>
+            where TArguments : struct, ISourceArguments
+            => new global::Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>([], request.Shape.Fields);
 
         private SourceContractDiagnostic[] CreateDescriptorDiagnostics(IReadOnlyCollection<ISchemaColumn> columns)
         {
@@ -343,7 +349,7 @@ public partial class QueryInspectionTests
                 .ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object?>));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class EmptyContractRowSource : RowSourceBase<IReadOnlyDictionary<string, object?>>

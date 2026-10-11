@@ -25,7 +25,7 @@ public partial class WindowFunctionFrameTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m],
@@ -54,8 +54,8 @@ public partial class WindowFunctionFrameTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RangeSum", typeof(decimal)),
-            ("RowsSum", typeof(decimal)));
+            ("RangeSum", typeof(decimal?)),
+            ("RowsSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 100m],
@@ -80,7 +80,7 @@ public partial class WindowFunctionFrameTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("Total", typeof(decimal)));
+            table, ("Name", typeof(string)), ("Total", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 600m], ["Bob", 600m], ["Charlie", 600m]);
@@ -102,7 +102,7 @@ public partial class WindowFunctionFrameTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RevSum", typeof(decimal)));
+            table, ("Name", typeof(string)), ("RevSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 600m], ["Bob", 500m], ["Charlie", 300m]);
@@ -126,7 +126,7 @@ public partial class WindowFunctionFrameTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("City", typeof(string)), ("RunSum", typeof(decimal)));
+            ("Name", typeof(string)), ("City", typeof(string)), ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "NYC", 100m], ["Charlie", "NYC", 400m],
@@ -149,10 +149,10 @@ public partial class WindowFunctionFrameTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunCount", typeof(int)));
+            table, ("Name", typeof(string)), ("RunCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", 1], ["Bob", 2], ["Charlie", 3]);
+            ["Alice", 1L], ["Bob", 2L], ["Charlie", 3L]);
     }
 
     [TestMethod]
@@ -171,7 +171,7 @@ public partial class WindowFunctionFrameTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunAvg", typeof(decimal)));
+            table, ("Name", typeof(string)), ("RunAvg", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m], ["Bob", 150m], ["Charlie", 200m]);

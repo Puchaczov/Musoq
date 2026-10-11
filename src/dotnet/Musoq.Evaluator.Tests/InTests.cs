@@ -9,6 +9,19 @@ namespace Musoq.Evaluator.Tests;
 public class InTests : BasicEntityTestBase
 {
     [TestMethod]
+    [TestProperty("CandidateId", "P1-029")]
+    public void InListColumnReference_ShouldUseTheCurrentRowsValue()
+    {
+        const string query = "select City from values { (City: 'Warsaw', Country: 'Poland'), (City: 'Poland', Country: 'Lithuania'), (City: 'Riga', Country: 'Latvia') } v where City in (Country, 'Warsaw')";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Warsaw"]);
+    }
+
+    [TestMethod]
     public void SimpleInOperator()
     {
         var query = "select Population from #A.Entities() where Population in (100, 400)";
@@ -31,8 +44,8 @@ public class InTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m), "First entry should be 100");
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 400m), "Second entry should be 400");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 100m), "First entry should be 100");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 400m), "Second entry should be 400");
     }
 
     [TestMethod]
@@ -58,8 +71,8 @@ public class InTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 200m), "First entry should be 200");
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 300m), "Second entry should be 300");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 200m), "First entry should be 200");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 300m), "Second entry should be 300");
     }
 
     [TestMethod]
@@ -86,9 +99,9 @@ public class InTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Poland"), "First entry should be Poland");
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Singapore"), "Second entry should be Singapore");
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Monaco"), "Third entry should be Monaco");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Poland"), "First entry should be Poland");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Singapore"), "Second entry should be Singapore");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Monaco"), "Third entry should be Monaco");
     }
 
     [TestMethod]
@@ -115,8 +128,8 @@ public class InTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Berlin"), "First entry should be Berlin");
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "France"), "Second entry should be France");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Berlin"), "First entry should be Berlin");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "France"), "Second entry should be France");
     }
 
     #region IN Operator Edge Cases
@@ -142,7 +155,7 @@ public class InTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(entry => (decimal)entry[0] == 100m));
+        Assert.IsTrue(table.All(entry => (decimal)entry.ReadValue(0) == 100m));
     }
 
     [TestMethod]
@@ -169,9 +182,9 @@ public class InTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m));
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 500m));
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 1000m));
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 100m));
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 500m));
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 1000m));
     }
 
     [TestMethod]
@@ -197,9 +210,9 @@ public class InTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Alice"));
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Bob"));
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Charlie"));
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Alice"));
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Bob"));
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Charlie"));
     }
 
     [TestMethod]
@@ -223,8 +236,8 @@ public class InTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m));
-        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 200m));
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 100m));
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValue(0) == 200m));
     }
 
     [TestMethod]

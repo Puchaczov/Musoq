@@ -50,9 +50,9 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]); // DataOffset
-        Assert.AreEqual((byte)1, table[0][1]); // SYN flag is set
-        Assert.AreEqual((byte)1, table[0][2]); // ACK flag is set
+        Assert.AreEqual((byte)5, table[0].ReadValue(0)); // DataOffset
+        Assert.AreEqual((byte)1, table[0].ReadValue(1)); // SYN flag is set
+        Assert.AreEqual((byte)1, table[0].ReadValue(2)); // ACK flag is set
     }
 
     [TestMethod]
@@ -96,10 +96,10 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]); // Version
-        Assert.AreEqual((byte)2, table[0][1]); // Type
-        Assert.AreEqual((byte)5, table[0][2]); // Flags
-        Assert.AreEqual(0x12345678, table[0][3]); // Length
+        Assert.AreEqual((byte)1, table[0].ReadValue(0)); // Version
+        Assert.AreEqual((byte)2, table[0].ReadValue(1)); // Type
+        Assert.AreEqual((byte)5, table[0].ReadValue(2)); // Flags
+        Assert.AreEqual(0x12345678, table[0].ReadValue(3)); // Length
     }
 
     [TestMethod]
@@ -146,8 +146,8 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert: Only files with Active=1 and Error=0
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("good1.bin", table[0][0]);
-        Assert.AreEqual("good2.bin", table[1][0]);
+        Assert.AreEqual("good1.bin", table[0].ReadValue(0));
+        Assert.AreEqual("good2.bin", table[1].ReadValue(0));
     }
 
 
@@ -199,12 +199,12 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x53, table[0][0]); // Flags
-        Assert.AreEqual(12345, table[0][1]); // Value
-        Assert.IsTrue((bool?)table[0][2]); // IsEnabled (0x53 & 0x01 = 0x01)
-        Assert.IsTrue((bool?)table[0][3]); // IsReadOnly (0x53 & 0x02 = 0x02)
-        Assert.AreEqual(5, table[0][4]); // Priority (0x53 >> 4 = 5)
-        Assert.AreEqual(0xD3, table[0][5]); // CombinedFlags (0x53 | 0x80 = 0xD3)
+        Assert.AreEqual((byte)0x53, table[0].ReadValue(0)); // Flags
+        Assert.AreEqual(12345, table[0].ReadValue(1)); // Value
+        Assert.IsTrue((bool?)table[0].ReadValue(2)); // IsEnabled (0x53 & 0x01 = 0x01)
+        Assert.IsTrue((bool?)table[0].ReadValue(3)); // IsReadOnly (0x53 & 0x02 = 0x02)
+        Assert.AreEqual(5, table[0].ReadValue(4)); // Priority (0x53 >> 4 = 5)
+        Assert.AreEqual(0xD3, table[0].ReadValue(5)); // CombinedFlags (0x53 | 0x80 = 0xD3)
     }
 
     [TestMethod]
@@ -249,12 +249,12 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x0F, table[0][0]); // A = 15
-        Assert.AreEqual(0xF0, table[0][1]); // B = 240
-        Assert.AreEqual(0xFF, table[0][2]); // Xor = 15 ^ 240 = 255
-        Assert.AreEqual(0x3C, table[0][3]); // LeftShift = 15 << 2 = 60
-        Assert.AreEqual(0x78, table[0][4]); // RightShift = 240 >> 1 = 120
-        Assert.AreEqual(0xF00F, table[0][5]); // Combined = 15 | (240 << 8) = 61455
+        Assert.AreEqual(0x0F, table[0].ReadValue(0)); // A = 15
+        Assert.AreEqual(0xF0, table[0].ReadValue(1)); // B = 240
+        Assert.AreEqual(0xFF, table[0].ReadValue(2)); // Xor = 15 ^ 240 = 255
+        Assert.AreEqual(0x3C, table[0].ReadValue(3)); // LeftShift = 15 << 2 = 60
+        Assert.AreEqual(0x78, table[0].ReadValue(4)); // RightShift = 240 >> 1 = 120
+        Assert.AreEqual(0xF00F, table[0].ReadValue(5)); // Combined = 15 | (240 << 8) = 61455
     }
 
 }

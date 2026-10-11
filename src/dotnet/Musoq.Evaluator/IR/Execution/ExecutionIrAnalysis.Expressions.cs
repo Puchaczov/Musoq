@@ -89,7 +89,7 @@ internal static partial class ExecutionIrAnalysis
                 ? caseWhen.Branches.SelectMany(static branch => new[] { branch.Condition, branch.Result })
                 : caseWhen.Branches.SelectMany(static branch => new[] { branch.Condition, branch.Result }).Concat([caseWhen.ElseExpression]),
             ExecutionCoalesce coalesce => coalesce.Expressions,
-            ExecutionCompositeKey compositeKey => compositeKey.Parts,
+
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts,
             ExecutionContextArray contextArray => contextArray.Segments.Select(static segment => segment.Value),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments,

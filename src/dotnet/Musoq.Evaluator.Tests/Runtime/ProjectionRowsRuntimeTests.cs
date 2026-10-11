@@ -11,7 +11,7 @@ using Musoq.Tests.Common;
 namespace Musoq.Evaluator.Tests.Runtime;
 
 [TestClass]
-public sealed class ProjectionRowsRuntimeTests
+public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 {
     static ProjectionRowsRuntimeTests()
     {
@@ -62,7 +62,7 @@ public sealed class ProjectionRowsRuntimeTests
 
         var projected = QueryRows
             .FromRowShards(shards)
-            .Select(static row => (int)row[0])
+            .Select(static row => (int)row.ReadValue(0))
             .ToArray();
         var expected = rows
             .Where(static value => value % 3 == 0)
@@ -130,7 +130,7 @@ public sealed class ProjectionRowsRuntimeTests
 
         var projected = QueryRows
             .FromRowShards(shards)
-            .Select(static row => (int)row[0])
+            .Select(static row => (int)row.ReadValue(0))
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { 1, 3 }, projected);
@@ -150,6 +150,8 @@ public sealed class ProjectionRowsRuntimeTests
     }
 
     [TestMethod]
+    [DoNotParallelize]
+    [Timeout(30_000, CooperativeCancellation = true)]
     public void ProjectChunkedValuesParallel_ShouldProcessChunksConcurrently()
     {
         using var bothWorkersStarted = new CountdownEvent(2);
@@ -165,8 +167,7 @@ public sealed class ProjectionRowsRuntimeTests
                     {
                         Interlocked.Increment(ref startedWorkers);
                         bothWorkersStarted.Signal();
-                        if (!bothWorkersStarted.Wait(TimeSpan.FromSeconds(5)))
-                            throw new TimeoutException("Expected two chunk workers to run concurrently.");
+                        bothWorkersStarted.Wait(TestContext.CancellationToken);
                     }
 
                     return value;
@@ -202,6 +203,8 @@ public sealed class ProjectionRowsRuntimeTests
     }
 
     [TestMethod]
+    [DoNotParallelize]
+    [Timeout(30_000, CooperativeCancellation = true)]
     public void ProjectChunkedValuesParallel_WhenChunksCompleteOutOfOrder_ShouldPreserveSourceOrder()
     {
         using var secondChunkStarted = new ManualResetEventSlim();
@@ -212,8 +215,8 @@ public sealed class ProjectionRowsRuntimeTests
                 static _ => true,
                 value =>
                 {
-                    if (value == 0 && !secondChunkStarted.Wait(TimeSpan.FromSeconds(5)))
-                        throw new TimeoutException("Expected second chunk to start before first chunk completes.");
+                    if (value == 0)
+                        secondChunkStarted.Wait(TestContext.CancellationToken);
 
                     if (value == 2_048)
                         secondChunkStarted.Set();
@@ -309,7 +312,7 @@ public sealed class ProjectionRowsRuntimeTests
                 static value => value % 2 == 1,
                 static value => new TestRow([value * 10]),
                 CancellationToken.None)
-            .Select(static row => (int)row[0])
+            .Select(static row => (int)row.ReadValue(0))
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { 10, 30 }, projected);

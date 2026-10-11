@@ -125,7 +125,15 @@ internal sealed partial class PhysicalLoweringImplementation
             setOperation.Kind,
             setOperation.FieldIndexes,
             setOperation.FieldTypes,
-            ResolveSetOperationStrategy(strategy)));
+            ResolveSetOperationStrategy(strategy))
+        {
+            DistinctFieldIndexes = setOperation.Kind == Musoq.Evaluator.IR.Logical.Nodes.SetOpKind.Intersect && setOperation.ResultIsDistinct
+                ? ExecutionIrCollections.Freeze(setOperation.OutputSchema.Columns.Select(static column => column.Index).ToArray())
+                : [],
+            DistinctFieldTypes = setOperation.Kind == Musoq.Evaluator.IR.Logical.Nodes.SetOpKind.Intersect && setOperation.ResultIsDistinct
+                ? ExecutionClrBindingFactory.FromClrTypes(setOperation.OutputSchema.Columns.Select(static column => column.Type).ToArray())
+                : []
+        });
 
         var requiresResultShape = RequiresSetOperationResultShape(setOperation.OutputSchema, left.RowShape);
         var resultShape = requiresResultShape
@@ -263,7 +271,7 @@ internal sealed partial class PhysicalLoweringImplementation
             loop));
     }
 
-    private static ExecutionAppendRow CreateContextFreeAppendRow(
+    private ExecutionAppendRow CreateContextFreeAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,

@@ -8,6 +8,10 @@ namespace Musoq.Schema.Managers;
 
 public partial class MethodsMetadata
 {
+    private const int ObjectErasureConversionCost = 1000;
+    private const int GenericExactShapeConversionCost = 1;
+    private const int GenericNullableLiftConversionCost = 2;
+
     private int MeasureMethodCloseness(MethodInfo registeredMethod, IReadOnlyList<Type> methodArgs)
     {
         var metadata = GetCachedParameterMetadata(registeredMethod);
@@ -39,11 +43,19 @@ public partial class MethodsMetadata
             if (param == arg)
                 howClosePassedTypesAre += 0;
             else if (param.IsAssignableFrom(arg))
-                howClosePassedTypesAre += GetInheritanceDepth(arg, param);
+                howClosePassedTypesAre += GetAssignableConversionCost(arg, param);
             else if (CanImplicitlyConvert(arg, param))
                 howClosePassedTypesAre += GetNumericConversionCost(arg, param);
+            else if (!param.IsGenericParameter && IsGenericShapeCompatible(param, arg))
+                howClosePassedTypesAre += GenericExactShapeConversionCost;
             else if (param.IsGenericParameter && TypeConformsToConstraints(param, arg))
-                howClosePassedTypesAre += 999;
+            {
+                var nullableParameter = Nullable.GetUnderlyingType(rawParam) != null;
+                var nullableArgument = Nullable.GetUnderlyingType(rawArg) != null;
+                howClosePassedTypesAre += nullableParameter == nullableArgument
+                    ? GenericExactShapeConversionCost
+                    : GenericNullableLiftConversionCost;
+            }
             else
                 return int.MaxValue;
         }
@@ -67,7 +79,14 @@ public partial class MethodsMetadata
         if (method.GetCustomAttribute<AggregateFunctionAttribute>() != null)
             return 0;
 
-        return 10;
+        return method.GetParameters().Any(static parameter => global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType)) ? 5 : 10;
+    }
+
+    private static int GetAssignableConversionCost(Type argument, Type parameter)
+    {
+        if (parameter == typeof(object))
+            return ObjectErasureConversionCost;
+        return GetInheritanceDepth(argument, parameter);
     }
 
     private static int GetInheritanceDepth(Type derived, Type target)
@@ -88,7 +107,7 @@ public partial class MethodsMetadata
 
     private static bool IsParameterTypeCompatible(Type rawParam, Type param, Type arg)
     {
-        return IsTypePossibleToConvert(param, arg) ||
+        return IsGenericShapeCompatible(param, arg) || IsTypePossibleToConvert(param, arg) ||
                CanSafelyPassNull(rawParam, arg) ||
                (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
                ((arg.IsArray || arg.GetInterface("IEnumerable") != null) && param is { IsGenericType: true, Name: "IEnumerable`1" }) ||
@@ -96,6 +115,33 @@ public partial class MethodsMetadata
                 arg.Name == "IEnumerable`1") ||
                (param.IsArray && IsGenericArrayElement(param) && arg.IsArray) ||
                (arg.IsArray && IsGenericArrayElement(arg));
+    }
+
+    private static bool IsGenericShapeCompatible(Type template, Type actual)
+    {
+        if (!template.ContainsGenericParameters)
+            return false;
+        if (template.IsGenericParameter)
+            return TypeConformsToConstraints(template, actual);
+        if (template.IsArray)
+            return actual.IsArray && template.GetArrayRank() == actual.GetArrayRank() &&
+                   IsGenericShapeCompatible(template.GetElementType()!, actual.GetElementType()!);
+        if (!template.IsGenericType)
+            return false;
+        var definition = template.GetGenericTypeDefinition();
+        var candidate = actual.IsGenericType && actual.GetGenericTypeDefinition() == definition
+            ? actual : actual.GetInterfaces().FirstOrDefault(type => type.IsGenericType &&
+                type.GetGenericTypeDefinition() == definition);
+        if (candidate is null)
+            return false;
+        var parameters = template.GetGenericArguments();
+        var values = candidate.GetGenericArguments();
+        for (var index = 0; index < parameters.Length; index++)
+            if (parameters[index].ContainsGenericParameters
+                ? !IsGenericShapeCompatible(parameters[index], values[index])
+                : parameters[index] != values[index])
+                return false;
+        return true;
     }
 
     private static bool CanUseSomeArgumentsAsDefaultParameters(IReadOnlyCollection<Type> methodArgs,

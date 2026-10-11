@@ -23,7 +23,7 @@ public sealed class CountDistinctCompositionTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("UniqueNames", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -200,7 +200,7 @@ public sealed class CountDistinctCompositionTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("UniqueNames", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

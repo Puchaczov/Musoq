@@ -19,7 +19,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: false)]);
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
-            [new ProjectedField("FirstName", new WindowFunctionRef(0, typeof(object)), 0)],
+            [new ProjectedField("FirstName", new WindowFunctionRef(0, typeof(string)), 0)],
             window);
         var builder = CreateBuilder();
 
@@ -33,16 +33,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      Name: string <- property Name",
             "      Age: int <- property Age",
             "    Generated [ResultRow0]",
-            "      FirstName: object <- field FirstName",
+            "      FirstName: string <- field FirstName",
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeFirstValueWindow [resultFirstValues <- resultWindowRows value p.Name order by p.Age ASC frame range between unbounded preceding and current row]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(FirstName: resultFirstValues[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(FirstName: resultFirstValues[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -61,7 +61,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 new WindowFrameBoundNode(WindowFrameBoundType.OffsetFollowing, 1)));
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
-            [new ProjectedField("FirstName", new WindowFunctionRef(0, typeof(object)), 0)],
+            [new ProjectedField("FirstName", new WindowFunctionRef(0, typeof(string)), 0)],
             window);
         var builder = CreateBuilder();
 
@@ -75,16 +75,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      Name: string <- property Name",
             "      Age: int <- property Age",
             "    Generated [ResultRow0]",
-            "      FirstName: object <- field FirstName",
+            "      FirstName: string <- field FirstName",
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeFirstValueWindow [resultFirstValues <- resultWindowRows value p.Name order by p.Age ASC frame rows between 1 preceding and 1 following]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(FirstName: resultFirstValues[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(FirstName: resultFirstValues[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -95,6 +95,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var materialize = new PhysicalMaterializeNode(scan);
         var registration = CreateRowNumberRegistration(new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false));
+        registration = Musoq.Evaluator.IR.Planning.WindowExecutionStrategy.Select([registration])[0];
         var window = new PhysicalWindowNode([registration], materialize);
         var qualify = new PhysicalQualifyFilterNode(
             new BinaryOp(
@@ -124,11 +125,11 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by p.Name ASC qualify <= 1]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      If [((resultRowNumbers[windowIndex] > 0) AND (resultRowNumbers[windowIndex] <= 1))]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

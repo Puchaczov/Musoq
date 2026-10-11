@@ -33,8 +33,8 @@ public sealed class ThirdRoundWindowResultTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RowsSum", typeof(decimal)),
-            ("RangeSum", typeof(decimal)));
+            ("RowsSum", typeof(decimal?)),
+            ("RangeSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Alice", 100m, 100m, 100m],
@@ -65,7 +65,7 @@ public sealed class ThirdRoundWindowResultTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("RowNumber", typeof(long)),
-            ("RunningPopulation", typeof(decimal)));
+            ("RunningPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Alice", 1L, 100m],

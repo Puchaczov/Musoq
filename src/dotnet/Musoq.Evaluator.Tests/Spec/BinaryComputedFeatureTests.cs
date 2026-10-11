@@ -44,9 +44,9 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(5, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(20, table[0][2]);
+        Assert.AreEqual(5, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(20, table[0].ReadValue(2));
     }
 
     #endregion
@@ -85,8 +85,8 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(25, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
+        Assert.AreEqual(25, table[0].ReadValue(0));
+        Assert.AreEqual(2, table[0].ReadValue(1));
     }
 
     #endregion
@@ -117,8 +117,8 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual("v2", table[0][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual("v2", table[0].ReadValue(1));
     }
 
     #endregion
@@ -149,8 +149,8 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.IsTrue((bool?)table[0][1]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.IsTrue((bool?)table[0].ReadValue(1));
     }
 
     #endregion
@@ -181,8 +181,8 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(42, table[0][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(42, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -209,8 +209,8 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(20, table[0][1]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(20, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -243,10 +243,10 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(5, table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual(8, table[0][2]);
-        Assert.AreEqual(15, table[0][3]);
+        Assert.AreEqual(5, table[0].ReadValue(0));
+        Assert.AreEqual(3, table[0].ReadValue(1));
+        Assert.AreEqual(8, table[0].ReadValue(2));
+        Assert.AreEqual(15, table[0].ReadValue(3));
     }
 
     #endregion
@@ -282,9 +282,9 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(2, table[0][2]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(2, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -314,11 +314,11 @@ public class BinaryComputedFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)4, table[0][0]);
-        Assert.AreEqual(8, table[0][1]);
-        Assert.AreEqual((byte)5, table[0][2]);
-        Assert.AreEqual(15, table[0][3]);
-        Assert.AreEqual(23, table[0][4]);
+        Assert.AreEqual((byte)4, table[0].ReadValue(0));
+        Assert.AreEqual(8, table[0].ReadValue(1));
+        Assert.AreEqual((byte)5, table[0].ReadValue(2));
+        Assert.AreEqual(15, table[0].ReadValue(3));
+        Assert.AreEqual(23, table[0].ReadValue(4));
     }
 
     #endregion

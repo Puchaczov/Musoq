@@ -38,7 +38,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var field in fields)
         {
-            if (field.Expression is AllColumnsNode)
+            if (field.Expression is AllColumnsNode ||
+                (!field.HasExplicitFieldName && field.Expression is AccessColumnNode))
                 continue;
 
             var expressionText = field.Expression.ToString();
@@ -70,19 +71,23 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private void AddColumnToGeneratedColumns(TableSymbol tableSymbol, ISchemaColumn column, int index,
-        string identifier, List<FieldNode> generatedColumns, bool isCompoundTable = false, string? outputName = null,
+        string identifier, List<FieldNode> generatedColumns, string? outputName = null,
         TextSpan sourceSpan = default)
     {
         AddAssembly(column.ColumnType.Assembly);
 
         var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, sourceSpan,
-            column.IntendedTypeName);
+            column.IntendedTypeName)
+        {
+            SourceColumnIndex = tableSymbol.FullTable.GetColumnsByName(column.ColumnName).Length > 1
+                ? column.ColumnIndex
+                : null
+        };
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);
-        var fieldName = outputName ?? (isCompoundTable
-            ? $"{identifier}.{column.ColumnName}"
-            : tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName);
-        generatedColumns.Add(new FieldNode(accessColumn, index, fieldName, false));
+        var fieldName = outputName ?? column.ColumnName;
+        var hasExplicitName = outputName != null && !string.Equals(outputName, column.ColumnName, StringComparison.Ordinal);
+        generatedColumns.Add(new FieldNode(accessColumn, index, fieldName, hasExplicitName));
     }
 
     private void UpdateUsedColumns(string identifier, ISchemaTable table)

@@ -220,7 +220,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return TableBuildResult.Unsupported($"Sidecar join pipeline failed: {reason}.");
     }
 
-    private static ExecutionAppendRow CreateSidecarJoinAppendRow(
+    private ExecutionAppendRow CreateSidecarJoinAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,

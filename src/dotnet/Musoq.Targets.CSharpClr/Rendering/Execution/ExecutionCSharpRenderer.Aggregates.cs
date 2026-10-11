@@ -8,7 +8,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private StatementSyntax RenderAggregateSet(ExecutionAggregateSet aggregateSet)
+    private StatementSyntax RenderAggregateSet(ExecutionAggregateSet aggregateSet, ExecutionRenderContext context)
     {
         var kernel = aggregateSet.Accumulator.Kernel;
         var isUnitKernel = kernel.InputShape.ArgumentTypes.Count == 0;
@@ -32,9 +32,9 @@ public sealed partial class ExecutionCSharpRenderer
             aggregateSet,
             setArguments,
             setParameters,
-            useExplicitAccumulatorInput);
+            new AggregateInlineRenderingContext(useExplicitAccumulatorInput, context));
         if (inlineSet is not null)
-            return WrapAggregateSetWithFilter(aggregateSet.FilterPredicate, inlineSet);
+            return WrapAggregateSetWithFilter(aggregateSet.FilterPredicate, inlineSet, context);
 
         var arguments = new List<ArgumentSyntax>
         {
@@ -45,7 +45,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (useExplicitAccumulatorInput)
         {
             arguments.Add(SyntaxFactory.Argument(CastIfNeeded(
-                RenderExpression(input!),
+                RenderExpression(input!, context),
                 setParameters[0].ParameterType)));
         }
         else
@@ -53,7 +53,7 @@ public sealed partial class ExecutionCSharpRenderer
             for (var index = 0; index < setArguments.Length; index++)
             {
                 arguments.Add(SyntaxFactory.Argument(CastIfNeeded(
-                    RenderExpression(setArguments[index]),
+                    RenderExpression(setArguments[index], context),
                     setParameters[index].ParameterType)));
             }
         }
@@ -67,18 +67,18 @@ public sealed partial class ExecutionCSharpRenderer
 
         return WrapAggregateSetWithFilter(
             aggregateSet.FilterPredicate,
-            SyntaxFactory.ExpressionStatement(kernelInvocation));
+            SyntaxFactory.ExpressionStatement(kernelInvocation), context);
     }
 
     private StatementSyntax WrapAggregateSetWithFilter(
         ExecutionExpression? filterPredicate,
-        StatementSyntax statement)
+        StatementSyntax statement, ExecutionRenderContext context)
     {
         if (filterPredicate == null)
             return statement;
 
         return StatementEmitter.CreateIf(
-            this.RenderBooleanCondition(filterPredicate, CreateIsolatedRenderContext()),
+            this.RenderBooleanCondition(filterPredicate, context),
             StatementEmitter.CreateBlock(statement));
     }
 

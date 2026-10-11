@@ -34,7 +34,7 @@ public sealed class WindowLoweringModelTests
         Assert.AreEqual(ExecutionOffsetWindowFunction.Lag, offset.OffsetFunction);
         Assert.IsNull(offset.RankingFunction);
         Assert.IsTrue(plugin.IsBuilt);
-        Assert.AreSame(pluginFactory, plugin.PluginFactory);
+        Assert.AreSame(pluginFactory, plugin.SqlDeclaration);
         Assert.IsFalse(unsupported.IsBuilt);
         Assert.AreEqual("unsupported frame", unsupported.UnsupportedReason);
     }

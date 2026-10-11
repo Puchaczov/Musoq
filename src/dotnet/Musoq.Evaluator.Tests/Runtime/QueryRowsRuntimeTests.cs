@@ -137,11 +137,11 @@ public sealed class QueryRowsRuntimeTests
 
         Assert.AreEqual(3, rows.Count);
         Assert.AreEqual(3, rows.ShardCount);
-        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, rows.Select(static row => (string)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, rows.Select(static row => (string)row.ReadValue(0)).ToArray());
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("a", table[0][0]);
-        Assert.AreEqual("b", table[1][0]);
-        Assert.AreEqual("c", table[2][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
+        Assert.AreEqual("b", table[1].ReadValue(0));
+        Assert.AreEqual("c", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -158,8 +158,8 @@ public sealed class QueryRowsRuntimeTests
         var result = TypedPostOperationRows.Project(
                 TypedPostOperationRows.Order(
                     TypedPostOperationRows.Distinct(rows),
-                    [new TypedRowOrderKey<TestRow>(static row => row[0], false, 2)]),
-                static row => (string?)row[0])
+                    [new TypedRowOrderKey<TestRow>(static row => row.ReadValue(0), false, 2)]),
+                static row => (string?)row.ReadValue(0))
             .ToArray();
 
         CollectionAssert.AreEqual(new string?[] { "a", "b", null }, result);
@@ -229,8 +229,8 @@ public sealed class QueryRowsRuntimeTests
             new TestRow(2, "two")
         };
 
-        var tableRows = OrderTableRows(rows, 0, false, 0).Select(static row => row[1]).ToArray();
-        var typedRows = OrderTypedRows(rows, 0, false, 0).Select(static row => row[1]).ToArray();
+        var tableRows = OrderTableRows(rows, 0, false, 0).Select(static row => row.ReadValue(1)).ToArray();
+        var typedRows = OrderTypedRows(rows, 0, false, 0).Select(static row => row.ReadValue(1)).ToArray();
 
         CollectionAssert.AreEqual(new object[] { "two", "three" }, tableRows.Skip(1).Take(2).ToArray());
         CollectionAssert.AreEqual(tableRows.Skip(1).Take(2).ToArray(), typedRows.Skip(1).Take(2).ToArray());
@@ -253,13 +253,13 @@ public sealed class QueryRowsRuntimeTests
 
         var tableRows = EvaluationHelper.OrderRows(
                 rows.Distinct(),
-                [new RowOrderKey(static row => row[0], false, 2)])
-            .Select(static row => row[0])
+                [new RowOrderKey(static row => row.ReadValue(0), false, 2)])
+            .Select(static row => row.ReadValue(0))
             .ToArray();
         var typedRows = TypedPostOperationRows.Order(
                 TypedPostOperationRows.Distinct(rows),
-                [new TypedRowOrderKey<TestRow>(static row => row[0], false, 2)])
-            .Select(static row => row[0])
+                [new TypedRowOrderKey<TestRow>(static row => row.ReadValue(0), false, 2)])
+            .Select(static row => row.ReadValue(0))
             .ToArray();
 
         CollectionAssert.AreEqual(new object?[] { "a", "b", null }, tableRows);
@@ -281,8 +281,8 @@ public sealed class QueryRowsRuntimeTests
 
         Assert.IsTrue(batchRows.AddToCalled);
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("a", table[0][0]);
-        Assert.AreEqual("b", table[1][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
+        Assert.AreEqual("b", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public sealed class QueryRowsRuntimeTests
 
         Assert.AreSame(source, table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -356,7 +356,7 @@ public sealed class QueryRowsRuntimeTests
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, factoryCalls);
         Assert.AreEqual(2, enumeratedRows);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, factoryCalls);
@@ -447,10 +447,10 @@ public sealed class QueryRowsRuntimeTests
         object[] expectedIds)
     {
         var tableRows = OrderTableRows(rows, keyIndex, descending, nullOrdering)
-            .Select(static row => row[1])
+            .Select(static row => row.ReadValue(1))
             .ToArray();
         var typedRows = OrderTypedRows(rows, keyIndex, descending, nullOrdering)
-            .Select(static row => row[1])
+            .Select(static row => row.ReadValue(1))
             .ToArray();
 
         CollectionAssert.AreEqual(expectedIds, tableRows);
@@ -465,7 +465,7 @@ public sealed class QueryRowsRuntimeTests
     {
         return TypedPostOperationRows.Order(
             rows,
-            [new TypedRowOrderKey<TestRow>(row => row[keyIndex], descending, nullOrdering)]);
+            [new TypedRowOrderKey<TestRow>(row => row.ReadValue(keyIndex), descending, nullOrdering)]);
     }
 
     private static IOrderedEnumerable<Row> OrderTableRows(
@@ -476,7 +476,7 @@ public sealed class QueryRowsRuntimeTests
     {
         return EvaluationHelper.OrderRows(
             rows,
-            [new RowOrderKey(row => row[keyIndex], descending, nullOrdering)]);
+            [new RowOrderKey(row => row.ReadValue(keyIndex), descending, nullOrdering)]);
     }
 
     private sealed class TestRow : Row
@@ -489,11 +489,15 @@ public sealed class QueryRowsRuntimeTests
         }
 
         public override int Count => _values.Length;
-
-        public override object this[int columnNumber] => columnNumber switch
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
         {
-            _ when (uint)columnNumber < (uint)_values.Length => _values[columnNumber]!,
-            _ => throw new IndexOutOfRangeException()
-        };
+            for (var index = 0; index < _values.Length; index++)
+                FixtureColumnVisit.Apply(index, _values[index], ref visitor);
+        }
+
+        public override void VisitColumn<TVisitor>(int columnIndex, ref TVisitor visitor) =>
+            FixtureColumnVisit.Apply(columnIndex, _values[columnIndex], ref visitor);
+
+
     }
 }

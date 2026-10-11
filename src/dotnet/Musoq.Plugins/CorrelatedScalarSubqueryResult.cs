@@ -10,7 +10,7 @@ public static class CorrelatedScalarSubqueryResultExtractor
     public static T GetValue<T>(CorrelatedScalarSubqueryResult<T> result)
     {
         if (result.Cardinality > 1)
-            throw new InvalidOperationException("Scalar subquery returned more than one row.");
+            throw new Musoq.Plugins.ScalarSubqueryCardinalityException();
 
         return result.Cardinality == 0 ? default! : result.Value;
     }

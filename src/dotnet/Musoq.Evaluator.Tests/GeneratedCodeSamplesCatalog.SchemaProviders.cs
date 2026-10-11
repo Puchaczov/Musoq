@@ -141,7 +141,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
             if (string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, GeneratedApplySampleEntity>(name, new GeneratedApplySampleRowSource(rows));
@@ -194,128 +194,7 @@ internal static partial class GeneratedCodeSamplesCatalog
     {
         public ISchema GetSchema(string schema)
         {
-            return new DynamicSampleSchema(columns, rows);
-        }
-    }
-
-    private sealed class DynamicSampleSchema(
-        IReadOnlyDictionary<string, Type> columns,
-        IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
-        : SchemaBase("dynamic", CreateLibrary())
-    {
-        public override ISchemaTable GetTableByName(
-            string name,
-            SourceMetadataContext metadataContext,
-            params object?[] parameters)
-        {
-            return new DynamicSampleTable(columns);
-        }
-
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
-        {
-            return EnsureSourceType<T, IReadOnlyDictionary<string, object>>(name, new DynamicSampleRowSource(rows));
-        }
-
-        private static MethodsAggregator CreateLibrary()
-        {
-            var methodsManager = new MethodsManager();
-            methodsManager.RegisterLibraries(new Library());
-            return new MethodsAggregator(methodsManager);
-        }
-    }
-
-    private sealed class DynamicSampleTable(IReadOnlyDictionary<string, Type> columns) : ISchemaTable
-    {
-        public ISchemaColumn[] Columns { get; } = columns
-            .Select((column, index) => (ISchemaColumn)new SchemaColumn(column.Key, index, column.Value))
-            .ToArray();
-
-        public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object>));
-
-        public ISchemaColumn? GetColumnByName(string name)
-        {
-            return Columns.SingleOrDefault(column => column.ColumnName == name);
-        }
-
-        public ISchemaColumn[] GetColumnsByName(string name)
-        {
-            return Columns.Where(column => column.ColumnName == name).ToArray();
-        }
-    }
-
-    private sealed class DynamicSampleRowSource(IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
-        : RowSourceBase<IReadOnlyDictionary<string, object>>
-    {
-        protected override void CollectChunks(IChunkWriter<IReadOnlyDictionary<string, object>> writer)
-        {
-            writer.Write(rows.ToArray());
-        }
-    }
-
-    private sealed class ScriptParameterSampleSchemaProvider : ISchemaProvider
-    {
-        public ISchema GetSchema(string schema)
-        {
-            return new ScriptParameterSampleSchema();
-        }
-    }
-
-    private sealed class ScriptParameterSampleSchema()
-        : SchemaBase("parameterized", CreateLibrary())
-    {
-        public override ISchemaTable GetTableByName(
-            string name,
-            SourceMetadataContext metadataContext,
-            params object?[] parameters)
-        {
-            return new ScriptParameterSampleTable();
-        }
-
-        public override RowSource<T> GetRowSource<T>(
-            string name,
-            SourceExecutionContext executionContext,
-            params object?[] parameters)
-        {
-            return EnsureSourceType<T, ScriptParameterSampleEntity>(
-                name,
-                new ScriptParameterSampleRowSource([]));
-        }
-
-        private static MethodsAggregator CreateLibrary()
-        {
-            var methodsManager = new MethodsManager();
-            methodsManager.RegisterLibraries(new Library());
-            return new MethodsAggregator(methodsManager);
-        }
-    }
-
-    private sealed class ScriptParameterSampleTable : ISchemaTable
-    {
-        public ISchemaColumn[] Columns { get; } =
-        [
-            new SchemaColumn(nameof(ScriptParameterSampleEntity.Key), 0, typeof(string)),
-            new SchemaColumn(nameof(ScriptParameterSampleEntity.Value), 1, typeof(string))
-        ];
-
-        public SchemaTableMetadata Metadata { get; } = new(typeof(ScriptParameterSampleEntity));
-
-        public ISchemaColumn? GetColumnByName(string name)
-        {
-            return Columns.SingleOrDefault(column => column.ColumnName == name);
-        }
-
-        public ISchemaColumn[] GetColumnsByName(string name)
-        {
-            return Columns.Where(column => column.ColumnName == name).ToArray();
-        }
-    }
-
-    private sealed class ScriptParameterSampleRowSource(IReadOnlyList<ScriptParameterSampleEntity> rows)
-        : RowSourceBase<ScriptParameterSampleEntity>
-    {
-        protected override void CollectChunks(IChunkWriter<ScriptParameterSampleEntity> writer)
-        {
-            writer.Write(rows.ToArray());
+            return new Musoq.Evaluator.Tests.Schema.Dynamic.DynamicSchema(columns, rows.Cast<dynamic>());
         }
     }
 

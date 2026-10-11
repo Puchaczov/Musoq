@@ -22,8 +22,8 @@ tie break by b.Name asc";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Alpha"]);
     }
 
@@ -40,8 +40,8 @@ tie break by b.Name desc";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Zulu"]);
     }
 
@@ -69,8 +69,8 @@ tie break by b.NullableValue asc nulls last";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Value"]);
     }
 
@@ -104,8 +104,8 @@ order by a.Name";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A1", "B-Zulu"],
@@ -124,8 +124,8 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Zulu"]);
     }
 

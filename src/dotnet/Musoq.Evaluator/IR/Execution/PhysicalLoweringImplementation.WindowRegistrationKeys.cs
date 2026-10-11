@@ -1,4 +1,5 @@
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.IR.Execution.Lowering.Windows;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -12,15 +13,15 @@ internal sealed partial class PhysicalLoweringImplementation
         if (context.PartitionKey == null || context.PartitionSignature == null)
             return null;
 
-        var elementType = WindowRegistrationLoweringHelpers.ResolveWindowPartitionKeyElementType(context.PartitionKey);
+        var candidate = WindowKeyShapePolicy.CreatePartitionKeyArray($"{results.Name}PartitionKeys", context.PartitionKey);
         var shouldMaterialize =
             !canBuildPartitionSetFromKeys ||
             !context.SingleUsePartitionKeySignatures.Contains(context.PartitionSignature);
 
         return context.KeyArrays.GetOrAdd(
             context.PartitionSignature,
-            new ExecutionVariable($"{results.Name}PartitionKeys", elementType.MakeArrayType()),
-            CreateWindowKeyShape(elementType),
+            candidate.Variable,
+            candidate.Shape,
             shouldMaterialize);
     }
 
@@ -31,16 +32,8 @@ internal sealed partial class PhysicalLoweringImplementation
         if (context.OrderKeys.Count == 0 || context.OrderSignature == null)
             return null;
 
-        var elementType = WindowRegistrationLoweringHelpers.ResolveWindowOrderKeyElementType(context.OrderKeys);
-        return context.KeyArrays.GetOrAdd(
-            context.OrderSignature,
-            new ExecutionVariable($"{results.Name}OrderKeys", elementType.MakeArrayType()),
-            CreateWindowKeyShape(elementType));
-    }
-
-    private static ExecutionWindowKeyShape CreateWindowKeyShape(Type elementType)
-    {
-        return new ExecutionWindowKeyShape(elementType, elementType != typeof(object));
+        var candidate = WindowKeyShapePolicy.CreateOrderKeyArray($"{results.Name}OrderKeys", context.OrderKeys);
+        return context.KeyArrays.GetOrAdd(context.OrderSignature, candidate.Variable, candidate.Shape);
     }
 
     private static ExecutionWindowPartitionSet CreateWindowPartitionSet(

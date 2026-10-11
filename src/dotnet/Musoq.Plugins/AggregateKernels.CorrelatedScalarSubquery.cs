@@ -3,6 +3,9 @@ namespace Musoq.Plugins;
 #pragma warning disable CS1591
 public static class CorrelatedScalarSubqueryAggregateKernel<T>
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     public struct State
     {
         public T Value;

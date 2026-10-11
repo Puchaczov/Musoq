@@ -83,8 +83,9 @@ public class QueryExecutionException : InvalidOperationException
         if (innerException is QueryExecutionException existing)
             return existing;
 
-        var diagnostic = InternalDiagnosticException.ForExecution(innerException);
-        var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic.ToDiagnostic());
+        var diagnostic = RuntimeExpressionFailureDiagnostic.Create(innerException)
+                         ?? InternalDiagnosticException.ForExecution(innerException).ToDiagnostic();
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
         return new QueryExecutionException(
             "CompiledQuery",
             phase,

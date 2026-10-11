@@ -37,7 +37,7 @@ public partial class HashOptionalSchemaComprehensiveTests
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "entities"), "Should contain 'entities' method");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "entities"), "Should contain 'entities' method");
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public partial class HashOptionalSchemaComprehensiveTests
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count, "Should return exactly one method name");
-        Assert.AreEqual("entities", table[0][0], "Should return the method name");
+        Assert.AreEqual("entities", table[0].ReadValue(0), "Should return the method name");
     }
 
     [TestMethod]
@@ -71,7 +71,7 @@ public partial class HashOptionalSchemaComprehensiveTests
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have 3 columns: Name, Index, Type");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one column");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Name"), "Should contain 'Name' column");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Name"), "Should contain 'Name' column");
     }
 
     [TestMethod]

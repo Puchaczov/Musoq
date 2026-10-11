@@ -42,11 +42,11 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.IsFalse(printed.Contains("PhaseBoundary [Begin:cte0]", StringComparison.Ordinal), printed);
         StringAssert.Contains(printed, "SourceScan [p: Person] -> pRows");
         StringAssert.Contains(printed, "ChunkedForEach [p in pRows]");
-        StringAssert.Contains(printed, "AppendShape [result <- ResultShape0(Name: p.Name)]");
+        StringAssert.Contains(printed, "AppendShape [result <- ResultRow0(Name: p.Name)]");
         Assert.IsFalse(printed.Contains("Generated [Cte0Row0]", StringComparison.Ordinal));
         Assert.IsFalse(printed.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal));
         Assert.IsFalse(printed.Contains("ForEach [c in _tableResults[0].Rows]", StringComparison.Ordinal));
-        StringAssert.Contains(printed, "ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+        StringAssert.Contains(printed, "ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
         StringAssert.Contains(
             ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan),
             "PhaseBoundary [Begin:cte0]");
@@ -219,12 +219,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         AssertFinalShapeResult(plan, "result", "ResultRow0", "Name");
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]", planText);
         Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1: List<Cte1Row0>]", planText);
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", planText);
+        Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", planText);
         Assert.Contains("ForEach [l in _cteRowResults.Slot0]", planText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: l.Name)]", planText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: l.Name)]", planText);
         Assert.Contains("ForEach [r in _cteRowResults.Slot1]", planText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: r.Name)]", planText);
-        Assert.Contains("ReturnDeferredTable [result: ResultRow0 <- ResultShape0]", planText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: r.Name)]", planText);
+        Assert.Contains("ReturnDeferredTable [result: ResultRow0 <- ResultRow0]", planText);
         Assert.IsFalse(planText.Contains("CreateTable [left:", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("CreateTable [right:", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));

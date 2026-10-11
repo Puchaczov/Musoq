@@ -378,7 +378,7 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Category", typeof(string)),
+            ("Category", typeof(string)),
             ("C", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

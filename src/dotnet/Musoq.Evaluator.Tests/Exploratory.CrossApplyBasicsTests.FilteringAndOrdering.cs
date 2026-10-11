@@ -24,7 +24,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "important"]);
     }
 
@@ -48,7 +48,7 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)), ("t.Value", typeof(string)), ("s.Value", typeof(int)));
+            ("Name", typeof(string)), ("Value", typeof(string)), ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a", 3], ["John", "a", 4]);
     }
 
@@ -73,7 +73,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "apple"], ["John", "mango"], ["John", "zebra"]);
@@ -97,7 +97,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("s.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Bob", 4], ["Bob", 5], ["Bob", 6], ["Alice", 1], ["Alice", 2], ["Alice", 3]);
@@ -124,7 +124,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "b"], ["John", "c"]);
     }
 
@@ -146,7 +146,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("s.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 40], ["John", 30], ["John", 20]);
     }
 
@@ -182,8 +182,8 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("o.OrderId", typeof(int)), ("o.CustomerName", typeof(string)),
-            ("i.ProductName", typeof(string)), ("i.Quantity", typeof(int)));
+            ("OrderId", typeof(int)), ("CustomerName", typeof(string)),
+            ("ProductName", typeof(string)), ("Quantity", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1, "John", "Widget", 2], [1, "John", "Gadget", 1]);
@@ -216,7 +216,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("o.OrderId", typeof(int)), ("CalculatedTotal", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("OrderId", typeof(int)), ("CalculatedTotal", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 100m]);
     }
 
@@ -240,7 +240,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", null]);
     }
 
@@ -262,7 +262,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "b"]);
     }
 

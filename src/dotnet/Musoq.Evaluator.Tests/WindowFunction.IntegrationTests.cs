@@ -106,7 +106,7 @@ public class WindowFunctionIntegrationTests : BasicEntityTestBase
             table,
             ("City", typeof(string)),
             ("CityPop", typeof(decimal?)),
-            ("RunningPop", typeof(decimal)));
+            ("RunningPop", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Berlin", 300m, 300m],
@@ -141,13 +141,55 @@ public class WindowFunctionIntegrationTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("RowNum", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "NYC", 1L],
             ["Bob", "LA", 2L]);
+    }
+
+    [TestMethod]
+    public void WhenJoinWindowFrameHasDuplicateKeys_ShouldPreserveResultsForShuffledInputs()
+    {
+        const string query = @"
+            select a.Name, b.City,
+                   Sum(a.Population) over (order by a.Name rows between 1 preceding and current row) as RunSum
+            from #A.entities() a
+            inner join #A.entities() b on a.Id = b.Id";
+
+        var ascending = new[]
+        {
+            new BasicEntity("A") { Id = 1, City = "X", Population = 10 },
+            new BasicEntity("B") { Id = 1, City = "X", Population = 20 },
+            new BasicEntity("C") { Id = 2, City = "Y", Population = 30 }
+        };
+        var shuffled = new[] { ascending[2], ascending[1], ascending[0] };
+
+        foreach (var entities in new[] { ascending, shuffled })
+        {
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                { "#A", entities }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run(TestContext.CancellationToken);
+
+            TableMaterializationTestHelper.AssertColumns(
+                table,
+                ("Name", typeof(string)),
+                ("City", typeof(string)),
+                ("RunSum", typeof(decimal?)));
+            TableMaterializationTestHelper.AssertRowsUnordered(
+                table,
+                ["A", "X", 10m],
+                ["A", "X", 20m],
+                ["B", "X", 30m],
+                ["B", "X", 40m],
+                ["C", "Y", 50m]);
+        }
     }
 
     [TestMethod]
@@ -179,8 +221,8 @@ public class WindowFunctionIntegrationTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("RowNum", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -314,11 +356,11 @@ public class WindowFunctionIntegrationTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("CityCount", typeof(int)));
+            ("CityCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["LA", 2],
-            ["NYC", 3]);
+            ["LA", 2L],
+            ["NYC", 3L]);
     }
 
     [TestMethod]
@@ -449,7 +491,7 @@ public class WindowFunctionIntegrationTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Alice", 100m],
@@ -528,8 +570,8 @@ public class WindowFunctionIntegrationTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

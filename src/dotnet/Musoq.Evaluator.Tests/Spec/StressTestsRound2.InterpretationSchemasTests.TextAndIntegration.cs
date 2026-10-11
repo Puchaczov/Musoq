@@ -35,7 +35,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0][0]);
+        Assert.AreEqual("hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("HELLO", table[0][0]);
+        Assert.AreEqual("HELLO", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -90,9 +90,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table1 = vm1.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table1.Count);
-        Assert.AreEqual("color", table1[0][0]);
-        Assert.AreEqual("red", table1[0][1]);
-        Assert.AreEqual("BOLD", table1[0][2]);
+        Assert.AreEqual("color", table1[0].ReadValue(0));
+        Assert.AreEqual("red", table1[0].ReadValue(1));
+        Assert.AreEqual("BOLD", table1[0].ReadValue(2));
 
         // Extra is absent
         var entities2 = new[] { new TextEntity { Name = "a.txt", Text = "color=red;" } };
@@ -103,9 +103,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table2 = vm2.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table2.Count);
-        Assert.AreEqual("color", table2[0][0]);
-        Assert.AreEqual("red", table2[0][1]);
-        Assert.IsNull(table2[0][2]);
+        Assert.AreEqual("color", table2[0].ReadValue(0));
+        Assert.AreEqual("red", table2[0].ReadValue(1));
+        Assert.IsNull(table2[0].ReadValue(2));
     }
 
     /// <summary>
@@ -132,8 +132,8 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0][0]);
-        Assert.AreEqual("world", table[0][1]);
+        Assert.AreEqual("hello", table[0].ReadValue(0));
+        Assert.AreEqual("world", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -161,8 +161,8 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("beta", table[0][1]);
+        Assert.AreEqual("alpha", table[0].ReadValue(0));
+        Assert.AreEqual("beta", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -189,8 +189,8 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABCDE", table[0][0]);
-        Assert.AreEqual(string.Empty, table[0][1]);
+        Assert.AreEqual("ABCDE", table[0].ReadValue(0));
+        Assert.AreEqual(string.Empty, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -216,7 +216,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(string.Empty, table[0][0]);
+        Assert.AreEqual(string.Empty, table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -250,10 +250,10 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("100", table[0][1]);
-        Assert.AreEqual("beta", table[1][0]);
-        Assert.AreEqual("200", table[1][1]);
+        Assert.AreEqual("alpha", table[0].ReadValue(0));
+        Assert.AreEqual("100", table[0].ReadValue(1));
+        Assert.AreEqual("beta", table[1].ReadValue(0));
+        Assert.AreEqual("200", table[1].ReadValue(1));
     }
 
     #endregion
@@ -299,9 +299,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0xBEEF, table[0][0]);
-        Assert.AreEqual((byte)42, table[0][1]);
-        Assert.AreEqual((short)999, table[0][2]);
+        Assert.AreEqual(0xBEEF, table[0].ReadValue(0));
+        Assert.AreEqual((byte)42, table[0].ReadValue(1));
+        Assert.AreEqual((short)999, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -333,9 +333,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)99, table[0][0]);
-        Assert.AreEqual((byte)7, table[0][1]);
-        Assert.AreEqual((short)42, table[0][2]);
+        Assert.AreEqual((byte)99, table[0].ReadValue(0));
+        Assert.AreEqual((byte)7, table[0].ReadValue(1));
+        Assert.AreEqual((short)42, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -386,8 +386,8 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)30, table[0][0]); // 10+20
-        Assert.AreEqual(2, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual((short)30, table[0].ReadValue(0)); // 10+20
+        Assert.AreEqual(2, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     /// <summary>
@@ -450,12 +450,12 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("1", table[0][0]);
-        Assert.AreEqual((short)100, table[0][1]);
-        Assert.AreEqual("Alpha", table[0][2]);
-        Assert.AreEqual("2", table[1][0]);
-        Assert.AreEqual((short)200, table[1][1]);
-        Assert.AreEqual("Beta", table[1][2]);
+        Assert.AreEqual("1", table[0].ReadValue(0));
+        Assert.AreEqual((short)100, table[0].ReadValue(1));
+        Assert.AreEqual("Alpha", table[0].ReadValue(2));
+        Assert.AreEqual("2", table[1].ReadValue(0));
+        Assert.AreEqual((short)200, table[1].ReadValue(1));
+        Assert.AreEqual("Beta", table[1].ReadValue(2));
     }
 
     /// <summary>
@@ -490,9 +490,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)3, table[0][0]);
-        Assert.AreEqual((byte)7, table[0][1]);
-        Assert.AreEqual(99, table[0][2]);
+        Assert.AreEqual((short)3, table[0].ReadValue(0));
+        Assert.AreEqual((byte)7, table[0].ReadValue(1));
+        Assert.AreEqual(99, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -524,9 +524,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((byte)3, table[2][0]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((byte)3, table[2].ReadValue(0));
     }
 
     #endregion

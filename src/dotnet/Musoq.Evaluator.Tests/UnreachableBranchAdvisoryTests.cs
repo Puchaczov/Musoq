@@ -85,7 +85,7 @@ public sealed class UnreachableBranchAdvisoryTests : BasicEntityTestBase
                 ["#A"] = [new BasicEntity()]
             }).Run();
 
-        Assert.AreEqual(1, table[0][0]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
     }
 
     private static void AssertCode(QueryAnalysisResult result)

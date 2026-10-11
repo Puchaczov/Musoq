@@ -52,9 +52,9 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("log.Timestamp", typeof(string)),
-            ("log.Level", typeof(string)),
-            ("log.Message", typeof(string)));
+            ("Timestamp", typeof(string)),
+            ("Level", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["2024-01-15T10:30:00", "INFO", "Application started"],
@@ -100,8 +100,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("kv.Key", typeof(string)),
-            ("kv.Value", typeof(string)));
+            ("Key", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["debug", "true"],

@@ -36,12 +36,16 @@ internal static class RepositorySourceScan
         return roots
             .Where(Directory.Exists)
             .SelectMany(root => Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+            .Where(file => !IsGeneratedCodeSample(repositoryRoot, file))
             .Where(file => !file.Contains($"{separator}bin{separator}", StringComparison.Ordinal))
             .Where(file => !file.Contains($"{separator}obj{separator}", StringComparison.Ordinal))
             .Where(file => !file.Contains(".Tests", StringComparison.Ordinal))
             .Where(file => !file.Contains(".Benchmarks", StringComparison.Ordinal))
             .ToArray();
     }
+
+    public static bool IsGeneratedCodeSample(string repositoryRoot, string file) => ToRelative(repositoryRoot, file)
+        .StartsWith("src/dotnet/generated-code-samples/", StringComparison.Ordinal);
 
     public static IReadOnlyList<string> FilesUnder(string repositoryRoot, string relativeDirectory, string searchPattern)
     {

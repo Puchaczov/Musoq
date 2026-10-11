@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Musoq.Evaluator.Tables;
-using Musoq.Plugins.Attributes;
+using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.Helpers;
 
@@ -27,7 +26,7 @@ public static partial class EvaluationHelper
         ArgumentNullException.ThrowIfNull(executionContext);
         executionContext.EndWorkToken.ThrowIfCancellationRequested();
 
-        var libraryMethods = schema.GetAllLibraryMethods();
+        var libraryFunctions = schema.GetAllLibraryFunctions();
 
         var newTable = new Table("desc", [
             new Column("Method", typeof(string), 0),
@@ -40,24 +39,21 @@ public static partial class EvaluationHelper
         var methodRows =
             new List<(string Signature, string Description, string Category, string Source, int SortOrder)>();
 
-        foreach (var (_, methodInfos) in libraryMethods)
+        foreach (var function in libraryFunctions)
         {
-            foreach (var methodInfo in methodInfos)
-            {
-                executionContext.EndWorkToken.ThrowIfCancellationRequested();
+            executionContext.EndWorkToken.ThrowIfCancellationRequested();
 
-                var bindableAttr = methodInfo.GetCustomAttribute<BindableMethodAttribute>();
-                if (bindableAttr?.IsInternal == true)
-                    continue;
+            if (function.Visibility != FunctionVisibility.Public)
+                continue;
 
-                var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
-                var description = GetXmlDocumentation(methodInfo);
-                var category = GetMethodCategory(methodInfo);
-                var source = GetMethodSource(methodInfo);
-                var sortOrder = source == "Schema" ? 0 : 1;
+            var methodInfo = function.Declaration;
+            var signature = SqlFunctionSignature.Format(function);
+            var description = GetXmlDocumentation(methodInfo);
+            var category = GetMethodCategory(methodInfo);
+            var source = GetMethodSource(methodInfo);
+            var sortOrder = source == "Schema" ? 0 : 1;
 
-                methodRows.Add((signature, description, category, source, sortOrder));
-            }
+            methodRows.Add((signature, description, category, source, sortOrder));
         }
 
 

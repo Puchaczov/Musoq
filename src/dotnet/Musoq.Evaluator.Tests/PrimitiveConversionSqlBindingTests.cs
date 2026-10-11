@@ -48,7 +48,7 @@ public sealed class PrimitiveConversionSqlBindingTests : BasicEntityTestBase
         for (var index = 0; index < expectedTypes.Length; index++)
         {
             Assert.AreEqual(expectedTypes[index], table.Columns.ElementAt(index).ColumnType);
-            Assert.AreEqual(expectedValues[index], table[0][index]);
+            Assert.AreEqual(expectedValues[index], table[0].ReadValue(index));
         }
     }
 }

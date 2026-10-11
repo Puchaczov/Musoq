@@ -16,6 +16,9 @@ internal static class EnumIntrinsicMethodFacts
     {
         var nullableCarrier = Nullable.GetUnderlyingType(operandType);
         var carrierType = nullableCarrier ?? operandType;
+        if (carrierType.IsEnum)
+            carrierType = Enum.GetUnderlyingType(carrierType);
+
         if (!carrierType.IsPrimitive || carrierType == typeof(bool) || carrierType == typeof(char))
             throw new InvalidOperationException(
                 $"Enum intrinsic '{kind}' requires an integral carrier, received '{operandType}'.");

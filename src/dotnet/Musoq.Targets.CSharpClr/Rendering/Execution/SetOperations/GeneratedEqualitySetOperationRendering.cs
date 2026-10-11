@@ -122,6 +122,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
+            CreateIntersectDistinctState(setOperation, context),
             StatementEmitter.CreateForeach(
                 leftRowName,
                 CreateSetRowsRead(setOperation.Left, context),
@@ -134,15 +135,13 @@ public sealed partial class ExecutionCSharpRenderer
                         setOperation.Left,
                         setOperation,
                         context),
-                    StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(
-                        setOperation,
-                        leftRowName,
-                        setOperation.Left,
+                    StatementEmitter.CreateBlock(CreateIntersectDistinctOutput(setOperation, leftRowName,
+                        CreateSetOperationTargetAddStatement(setOperation, leftRowName, setOperation.Left, context),
                         context)))))
         ];
     }
 
-    private InvocationExpressionSyntax CreateSetRowsAnyMatch(
+    internal InvocationExpressionSyntax CreateSetRowsAnyMatch(
         ExpressionSyntax rowsExpression,
         string existingRowName,
         string candidateRowName,
@@ -212,12 +211,8 @@ public sealed partial class ExecutionCSharpRenderer
         Type fieldType,
         ExecutionRenderContext context)
     {
-        var firstShape = TryGetTypedRowBufferShape(firstSource.Name, context, out var typedFirstShape)
-            ? typedFirstShape
-            : null;
-        var secondShape = TryGetTypedRowBufferShape(secondSource.Name, context, out var typedSecondShape)
-            ? typedSecondShape
-            : null;
+        var firstShape = GetSetOperationSourceShape(firstSource, context);
+        var secondShape = GetSetOperationSourceShape(secondSource, context);
 
         return CreateSetFieldEquality(
             CreateTypedSetFieldRead(firstRowName, fieldIndex, fieldType, firstShape),

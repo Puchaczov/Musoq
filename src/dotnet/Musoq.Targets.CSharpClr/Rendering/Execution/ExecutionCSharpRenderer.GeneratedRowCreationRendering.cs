@@ -10,8 +10,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionCreateGeneratedRow createRow,
         ExecutionRenderContext context)
     {
-        createRow = NormalizeLazyContextSegments(createRow);
-
         return CreateLocalDeclaration(
             CreateVariableTypeSyntax(createRow.Row),
             createRow.Row.Name,
@@ -45,9 +43,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (contexts.Count == 0)
             return CreateObjectCreation(rowShape.TypeName, rowValues.ToArray());
 
-        return CreateObjectCreation(
-            rowShape.TypeName,
-            [.. rowValues, CreateArrayCreation("object", contexts.Select(item => RenderExpression(item, context)))]);
+        throw UnsupportedShape.Of($"Row {rowShape.TypeName} has no concrete context argument layout.");
     }
 
     private static bool GeneratedRowTypeUsesContextConstructor(string typeName, ExecutionRenderContext context)

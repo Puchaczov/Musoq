@@ -191,18 +191,22 @@ public sealed class GitSchema : SchemaBase
         });
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
         _recorder?.RowSourceCalls.Add(new GitRowSourceCall(
             name,
             GitSourceExecutionSnapshot.From(executionContext),
-            parameters.ToArray(),
+            parameters.Count == 0 ? null : parameters.GetValue<string>(0),
             typeof(T)));
 
-        return base.GetRowSource<T>(name, executionContext, parameters);
+        if (name != Commits || parameters.Count > 1)
+            throw new ArgumentException($"Unsupported Git source '{name}' or arguments.");
+        return EnsureSourceType<T, GitCommitRow>(name, parameters.Count == 0
+            ? new GitCommitsSource(_store, executionContext)
+            : new GitCommitsSource(parameters.GetValue<string>(0), _store, executionContext));
     }
 
     public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)

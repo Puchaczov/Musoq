@@ -37,7 +37,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "One row with Age=100 should match");
-        Assert.AreEqual("ValidAge", table[0].Values[0]);
+        Assert.AreEqual("ValidAge", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only the max valid long value should match");
-        Assert.AreEqual("MaxLong", table[0].Values[0]);
+        Assert.AreEqual("MaxLong", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -95,7 +95,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only the whole number should match");
-        Assert.AreEqual("WholeNumber", table[0].Values[0]);
+        Assert.AreEqual("WholeNumber", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -124,7 +124,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "ValidPrice with 100.50 should match");
-        Assert.AreEqual("ValidPrice", table[0].Values[0]);
+        Assert.AreEqual("ValidPrice", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -173,13 +173,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Only 2 valid rows above threshold should match");
-        var names = table.Select(row => (string)row[0]).ToList();
+        var names = table.Select(row => (string)row.ReadValue(0)).ToList();
         CollectionAssert.Contains(names, "Valid1");
         CollectionAssert.Contains(names, "Valid2");
     }
 
     [TestMethod]
-    public void WhenObjectTypeOverflowsDuringConversion_ShouldExcludeRow()
+    public void WhenObjectColumnContainsNumericValues_ShouldRejectErasedShapeBeforeExecution()
     {
         const string query = "table Items {" +
                              "  Value: object," +
@@ -200,11 +200,11 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Value = (object)9999999999L;
         item3.Name = "TooLarge";
 
-        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(1, table.Count, "Only exact integer match should succeed");
-        Assert.AreEqual("Match", table[0].Values[0]);
+        var error = Assert.ThrowsExactly<global::Musoq.Converter.Exceptions.MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, [item1, item2, item3]));
+        Assert.AreEqual(global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
+        Assert.Contains("Value", error.Message);
+        Assert.Contains("object runtime type", error.Message);
     }
 
     [TestMethod]
@@ -229,7 +229,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only MaxValue should match");
-        Assert.AreEqual("MaxValue", table[0].Values[0]);
+        Assert.AreEqual("MaxValue", table[0].ReadValues()[0]);
 
         const string query2 = "table Items {" +
                               "  Value: string," +
@@ -250,7 +250,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         var table2 = vm2.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table2.Count, "Only MinValue should match");
-        Assert.AreEqual("MinValue", table2[0].Values[0]);
+        Assert.AreEqual("MinValue", table2[0].ReadValues()[0]);
     }
 
 

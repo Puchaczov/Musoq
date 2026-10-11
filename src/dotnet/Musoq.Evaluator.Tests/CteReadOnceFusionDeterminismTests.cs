@@ -18,7 +18,7 @@ public class CteReadOnceFusionDeterminismTests : BasicEntityTestBase
         var table = RunSingleRowQuery(query);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(table[0][0], table[0][1]);
+        Assert.AreEqual(table[0].ReadValue(0), table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public class CteReadOnceFusionDeterminismTests : BasicEntityTestBase
         var table = RunSingleRowQuery(query);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0][0]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
     }
 
     private Table RunSingleRowQuery(string query)

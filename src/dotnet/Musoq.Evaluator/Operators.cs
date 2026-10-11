@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -33,37 +33,49 @@ public partial class Operators
         return comparison(left, right);
     }
 
-    public bool Like(string? content, string? searchFor)
+    public bool Like(string? content, string? searchFor) =>
+        Like(content, searchFor, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public bool Like(string? content, string? searchFor, TimeSpan timeout)
     {
-        return LikeDynamic(content, searchFor);
+        RegexMatchTimeoutPolicy.Validate(timeout);
+        return LikeDynamic(content, searchFor, timeout);
     }
 
     /// <summary>Matches a value against a runtime LIKE pattern using a bounded culture-aware matcher cache.</summary>
-    public static bool LikeDynamic(string? content, string? searchFor)
+    public static bool LikeDynamic(string? content, string? searchFor) =>
+        LikeDynamic(content, searchFor, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public static bool LikeDynamic(string? content, string? searchFor, TimeSpan timeout)
     {
+        RegexMatchTimeoutPolicy.Validate(timeout);
         if (content is null || searchFor is null)
             return false;
 
-        var key = CreateLikeMatcherCacheKey(searchFor);
-        var matcher = LikeMatcherCache.GetOrAdd(key, static cacheKey => CreateLikeMatcher(cacheKey.Pattern));
+        var key = CreateLikeMatcherCacheKey(searchFor, timeout);
+        var matcher = LikeMatcherCache.GetOrAdd(key, static cacheKey => CreateLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
         return matcher.IsMatch(content);
     }
 
     /// <summary>Prepares a LIKE pattern under the current culture, or returns null for a null SQL pattern.</summary>
-    public static PreparedLikeMatcher? PrepareLike(string? pattern)
+    public static PreparedLikeMatcher? PrepareLike(string? pattern) =>
+        PrepareLike(pattern, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public static PreparedLikeMatcher? PrepareLike(string? pattern, TimeSpan timeout)
     {
+        RegexMatchTimeoutPolicy.Validate(timeout);
         if (pattern is null)
             return null;
 
-        var key = CreateLikeMatcherCacheKey(pattern);
+        var key = CreateLikeMatcherCacheKey(pattern, timeout);
         if (LikeMatcherCache.TryGetValue(key, out var cachedMatcher))
             return cachedMatcher;
 
         var classification = LikePatternClassifier.Classify(pattern);
         if (classification.Classification is { Domain: LikePatternCharacterDomain.Ascii })
-            return CreateLikeMatcher(pattern, classification);
+            return CreateLikeMatcher(pattern, classification, timeout);
 
-        return LikeMatcherCache.GetOrAdd(key, static cacheKey => CreateLikeMatcher(cacheKey.Pattern));
+        return LikeMatcherCache.GetOrAdd(key, static cacheKey => CreateLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
     }
 
     /// <summary>Matches a value using an already prepared LIKE matcher.</summary>
@@ -142,23 +154,27 @@ public partial class Operators
     }
 
     /// <summary>Matches a value with the historical regular-expression LIKE semantics.</summary>
-    public static bool LikeLegacyRegex(string? content, string? pattern)
+    public static bool LikeLegacyRegex(string? content, string? pattern) =>
+        LikeLegacyRegex(content, pattern, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public static bool LikeLegacyRegex(string? content, string? pattern, TimeSpan timeout)
     {
+        RegexMatchTimeoutPolicy.Validate(timeout);
         if (content is null || pattern is null)
             return false;
 
         var culture = CultureInfo.CurrentCulture;
         var frontEntry = Volatile.Read(ref _legacyLikeMatcherFrontEntry);
-        if (frontEntry is not null && frontEntry.Matches(pattern, culture))
+        if (frontEntry is not null && frontEntry.Matches(pattern, culture, timeout))
             return frontEntry.Matcher(content);
 
         var cultureName = culture.Name;
-        var key = new LikeMatcherCacheKey(pattern, cultureName);
+        var key = new LikeMatcherCacheKey(pattern, cultureName, timeout.Ticks);
         var matcher = LegacyLikeMatcherCache
-            .GetOrAdd(key, static cacheKey => CreateLegacyLikeMatcher(cacheKey.Pattern));
+            .GetOrAdd(key, static cacheKey => CreateLegacyLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
         Volatile.Write(
             ref _legacyLikeMatcherFrontEntry,
-            new LegacyLikeMatcherFrontEntry(pattern, culture, matcher));
+            new LegacyLikeMatcherFrontEntry(pattern, culture, timeout.Ticks, matcher));
         return matcher(content);
     }
 
@@ -175,8 +191,15 @@ public partial class Operators
     public static bool LikeLegacyRegexSingleAsciiPrefix(
         string? content,
         string? pattern,
-        string? literal)
+        string? literal) =>
+        LikeLegacyRegexSingleAsciiPrefix(content, pattern, literal, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public static bool LikeLegacyRegexSingleAsciiPrefix(
+        string? content,
+        string? pattern,
+        string? literal, TimeSpan timeout)
     {
+        RegexMatchTimeoutPolicy.Validate(timeout);
         if (content is null || pattern is null || literal is null || content.Length == 0 || literal.Length != 1)
             return false;
 
@@ -189,7 +212,7 @@ public partial class Operators
             : MayMatchInvariantAsciiCharacter(content[0], expected);
 
         return mayMatch &&
-               LikeLegacyRegex(content, pattern);
+               LikeLegacyRegex(content, pattern, timeout);
     }
 
     /// <summary>Runs the legacy suffix matcher after a conservative culture-aware rejection check.</summary>
@@ -241,19 +264,30 @@ public partial class Operators
         return literal.IndexOfAny('I', 'i') < 0 || IsOrdinalIgnoreCaseLikeCompatible();
     }
 
-    public bool RLike(string? content, string? pattern)
+    public bool RLike(string? content, string? pattern) =>
+        RLike(content, pattern, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public bool RLike(string? content, string? pattern, TimeSpan timeout)
     {
-        return RLikeDynamic(content, pattern);
+        RegexMatchTimeoutPolicy.Validate(timeout);
+        return RLikeDynamic(content, pattern, timeout);
     }
 
     /// <summary>Prepares an RLIKE pattern without compiling it until the first non-null match.</summary>
-    public static PreparedRLikeMatcher? PrepareRLike(string? pattern)
+    public static PreparedRLikeMatcher? PrepareRLike(string? pattern) =>
+        PrepareRLike(pattern, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public static PreparedRLikeMatcher? PrepareRLike(string? pattern, TimeSpan timeout)
     {
+        var budget = RegexMatchBudget.Create(timeout);
         if (pattern is null)
             return null;
 
-        return new PreparedRLikeMatcher(pattern, GetOrCreateRLikeRegex);
+        return PrepareRLikeForExecution(pattern, budget);
     }
+
+    internal static PreparedRLikeMatcher PrepareRLikeForExecution(string pattern, RegexMatchBudget budget) =>
+        new(pattern, budget, GetOrCreateRLikeRegex);
 
     /// <summary>Matches a value using a prepared RLIKE pattern.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -263,12 +297,16 @@ public partial class Operators
     }
 
     /// <summary>Matches a value against a runtime RLIKE pattern using the bounded process cache.</summary>
-    public static bool RLikeDynamic(string? content, string? pattern)
+    public static bool RLikeDynamic(string? content, string? pattern) =>
+        RLikeDynamic(content, pattern, RuntimeCacheOptions.DefaultRegexTimeout);
+
+    public static bool RLikeDynamic(string? content, string? pattern, TimeSpan timeout)
     {
+        RegexMatchTimeoutPolicy.Validate(timeout);
         if (content is null || pattern is null)
             return false;
 
-        return GetOrCreateRLikeRegex(pattern, CultureInfo.CurrentCulture).IsMatch(content);
+        return RegexMatchExecutor.IsMatch(GetOrCreateRLikeRegex(pattern, CultureInfo.CurrentCulture, timeout), content, "RLIKE");
     }
 
     /// <summary>Matches a value against a runtime RLIKE pattern using an execution-local cache.</summary>
@@ -290,30 +328,31 @@ public partial class Operators
         return Array.IndexOf(values, value) >= 0;
     }
 
-    private static PreparedLikeMatcher CreateLikeMatcher(string pattern)
+    private static PreparedLikeMatcher CreateLikeMatcher(string pattern, TimeSpan timeout)
     {
         var result = LikePatternClassifier.Classify(pattern);
-        return CreateLikeMatcher(pattern, result);
+        return CreateLikeMatcher(pattern, result, timeout);
     }
 
     private static PreparedLikeMatcher CreateLikeMatcher(
         string pattern,
-        LikePatternClassificationResult result)
+        LikePatternClassificationResult result,
+        TimeSpan timeout)
     {
         var requiresPreparedLegacyMatcher = result.Classification is not { } match ||
                                             match.Domain == LikePatternCharacterDomain.Unicode;
-        var legacyMatcher = requiresPreparedLegacyMatcher ? CreateLegacyLikeMatcher(pattern) : null;
-        return new PreparedLikeMatcher(pattern, result, legacyMatcher, CultureInfo.CurrentCulture);
+        var legacyMatcher = requiresPreparedLegacyMatcher ? CreateLegacyLikeMatcher(pattern, timeout) : null;
+        return new PreparedLikeMatcher(pattern, result, legacyMatcher, CultureInfo.CurrentCulture, timeout);
     }
 
-    private static LikeMatcherCacheKey CreateLikeMatcherCacheKey(string pattern) =>
-        new(pattern, CultureInfo.CurrentCulture.Name);
+    private static LikeMatcherCacheKey CreateLikeMatcherCacheKey(string pattern, TimeSpan timeout) =>
+        new(pattern, CultureInfo.CurrentCulture.Name, timeout.Ticks);
 
-    private static Regex GetOrCreateRLikeRegex(string pattern, CultureInfo culture)
+    private static Regex GetOrCreateRLikeRegex(string pattern, CultureInfo culture, TimeSpan timeout)
     {
-        var key = new RLikeMatcherCacheKey(pattern, culture.Name);
+        var key = new RLikeMatcherCacheKey(pattern, culture.Name, timeout.Ticks);
         return RLikePatternCache.GetOrAdd(key, static cacheKey =>
-            new Regex(cacheKey.Pattern, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout));
+            CreateRLikeRegex(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -411,7 +450,7 @@ public partial class Operators
         };
     }
 
-    private static Func<string, bool> CreateLegacyLikeMatcher(string pattern)
+    private static Func<string, bool> CreateLegacyLikeMatcher(string pattern, TimeSpan timeout)
     {
         var regexPattern = CreateOptimizedLegacyLikeRegexPattern(pattern);
         var options = RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled;
@@ -420,8 +459,8 @@ public partial class Operators
         if (CanUseTimeoutBoundedBacktrackingMatcher(pattern) &&
             classification is { Domain: LikePatternCharacterDomain.Ascii })
         {
-            regex = new Regex(regexPattern, options, RuntimeCacheOptions.DefaultRegexTimeout);
-            return regex.IsMatch;
+            regex = new Regex(regexPattern, options, timeout);
+            return input => RegexMatchExecutor.IsMatch(regex, input, "LIKE");
         }
 
         try
@@ -429,17 +468,17 @@ public partial class Operators
             regex = new Regex(
                 regexPattern,
                 options | RegexOptions.NonBacktracking,
-                RuntimeCacheOptions.DefaultRegexTimeout);
+                timeout);
         }
         catch (NotSupportedException)
         {
             // The non-backtracking engine rejects automata above its fixed node limit.
             // LIKE patterns are escaped before wildcard expansion, so the timeout-bounded
             // backtracking engine is the compatible fallback for those large patterns.
-            regex = new Regex(regexPattern, options, RuntimeCacheOptions.DefaultRegexTimeout);
+            regex = new Regex(regexPattern, options, timeout);
         }
 
-        return regex.IsMatch;
+        return input => RegexMatchExecutor.IsMatch(regex, input, "LIKE");
     }
 
     internal static bool CanUseTimeoutBoundedBacktrackingMatcher(string pattern)
@@ -548,9 +587,13 @@ public partial class Operators
         }
     }
 
+    internal static Func<string, bool> CreateLegacyLikeMatcherUnderCulture(string pattern, CultureInfo culture) =>
+        CreateLegacyLikeMatcherUnderCulture(pattern, culture, RuntimeCacheOptions.DefaultRegexTimeout);
+
     internal static Func<string, bool> CreateLegacyLikeMatcherUnderCulture(
         string pattern,
-        CultureInfo culture)
+        CultureInfo culture,
+        TimeSpan timeout)
     {
         ArgumentNullException.ThrowIfNull(pattern);
         ArgumentNullException.ThrowIfNull(culture);
@@ -559,7 +602,7 @@ public partial class Operators
         try
         {
             CultureInfo.CurrentCulture = culture;
-            return CreateLegacyLikeMatcher(pattern);
+            return CreateLegacyLikeMatcher(pattern, timeout);
         }
         finally
         {
@@ -594,17 +637,19 @@ public partial class Operators
         };
     }
 
-    private readonly record struct LikeMatcherCacheKey(string Pattern, string CultureName);
+    private readonly record struct LikeMatcherCacheKey(string Pattern, string CultureName, long TimeoutTicks);
 
-    private readonly record struct RLikeMatcherCacheKey(string Pattern, string CultureName);
+    private readonly record struct RLikeMatcherCacheKey(string Pattern, string CultureName, long TimeoutTicks);
 
     private sealed record LegacyLikeMatcherFrontEntry(
         string Pattern,
         CultureInfo Culture,
+        long TimeoutTicks,
         Func<string, bool> Matcher)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Matches(string pattern, CultureInfo culture) =>
+        public bool Matches(string pattern, CultureInfo culture, TimeSpan timeout) =>
+            TimeoutTicks == timeout.Ticks &&
             (ReferenceEquals(Pattern, pattern) || string.Equals(Pattern, pattern, StringComparison.Ordinal)) &&
             (ReferenceEquals(Culture, culture) ||
              string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal));

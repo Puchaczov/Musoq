@@ -130,6 +130,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (leftType == rightType)
                 continue;
 
+            if (TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i]))
+                continue;
+
             var leftIsNull = leftType is NullNode.NullType;
             var rightIsNull = rightType is NullNode.NullType;
 

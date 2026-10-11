@@ -17,7 +17,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -35,7 +35,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
     }
 
@@ -50,7 +50,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
     }
 
@@ -65,7 +65,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
@@ -81,7 +81,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -97,7 +97,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
     }
 
@@ -128,7 +128,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -160,7 +160,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["HAS_VALUE"]);
     }
 
@@ -176,7 +176,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);

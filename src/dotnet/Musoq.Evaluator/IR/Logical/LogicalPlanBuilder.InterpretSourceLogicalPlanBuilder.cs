@@ -44,7 +44,7 @@ public sealed partial class LogicalPlanBuilder
     private static OutputSchema BuildInterpretOutputSchema(InterpretFromNode node)
     {
         if (node.InterpretCall is PartialInterpretCallNode or PartialParseCallNode)
-            return CreatePartialInterpretOutputSchema();
+            return CreatePartialInterpretOutputSchema(node.SchemaName);
 
         var resultType = ResolveInterpretResultType(node);
         if (resultType == typeof(object))
@@ -69,11 +69,11 @@ public sealed partial class LogicalPlanBuilder
         return new OutputSchema(columns);
     }
 
-    private static OutputSchema CreatePartialInterpretOutputSchema()
+    private static OutputSchema CreatePartialInterpretOutputSchema(string schemaName)
     {
         return new OutputSchema(
         [
-            new ColumnSchema("ParsedFields", typeof(Dictionary<string, object?>), 0),
+            new ColumnSchema("ParsedFields", typeof(object), 0, $"Musoq.Generated.Interpreters.{schemaName}"),
             new ColumnSchema("ErrorField", typeof(string), 1),
             new ColumnSchema("ErrorMessage", typeof(string), 2),
             new ColumnSchema("BytesConsumed", typeof(int), 3)

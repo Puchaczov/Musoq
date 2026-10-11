@@ -46,8 +46,8 @@ public class BugProbeTextOptionalFieldTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("host", table[0][0]);
-        Assert.AreEqual("local", table[0][1]);
+        Assert.AreEqual("host", table[0].ReadValue(0));
+        Assert.AreEqual("local", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -78,6 +78,6 @@ public class BugProbeTextOptionalFieldTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("value", table[0][0]);
+        Assert.AreEqual("value", table[0].ReadValue(0));
     }
 }

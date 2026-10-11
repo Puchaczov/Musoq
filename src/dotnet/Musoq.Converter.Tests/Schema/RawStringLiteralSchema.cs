@@ -36,16 +36,16 @@ public sealed class RawStringLiteralSchema : SchemaBase
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (string.Equals(name, Files, StringComparison.OrdinalIgnoreCase))
         {
             return EnsureSourceType<T, RawFilesEntity>(
                 name,
-                new RawFilesRowSource((string)parameters[0]!, (bool)parameters[1]!));
+                new RawFilesRowSource(nativeArguments.GetValue<string>(0), nativeArguments.GetValue<bool>(1)));
         }
 
         throw new NotSupportedException(name);

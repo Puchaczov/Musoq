@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -12,23 +11,19 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private static IEnumerable<MemberDeclarationSyntax> CreateGeneratedRowContextFields(
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        int contextCount)
+        IReadOnlyList<FieldBinding> contexts)
     {
         var constructors = GetGeneratedRowConstructors(usedConstructors);
         if (!RequiresGeneratedRowContextOverride(constructors))
             yield break;
 
-        if (UsesDirectContextStorage(constructors))
-        {
-            yield return CreateGeneratedRowField(SyntaxHelper.ObjectArrayTypeSyntax, "__contexts", isReadonly: true);
-            yield break;
-        }
+        var valueConstructors = constructors.Where(static constructor =>
+            constructor != GeneratedRowContextConstructor.NoContext).ToArray();
+        if (valueConstructors.Length != 1)
+            throw UnsupportedShape.Of("A context carrier must have one concrete field layout.");
+        var constructor = valueConstructors[0];
 
-        var constructor = constructors.Single();
-        var objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
-        var rowType = CreateTypeSyntax(typeof(Row));
-
-        foreach (var contextParameter in CreateGeneratedRowContextParameters(constructor, objectType, rowType, contextCount)
+        foreach (var contextParameter in CreateGeneratedRowContextParameters(constructor, contexts)
                      .OrderBy(static contextParameter => GetGeneratedRowContextFieldOrder(contextParameter.FieldName)))
             yield return CreateGeneratedRowField(contextParameter.Type, contextParameter.FieldName, isReadonly: true);
     }
@@ -61,87 +56,45 @@ public sealed partial class ExecutionCSharpRenderer
         return constructors.Any(static constructor => constructor != GeneratedRowContextConstructor.NoContext);
     }
 
-    private static bool UsesDirectContextStorage(
-        IReadOnlyList<GeneratedRowContextConstructor> constructors)
-    {
-        return constructors.Count > 1 ||
-               constructors.Contains(GeneratedRowContextConstructor.ContextArray);
-    }
-
     private static IReadOnlyList<GeneratedRowContextParameter> CreateGeneratedRowContextParameters(
         GeneratedRowContextConstructor constructor,
-        TypeSyntax objectType,
-        TypeSyntax rowType,
-        int contextCount)
+        IReadOnlyList<FieldBinding> contexts)
     {
         return constructor switch
         {
             GeneratedRowContextConstructor.NoContext => [],
-            GeneratedRowContextConstructor.ContextArray => [new("__contexts", "__contexts", SyntaxHelper.ObjectArrayTypeSyntax)],
-            GeneratedRowContextConstructor.SingleContext => [new("__context", "__leftContext", objectType)],
-            GeneratedRowContextConstructor.SingleContexts => CreateSingleContextParameters(objectType, contextCount),
-            GeneratedRowContextConstructor.ContextRow => [new("__contextsRow", "__leftContextsRow", rowType)],
+            GeneratedRowContextConstructor.SingleContext => [new("__context", "__leftContext", CreateContextTypeSyntax(contexts, 0))],
+            GeneratedRowContextConstructor.SingleContexts => CreateSingleContextParameters(contexts),
             GeneratedRowContextConstructor.TwoSingleContexts =>
             [
-                new("__leftContext", "__leftContext", objectType),
-                new("__rightContext", "__rightContext", objectType)
-            ],
-            GeneratedRowContextConstructor.TwoContextRows =>
-            [
-                new("__leftContextsRow", "__leftContextsRow", rowType),
-                new("__rightContextsRow", "__rightContextsRow", rowType)
-            ],
-            GeneratedRowContextConstructor.TwoContextArrays =>
-            [
-                new("__leftContexts", "__leftContexts", SyntaxHelper.ObjectArrayTypeSyntax),
-                new("__rightContexts", "__rightContexts", SyntaxHelper.ObjectArrayTypeSyntax)
-            ],
-            GeneratedRowContextConstructor.ContextArrayAndSingleContext =>
-            [
-                new("__leftContexts", "__leftContexts", SyntaxHelper.ObjectArrayTypeSyntax),
-                new("__rightContext", "__rightContext", objectType)
-            ],
-            GeneratedRowContextConstructor.ContextRowAndSingleContext =>
-            [
-                new("__leftContextsRow", "__leftContextsRow", rowType),
-                new("__rightContext", "__rightContext", objectType)
-            ],
-            GeneratedRowContextConstructor.SingleContextAndContextArray =>
-            [
-                new("__leftContext", "__leftContext", objectType),
-                new("__rightContexts", "__rightContexts", SyntaxHelper.ObjectArrayTypeSyntax)
-            ],
-            GeneratedRowContextConstructor.SingleContextAndContextRow =>
-            [
-                new("__leftContext", "__leftContext", objectType),
-                new("__rightContextsRow", "__rightContextsRow", rowType)
-            ],
-            GeneratedRowContextConstructor.ContextRowAndContextArray =>
-            [
-                new("__leftContextsRow", "__leftContextsRow", rowType),
-                new("__rightContexts", "__rightContexts", SyntaxHelper.ObjectArrayTypeSyntax)
-            ],
-            GeneratedRowContextConstructor.ContextArrayAndContextRow =>
-            [
-                new("__leftContexts", "__leftContexts", SyntaxHelper.ObjectArrayTypeSyntax),
-                new("__rightContextsRow", "__rightContextsRow", rowType)
+                new("__leftContext", "__leftContext", CreateContextTypeSyntax(contexts, 0)),
+                new("__rightContext", "__rightContext", CreateContextTypeSyntax(contexts, contexts.Count - 1))
             ],
             _ => throw UnsupportedShape.Of($"Generated row constructor {constructor}")
         };
     }
 
     private static GeneratedRowContextParameter[] CreateSingleContextParameters(
-        TypeSyntax objectType,
-        int contextCount)
+        IReadOnlyList<FieldBinding> contexts)
     {
         return Enumerable
-            .Range(0, contextCount)
+            .Range(0, contexts.Count)
             .Select(index =>
             {
                 var name = CreateSingleContextFieldName(index);
-                return new GeneratedRowContextParameter(name, name, objectType);
+                return new GeneratedRowContextParameter(name, name, CreateGeneratedFieldTypeSyntax(contexts[index]));
             })
             .ToArray();
+    }
+
+    private static TypeSyntax CreateContextTypeSyntax(
+        IReadOnlyList<FieldBinding> contexts,
+        int index)
+    {
+        if (index < 0 || index >= contexts.Count)
+            throw UnsupportedShape.Of($"Context slot {index} has no concrete field binding.");
+
+        return CreateGeneratedFieldTypeSyntax(contexts[index]);
     }
 
     private static string CreateSingleContextFieldName(int index)
@@ -169,114 +122,6 @@ public sealed partial class ExecutionCSharpRenderer
         };
     }
 
-    private static ExpressionSyntax CreateGeneratedRowContextMaterialization(
-        GeneratedRowContextConstructor constructor,
-        int contextCount)
-    {
-        return CreateGeneratedRowContextMaterialization(
-            constructor,
-            static fieldName => SyntaxFactory.IdentifierName(fieldName),
-            contextCount);
-    }
-
-    private static ExpressionSyntax CreateGeneratedRowContextMaterialization(
-        GeneratedRowContextConstructor constructor,
-        Func<string, ExpressionSyntax> contextValue,
-        int contextCount)
-    {
-        return constructor switch
-        {
-            GeneratedRowContextConstructor.ContextArray => contextValue("__contexts"),
-            GeneratedRowContextConstructor.SingleContext => CreateArrayCreation("object", [contextValue("__leftContext")]),
-            GeneratedRowContextConstructor.SingleContexts => CreateArrayCreation(
-                "object",
-                Enumerable.Range(0, contextCount).Select(index => contextValue(CreateSingleContextFieldName(index)))),
-            GeneratedRowContextConstructor.ContextRow => CreateContextRowContextsRead(contextValue("__leftContextsRow")),
-            GeneratedRowContextConstructor.TwoSingleContexts => CreateArrayCreation(
-                "object",
-                [contextValue("__leftContext"), contextValue("__rightContext")]),
-            GeneratedRowContextConstructor.TwoContextRows => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.Merge),
-                CreateContextRowContextsRead(contextValue("__leftContextsRow")),
-                CreateContextRowContextsRead(contextValue("__rightContextsRow"))),
-            GeneratedRowContextConstructor.TwoContextArrays => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.MergePreservingNullSegments),
-                contextValue("__leftContexts"),
-                contextValue("__rightContexts")),
-            GeneratedRowContextConstructor.ContextArrayAndSingleContext => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.AppendPreservingNullSegment),
-                contextValue("__leftContexts"),
-                contextValue("__rightContext")),
-            GeneratedRowContextConstructor.ContextRowAndSingleContext => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.Append),
-                CreateContextRowContextsRead(contextValue("__leftContextsRow")),
-                contextValue("__rightContext")),
-            GeneratedRowContextConstructor.SingleContextAndContextArray => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.PrependPreservingNullSegment),
-                contextValue("__leftContext"),
-                contextValue("__rightContexts")),
-            GeneratedRowContextConstructor.SingleContextAndContextRow => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.Prepend),
-                contextValue("__leftContext"),
-                CreateContextRowContextsRead(contextValue("__rightContextsRow"))),
-            GeneratedRowContextConstructor.ContextRowAndContextArray => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.Merge),
-                CreateContextRowContextsRead(contextValue("__leftContextsRow")),
-                contextValue("__rightContexts")),
-            GeneratedRowContextConstructor.ContextArrayAndContextRow => CreateContextMaterializerCall(
-                nameof(ContextMaterializer.Merge),
-                contextValue("__leftContexts"),
-                CreateContextRowContextsRead(contextValue("__rightContextsRow"))),
-            _ => throw UnsupportedShape.Of($"Generated row constructor {constructor}")
-        };
-    }
-
-    private static InvocationExpressionSyntax CreateContextRowContextsRead(ExpressionSyntax row)
-    {
-        return CreateContextMaterializerCall(
-            nameof(ContextMaterializer.Read),
-            row);
-    }
-
-    private static InvocationExpressionSyntax CreateContextMaterializerCall(
-        string methodName,
-        params ExpressionSyntax[] arguments)
-    {
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(ContextMaterializer)),
-                    SyntaxFactory.IdentifierName(methodName)))
-            .WithArgumentList(CreateArgumentList(arguments));
-    }
-
-    private ExpressionSyntax RenderContextArray(
-        ExecutionContextArray contextArray,
-        ExecutionRenderContext context)
-    {
-        var segmentArrays = contextArray.Segments
-            .Select(segment => RenderContextArraySegment(segment, context))
-            .ToArray();
-
-        if (segmentArrays.Length == 0)
-            return CreateArrayCreation("object", []);
-
-        return segmentArrays.Aggregate(static (left, right) => CreateContextMaterializerCall(
-            nameof(ContextMaterializer.Merge),
-            left,
-            right));
-    }
-
-    private ExpressionSyntax RenderContextArraySegment(
-        ExecutionContextSegment segment,
-        ExecutionRenderContext context)
-    {
-        return segment.Kind switch
-        {
-            ExecutionContextSegmentKind.Single => CreateArrayCreation("object", [RenderContextSegmentValue(segment.Value, context)]),
-            ExecutionContextSegmentKind.Row => CreateContextRowContextsRead(RenderExpression(segment.Value, context)),
-            ExecutionContextSegmentKind.Array => RenderExpression(segment.Value, context),
-            _ => throw new InvalidOperationException($"Execution context segment kind {segment.Kind} is not supported.")
-        };
-    }
+    private ExpressionSyntax RenderContextArray(ExecutionContextArray contextArray, ExecutionRenderContext context) =>
+        throw UnsupportedShape.Of("Context arrays must be lowered to concrete fields before rendering.");
 }

@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Additional tests for Tables and Helpers with low coverage (Session 4 - Phase 2)
 /// </summary>
 [TestClass]
-public partial class SafeDataAccessTests
+public partial class SafeDataAccessTests : Musoq.Evaluator.Tests.Schema.Generic.GenericEntityTestBase
 {
     #region Helper Classes
 

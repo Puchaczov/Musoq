@@ -28,8 +28,8 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("KEY_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("KEY_2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -45,8 +45,8 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("VALUE_1", table[0][0]);
-        Assert.AreEqual(15, table[0][1]);
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(0));
+        Assert.AreEqual(15, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -65,11 +65,11 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(Guid.Parse(guidText), table[0][0]);
+        Assert.AreEqual(Guid.Parse(guidText), table[0].ReadValue(0));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0][1]);
-        Assert.AreEqual(TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture), table[0][2]);
+            table[0].ReadValue(1));
+        Assert.AreEqual(TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture), table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -86,8 +86,8 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
 
         Assert.AreEqual(1, provider.OpenCount);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
+        Assert.AreEqual("KEY_1", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(1));
     }
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
@@ -134,11 +134,12 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
             return new EnvironmentVariableEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             onOpen();
             var key = parameters.Length > 0 ? parameters[0] as string : null;
             var rows = (key == null

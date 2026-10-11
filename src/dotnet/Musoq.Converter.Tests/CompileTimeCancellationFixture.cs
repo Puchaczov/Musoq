@@ -219,10 +219,10 @@ internal sealed class CooperativeSchema : SchemaBase
         return SourcePlanResult.RejectAll(request);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         return EnsureSourceType<T, CooperativeRow>(name, new CooperativeRowSource());
     }

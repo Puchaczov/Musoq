@@ -130,11 +130,12 @@ public sealed class EnumQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
         return SourcePlanResult.AcceptAll(request);
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (DriftAtExecution && request.Shape.Fields.Any(static field => field.EnumType != null))
             throw new InvalidOperationException("The enum descriptor changed after compilation; recompile the query.");
@@ -163,7 +164,7 @@ public sealed class DeclaredEnumQueryRowsTable(ISchemaColumn[] columns) : ISchem
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(DynamicEnumQueryRowEntity));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(DynamicEnumQueryRowEntity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name) =>
         Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.Ordinal));

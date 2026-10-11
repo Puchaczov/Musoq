@@ -220,7 +220,7 @@ public partial class SubqueryToCteRewriteVisitor
             new FunctionToken(ScalarSubqueryAggregateName, default),
             new ArgsListNode([expression]),
             null,
-            false);
+            false) { IsCompilerGenerated = true };
     }
 
     private static AccessMethodNode CreateDeferredScalarAggregate(Node expression)
@@ -231,7 +231,8 @@ public partial class SubqueryToCteRewriteVisitor
             null,
             false)
         {
-            IsScalarSubqueryValueWrapper = true
+            IsScalarSubqueryValueWrapper = true,
+            IsCompilerGenerated = true
         };
     }
 

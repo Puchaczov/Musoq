@@ -35,8 +35,8 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
-        Assert.IsTrue(table.Any(row => (string)row[0] == "empty"), "Should contain 'empty' method");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "entities"), "Should contain 'entities' method");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "empty"), "Should contain 'empty' method");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "entities"), "Should contain 'entities' method");
     }
 
     [TestMethod]
@@ -58,7 +58,7 @@ public partial class DescStatementTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count, "Should return exactly one method name");
-        Assert.AreEqual("entities", table[0][0], "Should return the method name");
+        Assert.AreEqual("entities", table[0].ReadValue(0), "Should return the method name");
     }
 
     [TestMethod]
@@ -85,11 +85,11 @@ public partial class DescStatementTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one column");
 
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Name"), "Should contain 'Name' column");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "City"), "Should contain 'City' column");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Country"), "Should contain 'Country' column");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Population"), "Should contain 'Population' column");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Self"), "Should contain 'Self' column");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Name"), "Should contain 'Name' column");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "City"), "Should contain 'City' column");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Country"), "Should contain 'Country' column");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Population"), "Should contain 'Population' column");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Self"), "Should contain 'Self' column");
     }
 
     [TestMethod]
@@ -110,19 +110,19 @@ public partial class DescStatementTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Name" && ((string)row[2]).Contains("String")),
+                (string)row.ReadValue(0) == "Name" && ((string)row.ReadValue(2)).Contains("String")),
             "Name column should be of type String");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Population" && ((string)row[2]).Contains("Decimal")),
+                (string)row.ReadValue(0) == "Population" && ((string)row.ReadValue(2)).Contains("Decimal")),
             "Population column should be of type Decimal");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Time" && ((string)row[2]).Contains("DateTime")),
+                (string)row.ReadValue(0) == "Time" && ((string)row.ReadValue(2)).Contains("DateTime")),
             "Time column should be of type DateTime");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Id" && ((string)row[2]).Contains("Int32")),
+                (string)row.ReadValue(0) == "Id" && ((string)row.ReadValue(2)).Contains("Int32")),
             "Id column should be of type Int32");
     }
 
@@ -145,11 +145,11 @@ public partial class DescStatementTests : BasicEntityTestBase
 
         foreach (var row in table)
         {
-            var index = (int)row[1];
+            var index = (int)row.ReadValue(1);
             Assert.IsGreaterThanOrEqualTo(0, index, "Column index should be non-negative");
         }
 
-        var indices = table.Select(row => (int)row[1]).ToList();
+        var indices = table.Select(row => (int)row.ReadValue(1)).ToList();
         Assert.IsNotEmpty(indices, "Should have column indices");
     }
 
@@ -180,7 +180,7 @@ public partial class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.Contains("Name", columnNames, "Should contain Name column");
         Assert.Contains("City", columnNames, "Should contain City column");
@@ -211,10 +211,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var nullableValueRow = table.FirstOrDefault(row => (string)row[0] == "NullableValue");
+        var nullableValueRow = table.FirstOrDefault(row => (string)row.ReadValue(0) == "NullableValue");
         Assert.IsNotNull(nullableValueRow, "Should have NullableValue column");
 
-        var typeName = (string)nullableValueRow[2];
+        var typeName = (string)nullableValueRow.ReadValue(2);
         Assert.IsTrue(typeName.Contains("Nullable") || typeName.Contains("Int32"),
             $"NullableValue should be nullable type, but got: {typeName}");
     }
@@ -324,10 +324,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var arrayRow = table.FirstOrDefault(row => (string)row[0] == "Array");
+        var arrayRow = table.FirstOrDefault(row => (string)row.ReadValue(0) == "Array");
         if (arrayRow != null)
         {
-            var typeName = (string)arrayRow[2];
+            var typeName = (string)arrayRow.ReadValue(2);
             Assert.IsTrue(typeName.Contains("Int32[]") || typeName.Contains("Array"),
                 $"Array column should show array type, but got: {typeName}");
         }
@@ -350,10 +350,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var selfRow = table.FirstOrDefault(row => (string)row[0] == "Self");
+        var selfRow = table.FirstOrDefault(row => (string)row.ReadValue(0) == "Self");
         Assert.IsNotNull(selfRow, "Should have Self column");
 
-        var typeName = (string)selfRow[2];
+        var typeName = (string)selfRow.ReadValue(2);
         Assert.Contains("BasicEntity",
             typeName, $"Self column should show BasicEntity type, but got: {typeName}");
     }
@@ -375,10 +375,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var dictRow = table.FirstOrDefault(row => (string)row[0] == "Dictionary");
+        var dictRow = table.FirstOrDefault(row => (string)row.ReadValue(0) == "Dictionary");
         if (dictRow != null)
         {
-            var typeName = (string)dictRow[2];
+            var typeName = (string)dictRow.ReadValue(2);
             Assert.Contains("Dictionary",
                 typeName, $"Dictionary column should show Dictionary type, but got: {typeName}");
         }
@@ -439,7 +439,7 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
         Assert.AreEqual(2, table.Count, "Should return exactly 2 methods");
 
-        var methodNames = table.Select(row => (string)row[0]).ToList();
+        var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.AreEqual("method1", methodNames[0], "Should contain 'method1' as available method");
         Assert.AreEqual("method2", methodNames[1], "Should contain 'method2' as available method");
@@ -473,17 +473,17 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.AreEqual(4, table.Columns.Count(), "Should have exactly 4 column");
         Assert.AreEqual(2, table.Count, "Should return exactly 2 method overloads");
 
-        Assert.AreEqual("method", table[0][0], "Should contain 'method' as first overload");
-        Assert.IsNull(table[0][1], "Should contain 'method' as second overload");
-        Assert.IsNull(table[0][2], "Should contain 'method' as third overload");
-        Assert.IsNull(table[0][3], "Should contain 'method' as fourth overload");
+        Assert.AreEqual("method", table[0].ReadValue(0), "Should contain 'method' as first overload");
+        Assert.IsNull(table[0].ReadValue(1), "Should contain 'method' as second overload");
+        Assert.IsNull(table[0].ReadValue(2), "Should contain 'method' as third overload");
+        Assert.IsNull(table[0].ReadValue(3), "Should contain 'method' as fourth overload");
 
-        Assert.AreEqual("method", table[1][0], "Should contain 'method()' as first overload");
-        Assert.AreEqual("Id: System.Int32", table[1][1],
+        Assert.AreEqual("method", table[1].ReadValue(0), "Should contain 'method()' as first overload");
+        Assert.AreEqual("Id: System.Int32", table[1].ReadValue(1),
             "Should pass 'System.Int32: Id' as first parameter of second overload");
-        Assert.AreEqual("Name: System.String", table[1][2],
+        Assert.AreEqual("Name: System.String", table[1].ReadValue(2),
             "Should pass 'System.String: Name' as second parameter of second overload");
-        Assert.AreEqual("Value: System.Decimal", table[1][3],
+        Assert.AreEqual("Value: System.Decimal", table[1].ReadValue(3),
             "Should pass 'System.Decimal: Value' as third parameter of second overload");
     }
 
@@ -522,13 +522,13 @@ public partial class DescStatementTests : BasicEntityTestBase
 
         Assert.IsGreaterThanOrEqualTo(2, table.Count, "Should return at least 2 column descriptions");
 
-        Assert.AreEqual("Column1", table[0][0], "Should contain 'Id' column");
-        Assert.AreEqual(0, table[0][1], "Id column should have index 0");
-        Assert.AreEqual("System.Double", table[0][2], "Id column should be of type System.Int32");
+        Assert.AreEqual("Column1", table[0].ReadValue(0), "Should contain 'Id' column");
+        Assert.AreEqual(0, table[0].ReadValue(1), "Id column should have index 0");
+        Assert.AreEqual("System.Double", table[0].ReadValue(2), "Id column should be of type System.Int32");
 
-        Assert.AreEqual("Column2", table[1][0], "Should contain 'Name' column");
-        Assert.AreEqual(1, table[1][1], "Name column should have index 1");
-        Assert.AreEqual("System.String", table[1][2], "Name column should be of type System.String");
+        Assert.AreEqual("Column2", table[1].ReadValue(0), "Should contain 'Name' column");
+        Assert.AreEqual(1, table[1].ReadValue(1), "Name column should have index 1");
+        Assert.AreEqual("System.String", table[1].ReadValue(2), "Name column should be of type System.String");
     }
 
 

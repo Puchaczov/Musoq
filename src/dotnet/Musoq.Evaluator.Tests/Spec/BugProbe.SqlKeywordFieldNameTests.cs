@@ -47,8 +47,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -76,8 +76,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x02, table[0][0]);
-        Assert.AreEqual(20, table[0][1]);
+        Assert.AreEqual((byte)0x02, table[0].ReadValue(0));
+        Assert.AreEqual(20, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -104,8 +104,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xAA, table[0][0]);
-        Assert.AreEqual((byte)0xBB, table[0][1]);
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xBB, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -132,8 +132,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)1, table[0][0]);
-        Assert.AreEqual((short)2, table[0][1]);
+        Assert.AreEqual((short)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)2, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -161,8 +161,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((byte)0x00, table[0][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x00, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -189,8 +189,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xFF, table[0][0]);
-        Assert.AreEqual(5, table[0][1]);
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(0));
+        Assert.AreEqual(5, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -218,8 +218,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x00, table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
+        Assert.AreEqual((byte)0x00, table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -246,8 +246,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((byte)0x00, table[0][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x00, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -274,8 +274,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][0]);
-        Assert.AreEqual((byte)0x0B, table[0][1]);
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x0B, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -302,8 +302,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(20, table[0][1]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(20, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -330,8 +330,8 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((byte)0x02, table[0][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x02, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -357,6 +357,6 @@ public class BugProbeSqlKeywordFieldNameTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(7, table[0][0]);
+        Assert.AreEqual(7, table[0].ReadValue(0));
     }
 }

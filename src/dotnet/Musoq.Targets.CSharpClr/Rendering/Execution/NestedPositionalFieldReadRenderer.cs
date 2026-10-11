@@ -15,13 +15,9 @@ internal static class NestedPositionalFieldReadRenderer
         if (string.IsNullOrWhiteSpace(fieldRead.GeneratedTypeName))
             throw new InvalidOperationException("Nested positional field reads require the indexed cell type.");
 
-        var indexedCell = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
-            SyntaxFactory.ParseTypeName(fieldRead.GeneratedTypeName),
-            CreateElementAccess(
-                CreateIdentifierName(fieldRead.Alias),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(nestedPositional.Index)))));
+        var indexedCell = ExecutionCSharpRenderer.CreateNativeRowValueRead(
+            CreateIdentifierName(fieldRead.Alias), nestedPositional.Index,
+            SyntaxFactory.ParseTypeName(fieldRead.GeneratedTypeName));
 
         var separator = nestedPositional.PropertyPath.StartsWith("[", StringComparison.Ordinal) ||
                          nestedPositional.PropertyPath.StartsWith(".", StringComparison.Ordinal)

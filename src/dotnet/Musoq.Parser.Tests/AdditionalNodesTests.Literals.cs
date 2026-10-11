@@ -115,17 +115,6 @@ public partial class AdditionalNodesTests
     #region NullNode Tests
 
     [TestMethod]
-    public void NullNode_ReturnType_ShouldBeNullType()
-    {
-        // Arrange & Act
-        var node = new NullNode();
-
-        // Assert
-        Assert.IsNotNull(node.ReturnType);
-        Assert.IsInstanceOfType<NullNode.NullType>(node.ReturnType);
-    }
-
-    [TestMethod]
     public void NullNode_WithType_ShouldSetReturnType()
     {
         // Arrange & Act

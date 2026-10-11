@@ -10,7 +10,8 @@ public sealed record ExecutionPlanBuildResult(
     {
         ArgumentNullException.ThrowIfNull(executionPlan);
         var prunedPlan = GeneratedRowContextPruner.Prune(executionPlan);
-        var planned = ExecutionPlanRepresentationPlanner.Plan(prunedPlan);
+        var typedContexts = new TypedContextTransportLowering().RewritePlan(prunedPlan);
+        var planned = ExecutionPlanRepresentationPlanner.Plan(typedContexts);
         ExecutionBindingInvariantValidator.Validate(planned);
         return new ExecutionPlanBuildResult(true, planned, null);
     }

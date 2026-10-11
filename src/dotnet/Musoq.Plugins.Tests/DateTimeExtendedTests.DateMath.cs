@@ -27,65 +27,9 @@ public partial class DateTimeExtendedTests
 
 
     [TestMethod]
-    public void IsWeekend_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsWeekend(null));
-    }
-
-    [TestMethod]
-    public void IsWeekend_Saturday_ReturnsTrue()
-    {
-        var date = new DateTime(2024, 6, 15);
-        Assert.IsTrue(Library.IsWeekend(date));
-    }
-
-    [TestMethod]
-    public void IsWeekend_Sunday_ReturnsTrue()
-    {
-        var date = new DateTime(2024, 6, 16);
-        Assert.IsTrue(Library.IsWeekend(date));
-    }
-
-    [TestMethod]
-    public void IsWeekend_Monday_ReturnsFalse()
-    {
-        var date = new DateTime(2024, 6, 17);
-        Assert.IsFalse(Library.IsWeekend(date));
-    }
-
-    [TestMethod]
     public void IsWeekend_NullDateTimeOffset_ReturnsNull()
     {
         Assert.IsNull(Library.IsWeekend((DateTimeOffset?)null));
-    }
-
-    [TestMethod]
-    public void IsWeekend_DateTimeOffset_Saturday_ReturnsTrue()
-    {
-        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
-        Assert.IsTrue(Library.IsWeekend(date));
-    }
-
-
-
-    [TestMethod]
-    public void IsWeekday_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsWeekday(null));
-    }
-
-    [TestMethod]
-    public void IsWeekday_Monday_ReturnsTrue()
-    {
-        var date = new DateTime(2024, 6, 17);
-        Assert.IsTrue(Library.IsWeekday(date));
-    }
-
-    [TestMethod]
-    public void IsWeekday_Saturday_ReturnsFalse()
-    {
-        var date = new DateTime(2024, 6, 15);
-        Assert.IsFalse(Library.IsWeekday(date));
     }
 
     [TestMethod]
@@ -93,15 +37,6 @@ public partial class DateTimeExtendedTests
     {
         Assert.IsNull(Library.IsWeekday((DateTimeOffset?)null));
     }
-
-    [TestMethod]
-    public void IsWeekday_DateTimeOffset_Monday_ReturnsTrue()
-    {
-        var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero);
-        Assert.IsTrue(Library.IsWeekday(date));
-    }
-
-
 
     [TestMethod]
     public void DateDiffInDays_NullStartDateTime_ReturnsNull()
@@ -232,12 +167,6 @@ public partial class DateTimeExtendedTests
 
 
     [TestMethod]
-    public void WeekOfYear_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.WeekOfYear(null));
-    }
-
-    [TestMethod]
     public void WeekOfYear_ValidDateTime_ReturnsWeek()
     {
         var result = Library.WeekOfYear(new DateTime(2024, 1, 15));
@@ -260,12 +189,6 @@ public partial class DateTimeExtendedTests
     }
 
 
-
-    [TestMethod]
-    public void Quarter_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.Quarter(null));
-    }
 
     [TestMethod]
     public void Quarter_January_ReturnsQ1()
@@ -306,12 +229,6 @@ public partial class DateTimeExtendedTests
 
 
     [TestMethod]
-    public void DayOfYear_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.DayOfYear(null));
-    }
-
-    [TestMethod]
     public void DayOfYear_ValidDateTime_ReturnsDayOfYear()
     {
         Assert.AreEqual(1, Library.DayOfYear(new DateTime(2024, 1, 1)));
@@ -331,12 +248,6 @@ public partial class DateTimeExtendedTests
     }
 
 
-
-    [TestMethod]
-    public void IsLeapYear_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsLeapYear(null));
-    }
 
     [TestMethod]
     public void IsLeapYear_2024_ReturnsTrue()

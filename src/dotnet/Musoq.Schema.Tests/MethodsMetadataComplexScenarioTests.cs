@@ -36,7 +36,7 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         var parameters = method.GetParameters();
         Assert.HasCount(5, parameters);
         Assert.IsNotNull(parameters[^1].GetCustomAttribute<ParamArrayAttribute>());
-        Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregationMethodAttribute)));
+        Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregateFunctionAttribute)));
     }
 
     [TestMethod]
@@ -135,8 +135,8 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TestClass
     {
-        [AggregationMethod]
-        public void ComplexAggregation(
+        [AggregateFunction(typeof(MetadataAggregateKernel))]
+        public int ComplexAggregation(
             string name,
             [InjectSpecificSource(typeof(IEntity))]
             IEntity entity,
@@ -144,6 +144,7 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
             string format = "F2",
             params string[] tags)
         {
+            return 0;
         }
 
         public TResult? ProcessData<TSource, TResult>(

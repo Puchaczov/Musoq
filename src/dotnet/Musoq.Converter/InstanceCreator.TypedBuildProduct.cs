@@ -1,5 +1,6 @@
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Evaluator.TypedOutput;
 
 namespace Musoq.Converter;
 
@@ -22,7 +23,10 @@ public static partial class InstanceCreator
                 runnableType,
                 items.QueryResultMode,
                 items.QueryMethodRenderMetadata,
-                profileMode));
+                profileMode))
+        {
+            OutputColumns = TypedOutputSchema.Resolve(items.LogicalPlan, items.ExecutionPlan)
+        };
     }
 
     private static TypedBuildProduct CreateTypedBuildProduct(
@@ -68,6 +72,9 @@ public static partial class InstanceCreator
             product.SourceExecutionPlans,
             product.ParameterDefinitions,
             product.Diagnostics,
-            loggerResolver);
+            loggerResolver)
+        {
+            Projector = TableTypedRowProjector<TOut>.Create(product.OutputColumns)
+        };
     }
 }

@@ -21,8 +21,8 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("VALUE_1", table[0][0]);
-        Assert.AreEqual("value_1_KEY_1", table[0][1]);
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(0));
+        Assert.AreEqual("value_1_KEY_1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -40,8 +40,8 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("VALUE_A_group", table[0][0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual("VALUE_A_group", table[0].ReadValue(0));
+        Assert.AreEqual(2, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     [TestMethod]
@@ -57,8 +57,8 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -74,8 +74,8 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_3", table[0][0]);
-        Assert.AreEqual("VALUE_3", table[0][1]);
+        Assert.AreEqual("KEY_3", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_3", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -90,7 +90,7 @@ public sealed partial class ScriptVariableExecutionTests
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
-        var keys = table.Select(row => (string)row[0]).OrderBy(key => key).ToArray();
+        var keys = table.Select(row => (string)row.ReadValue(0)).OrderBy(key => key).ToArray();
 
         CollectionAssert.AreEqual(new[] { "KEY_1", "KEY_3" }, keys);
     }
@@ -105,9 +105,9 @@ public sealed partial class ScriptVariableExecutionTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("KEY_3", table[0][0]);
-        Assert.AreEqual("KEY_2", table[1][0]);
-        Assert.AreEqual("KEY_1", table[2][0]);
+        Assert.AreEqual("KEY_3", table[0].ReadValue(0));
+        Assert.AreEqual("KEY_2", table[1].ReadValue(0));
+        Assert.AreEqual("KEY_1", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -121,9 +121,9 @@ public sealed partial class ScriptVariableExecutionTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("miss", table[0][1]);
-        Assert.AreEqual("hit", table[1][1]);
-        Assert.AreEqual("miss", table[2][1]);
+        Assert.AreEqual("miss", table[0].ReadValue(1));
+        Assert.AreEqual("hit", table[1].ReadValue(1));
+        Assert.AreEqual("miss", table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -140,7 +140,7 @@ public sealed partial class ScriptVariableExecutionTests
 
         var table = vm.Run(TestContext.CancellationToken);
         var rows = table
-            .Select(row => new KeyValuePair<string, int>((string)row[0], Convert.ToInt32(row[1])))
+            .Select(row => new KeyValuePair<string, int>((string)row.ReadValue(0), Convert.ToInt32(row.ReadValue(1))))
             .OrderBy(row => row.Key)
             .ToArray();
 
@@ -165,8 +165,8 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("constant", table[0][1]);
+        Assert.AreEqual("KEY_1", table[0].ReadValue(0));
+        Assert.AreEqual("constant", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -178,9 +178,9 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsNull(table[0][0]);
-        Assert.IsNull(table[1][0]);
-        Assert.IsNull(table[2][0]);
+        Assert.IsNull(table[0].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(0));
+        Assert.IsNull(table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -199,12 +199,12 @@ public sealed partial class ScriptVariableExecutionTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual(4, table[0][3]);
-        Assert.AreEqual(5, table[0][4]);
-        Assert.AreEqual(6, Convert.ToInt32(table[0][5]));
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(2, table[0].ReadValue(1));
+        Assert.AreEqual(3, table[0].ReadValue(2));
+        Assert.AreEqual(4, table[0].ReadValue(3));
+        Assert.AreEqual(5, table[0].ReadValue(4));
+        Assert.AreEqual(6, Convert.ToInt32(table[0].ReadValue(5)));
     }
 
     [TestMethod]
@@ -218,8 +218,8 @@ public sealed partial class ScriptVariableExecutionTests
 
         Assert.AreEqual(1, provider.OpenCount);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(1));
     }
 
     private static Dictionary<string, IEnumerable<EnvironmentVariableEntity>> CreateExtendedEnvironmentVariableSources()

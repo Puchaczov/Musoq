@@ -28,10 +28,10 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var result = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(255L, result[0][0]);
-        Assert.AreEqual(10L, result[0][1]);
-        Assert.AreEqual(63L, result[0][2]);
-        Assert.AreEqual(328L, result[0][3]);
+        Assert.AreEqual(255L, result[0].ReadValue(0));
+        Assert.AreEqual(10L, result[0].ReadValue(1));
+        Assert.AreEqual(63L, result[0].ReadValue(2));
+        Assert.AreEqual(328L, result[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(530L, result[0][0]);
+        Assert.AreEqual(530L, result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -91,7 +91,7 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual("Large", result[0][0]);
+        Assert.AreEqual("Large", result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -111,8 +111,8 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(1020L, result[0][0]);
-        Assert.AreEqual(494L, result[0][1]);
+        Assert.AreEqual(1020L, result[0].ReadValue(0));
+        Assert.AreEqual(494L, result[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -131,7 +131,7 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(8L, result[0][0]);
+        Assert.AreEqual(8L, result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -158,7 +158,7 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual("Odd in range", result[0][0]);
+        Assert.AreEqual("Odd in range", result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -179,7 +179,7 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(2508L, result[0][0]);
+        Assert.AreEqual(2508L, result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -200,9 +200,9 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(65535L, result[0][0]);
-        Assert.AreEqual(65535L, result[0][1]);
-        Assert.AreEqual(65535L, result[0][2]);
+        Assert.AreEqual(65535L, result[0].ReadValue(0));
+        Assert.AreEqual(65535L, result[0].ReadValue(1));
+        Assert.AreEqual(65535L, result[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -222,8 +222,8 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual("Equal", result[0][0]);
-        Assert.AreEqual("Equal", result[0][1]);
+        Assert.AreEqual("Equal", result[0].ReadValue(0));
+        Assert.AreEqual("Equal", result[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -243,8 +243,8 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(239L, result[0][0]);
-        Assert.AreEqual(15L, result[0][1]);
+        Assert.AreEqual(239L, result[0].ReadValue(0));
+        Assert.AreEqual(15L, result[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -261,10 +261,10 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(261L, result[0][0]);
-        Assert.AreEqual(771L, result[0][1]);
-        Assert.AreEqual(513L, result[0][2]);
-        Assert.AreEqual(262L, result[0][3]);
+        Assert.AreEqual(261L, result[0].ReadValue(0));
+        Assert.AreEqual(771L, result[0].ReadValue(1));
+        Assert.AreEqual(513L, result[0].ReadValue(2));
+        Assert.AreEqual(262L, result[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -280,7 +280,7 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(255L, result[0][0]);
+        Assert.AreEqual(255L, result[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -297,9 +297,9 @@ public class NumberFormatsIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var result = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
-        Assert.AreEqual(256L, result[0][0]);
-        Assert.AreEqual(84L, result[0][1]);
-        Assert.AreEqual(50L, result[0][2]);
-        Assert.AreEqual(125L, result[0][3]);
+        Assert.AreEqual(256L, result[0].ReadValue(0));
+        Assert.AreEqual(84L, result[0].ReadValue(1));
+        Assert.AreEqual(50L, result[0].ReadValue(2));
+        Assert.AreEqual(125L, result[0].ReadValue(3));
     }
 }

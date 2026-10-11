@@ -12,18 +12,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
-        Assert.AreEqual(1L, table[0][3]);
-        Assert.AreEqual("left", table[3][0]);
-        Assert.AreEqual(2, table[3][1]);
-        Assert.AreEqual(2, table[3][2]);
-        Assert.AreEqual(4L, table[3][3]);
-        Assert.AreEqual("right", table[4][0]);
-        Assert.AreEqual(3, table[4][1]);
-        Assert.AreEqual(3, table[4][2]);
-        Assert.AreEqual(1L, table[4][3]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual(1, table[0].ReadValue(2));
+        Assert.AreEqual(1L, table[0].ReadValue(3));
+        Assert.AreEqual("left", table[3].ReadValue(0));
+        Assert.AreEqual(2, table[3].ReadValue(1));
+        Assert.AreEqual(2, table[3].ReadValue(2));
+        Assert.AreEqual(4L, table[3].ReadValue(3));
+        Assert.AreEqual("right", table[4].ReadValue(0));
+        Assert.AreEqual(3, table[4].ReadValue(1));
+        Assert.AreEqual(3, table[4].ReadValue(2));
+        Assert.AreEqual(1L, table[4].ReadValue(3));
     }
 
     [TestMethod]
@@ -34,10 +34,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(4L, table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -48,8 +48,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(4L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -60,12 +60,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
-        Assert.AreEqual(2L, table[1][2]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(4L, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
+        Assert.AreEqual(2L, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -76,8 +76,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(4L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -88,12 +88,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(6, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(2L, table[1][2]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(6, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
+        Assert.AreEqual(2L, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -104,8 +104,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(6, table[0][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(6, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -116,10 +116,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -130,10 +130,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("right", table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual(3, table[0][3]);
+        Assert.AreEqual("right", table[0].ReadValue(0));
+        Assert.AreEqual(3m, table[0].GetValue<decimal?>(1));
+        Assert.AreEqual(3, table[0].ReadValue(2));
+        Assert.AreEqual(3, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -144,10 +144,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -158,10 +158,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -172,12 +172,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(6, table[0][1]);
-        Assert.AreEqual((byte)60, table[0][2]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual((byte)7, table[1][2]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(6, table[0].ReadValue(1));
+        Assert.AreEqual((byte)60, table[0].ReadValue(2));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
+        Assert.AreEqual((byte)7, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -188,12 +188,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("right", table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual((byte)100, table[0][2]);
-        Assert.AreEqual("left", table[1][0]);
-        Assert.AreEqual(10, table[1][1]);
-        Assert.AreEqual((byte)1, table[1][2]);
+        Assert.AreEqual("right", table[0].ReadValue(0));
+        Assert.AreEqual(3, table[0].ReadValue(1));
+        Assert.AreEqual((byte)100, table[0].ReadValue(2));
+        Assert.AreEqual("left", table[1].ReadValue(0));
+        Assert.AreEqual(10, table[1].ReadValue(1));
+        Assert.AreEqual((byte)1, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -204,14 +204,14 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(6, table[0][1]);
-        Assert.AreEqual((byte)60, table[0][2]);
-        Assert.AreEqual(1L, table[0][3]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual((byte)7, table[1][2]);
-        Assert.AreEqual(2L, table[1][3]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(6, table[0].ReadValue(1));
+        Assert.AreEqual((byte)60, table[0].ReadValue(2));
+        Assert.AreEqual(1L, table[0].ReadValue(3));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
+        Assert.AreEqual((byte)7, table[1].ReadValue(2));
+        Assert.AreEqual(2L, table[1].ReadValue(3));
     }
 
 }

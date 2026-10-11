@@ -20,7 +20,7 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
     }
 
@@ -39,11 +39,11 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     {
         const string query = "param(keys: string[]) select a.City from #A.Entities() a where a.City in $keys";
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["keys"] = new string?[] { "WARSAW", null };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
     }
 
@@ -52,7 +52,7 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     {
         const string query = "param(keys: string[]) select a.City from #A.Entities() a where a.City not in $keys";
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["keys"] = new string?[] { "WARSAW", null };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -74,7 +74,7 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
         sources["#A"] = sources["#A"].Where(entity => entity.City != null).ToArray();
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"], ["BERLIN"]);
     }
 

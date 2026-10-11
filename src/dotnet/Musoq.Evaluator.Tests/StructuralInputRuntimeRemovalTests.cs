@@ -43,7 +43,7 @@ public sealed class StructuralInputRuntimeRemovalTests
     }
 
     [TestMethod]
-    public void GeneratedCaptureRuntime_ShouldNotReflectOverCollectionEntries()
+    public void NativeParameterCaptureState_ShouldNotStoreErasedHostValues()
     {
         var root = RepositorySourceScan.RepositoryRoot();
         var runtimeFile = Path.Combine(
@@ -52,10 +52,11 @@ public sealed class StructuralInputRuntimeRemovalTests
             "dotnet",
             "Musoq.Evaluator",
             "Helpers",
-            "StructuralParameterCaptureRuntime.cs");
+            "StructuralParameterCaptureState.cs");
         var source = File.ReadAllText(runtimeFile);
         string[] forbidden =
         [
+            "HashSet<object>",
             "GetRecordFields",
             "GetProperty(\"Key\"",
             "GetProperty(\"Value\"",

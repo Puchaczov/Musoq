@@ -4,10 +4,11 @@ using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
-public class UnknownSchema : SchemaBase
+public class UnknownSchema : SchemaBase, IQueryScopedRowSourceSchema
 {
     private const string SchemaName = "Unknown";
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
@@ -30,10 +31,19 @@ public class UnknownSchema : SchemaBase
         return new UnknownTable(metadataContext);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(name, new DynamicSource(_values));
     }
+
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+        string name, QueryScopedRowSourceRequest request, TArguments parameters)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, ISourceArguments
+        => new NativeDynamicTestSource<TRow, TMaterializer>(_values, request.Shape.Fields);
 
     private static MethodsAggregator CreateLibrary()
     {

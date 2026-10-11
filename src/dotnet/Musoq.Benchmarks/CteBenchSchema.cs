@@ -21,7 +21,7 @@ public class CteBenchSchema(List<CteBenchEntity> entities, int simulatedWorkIter
         return new CteBenchTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, CteBenchEntity>(name, new CteBenchRowSource(entities, simulatedWorkIterations));
     }

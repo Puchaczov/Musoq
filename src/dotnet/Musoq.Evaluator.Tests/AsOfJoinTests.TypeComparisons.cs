@@ -39,8 +39,8 @@ asof join #B.entities() b on a.Time >= b.Time";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Error1", "Commit1"],
@@ -78,8 +78,8 @@ asof join #B.entities() b on a.City >= b.City";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B2"]);
     }
 }

@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema.StructuralInputs;
@@ -29,7 +30,8 @@ internal static class StructuralTypeSyntaxBinder
         switch (syntax.Kind)
         {
             case StructuralTypeSyntaxKind.Scalar:
-                if (!ScriptParameterTypeCatalog.TryResolveScalar(syntax.ScalarName!, out var scalar))
+                if (!ScriptParameterTypeCatalog.TryResolveScalar(syntax.ScalarName!, out var scalar) ||
+                    !PrimitiveTypeResolver.IsValidQueryExpressionType(scalar.ClrType))
                 {
                     error = $"Structural type '{syntax.ScalarName}' is not a supported Core scalar type.";
                     return false;

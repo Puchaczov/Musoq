@@ -14,6 +14,12 @@ public partial class SchemaParser
         var name = ComposeIdentifierOrWord();
         Consume(TokenType.Colon);
 
+        return (TextFieldDefinitionNode)ComposeTextFieldType(name).WithSpan(nameToken.Span);
+    }
+
+    private TextFieldDefinitionNode ComposeTextFieldType(string name)
+    {
+
         var isOptionalPrefix = Current.TokenType == TokenType.Optional;
         if (isOptionalPrefix) Consume(TokenType.Optional);
 
@@ -49,9 +55,10 @@ public partial class SchemaParser
                     field.SecondaryValue,
                     field.Modifiers | TextFieldModifier.Optional,
                     field.EscapeCharacter,
-                    field.CaptureGroups);
+                    field.CaptureGroups,
+                    field.RepeatElement);
 
-        return (TextFieldDefinitionNode)field.WithSpan(nameToken.Span);
+        return field;
     }
 
     private TextFieldDefinitionNode ComposePatternField(string name)

@@ -4,7 +4,7 @@ namespace Musoq.Plugins;
 ///     Typed nullable value-count kernel used by runtime-v2 generated aggregate code.
 /// </summary>
 /// <typeparam name="T">Concrete value type tested for a non-null value.</typeparam>
-public static class CountNullableAggregateKernel<T>
+public static partial class CountNullableAggregateKernel<T>
     where T : struct
 {
     /// <summary>

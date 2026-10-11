@@ -15,6 +15,7 @@ internal static class DiagnosticSourceKindMapping
             >= 4001 and <= 4016 => DiagnosticSourceKind.Schema,
             >= 7003 and <= 7009 => DiagnosticSourceKind.Runtime,
             >= 7010 and <= 7012 => DiagnosticSourceKind.DataSource,
+            >= 7014 and <= 7115 => DiagnosticSourceKind.Runtime,
             (int)DiagnosticCode.MQ8001_CodeGenerationFailed or
             (int)DiagnosticCode.MQ8002_CompiledArtifactIncompatible => DiagnosticSourceKind.GeneratedSource,
             (int)DiagnosticCode.MQ9001_InternalCompilerError or

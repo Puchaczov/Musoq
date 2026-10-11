@@ -11,7 +11,8 @@ public interface ICompiledTypedQuery<out TOut>
 
     event DataSourceEventHandler DataSourceProgress;
 
-    IDictionary<string, object?> Parameters { get; }
+    /// <summary>Gets concrete parameter slots.</summary>
+    TypedParameterValues TypedParameters { get; }
 
     IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
 

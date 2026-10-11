@@ -17,7 +17,7 @@ internal class TransitionSchema(string name, ISchemaTable table)
         return table;
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, object>(name, new TransientVariableSource(name));
     }

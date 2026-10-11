@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -75,7 +75,7 @@ public sealed class QueryScopedRowHardeningTests
     }
 
     [TestMethod]
-    public void AdvertisedCapabilityWithoutRuntimeImplementation_ShouldFailDeterministically()
+    public void AdvertisedCapabilityWithoutRuntimeImplementation_ShouldReportSourceContractError()
     {
         var result = InstanceCreator.CompileWithDiagnostics(
             "select p.Name from #queryrows.items() p",
@@ -83,10 +83,11 @@ public sealed class QueryScopedRowHardeningTests
             new CapabilityMismatchSchemaProvider(),
             _loggerResolver);
 
-        Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
-        using var table = result.CompiledQuery!.Run();
-        var exception = Assert.Throws<QueryExecutionException>(() => _ = table.Count);
-        Assert.Contains("does not implement IQueryScopedRowSourceSchema", exception.ToString());
+        Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
+        var error = result.Errors.Single(item => item.Code == DiagnosticCode.MQ3071_SourceContractError);
+        Assert.Contains("origin=DescribeSource", error.Message);
+        Assert.Contains("sourceCode=QueryScopedRowsMissingRuntimeImplementation", error.Message);
+        Assert.Contains("IQueryScopedRowSourceSchema", error.Message);
     }
 
     [TestMethod]
@@ -102,7 +103,7 @@ public sealed class QueryScopedRowHardeningTests
         using (var filteredTable = filtered.CompiledQuery!.Run())
         {
             Assert.AreEqual(1, filteredTable.Count);
-            Assert.AreEqual("right", filteredTable[0][0]);
+            Assert.AreEqual("right", filteredTable[0].ReadValue(0));
         }
 
         var joined = InstanceCreator.CompileWithDiagnostics(
@@ -128,7 +129,7 @@ public sealed class QueryScopedRowHardeningTests
         using (var outerTable = outer.CompiledQuery!.Run())
         {
             Assert.AreEqual(2, outerTable.Count);
-            Assert.IsNull(outerTable[0][1]);
+            Assert.IsNull(outerTable[0].ReadValue(1));
         }
 
         var grouped = InstanceCreator.CompileWithDiagnostics(
@@ -200,8 +201,8 @@ public sealed class QueryScopedRowHardeningTests
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual(2L, table[1][1]);
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 
     private static TestQueryRow Materialize<TReader>(ref TReader reader)

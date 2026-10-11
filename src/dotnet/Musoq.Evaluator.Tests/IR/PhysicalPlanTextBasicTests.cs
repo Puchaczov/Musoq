@@ -17,7 +17,7 @@ public sealed class PhysicalPlanTextBasicTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [e.Name as e.Name]",
+                "  PhysicalProject [e.Name as Name]",
                 "    PhysicalSchemaScan [#A.Entities() as e]"),
             planText);
     }
@@ -33,7 +33,7 @@ public sealed class PhysicalPlanTextBasicTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [e.Name as e.Name]",
+                "  PhysicalProject [e.Name as Name]",
                 "    PhysicalFilter [((e.Population > 100) AND e.NullableValue IS NOT NULL)]",
                 "      PhysicalSchemaScan [#A.Entities() as e] [pushdown: (e.Population > 100), e.NullableValue IS NOT NULL]"),
             planText);
@@ -51,7 +51,7 @@ public sealed class PhysicalPlanTextBasicTests : BasicEntityTestBase
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
                 "  PhysicalTopOffset [skip 5, take 10] [e.Name DESC]",
-                "    PhysicalProject [e.Name as e.Name]",
+                "    PhysicalProject [e.Name as Name]",
                 "      PhysicalSchemaScan [#A.Entities() as e]"),
             planText);
     }

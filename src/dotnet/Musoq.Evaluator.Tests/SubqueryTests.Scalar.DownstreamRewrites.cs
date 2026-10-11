@@ -57,8 +57,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("e.City", typeof(string)),
-            ("e.SecondCity", typeof(string)),
+            ("City", typeof(string)),
+            ("SecondCity", typeof(string)),
             ("PickRank", typeof(long)),
             ("PreviousPick", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(

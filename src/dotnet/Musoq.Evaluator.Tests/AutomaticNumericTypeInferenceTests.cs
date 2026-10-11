@@ -27,7 +27,7 @@ public partial class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("MaxLong", table[0].Values[0]);
+        Assert.AreEqual("MaxLong", table[0].ReadValues()[0]);
     }
 
 
@@ -49,35 +49,35 @@ public partial class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         return [item1, item2, item3];
     }
 
-    private static List<dynamic> CreateTestDataWithObjectColumn()
+    private static List<dynamic> CreateTestDataWithDoubleValues()
     {
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)500;
+        item1.Value = 500d;
         item1.Name = "Small";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)1500;
+        item2.Value = 1500d;
         item2.Name = "Medium";
 
         dynamic item3 = new ExpandoObject();
-        item3.Value = (object)2500;
+        item3.Value = 2500d;
         item3.Name = "Large";
 
         return [item1, item2, item3];
     }
 
-    private static List<dynamic> CreateTestDataWithObjectFloatColumn()
+    private static List<dynamic> CreateTestDataWithDecimalPriceColumn()
     {
         dynamic item1 = new ExpandoObject();
-        item1.Price = (object)19.99;
+        item1.Price = 19.99m;
         item1.Name = "Item A";
 
         dynamic item2 = new ExpandoObject();
-        item2.Price = (object)25.50;
+        item2.Price = 25.50m;
         item2.Name = "Item B";
 
         dynamic item3 = new ExpandoObject();
-        item3.Price = (object)30.00;
+        item3.Price = 30.00m;
         item3.Name = "Item C";
 
         return [item1, item2, item3];

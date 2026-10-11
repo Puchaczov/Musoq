@@ -19,10 +19,7 @@ public static partial class ExecutionPlanPrinter
             .Select(static rows => rows.TableIndex)
             .ToHashSet();
         var selected = representations
-            .Where(item => structuralTableIndexes.Count > 0
-                ? structuralTableIndexes.Contains(item.TableIndex)
-                : item.Ownership != ExecutionStructuralOwnershipMode.ConstructFresh ||
-                  item.Lifetime != ExecutionStructuralPreparationLifetime.Execution)
+            .Where(item => StoredTableRepresentationPlanPrinter.ShouldPrint(item, structuralTableIndexes))
             .OrderBy(static item => item.TableIndex)
             .ToArray();
         if (selected.Length == 0)

@@ -15,7 +15,7 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
         IReadOnlyList<ExecutionExpression> Arguments,
         IReadOnlyList<bool> RowScopedArguments,
         ExecutionWindowFrame? Frame,
-        ExecutionCallableRef FactoryMethod,
+        ExecutionCallableRef SqlDeclaration,
         string FunctionName,
         ExecutionVariable Results,
         ExecutionWindowKeyArray? PartitionKeyArray = null,
@@ -33,7 +33,7 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
         this.Arguments = ExecutionIrCollections.Freeze(Arguments);
         this.RowScopedArguments = ExecutionIrCollections.Freeze(RowScopedArguments);
         this.Frame = Frame;
-        this.FactoryMethod = FactoryMethod;
+        this.SqlDeclaration = SqlDeclaration;
         this.FunctionName = FunctionName;
         this.Results = Results;
         this.PartitionKeyArray = PartitionKeyArray;
@@ -44,6 +44,8 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
     }
 
     public ExecutionVariable Buffer { get; init; }
+    /// <summary>Gets the planner-selected integer ordering strategy.</summary>
+    public bool UseIntegerOrderIndex { get; init; }
     public ExecutionVariable Item { get; init; }
     public ExecutionRowAccessMode RowAccessMode { get; init; }
     public ExecutionExpression? PartitionKey { get; init; }
@@ -52,7 +54,7 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
     public IReadOnlyList<ExecutionExpression> Arguments { get; init; }
     public IReadOnlyList<bool> RowScopedArguments { get; init; }
     public ExecutionWindowFrame? Frame { get; init; }
-    public ExecutionCallableRef FactoryMethod { get; init; }
+    public ExecutionCallableRef SqlDeclaration { get; init; }
     public string FunctionName { get; init; }
     public ExecutionVariable Results { get; init; }
     public ExecutionWindowKeyArray? PartitionKeyArray { get; init; }
@@ -60,6 +62,10 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
     public ExecutionWindowPartitionSet? Partitions { get; init; }
     public ExecutionWindowPartitionSet? SortedPartitions { get; init; }
     public IReadOnlyList<ExecutionVariable>? MethodTargets { get; init; }
+    /// <summary>Gets the validated direct operation over a concrete frame context.</summary>
+    public ExecutionCallableRef? LibraryGet { get; init; }
+    /// <summary>Gets the compilation-selected concrete frame and order-key storage.</summary>
+    public ExecutionWindowContextBuffers? ContextBuffers { get; init; }
 
     internal ExecutionComputePluginWindow(
         ExecutionVariable buffer,

@@ -108,7 +108,7 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("r.Category", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Category", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2], [3]);
     }
 

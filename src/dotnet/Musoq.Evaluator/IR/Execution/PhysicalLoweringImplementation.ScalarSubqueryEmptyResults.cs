@@ -127,7 +127,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     kernel.ResultType);
                 lowering = new ScalarSubqueryEmptyResultLowering(
                     new ExecutionVariableRead(variable),
-                    [new ExecutionCreateObject(state), new ExecutionLet(variable, call)]);
+                    [new ExecutionInitializeAggregateState(state, ExecutionClrBindingFactory.FromClr(kernel.ResetMethod)),
+                        new ExecutionLet(variable, call)]);
                 return true;
             default:
                 throw new ArgumentOutOfRangeException(

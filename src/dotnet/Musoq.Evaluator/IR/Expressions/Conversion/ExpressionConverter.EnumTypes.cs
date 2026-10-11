@@ -6,6 +6,20 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public sealed partial class ExpressionConverter
 {
+    private static Type NormalizeNativeEnumReturnType(Type type)
+    {
+        var nullableType = Nullable.GetUnderlyingType(type);
+        var valueType = nullableType ?? type;
+        if (!valueType.IsEnum)
+            return type;
+
+        var carrierType = Enum.GetUnderlyingType(valueType);
+        if (nullableType != null)
+            return typeof(Nullable<>).MakeGenericType(carrierType);
+
+        return carrierType;
+    }
+
     private static EnumTypeDescriptor? ResolveNativeEnumType(Node node)
     {
         if (node is DotNode dot)

@@ -33,10 +33,10 @@ public sealed class ProfiledQueryPipelineIntegrationTests : BasicEntityTestBase
         var profileResult = vm.RunWithProfile(CancellationToken.None);
 
         Assert.AreEqual(2, profileResult.Result.Count);
-        Assert.AreEqual("A", profileResult.Result[0][0]);
-        Assert.AreEqual(10m, profileResult.Result[0][1]);
-        Assert.AreEqual("C", profileResult.Result[1][0]);
-        Assert.AreEqual(20m, profileResult.Result[1][1]);
+        Assert.AreEqual("A", profileResult.Result[0].ReadValue(0));
+        Assert.AreEqual(10m, profileResult.Result[0].ReadValue(1));
+        Assert.AreEqual("C", profileResult.Result[1].ReadValue(0));
+        Assert.AreEqual(20m, profileResult.Result[1].ReadValue(1));
 
         var source = profileResult.Profile.Sources.Single();
         Assert.AreEqual(3, source.RowsRead);

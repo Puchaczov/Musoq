@@ -158,7 +158,7 @@ internal sealed partial class PhysicalLoweringImplementation
     private static Dictionary<string, AggregateCapturedField> CreateAggregateCapturedFieldsLookup(
         IReadOnlyList<AggregateCapturedField> capturedFields)
     {
-        var lookup = new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase);
+        var lookup = new Dictionary<string, AggregateCapturedField>(StringComparer.Ordinal);
         foreach (var capturedField in capturedFields)
         {
             AddAggregateCapturedFieldLookup(lookup, capturedField.Name, capturedField);

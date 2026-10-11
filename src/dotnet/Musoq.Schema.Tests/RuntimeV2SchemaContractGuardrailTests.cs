@@ -21,9 +21,11 @@ public sealed class RuntimeV2SchemaContractGuardrailTests
             .GetMethods()
             .Single(static method => method.Name == nameof(ISchema.GetRowSource));
         Assert.IsTrue(getRowSource.IsGenericMethodDefinition);
+        Assert.HasCount(2, getRowSource.GetGenericArguments());
+        CollectionAssert.Contains(getRowSource.GetGenericArguments()[1].GetGenericParameterConstraints(), typeof(ISourceArguments));
         Assert.AreEqual(typeof(RowSource<>), getRowSource.ReturnType.GetGenericTypeDefinition());
         CollectionAssert.AreEqual(
-            new[] { typeof(string), typeof(SourceExecutionContext), typeof(object[]) },
+            new[] { typeof(string), typeof(SourceExecutionContext), getRowSource.GetGenericArguments()[1] },
             getRowSource.GetParameters().Select(static parameter => parameter.ParameterType).ToArray());
     }
 

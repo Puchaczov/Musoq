@@ -18,7 +18,7 @@ public sealed class LogicalPlanTextWindowTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [e.Name as e.Name, WindowRef(0) as RowNum]",
+                "  Project [e.Name as Name, WindowRef(0) as RowNum]",
                 "    Window [RowNumber(idx:0; order: e.Name)]",
                 "      SchemaScan [#A.Entities() as e]"),
             planText);
@@ -35,7 +35,7 @@ public sealed class LogicalPlanTextWindowTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [e.Name as e.Name, WindowRef(0) as RunPop]",
+                "  Project [e.Name as Name, WindowRef(0) as RunPop]",
                 "    Window [Sum(idx:0; partition: e.City; order: e.Name; args: e.Population; frame: rows between 1 preceding and current row)]",
                 "      SchemaScan [#A.Entities() as e]"),
             planText);
@@ -52,7 +52,7 @@ public sealed class LogicalPlanTextWindowTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [e.Name as e.Name, WindowRef(0) as RowNum]",
+                "  Project [e.Name as Name, WindowRef(0) as RowNum]",
                 "    Qualify [(WindowRef(0) <= 2)]",
                 "      Window [RowNumber(idx:0; order: e.Name)]",
                 "        SchemaScan [#A.Entities() as e]"),

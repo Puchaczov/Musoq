@@ -149,7 +149,6 @@ public sealed class ExecutionPlanOperatorCatalog
                 HashPayloadShape => "HashPayload",
                 AggregateGroupShape => "AggregateGroup",
                 TableRowShape => "TableRow",
-                ExpandoAdapterShape => "ExpandoAdapter",
                 _ => "UnknownShape"
             };
             yield return new StructuredOperatorEntry(null, shapeKind, shapeKind);

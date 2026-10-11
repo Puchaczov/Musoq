@@ -49,10 +49,10 @@ public sealed class LoopInvariantSchema : SchemaBase
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (string.Equals(name, "outers", StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, LoopInvariantOuter>(name, new LoopInvariantRowSource());

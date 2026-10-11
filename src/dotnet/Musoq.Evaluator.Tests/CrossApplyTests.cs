@@ -44,12 +44,12 @@ public class CrossApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("a.Population", typeof(int)),
-            ("b.Country", typeof(string)),
-            ("b.Money", typeof(decimal)),
-            ("b.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(int)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
@@ -94,9 +94,9 @@ public class CrossApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Country", typeof(string)),
-            ("b.Money", typeof(decimal)),
-            ("b.Month", typeof(string)));
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Country1", 1000m, "January"],
@@ -141,9 +141,9 @@ public class CrossApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Country", typeof(string)),
-            ("b.Money", typeof(decimal)),
-            ("b.Month", typeof(string)));
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Country2", 3000m, "March"]);
@@ -194,9 +194,9 @@ public class CrossApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Country", typeof(string)),
-            ("b.Money", typeof(decimal)),
-            ("b.Month", typeof(string)));
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Country1", 1000m, "January"],
@@ -253,7 +253,7 @@ public class CrossApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Country1"],
@@ -303,7 +303,7 @@ public class CrossApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Country1"]);
     }
 

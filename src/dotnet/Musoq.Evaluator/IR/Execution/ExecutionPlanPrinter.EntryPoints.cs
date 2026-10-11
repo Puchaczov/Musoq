@@ -21,7 +21,7 @@ public static partial class ExecutionPlanPrinter
         TypedStoredTableSlots.Value = plan.StoredTableRepresentations
             .ToDictionary(
                 static representation => representation.TableIndex,
-                static representation => $"List<{representation.RowShape.TypeName}>");
+                StoredTableRepresentationPlanPrinter.GetSlotTypeName);
         FinalShapeContext.Value = CreateFinalShapePrintContext(plan);
         TypedRowBuffers.Value = CreateTypedRowBuffers(plan);
 

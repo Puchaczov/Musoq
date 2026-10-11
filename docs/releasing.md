@@ -5,13 +5,26 @@ qualifies the exact tagged commit, packages the selected train, smoke-tests the
 packages, publishes them to NuGet, and creates the prerelease or stable GitHub
 Release.
 
-## Alpha releases from any branch
+## Qualify the candidate before tagging
 
-Alpha tags may be created from any branch once that branch contains the current
-release workflow policy. Push the annotated tag directly; a branch push or merge
-to `master` is not required.
+Every release requires successful Linux and Windows `CI` push qualification for
+the exact candidate commit before its tag is pushed. CI runs on pushes to `master`
+and `release/**`, and on pull requests targeting `master`. Pull-request runs do not
+qualify publication. Release tags start `Publish` without starting another full
+test suite; Publish reuses the successful branch push run and retains its build,
+package validation, and package smoke checks.
+
+## Alpha releases
+
+An alpha candidate may originate on any branch. If its exact commit does not
+already have successful qualifying branch CI, push it to a `release/**` branch
+and wait for both platform jobs. A merge to `master` is not required.
 
 ```powershell
+$branch = 'release/17.0.12-alpha.1'
+git push origin "HEAD:$branch"
+# Wait for successful Linux and Windows CI on this exact commit.
+
 $tag = 'v17.0.12-alpha.1'
 git tag -a $tag HEAD -m "Release $tag"
 git push origin "refs/tags/$tag"
@@ -21,14 +34,9 @@ Full-train alpha tags use `v<version>-alpha.<n>`. Package-specific alpha tags
 use `<package>/v<version>-alpha.<n>`, such as
 `parser/v17.0.12-alpha.1`.
 
-The alpha tag starts an exact-commit `CI` push run and the tag-triggered
-`Publish` workflow. Publish waits for that CI run to complete successfully
-before any package or GitHub Release is made. Pull-request runs do not qualify
-the tag.
-
-If alpha CI fails, the tag remains immutable and nothing is published. Fix the
-candidate and use the next alpha version; never move or force-push the failed
-tag.
+If candidate CI fails, fix the candidate and requalify before tagging. If a
+source fix is needed after a tag has been pushed, use the next alpha version;
+never move or force-push a release tag.
 
 ## Preview, beta, and stable releases
 
@@ -52,7 +60,20 @@ successful `master` or pull-request runs are insufficient.
 Release candidates do not need to be merged into `master`. The policy workflow
 change itself must first reach `master` so that future release branches inherit
 the trigger and qualification rules. Older branches must incorporate that
-workflow change before using the any-branch alpha path.
+workflow change before using branch-first publication without duplicate tag CI.
+
+## Repository boundary
+
+A Core package release changes and publishes only this repository. Do not modify
+any other repositories, synchronize their documentation, rebuild their
+consumers, or install packages into their checkouts as part of Core publication.
+Those repositories have separate upgrade, documentation, validation, and release
+waves. Record downstream migration or documentation requirements in the Core
+release notes; read-only inspection does not authorize downstream changes.
+
+Cross-repository work requires an explicit request for the named repository and
+action. The release scripts and publication workflow operate within the Core
+checkout and publish only the packages selected from its registry.
 
 ## Local qualification
 

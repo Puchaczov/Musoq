@@ -38,9 +38,9 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("applied.MatchCount", typeof(long?)),
+            ("Name", typeof(string)),
+            ("Country", typeof(string)),
+            ("MatchCount", typeof(long?)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -160,9 +160,9 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("b.Country", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Country", typeof(string)),
             ("HasRelated", typeof(bool)),
             ("MaxRelated", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(

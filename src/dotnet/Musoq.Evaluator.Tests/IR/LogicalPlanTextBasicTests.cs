@@ -17,7 +17,7 @@ public sealed class LogicalPlanTextBasicTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [e.Name as e.Name]",
+                "  Project [e.Name as Name]",
                 "    SchemaScan [#A.Entities() as e]"),
             planText);
     }
@@ -33,7 +33,7 @@ public sealed class LogicalPlanTextBasicTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [e.Name as e.Name]",
+                "  Project [e.Name as Name]",
                 "    Filter [((e.Population > 100) AND e.NullableValue IS NOT NULL)]",
                 "      SchemaScan [#A.Entities() as e]"),
             planText);
@@ -53,7 +53,7 @@ public sealed class LogicalPlanTextBasicTests : BasicEntityTestBase
                 "  Take [10]",
                 "    Skip [5]",
                 "      Sort [e.Name DESC]",
-                "        Project [e.Name as e.Name]",
+                "        Project [e.Name as Name]",
                 "          SchemaScan [#A.Entities() as e]"),
             planText);
     }

@@ -9,6 +9,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 using Musoq.Schema.DataSources;
 using Musoq.Tests.Common;
 
@@ -40,7 +41,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "rows", (new GenericEntityTable<StreamingProjectionEntity>(), rowSource) }
-            });
+            }, executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing);
         var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema>
         {
             { "#schema", schema }
@@ -73,7 +74,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
             Assert.AreEqual(rows.Length, table.Count);
             CollectionAssert.AreEqual(
                 rows.Select(row => row.Value).Cast<object>().ToArray(),
-                table.Select(row => row[0]).ToArray());
+                table.Select(row => row.ReadValue(0)).ToArray());
             Assert.IsTrue(
                 probe.MaxConcurrentCalls >= 2,
                 $"Expected chunk projection to overlap work, but max concurrency was {probe.MaxConcurrentCalls}.");
@@ -107,7 +108,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
     {
         public static ProjectionConcurrencyProbe? Probe { get; set; }
 
-        [BindableMethod]
+        [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
         public int Synchronize(int value)
         {
             return Probe?.Synchronize(value) ?? value;

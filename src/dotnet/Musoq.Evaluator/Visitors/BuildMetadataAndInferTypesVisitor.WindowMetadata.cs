@@ -1,10 +1,13 @@
-using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
+using Musoq.Schema;
+using Musoq.Plugins.Attributes;
+using System.Linq;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Tables;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -36,8 +39,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = funcArgCount - 1; i >= 0; i--)
             funcArgs[i] = PopSemanticNode("Visit(WindowFunctionNode).FuncArg");
 
-        WindowFunctionArgumentValidation.Validate(node.FunctionCall, funcArgs, ReportWindowArgumentError);
-        var (returnType, resolvedFactory) = InferWindowFunctionReturnType(node.FunctionCall.Name, funcArgs);
+        if (funcArgs is [AllColumnsNode] && node.FunctionCall.Name.Equals("Count", StringComparison.OrdinalIgnoreCase))
+            funcArgs = [];
+        var (returnType, resolvedFactory) = InferWindowFunctionReturnType(node.FunctionCall, funcArgs);
         var argsListNode = new ArgsListNode(funcArgs);
 
         var normalizedName = node.FunctionCall.Name.Replace("_", string.Empty, StringComparison.Ordinal)
@@ -45,6 +49,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         ValidateWindowEnumArguments(normalizedName, funcArgs, node);
         var requiresOrderBy = normalizedName is
             "ROWNUMBER" or "RANK" or "DENSERANK" or "PERCENTRANK" or "CUMEDIST" or "NTILE" or "LAG" or "LEAD";
+        if (resolvedFactory?.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null } declaration)
+            requiresOrderBy = declaration.RequiresOrderBy;
 
         if (requiresOrderBy && spec != null && spec.OrderByFields.Length == 0)
         {
@@ -54,13 +60,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 spec.SpanOrEmpty());
         }
 
-        var nestedWindowDetector = new QualifyWindowFunctionDetector();
-        var nestedWindowTraverser = new QualifyWindowFunctionTraverser(nestedWindowDetector);
-        foreach (var argument in funcArgs)
-            argument.Accept(nestedWindowTraverser);
-        filterExpression?.Accept(nestedWindowTraverser);
-
-        if (nestedWindowDetector.Found)
+        if (Array.Exists(funcArgs, WindowExpressionPresence.Contains) ||
+            filterExpression != null && WindowExpressionPresence.Contains(filterExpression))
         {
             ReportWindowException(
                 DiagnosticCode.MQ3100_NestedWindowFunction,
@@ -91,7 +92,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             FilterExpression = filterExpression,
             FilterExpressionText = node.FunctionCall.FilterExpressionText,
             IsPivotGenerated = node.FunctionCall.IsPivotGenerated,
-            IsScalarSubqueryValueWrapper = node.FunctionCall.IsScalarSubqueryValueWrapper
+            IsScalarSubqueryValueWrapper = node.FunctionCall.IsScalarSubqueryValueWrapper,
+            IsCompilerGenerated = node.FunctionCall.IsCompilerGenerated
         };
 
         WindowFunctionNode result;
@@ -164,102 +166,47 @@ public partial class BuildMetadataAndInferTypesVisitor
             .WithFullSpan(node.FullSpan));
     }
 
-    private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(string functionName, Node[] args)
+    private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(AccessMethodNode call, Node[] args)
     {
+        var functionName = call.Name;
         var normalizedName = functionName.Replace("_", "", StringComparison.Ordinal).ToUpperInvariant();
-
-        MethodInfo? resolvedFactory = null;
-        var isBuiltInOffset = normalizedName is "LAG" or "LEAD";
-        var isBuiltInRanking = normalizedName is "ROWNUMBER" or "RANK" or "DENSERANK" or "PERCENTRANK" or "CUMEDIST";
-
-        if (!isBuiltInOffset && !isBuiltInRanking)
-            TryResolveWindowFunctionFactory(functionName, out resolvedFactory);
-
-        Type returnType;
-        if (resolvedFactory != null)
-        {
-            returnType = IsValueAccessWindowFunction(normalizedName) && args.Length > 0
-                ? MakeNullableIfValueType(args[0].ReturnType ?? typeof(object))
-                : IsMinMaxWindowFunction(normalizedName) && args.Length > 0
-                    ? MakeNullableIfValueType(args[0].ReturnType ?? typeof(object))
-                    : ExtractWindowFunctionResultType(resolvedFactory) ?? typeof(object);
-        }
-        else
-        {
-            returnType = normalizedName switch
-            {
-                "LAG" or "LEAD" => MakeNullableIfValueType(
-                    args.Length > 0 ? args[0].ReturnType ?? typeof(object) : typeof(object)),
-                "ROWNUMBER" or "RANK" or "DENSERANK" => typeof(long),
-                "PERCENTRANK" or "CUMEDIST" => typeof(double),
-                _ => typeof(object)
-            };
-        }
-
-        return (returnType, resolvedFactory);
-    }
-    private static bool IsValueAccessWindowFunction(string normalizedName)
-    {
-        return normalizedName is "FIRSTVALUE" or "LASTVALUE" or "NTHVALUE";
+        var libraries = EnumerateWindowLibraries(call.Alias).ToArray();
+        WindowDeclarationBinding.ValidateArguments(call, args, libraries);
+        var resolvedFactory = WindowDeclarationBinding.Bind(functionName,
+            args.Select(static argument => argument.ReturnType ?? typeof(object)).ToArray(), libraries);
+        return (WindowFunctionReturnTypeResolver.Resolve(normalizedName, args, resolvedFactory), resolvedFactory);
     }
 
-    private static bool IsMinMaxWindowFunction(string normalizedName)
+    private IEnumerable<ISchema> EnumerateWindowLibraries(string? owner)
     {
-        return normalizedName is "MIN" or "MAX";
-    }
-
-    private bool TryResolveWindowFunctionFactory(string functionName, out MethodInfo? factoryMethod)
-    {
-        foreach (var schemaFrom in _sourceBinding.AliasToSchemaFromNodeMap.Values)
+        foreach (var source in _sourceBinding.AliasToSchemaFromNodeMap)
         {
+            if (!string.IsNullOrEmpty(owner) && source.Key != owner)
+                continue;
             ThrowIfCancellationRequested();
-            var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
+            var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(source.Value.Schema));
             ThrowIfCancellationRequested();
-            if (schema.TryResolveWindowFunction(functionName, out var resolved))
-            {
-                factoryMethod = resolved;
-                return true;
-            }
+            yield return schema;
         }
+        if (!string.IsNullOrEmpty(owner))
+            yield break;
         foreach (var schemaName in _sourceBinding.AllUsedSchemaNames)
         {
             ThrowIfCancellationRequested();
             var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaName));
             ThrowIfCancellationRequested();
-            if (schema.TryResolveWindowFunction(functionName, out var resolved))
-            {
-                factoryMethod = resolved;
-                return true;
-            }
+            yield return schema;
         }
-        factoryMethod = null;
-        return false;
+        foreach (var tableName in _sourceBinding.AliasMapToInMemoryTableMap.Values)
+        {
+            ThrowIfCancellationRequested();
+            var table = FindTableSymbolInScopeHierarchy(tableName).FullTable;
+            yield return new TransitionSchema(tableName, table);
+        }
     }
-    private static Type? ExtractWindowFunctionResultType(MethodInfo factoryMethod)
-    {
-        var returnType = factoryMethod.ReturnType;
-        var windowFunctionInterface = returnType.GetInterfaces()
-            .Concat([returnType])
-            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IWindowFunction<,>));
-
-        return windowFunctionInterface?.GetGenericArguments()[1];
-    }
-
-    private static Type MakeNullableIfValueType(Type type)
-    {
-        if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
-            return typeof(Nullable<>).MakeGenericType(type);
-
-        return type;
-    }
-
     private void ValidateQualifyReferencesWindowFunction(QualifyNode qualify)
     {
-        var detector = new QualifyWindowFunctionDetector();
-        var traverser = new QualifyWindowFunctionTraverser(detector);
-        qualify.Expression.Accept(traverser);
-
-        if (detector.Found)
+        if (WindowExpressionPresence.Contains(qualify.Expression))
             return;
 
         var span = qualify.Expression.HasSpan ? qualify.Expression.Span : TextSpan.Empty;
@@ -299,15 +246,5 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         throw new CannotResolveMethodException(message, code, span);
-    }
-
-    private sealed class QualifyWindowFunctionTraverser(IExpressionVisitor visitor)
-        : RawTraverseVisitor<IExpressionVisitor>(visitor);
-
-    private sealed class QualifyWindowFunctionDetector : NoOpExpressionVisitor
-    {
-        public bool Found { get; private set; }
-
-        public override void Visit(WindowFunctionNode node) => Found = true;
     }
 }

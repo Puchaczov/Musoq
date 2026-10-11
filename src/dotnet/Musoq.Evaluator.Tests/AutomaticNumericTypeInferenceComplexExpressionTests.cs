@@ -40,7 +40,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Match", table[0].Values[0]);
+        Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().ToList();
         CollectionAssert.Contains(results, "Large");
         CollectionAssert.Contains(results, "Small");
     }
@@ -100,7 +100,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("InRange", table[0].Values[0]);
+        Assert.AreEqual("InRange", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -128,7 +128,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Match", table[0].Values[0]);
+        Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
 
 

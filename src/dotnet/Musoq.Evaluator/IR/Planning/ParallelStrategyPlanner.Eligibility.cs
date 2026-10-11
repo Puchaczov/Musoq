@@ -12,17 +12,20 @@ internal sealed partial class ParallelStrategyPlanner
         if (pipeline.SourceFilter != null)
             return ParallelPlanEligibility.Skipped("Source filter is present, so parallel single-key aggregate cannot preserve current aggregate filtering semantics.");
 
+        var sourcePermission = sourcePermissions.Check(pipeline.Source,
+            Musoq.Schema.Optimization.SourceExecutionPermissions.ConcurrentRowProcessing);
+        if (!sourcePermission.IsEligible)
+            return ParallelPlanEligibility.Skipped(sourcePermission.Reason);
+
         var sourceShapeResolution = ResolveParallelSourceShape(pipeline.Source);
         if (sourceShapeResolution.SourceShape is not { } sourceShape)
             return ParallelPlanEligibility.Skipped(sourceShapeResolution.Reason);
 
-        if (sourceShape.Kind == PlanningRowShapeKind.ExpandoAdapter)
-            return ParallelPlanEligibility.Skipped("Source shape is dynamic, so parallel single-key aggregate cannot use stable row access.");
 
         if (!CanUseParallelSourceRows(pipeline.Source))
             return ParallelPlanEligibility.Skipped($"Unsupported row source {pipeline.Source.GetType().Name}; parallel single-key aggregate requires enumerable or stored-table rows.");
 
-        var aggregateBindingsEligibility = CanUseParallelAggregateBindings(pipeline.Aggregate.Bindings);
+        var aggregateBindingsEligibility = ParallelAggregatePermissionPolicy.Check(pipeline.Aggregate.Bindings);
         if (!aggregateBindingsEligibility.IsEligible)
             return ParallelPlanEligibility.Skipped(aggregateBindingsEligibility.Reason);
 
@@ -50,12 +53,15 @@ internal sealed partial class ParallelStrategyPlanner
         if (pipeline.Source is not (PhysicalSchemaScanNode or PhysicalCteRefNode))
             return ParallelPlanEligibility.Skipped($"Unsupported row source {pipeline.Source.GetType().Name}; parallel filter/project supports schema scans and CTE rows only.");
 
+        var sourcePermission = sourcePermissions.Check(pipeline.Source,
+            Musoq.Schema.Optimization.SourceExecutionPermissions.ConcurrentRowProcessing);
+        if (!sourcePermission.IsEligible)
+            return ParallelPlanEligibility.Skipped(sourcePermission.Reason);
+
         var sourceShapeResolution = ResolveParallelSourceShape(pipeline.Source);
         if (sourceShapeResolution.SourceShape is not { } sourceShape)
             return ParallelPlanEligibility.Skipped(sourceShapeResolution.Reason);
 
-        if (sourceShape.Kind == PlanningRowShapeKind.ExpandoAdapter)
-            return ParallelPlanEligibility.Skipped("Source shape is dynamic, so parallel filter/project cannot use stable field access.");
 
         if (!CanUseParallelSourceRows(pipeline.Source))
             return ParallelPlanEligibility.Skipped($"Unsupported row source {pipeline.Source.GetType().Name}; parallel filter/project requires enumerable or stored-table rows.");

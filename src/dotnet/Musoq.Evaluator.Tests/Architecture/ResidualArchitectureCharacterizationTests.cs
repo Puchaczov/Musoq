@@ -151,7 +151,7 @@ public sealed class ResidualArchitectureCharacterizationTests
             }
         };
 
-        var snapshot = QueryExecutionContext.Capture(runnable, [], CancellationToken.None);
+        var snapshot = QueryExecutionContext.Capture(runnable, TypedParameterSnapshot.Empty, CancellationToken.None);
         properties["value"] = "after";
 
         Assert.AreEqual(

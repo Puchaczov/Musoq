@@ -1,7 +1,7 @@
 # Musoq Core SQL Language Specification
 
-**Version:** 1.7.0
-**Status:** Implemented
+**Version:** 1.8.0
+**Status:** Language specification
 **Author:** Jakub Puchała
 
 ---
@@ -40,14 +40,14 @@
 
 ### 1.1 Purpose
 
-This document specifies the Musoq SQL dialect — a query language for querying diverse data sources (files, APIs, git repositories, operating system resources, and more) using SQL syntax. The specification is intended for query authors who need to write correct Musoq queries without knowledge of the engine's internal implementation.
+This document specifies the Musoq SQL dialect — a query language for querying diverse data sources (files, APIs, git repositories, operating system resources, and more) using SQL syntax. The specification is intended for query authors and implementers in any programming language. It defines observable behavior independently of execution architecture.
 
 ### 1.2 Scope
 
 This specification covers:
 
 - Complete SQL syntax supported by the query engine
-- All built-in operators, expressions, and functions
+- All language operators and expressions, and the required function surface (§18)
 - Data types and type system behavior
 - Query execution semantics (clause evaluation order, NULL handling, type coercion)
 - Error conditions and their causes
@@ -81,7 +81,7 @@ Musoq implements a subset of SQL with several extensions:
 | CROSS JOIN | Standard SQL | Supported as an uncorrelated Cartesian product; filtering belongs in `WHERE` |
 | FULL OUTER JOIN | Standard SQL | Supported; use `alias IS PRESENT` / `alias IS MISSING` to classify unmatched sides |
 | SEMI JOIN / ANTI JOIN | Common relational algebra extension | Supported as left-sided existence and non-existence joins |
-| Recursive CTEs | Supported in many dialects | Supported with `WITH RECURSIVE`; recursive members have documented operator restrictions (see §14.9 and `docs/recursive-ctes.md`) |
+| Recursive CTEs | Supported in many dialects | Supported with `WITH RECURSIVE`; recursive members have documented operator restrictions (see §14.9) |
 | Subqueries in FROM | Supported | Supported as derived tables; plain derived tables are independent and correlation requires `CROSS APPLY` / `OUTER APPLY` |
 | `BETWEEN` operator | Supported | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | `ORDER BY` position | `ORDER BY 1` | **Not supported** — use column names or expressions |
@@ -135,6 +135,34 @@ A conforming implementation MUST support all features defined in this core speci
 - **TABLE/COUPLE profile**: `TABLE` and `COUPLE` statements for explicit type binding and source runtime settings profile selection
 
 An implementation MAY support any combination of profiles. An implementation that claims conformance to a profile MUST implement all features defined in the corresponding satellite specification.
+
+---
+
+### 1.8 Authority and semantic stages
+
+Core owns lexical rules, logical values and types, expression semantics, and the
+diagnostic envelope. Satellite specifications own only their extension syntax and
+behavior; duplicated summaries defer to the owning section. Grammar and prose
+describe the same contract. A contradiction is a specification defect, not license
+for implementation-specific behavior.
+
+Parse recognizes syntax. Bind resolves names, logical types, callable signatures,
+and constants without opening row sources. Execute evaluates demanded expressions
+and reads sources. "Compile-time" elsewhere means before execution (parse or bind),
+not a requirement to generate executable code. Implementations MAY interpret,
+compile, or otherwise evaluate a query, provided observable behavior is preserved.
+
+Provider contracts describe available sources, fields, callable signatures,
+function identities, optional settings, and declared capabilities. Providers are
+not required to expose native objects or any particular host interface.
+Core conformance does not require installing the providers used in examples.
+Examples using files, APIs, named external providers, or undeclared symbols are
+informative templates requiring the stated receiving contract. The specifications
+define the required behavior independently of any implementation test corpus.
+
+Host-specific type lookup, metadata rendering, integration APIs, execution
+strategies, and migration advice are outside this contract.
+Conformance counts MUST distinguish passed mandatory cases from known deviations.
 
 ---
 
@@ -382,9 +410,7 @@ recognized value-changing escape.
 Intentional standalone escapes such as `select '\n' from system.dual()` and
 unknown escapes such as `\q` remain warning-free. Malformed fixed-length
 `\u` and `\x` sequences remain `MQ1004` errors. Consumers that need advisory
-diagnostics must use `CompileWithDiagnostics()` (or another diagnostic-aware
-entry point); convenience compilation that returns only `CompiledQuery` does
-not expose warnings, and warnings are never attached to `CompiledQuery`.
+diagnostics must use a diagnostic-aware host operation. An execution-only operation need not expose warnings.
 
 `ValidateSyntax()` reports only parse-level warnings, such as rooted
 `MQ5014`. Relative path warnings and all other binding-dependent advisories
@@ -412,7 +438,7 @@ select '{', '}', '[', ']', '(', ')' from system.dual()
 ### Advisory warning contract
 
 Advisory warnings are default-on diagnostics for diagnostic-aware APIs. They
-never change parsed values, generated code, cache identity, datasource
+never change parsed values, execution behavior, query identity, datasource
 arguments, runtime behavior, or query results. A warning-only parse or build
 still succeeds; `Errors` and `ToEnvelopes()` contain no entries, and the
 compiled query remains runnable.
@@ -447,11 +473,7 @@ and unreachable-branch messages for the same source region. The v17 identifiers
 retained as a compatibility documentation identifier so consumers can explain
 older reports; current tested `ORDER BY` alias behavior does not produce it.
 
-Warnings are available through `ParseResult.Warnings`,
-`QueryAnalysisResult.Warnings`, `BuildResult.Warnings`, and
-`QueryInspectionResult.Warnings`. `CompileWithDiagnostics()` is the
-warning-aware execution entry point; `CompileForExecution()` remains
-source-compatible and returns only `CompiledQuery`.
+Diagnostic-aware operations expose warnings separately from errors. The host operation used to execute a query does not determine the query's semantics.
 
 Common examples:
 
@@ -506,7 +528,7 @@ select .5 from system.dual()        -- type: decimal (leading dot)
 
 Append a suffix to force a specific numeric type:
 
-| Suffix | Type | .NET Type | Range |
+| Suffix | Type | Canonical keyword | Range |
 |--------|------|-----------|-------|
 | `b` | signed byte | `sbyte` | -128 to 127 |
 | `ub` | unsigned byte | `byte` | 0 to 255 |
@@ -516,7 +538,7 @@ Append a suffix to force a specific numeric type:
 | `ui` | unsigned int | `uint` | 0 to 4,294,967,295 |
 | `l` | long | `long` | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
 | `ul` | unsigned long | `ulong` | 0 to 18,446,744,073,709,551,615 |
-| `d` or `D` | decimal | `decimal` | ±1.0 × 10⁻²⁸ to ±7.9228 × 10²⁸ |
+| `d` or `D` | decimal | `decimal` | ±79228162514264337593543950335, scale 0–28 (§3.9) |
 
 **Examples:**
 
@@ -646,7 +668,7 @@ select 1 + (-2) from system.dual()             -- -1
 |----------|-------------|---------|
 | `??` | Returns the left operand when it is not `null`; otherwise returns the right operand | `Name ?? 'Unknown'` |
 
-The operands MUST have compatible types. A nullable value type MAY fall back to its underlying non-nullable value type, for example `NullableValue ?? 0`. Reference types are treated as potentially nullable even when host-language annotations imply otherwise. If the left operand is statically a non-nullable value type, the fallback operand is ignored and does not participate in generated execution code.
+The operands MUST have compatible types. A nullable scalar type MAY fall back to its underlying non-nullable scalar type, for example `NullableValue ?? 0`. String, dynamic and record values admit null independently of host annotations. If the left operand is statically a non-nullable scalar type, the fallback operand is ignored and is not evaluated.
 
 `??` is right-associative: `A ?? B ?? C` is interpreted as `A ?? (B ?? C)`. It is a null fallback operator only. Musoq does not support `?.`, and `??` does not change existing member access or indexer semantics.
 
@@ -678,8 +700,8 @@ select Concat(Name, ' - ', City) from schema.method()  -- alternative
 | `ulong` | Unsigned 64-bit integer | `0` | `1ul` |
 | `float` | 32-bit floating point | `0.0` | — |
 | `double` | 64-bit floating point | `0.0` | — |
-| `decimal` | 128-bit precise decimal | `0.0` | `3.14`, `42d` |
-| `char` | Single Unicode character | `'\0'` | — |
+| `decimal` | Decimal coefficient and scale (§3.9) | `0.0` | `3.14`, `42d` |
+| `char` | One UTF-16 code unit | `'\0'` | — |
 | `string` | Unicode text | `null` | `'Hello'` |
 
 ### 3.2 Date and Time Types
@@ -716,7 +738,7 @@ select Self.Array[2] from A.entities()           -- array indexing
 
 ### 3.5 Collections and Arrays
 
-Columns may hold arrays (`T[]`) or enumerables (`IEnumerable<T>`). These can be:
+Columns may hold ordered collections with an element type (`T[]`). These can be:
 - Indexed with `[N]` syntax (see §21)
 - Expanded into rows via `CROSS APPLY` (see §9)
 - Processed with collection functions (`Length`, `Skip`, `Take`, `FirstOrDefault`, etc.)
@@ -738,7 +760,7 @@ Columns may hold arrays (`T[]`) or enumerables (`IEnumerable<T>`). These can be:
 
 ### 3.7 Strict Postfix Casts
 
-Runtime v2 supports strict postfix casts:
+Musoq supports strict postfix casts:
 
 ```sql
 select Population::Int32 from A.entities()
@@ -748,11 +770,11 @@ select Name::String::Guid from A.entities()
 
 The cast operator has high postfix precedence. `a + b::Int32` is parsed as `a + (b::Int32)`, while `(a + b)::Int32` casts the parenthesized expression.
 
-Supported cast targets include CLR type names, matched case-insensitively:
+Supported cast targets include the following Musoq aliases, matched case-insensitively:
 
 `Boolean`, `Byte`, `SByte`, `Int16`, `UInt16`, `Int32`, `UInt32`, `Int64`, `UInt64`, `Single`, `Double`, `Decimal`, `Char`, `String`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `Guid`.
 
-C# primitive aliases are also supported and map to the corresponding CLR target:
+Primitive keywords are also supported and map to the corresponding logical target:
 
 `bool` → `Boolean`, `byte` → `Byte`, `sbyte` → `SByte`, `short` → `Int16`, `ushort` → `UInt16`, `int` → `Int32`, `uint` → `UInt32`, `long` → `Int64`, `ulong` → `UInt64`, `float` → `Single`, `double` → `Double`, `decimal` → `Decimal`, `char` → `Char`, `string` → `String`.
 
@@ -760,9 +782,9 @@ SQL type aliases such as `INTEGER`, `VARCHAR`, and `DOUBLE PRECISION` are not su
 
 Strict cast behavior:
 - `null` input returns `null`.
-- Invalid text, overflow, and unsupported conversions throw.
-- Numeric, date/time, duration, and GUID parsing uses invariant-culture runtime conversion.
-- `::String` and `::string` convert non-null values with invariant-culture `ToString` behavior.
+- Invalid text, overflow, and unsupported conversions fail; constants fail during binding and demanded nonconstant values fail during execution.
+- Conversion and formatting follow §3.9; the host's default locale MUST NOT select the meaning.
+- `::String` and `::string` preserve null and format non-null logical values according to §3.9.
 
 The public `ToXxx(...)` helper functions remain available as library functions and keep their established behavior. They are not equivalent to strict postfix casts when a helper has softer conversion semantics, such as returning `null` for invalid text.
 
@@ -794,10 +816,10 @@ first declared name is canonical. Member names use exact case-sensitive
 matching and case-only duplicates are invalid. Query-local enum type names are
 case-insensitive.
 
-Native CLR enums are discovered only through source columns, reachable public
-properties or method results, and exact fully qualified TABLE type references.
-Query-local declarations never create CLR enum types. All enum values are
-normalized to their integral carrier immediately after source reads.
+Provider-defined enums are discovered through source columns, reachable record
+fields, or callable results. Host-native enum type names MUST NOT appear in TABLE
+declarations (§15.1). Query-local enums have their own logical identity. Enum
+values carry their declared integral value and nominal identity after source reads.
 
 Quoted literals bind contextually to members:
 
@@ -809,7 +831,159 @@ where Status in ('Queued', 'Running')
 Bare names, `Type.Member`, implicit numeric or string conversion, enum casts,
 and cross-enum operations are invalid. Unknown representable numeric values
 are preserved. The complete operator, output, source-planning, and performance
-contract is in `docs/enums.md`.
+contract follows below. Equality and IN require the same enum identity; grouping,
+DISTINCT and sets preserve it. Direct enum ordering and relational comparisons
+are rejected; order by EnumValue when integral ordering is intended. Projection,
+CASE, null fallback, offset/value-access windows and Count preserve the logical
+identity where their result remains an enum. Numeric aggregates do not accept enums.
+EnumName returns the first declared name for an exact value, or null for an unknown
+value; it does not synthesize names for flag combinations. EnumValue returns the
+backing scalar. IsDefined tests exact declared values. HasAnyFlags and HasAllFlags
+apply only to flags enums: combine the requested declared member masks with OR,
+then test whether any or all requested bits are set. With no requested members the
+results are false and true respectively for a non-null value. Null inputs return
+null for EnumName/EnumValue and false for the three predicates. All other operators
+and cross-identity conversions are rejected during binding.
+
+---
+
+### 3.9 Logical value domains and conversion rules
+
+These rules define language values, not storage representations. Canonical type
+names in metadata are lowercase keywords. Aliases resolve before type comparison.
+`T?` means the domain of T plus NULL; it does not change non-null values. String,
+dynamic (`object`) and source record values admit NULL with or without `?`.
+Collection and structural parameter nullability is explicit at each node (§4.3).
+
+#### 3.9.1 Numeric domains
+
+Signed integers use two's-complement value domains of their declared width;
+unsigned integers range from zero to 2^width - 1. The widths are in §3.1.
+Floating-point types are IEEE 754 binary32 and binary64, including signed zero,
+infinities and NaN. Arithmetic rounds to nearest, ties to even. Comparisons with
+NaN are false except `<>`, which is true; positive and negative zero compare
+equal. Grouping and deduplication treat NaNs as equal, and numeric sorting places
+NaN below other non-null numeric values.
+
+Decimal is sign × coefficient × 10^-scale, where coefficient is an integer from
+0 through 79228162514264337593543950335 and scale is 0 through 28. Arithmetic
+retains exact results when representable; otherwise scale is reduced with
+round-to-nearest, ties-to-even. A result outside the domain fails. Decimal is not
+IEEE decimal128. Decimal values compare numerically regardless of stored scale;
+formatting preserves fractional scale, including trailing zeros.
+
+Binary arithmetic first unwraps nullable scalar types, selects a common operand
+type, and propagates null if an operand is null. Apply these rules in order:
+
+| Operand combination | Common arithmetic type |
+|---------------------|------------------------|
+| Decimal and integral | decimal |
+| Decimal and float/double | Invalid without an explicit conversion |
+| Any double, no decimal | double |
+| Any float, no decimal/double | float |
+| ulong and unsigned integral | ulong |
+| ulong and signed integral | Invalid without an explicit conversion |
+| uint with long | ulong |
+| Any long, no preceding rule | long |
+| uint with any smaller integral | uint |
+| Other integral combinations | int |
+
+Nullable operands give a nullable result. Bitwise AND/OR/XOR follow the integral rules; non-nullable operands retain
+non-nullable result metadata. Nullable input and conversion paths lift it. A shift preserves the promoted left
+operand type (small integers promote to int); the shift count uses its low five
+bits for 32-bit operands or low six bits for 64-bit operands. Signed right shifts
+extend the sign; unsigned right shifts insert zero bits.
+
+Integral addition, subtraction and multiplication wrap modulo 2^width. Integral
+division truncates toward zero; remainder has the dividend's sign and magnitude
+less than the divisor's magnitude. Integral or decimal division by zero fails.
+Minimum signed value divided by -1 fails because its quotient is unrepresentable.
+Floating-point division follows IEEE 754, including infinities and NaN.
+Literal binding and constant arithmetic reject out-of-range values instead of
+wrapping (MQ1009 for literals, MQ3032 for constant arithmetic). Strict numeric
+casts reject overflow and round fractional numeric inputs to the nearest integer,
+ties to even; this differs from integer division. Explicit floating narrowing
+rounds to the destination floating format. These arithmetic rules do not override
+the separate common-column inference rules for VALUES (§6.5).
+
+#### 3.9.2 Text domains and comparisons
+
+A string is a sequence of UTF-16 code units. A char is one unsigned 16-bit code
+unit, including an isolated surrogate. Supplementary Unicode characters occupy
+two units. Length, indexing, Substring, text parser positions, query diagnostic
+offsets and columns count units, not Unicode scalar values or grapheme clusters.
+Strings may contain unpaired surrogates; decoding byte encodings is stricter.
+`\uXXXX` inserts exactly one unit. No implicit Unicode normalization is performed.
+
+Ordinal comparison is lexicographic comparison of unsigned code units, with a
+proper prefix ordered before the longer string. Ordinal case-insensitive name
+matching uses one-to-one invariant uppercase mappings without normalization or
+multi-character expansions. Keyword matching uses ASCII casing. Locale-sensitive
+library functions are provider extensions; their contracts must name the locale.
+The default language text policy uses Unicode 15.0 character categories and simple
+case mappings. Later Unicode mappings require an explicitly identified profile.
+
+LIKE matches the entire input, `%` matches zero or more units and `_` exactly one
+unit, including a surrogate or newline. Case comparison is invariant. Regex
+classes and regex options use §7.7; they do not change ordinal equality.
+
+#### 3.9.3 Temporal and identifier domains
+
+datetime is a proleptic Gregorian calendar date/time from 0001-01-01 through
+9999-12-31 with 100-nanosecond precision, without a portable local timezone kind.
+datetimeoffset adds an explicit whole-minute offset from -14:00 through +14:00;
+the represented UTC instant must also be within that calendar range. Equality
+and ordering compare instants, not displayed offsets. datetime equality/order
+compare calendar ticks; no host timezone conversion is implied.
+timespan is a signed 64-bit count of 100-nanosecond ticks. A guid is a 128-bit
+identifier; its canonical textual form is lowercase `8-4-4-4-12` hexadecimal.
+Temporal addition/subtraction operate in ticks and fail outside the result domain.
+Subtracting two matching temporal values returns a timespan; datetimeoffset
+subtraction compares UTC instants.
+
+Portable temporal parsing accepts complete `yyyy-MM-dd` dates, optionally followed
+by `T` or a space and `HH:mm:ss` with one through seven fractional second digits.
+datetimeoffset requires a complete date/time and explicit `Z` or `±HH:mm` suffix.
+Missing time means midnight for datetime. A portable datetime has no offset suffix;
+host-local interpretations are extensions. timespan accepts `[-][d.]hh:mm:ss[.fffffff]`
+with hours 00–23, minutes/seconds 00–59, and one through seven fractional digits.
+Month/day names, omitted calendar components, slash dates and implicit local
+offsets are host parsing extensions and MUST NOT define portable conversion.
+
+#### 3.9.4 Strict conversion and formatting
+
+Numeric text accepts optional surrounding ASCII whitespace and a leading sign.
+Integer targets require decimal digits without a decimal point or exponent.
+Decimal targets accept decimal digits, an optional decimal point and comma group
+separators; floating targets additionally accept decimal exponents, NaN, Infinity
+and -Infinity. Hex/binary/octal prefixes are SQL literal syntax, not integer text
+conversion syntax. Numeric-to-bool maps zero to false and nonzero to true; bool-to-
+numeric maps false/true to zero/one. Boolean text accepts True/False ignoring case
+and surrounding whitespace. Char text requires exactly one UTF-16 code unit;
+integer-to-char accepts 0–65535. Other logical conversions must be explicitly
+defined by this section or rejected; custom dynamic-value conversions are extensions.
+
+String casts format integers in base ten without grouping, bool as True/False,
+char as its unit, decimal with its retained scale and a dot, and float/double as
+the shortest decimal round-trip spelling (NaN, Infinity, -Infinity for special
+values). datetime string casts use `MM/dd/yyyy HH:mm:ss`; datetimeoffset uses
+`MM/dd/yyyy HH:mm:ss ±HH:mm`. These display casts omit fractional seconds.
+timespan uses `[-][d.]hh:mm:ss[.fffffff]`, with seven fractional digits when nonzero.
+Guid casts use the canonical form above. Fixture serialization instead uses
+complete ISO temporal forms so expectations do not lose precision.
+
+Binding may eliminate statically unreachable CASE results; such results do not
+contribute to the chosen result metadata. Invalid constant casts are binding errors. Invalid demanded execution casts fail
+execution; unselected CASE branches, short-circuited predicates and unreachable
+fallbacks MUST NOT execute conversions. Binding still validates constant casts
+and types in these branches; execution laziness does not waive static validity. Null input stays null and scalar cast
+metadata is nullable, even for a successful non-null constant.
+
+Record identity and provider extension types are declared through metadata rather
+than guessed from values. A dynamic value is a tagged logical value; it is not a
+requirement for a universal host object type. Core defines only the conversions
+of its recognized logical values. Provider extension conversions require a
+separate published receiving contract.
 
 ---
 
@@ -841,7 +1015,7 @@ select Name from Source();
 ### 4.3 Script Parameters
 
 A script MAY begin with one parameter block. Either `param(...)` or `params(...)` may introduce it. Both spellings declare typed values supplied by the host before query execution.
-`param(...)` remains the canonical spelling in this specification and in user-visible diagnostics, AST rendering, and generated output.
+`param(...)` remains the canonical spelling in this specification and in user-visible diagnostics, canonical query rendering.
 `params(...)` is accepted only at that leading boundary.
 The block is optional; a script without either spelling is parsed, compiled, and executed as before.
 
@@ -889,6 +1063,7 @@ from geo.cities()
 where Country = $country
   and Population >= $minPopulation
   and ($since is null or CreatedAt >= $since)
+```
 
 The alias spelling is equivalent:
 
@@ -899,6 +1074,7 @@ from github.repositories()
 where Author = $author
 ```
 
+```sql
 param(ids: int[])
 select Name
 from geo.cities()
@@ -909,28 +1085,11 @@ where Id in $ids
 
 Script parameters support scalar Musoq primitive expression types and structural records and collections. Collection element types may be primitive, nullable, record, or recursively nested collection types. The recursive `?` and `[]` suffixes are part of the declared type and are evaluated from right to left:
 
-| Musoq Type | CLR Type |
-|------------|----------|
-| `bool`, `boolean`, `bit` | `System.Boolean` |
-| `byte` | `System.Byte` |
-| `sbyte` | `System.SByte` |
-| `short` | `System.Int16` |
-| `ushort` | `System.UInt16` |
-| `int` | `System.Int32` |
-| `uint` | `System.UInt32` |
-| `long` | `System.Int64` |
-| `ulong` | `System.UInt64` |
-| `float` | `System.Single` |
-| `double` | `System.Double` |
-| `decimal`, `money` | `System.Decimal` |
-| `char` | `System.Char` |
-| `string` | `System.String` |
-| `datetime` | `System.DateTime` |
-| `datetimeoffset` | `System.DateTimeOffset` |
-| `timespan` | `System.TimeSpan` |
-| `guid` | `System.Guid` |
+Scalar keywords and aliases use the logical types in §3.1–§3.2. `boolean`
+and `bit` mean `bool`; `money` means `decimal`; `datetime`, `datetimeoffset`,
+`timespan`, and `guid` name the corresponding types in §3.9.
 
-The nullable form `type?` is supported for value types and accepts `null`. For a structural declaration, `?` applies recursively to the immediately preceding scalar, record, or collection node; `int?[]` and `int[]?` therefore have different meanings.
+The nullable form `type?` is supported for scalar types and accepts `null`. For a structural declaration, `?` applies recursively to the immediately preceding scalar, record, or collection node; `int?[]` and `int[]?` therefore have different meanings.
 
 Examples of recursive declarations are `int?[]` (array of nullable integers), `int[]?` (nullable array of integers), `(Id: string)?[]?` (nullable array of nullable records), and `int[][]` (array of integer arrays). Structural declarations may use a closed named-record shape:
 
@@ -948,7 +1107,7 @@ param(
 )
 ```
 
-Collection parameters are supplied by `T[]`, `List<T>`, `IReadOnlyList<T>`, and their read-only equivalents. Core snapshots supported collections at the execution boundary; a later host mutation cannot change the run. Arbitrary POCO discovery, JSON strings, non-string dictionary keys, and lazy-only `IEnumerable<T>` inputs are rejected. `IN $name` retains its scalar-element contract; structured collections are source arguments rather than implicit row sources.
+Collection parameters are supplied as finite ordered values matching their declared element shape. Values are captured at the execution boundary; later host mutation cannot change the run. Host adapters MUST validate the declared logical shape. Text containing serialized data is not automatically a record or collection, and record keys must be strings. `IN $name` retains its scalar-element contract; structured collections are source arguments rather than implicit row sources.
 
 #### 4.3.3 Default Values
 
@@ -960,7 +1119,7 @@ param(
     code: char = 'x',
     limit: int? = null,
     id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985',
-    created: datetime = '2024-01-02T03:04:05Z'
+    created: datetime = '2024-01-02T03:04:05'
 )
 select $flag, $code, $limit, $id, $created from system.dual()
 ```
@@ -968,7 +1127,7 @@ select $flag, $code, $limit, $id, $created from system.dual()
 Default binding rules:
 - Numeric defaults use the literal type and suffix rules from §3.6 and Appendix D.
 - `guid`, `datetime`, `datetimeoffset`, and `timespan` defaults are supplied as string literals and converted during binding.
-- `null` is valid for reference types and nullable value types.
+- `null` is valid for string, dynamic and record types and nullable scalar types.
 - A supplied parameter value overrides its default.
 - Supplied parameter values must match the declared type; Musoq does not parse strings or perform numeric conversion for supplied values.
 - Missing required parameters, type mismatches, and illegal null values fail before any data source is opened.
@@ -1008,7 +1167,7 @@ where Stars >= $minStarsText::Int32
 
 The library helper form, for example `ToInt32($minStarsText)`, remains available where its established soft conversion behavior is desired.
 
-Normal expression compatibility still applies: same-type comparisons are valid, nullable and non-nullable forms of the same value type are compatible where Musoq normally permits them, and supported numeric widening follows the same rules as other typed expressions.
+Normal expression compatibility still applies: same-type comparisons are valid, nullable and non-nullable forms of the same scalar type are compatible where Musoq normally permits them, and supported numeric widening follows the same rules as other typed expressions.
 
 #### 4.3.5 Source Arguments
 
@@ -1028,7 +1187,7 @@ param(path: string = 'repo')
 select Name from files.list($path + '/src')
 ```
 
-The complete source argument expression remains available at runtime. A provider that requires a parameter value during `GetTableByName`, `DescribeSource`, or source planning cannot resolve a required parameter at compile time; declare a default for that parameter or make the provider's metadata independent of runtime source arguments. Computed or nested parameter expressions remain unsupported. Use the parameter directly as the source argument and perform additional filtering in `WHERE` when possible.
+The complete source argument expression remains available at runtime. A provider that requires a parameter value during source metadata resolution, source description, or source planning cannot resolve a required parameter at compile time; declare a default for that parameter or make the provider's metadata independent of runtime source arguments. Computed or nested parameter expressions remain unsupported. Use the parameter directly as the source argument and perform additional filtering in `WHERE` when possible.
 
 Script variables are compile-time values and may be used directly or inside supported constant source-argument expressions. See [§4.4.4](#444-source-arguments).
 
@@ -1037,7 +1196,7 @@ Script variables are compile-time values and may be used directly or inside supp
 Musoq deliberately uses one compact syntax instead of borrowing declaration forms from other languages. These forms are rejected with script-parameter diagnostics:
 
 ```sql
-param(string author)             -- C#-style order is invalid
+param(string author)             -- type-first order is invalid
 param([string]$author)           -- PowerShell-style declarations are invalid
 def query(author: str = 'x')     -- Python-style function declarations are invalid
 declare @author string           -- SQL variable declarations are invalid
@@ -1063,18 +1222,18 @@ Script-parameter mistakes are reported through the standard Musoq error envelope
 | MQ3058 | bind | Duplicate parameter name |
 | MQ3059 | bind | Reference to undeclared `$name` |
 | MQ3060 | bind | Unsupported parameter type |
-| MQ3061 | bind | Invalid default literal for the declared type or default on collection parameter |
+| MQ3061 | bind | Invalid default value for the declared scalar or structural type, including null defaults on nonnullable collections |
 | MQ3062 | bind | Invalid parameter usage in a source argument |
 | MQ3005 | bind | Parameter declared type is incompatible with the expression context |
 | MQ7003 | runtime | Required parameter missing |
-| MQ7004 | runtime | Supplied value has the wrong CLR type |
-| MQ7005 | runtime | Supplied `null` for a non-nullable value type or collection parameter |
+| MQ7004 | runtime | Supplied value has the wrong logical type |
+| MQ7005 | runtime | Supplied `null` for a non-nullable scalar type or collection parameter used by `IN`/`NOT IN` |
 
 Every envelope includes a stable code, severity, phase, message, explanation, suggested fixes, and a documentation reference.
 
 ### 4.4 Script Variables
 
-A script MAY declare immutable script variables with `let`. A script variable is evaluated at compile time, emitted into generated code as a constant or initialized local value, and referenced later with the same `$name` syntax used by script parameters.
+A script MAY declare immutable script variables with `let`. A script variable is evaluated during binding, and referenced later with the same `$name` syntax used by script parameters.
 
 ```sql
 let topic: string = 'important'
@@ -1189,19 +1348,19 @@ select m.PatternId
 from #inputs.match('TODO FIXME', patterns: $patterns) m
 ```
 
-Record fields are matched with `OrdinalIgnoreCase`; single-field records are valid, and arbitrary record equality, member access, and collection-to-table conversion are outside this feature. Empty or all-null arrays require an expected element type. Core never falls back to `object[]` to hide missing or incompatible type information.
+Record fields are matched using ordinal case-insensitive names (§3.9); single-field records are valid, and arbitrary record equality, member access, and collection-to-table conversion are outside this feature. Empty or all-null arrays require an expected element type. Core never falls back to a collection of dynamic values to hide missing or incompatible type information.
 
-Structural source arguments use the same binder for literals, `let`, parameters, and CTE results. A receiving contract selects one accessible closed constructor (the sole public instance constructor or exactly one constructor marked with `StructuralInputConstructorAttribute`). Defaults are applied in this order: supplied value, declared field default, receiving constructor default, then a missing-required-field error. Explicit `null` never activates a default. Private/setter fallback, ref/out parameters, open or inaccessible types, cycles, JSON conversion, and arbitrary POCO discovery are rejected.
+Structural source arguments use the same binder for literals, `let`, parameters, and CTE results. A receiver publishes one unambiguous closed record shape with named, typed fields and optional defaults. Defaults are applied in this order: supplied value, declared field default, receiving field default, then a missing-required-field error. Explicit `null` never activates a default. Missing or ambiguous receiving shapes, cyclic input values, automatic serialized-text conversion, and guessing a shape from host values are rejected.
 
-A typed source registration is required for structural source calls. The planner owns normalization, materialization, reuse, and invocation; the renderer emits those decisions through portable Execution IR. Construction occurs once per source invocation, retains execution context and cancellation, and never moves into a provider's result loop. Host values and CTE results are captured per execution. Core-owned snapshots and provider-facing collections are not shared between runs or invocations.
+An explicit receiving contract is required for structural source calls. Normalization, materialization, reuse and invocation MUST preserve authored evaluation order and receiver validation. Construction occurs once per source invocation, retains execution context and cancellation, and never moves into a provider's result loop. Host values and CTE results are captured per execution. Core-owned snapshots and provider-facing collections are not shared between runs or invocations.
 
 The default structural input limits are maximum depth 32 (the root is depth 1), 100,000 logical value nodes, and 67,108,864 UTF-16 payload bytes. Record, collection, scalar, null, and applied-default occurrences count as nodes; checked `length * 2` counts string payload. Limits are checked before storage grows during parameter preflight and whenever a receiver demands an inline, let, parameter, or CTE value. A receiver with stricter limits cannot reject an input that it does not demand.
 
-Complete CTE results may be passed as a source argument by a bare visible CTE name, optionally grouped with parentheses. `$name` remains a parameter or `let`, string literals remain strings, qualified columns remain scalar values, and a row alias never becomes a collection. Primitive collection receivers require exactly one CTE output column; record receivers match output columns by name, reject unexpected columns before pruning, preserve order and duplicates, and use constructor defaults for missing optional fields. Ambiguous scalar/CTE interpretations and newly introduced dependency cycles are errors. There is no `table(...)` syntax and no implicit singleton wrapping or unwrapping.
+Complete CTE results may be passed as a source argument by a bare visible CTE name, optionally grouped with parentheses. `$name` remains a parameter or `let`, string literals remain strings, qualified columns remain scalar values, and a row alias never becomes a collection. Primitive collection receivers require exactly one CTE output column; record receivers match output columns by name, reject unexpected columns before pruning, preserve order and duplicates, and use receiving-field defaults for missing optional fields. Ambiguous scalar/CTE interpretations and newly introduced dependency cycles are errors. There is no `table(...)` syntax and no implicit singleton wrapping or unwrapping.
 
 The structural contract is also the source for metadata descriptions. `DESC ARGUMENTS` reports the selected receiving contract without evaluating values, opening a source, or enumerating a CTE. It returns `Overload`, `Path`, `Kind`, `Type`, `Required`, `Nullable`, `HasDefault`, `Default`, `MaxDepth`, `MaxNodes`, and `MaxStringBytes` in deterministic signature and nested-field order. An explicit null default has `HasDefault = true` and the four-character text `null` in its `Default` cell; an absent default has `HasDefault = false` and a database-null cell. This distinction is visible in metadata and does not change the fact that an explicitly supplied null never activates a default.
 
-This section is the implemented Core contract. The parenthesized VALUES migration and structural execution are qualified in the current tree. Qualification covers authored evaluation order, deterministic overload and scalar/CTE interpretation, host and receiver limits, planner-owned CTE representations (including set-operation producers), typed host capture, ownership and lifecycle, generated-code shape, and independent parser, binder, and compiled-execution populations. The former brace-row spelling remains rejected by the parser.
+The former brace-row spelling remains rejected. Implementations MUST preserve authored evaluation order, deterministic overload selection, per-execution capture, receiver validation and ownership independently of evaluation strategy.
 
 ---
 ## 5. SELECT Clause
@@ -1222,7 +1381,7 @@ select Name from A.entities()                         -- column reference
 select a.Name from A.entities() a                     -- qualified column
 select 1 + 2 * 3 from system.dual()                  -- arithmetic
 select Concat(City, ', ', Country) from A.entities()  -- function call
-select a.GetPopulation() from A.entities() a          -- method on entity
+select a.GetPopulation() from A.entities() a          -- registered method with an injected entity
 select Self.Name from A.entities()                    -- property access
 select Self.Array[2] from A.entities()                -- indexed access
 ```
@@ -1242,6 +1401,12 @@ When no alias is given, the column name is derived from the expression:
 - Source-qualified column reference: `a.Name` → column name `Name`
 - Function call: `Count(Name)` → column name `Count(Name)`
 - Literal: `1` → column name `1`
+
+Simple column projections and wildcard expansions use the bound source column name without adding the query's source alias. This rule applies to top-level results, CTE and derived-table projections, joins, APPLY, and query descriptions. Explicit aliases and star RENAME targets are preserved exactly, including names containing a dot. Non-column expressions retain their expression-derived names.
+
+Result labels need not be unique. `select l.Id, r.Id` exposes two columns named `Id`, with independent positions and types. Wildcard expansion preserves both columns; a reference to an ambiguous name must be disambiguated by distinct output aliases. Duplicate labels do not change source-column identity, row values, or column ordering. Existing uniqueness requirements for explicit CTE column lists and star RENAME targets still apply.
+
+**Compatibility:** implicit result labels previously included source qualifiers in some projections. Consumers selecting a result column named `p.Name` must now use `Name`, or request the old label explicitly with `select p.Name as [p.Name]`. Exported JSON/CSV headers and query-description labels follow the new output names. Use distinct explicit aliases when a consumer requires unique field names.
 
 Explicit aliases always define the output column name. This is especially important for CTEs and set operations, where later query blocks see the output names of the preceding query, not the source aliases used to compute them:
 
@@ -1264,7 +1429,7 @@ with p as (
 select [a.City] from p
 ```
 
-Runtime v2 also makes explicit SELECT aliases visible in selected clauses of the same query block:
+Musoq also makes explicit SELECT aliases visible in selected clauses of the same query block:
 
 ```sql
 -- Non-aggregate alias in WHERE
@@ -1442,7 +1607,7 @@ select * from test.whatever(1, 2d, true, false, 'text')
 
 #### 6.1.1 Named source arguments
 
-Datasource calls may bind arguments by the reflected table-constructor parameter
+Datasource calls may bind arguments by the published source parameter
 name. Names are case-insensitive and are part of the datasource's public SQL
 surface:
 
@@ -1451,34 +1616,25 @@ from #schema.method(required: '4', limit: 2)
 from #schema.method('4', limit: 2)       -- positional prefix, then named suffix
 ```
 
-The binder resolves names against `GetRawConstructors()` metadata and lowers
-the invocation to the same canonical positional `object?[]` vector used by
-existing providers. Datasources never receive a dictionary. Arguments before
-the first named argument are positional; positional arguments after a named
-argument are invalid. Named arguments may be reordered, but an unknown name,
-duplicate assignment, omitted required parameter, incompatible value, or
-ambiguous reflected overload is rejected during binding. Reflected optional
-defaults are inserted into omitted slots when the reflection value is usable;
-`Missing.Value` and `DBNull.Value` are not defaults.
+The receiver publishes an ordered signature with parameter names, logical types,
+and usable optional defaults. Arguments before the first named argument are
+positional; positional arguments after a named argument are invalid. Named
+arguments may be reordered. Unknown names, duplicate assignments, missing required
+parameters, incompatible types, and ambiguous overloads fail during binding.
+Omitted optional arguments use the published default; explicit null does not.
 
-The same rules apply to `FROM`, `JOIN`, `CROSS APPLY`, `OUTER APPLY`, coupled
-source aliases, concrete `DESC`, `DESC SETTINGS`, and datasource calls inside
-`DESC QUERY`. Named arguments are not accepted for scalar/aggregate functions,
-row access-method sources, `Interpret`/`Parse`, or `DESC FUNCTIONS`. Sources
-without reflected constructor metadata remain positional-only. The reflected
-table-constructor metadata is authoritative for public names, types, and
-defaults; injected `SourceExecutionContext` parameters and other hidden source
-parameters are not bindable names. If reflected parameter order or types do not
-match the published metadata, named binding is disabled for that signature and
-the call must remain positional.
+These rules apply to FROM, JOIN, APPLY, coupled aliases, concrete DESC, DESC SETTINGS,
+and source calls in DESC QUERY. Scalar/aggregate functions, row-access functions,
+Interpret/Parse and DESC FUNCTIONS remain positional-only. A source without
+complete named-signature metadata remains positional-only. Hidden context and
+cancellation inputs are not SQL-bindable parameters. Inconsistent signature
+metadata MUST NOT enable named binding.
 
-Binding selects one deterministic overload. Exact type matches outrank
-assignable matches, while two overloads that can accept the same canonical
-runtime values are rejected as ambiguous; reflection enumeration order is never
-observable. Runtime source APIs continue to receive the complete canonical
-positional vector. Metadata and planning callbacks that cannot materialize a
-row-dependent expression receive only the known canonical prefix, so a later
-static/default value is never shifted into an earlier dynamic slot.
+Exact logical type matches outrank compatible matches. Equally applicable
+overloads are ambiguous; registration order MUST NOT select an overload.
+Before execution, metadata requests may inspect only the known ordered argument
+prefix. A later constant or default MUST NOT shift into an earlier unknown slot.
+At execution the selected callable receives all argument values in signature order.
 
 ### 6.2 Table and Source Aliasing
 
@@ -1676,10 +1832,10 @@ Rules:
 - Every row MUST contain the same field names as the first row.
 - Field expressions MAY use literals, `NULL`, scalar script parameter references, scalar `let` references, and arithmetic composed from those values.
 - Field expressions MUST NOT reference source columns, aggregate functions, window functions, subqueries, or any row-dependent expression.
-- Each field becomes a strongly typed column. Numeric suffixes control the generated CLR type; for example, `10ui` generates a `uint` column. Bare `10u` is not a valid suffix.
+- Each field becomes a strongly typed column. Numeric suffixes control the logical column type; for example, `10ui` produces a `uint` column. Bare `10u` is not a valid suffix.
 - VALUES row literals use the same numeric literal syntax as the rest of the language. Supported integer type suffixes are `b`, `ub`, `s`, `us`, `i`, `ui`, `l`, and `ul`; `d`/`D` forces a decimal literal.
 - Base-prefixed numeric literals are supported: `0x`/`0X` for hexadecimal, `0b`/`0B` for binary, and `0o`/`0O` for octal. These prefixes produce `long` values and do not accept type suffixes; for example, `0x10` is valid and `0x10ui` is not.
-- `NULL` values are allowed. If a column contains both `NULL` and value-type expressions, the generated column type is nullable.
+- `NULL` values are allowed. If a column contains both `NULL` and scalar expressions, the logical column type is nullable.
 - Numeric column inference includes parameter and `let` expression types. It preserves the exact type when all non-NULL expressions have the same type. Mixed numeric columns are promoted conservatively: `decimal` wins over integer types, `long` wins over non-`ulong` integer mixes that contain a `long`, `uint` wins over smaller non-`long` integer mixes, and `ulong` may only mix with unsigned integer values unless the column also contains `decimal`.
 
 VALUES sources participate in joins, applies, grouping, ordering, set operators, subqueries, CTEs, and built-in ranking/offset window functions like any other source:
@@ -1711,10 +1867,9 @@ select Name from Source()
 select Name from Source(true, 'param')   -- with arguments
 ```
 
-Coupled aliases use the underlying schema method's reflected names and defaults
-as their signature. A declared `TABLE` controls row shape, but it does not
-rename or add constructor parameters. The same canonical positional vector is
-used for metadata, source planning, and execution.
+Coupled aliases use the underlying source's published names and defaults as their
+signature. TABLE controls row shape, not source parameters. Named and positional
+binding use core §6.1 consistently in metadata and execution.
 
 ### 6.7 Optional host `system.range(start, end)` contract
 
@@ -1822,7 +1977,19 @@ intended.
 
 ### 7.7 RLIKE (Regular Expression Matching)
 
-`RLIKE` matches against a regular expression (ECMAScript-compatible subset):
+`RLIKE` searches for a case-sensitive regular-expression match; anchors constrain
+where a match may occur. Required constructs are literals, escapes, dot, classes,
+quantifiers (including lazy forms), alternation, groups, named groups, anchors,
+lookahead/lookbehind and backreferences. Unlike text schema patterns, RLIKE permits
+lookaround and backreferences. Inline flags `i`, `m`, `s`, `x` are supported.
+Dot excludes LF unless `s` is active; `^`/`$` denote input boundaries (`m` adds
+line boundaries; `$` may precede a final LF). `\A`/`\z` denote absolute boundaries.
+`\d` uses Unicode Nd; `\w` uses Ll, Lu, Lt, Lo, Lm, Mn, Nd and Pc;
+`\s` uses Unicode separators plus tab, LF, VT, FF, CR and NEL. Negated forms
+complement these classes. Matching consumes UTF-16 units, uses no normalization,
+and chooses the first leftmost match with alternatives in authored order.
+Case-insensitive matching uses the invariant text policy (§3.9); host-locale regex
+options are compatibility extensions.
 
 ```sql
 where Name rlike '^\d+'              -- starts with digits
@@ -1830,7 +1997,17 @@ where Email rlike '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 where Name not rlike '^test.*$'      -- does not match pattern
 ```
 
-> **Note**: Invalid regex patterns cause a runtime error when the query executes.
+> **Note**: An invalid constant regex pattern that can be validated during binding
+> is rejected with `MQ3094_InvalidConstantRegex`. Patterns supplied by parameters,
+> variables, columns, or other expressions that are unavailable during binding
+> are validated when evaluated during execution. Invalid runtime patterns raise
+> `MQ7015_InvalidRuntimeRegex`. Preparing an unevaluated pattern does not require
+> regex validation; null and short-circuit behavior is preserved.
+
+Exhausting an implementation's finite regex match budget is a runtime failure
+reported as `MQ7017_RegexMatchTimeout`. It does not make a valid pattern invalid
+and must not be converted into a `false` predicate result. Budget values and
+execution-engine choices are implementation configuration, not portable syntax.
 
 An ordinary source `\b` is decoded to a backspace before the regex engine sees
 it. In a regex context this produces `MQ5015_SuspiciousRegexEscape`:
@@ -1901,7 +2078,7 @@ from A.entities()
 where Id in $ids
 ```
 
-The left expression type must match the parameter element type after normal nullable normalization. The runtime membership check uses a typed indexed loop over the read-only collection. A missing or `NULL` collection parameter fails during parameter binding before source execution.
+The left expression type must match the parameter element type after normal nullable normalization. Membership checks the captured collection values in order using the declared element type. A missing or `NULL` collection parameter fails during parameter binding before source execution.
 
 #### 7.9.3 Subqueries
 
@@ -2033,7 +2210,13 @@ Rules:
 - A scalar subquery MUST return exactly one column. Otherwise Musoq raises MQ2024.
 - Scalar subqueries over `UNION`, `UNION ALL`, `EXCEPT`, and `INTERSECT` are supported. Correlated branches must expose the same equality-correlation keys; incompatible branch keys raise MQ2024 rather than falling back to per-row execution.
 - If the subquery returns zero rows, the scalar value is `NULL`.
-- If the subquery returns more than one row, query execution raises a runtime error.
+- If the subquery returns more than one row, query execution raises
+  `MQ7016_ScalarSubqueryCardinalityViolation`. This includes identical duplicate
+  values; cardinality counts rows, not distinct values.
+- Row cardinality is checked during execution after the subquery's filtering,
+  DISTINCT, grouping, and paging. A statically known multirow VALUES source is
+  not rejected during binding. `MQ3095_ScalarSubqueryCardinality` is retired;
+  its numeric identifier remains reserved for compatibility.
 - Uncorrelated scalar subqueries may use result-shaping clauses such as `DISTINCT`, `GROUP BY`, `ORDER BY`, `SKIP`, `TAKE`, `WINDOW`, and `QUALIFY`. Musoq materializes the shaped subquery result and then applies scalar cardinality rules to the materialized rows.
 - Correlated scalar aggregates are optimized as grouped aggregate plus left join where possible. Correlated scalar subqueries with result-shaping clauses that cannot be decorrelated accurately raise MQ2024.
 
@@ -2056,7 +2239,7 @@ Rules:
 - `ANY` / `SOME` is true when at least one non-null comparison is true. If the subquery is empty, it is false.
 - `ALL` is true when no row makes the comparison false or unknown. If the subquery is empty, it is true.
 - Null operands make the comparison unknown for quantified predicates; unknown does not pass `WHERE` filtering.
-- Correlated quantified subqueries are lowered through `EXISTS`, `NOT EXISTS`, `IN`, semi-join, or anti-semi-join plans when the rewritten predicate is decorrelatable. Non-equality quantified predicates used in expression fallback contexts raise MQ2024 until APPLY fallback lowering is available.
+- Correlated quantified subqueries are lowered through `EXISTS`, `NOT EXISTS`, `IN`, semi-join, or anti-semi-join plans when the rewritten predicate is decorrelatable. Non-equality quantified predicates in expression contexts are supported when an available decorrelation strategy, including a partitioned range-mark strategy, preserves their Boolean result. Shapes that require an unavailable APPLY fallback raise MQ2024.
 
 ### 7.13 CONTAINS
 
@@ -2266,7 +2449,7 @@ When a function is called without an alias prefix in a multi-source query, the e
 
 3. **Ambiguity error.** If **two or more** candidate schemas resolve the method to different implementations, or if the candidates resolve an alias-dependent (source-injected) method, the engine cannot choose and raises diagnostic **MQ3035** (`AmbiguousMethodOwner`). The caller must add an alias prefix to disambiguate.
 
-> **Aggregate methods** (those decorated with `[InjectGroup]`) follow a separate but analogous auto-resolution path that was already present before this algorithm was introduced. The rules above extend the same principle to all non-aggregate methods.
+> **Aggregate methods** (those receiving group context) follow a separate but analogous auto-resolution path that was already present before this algorithm was introduced. The rules above extend the same principle to all non-aggregate methods.
 
 #### 8.10.2 Method Categories
 
@@ -2274,9 +2457,9 @@ Understanding how methods are classified helps predict when auto-resolution succ
 
 | Category | Characteristic | Auto-Resolution |
 |----------|---------------|-----------------|
-| **Aggregate** | Decorated with `[InjectGroup]` (e.g., `Sum`, `Count`, `Avg`) | Resolved via dedicated aggregate inference; same common-method logic applies |
-| **Pure utility** | No special injection; stateless (e.g., `ToDecimal`, `Concat`, `Abs`) | Almost always shared across schemas → Rule 1 resolves them |
-| **Entity-bound** | Decorated with `[InjectSpecificSource]`; receives the selected source row | A method available through exactly one alias uses Rule 2; multiple eligible aliases require qualification and otherwise report MQ3035, even when they expose the same implementation |
+| **Aggregate** | Receives group context (e.g., `Sum`, `Count`, `Avg`) | Resolved via dedicated aggregate inference; same common-method logic applies |
+| **Pure utility** | No source or group context; stateless (e.g., `ToDecimal`, `Concat`, `Abs`) | Almost always shared across schemas → Rule 1 resolves them |
+| **Entity-bound** | Source-bound; receives the selected source row | A method available through exactly one alias uses Rule 2; multiple eligible aliases require qualification and otherwise report MQ3035, even when they expose the same implementation |
 
 #### 8.10.3 Examples
 
@@ -2487,7 +2670,7 @@ The ASOF JOIN ON clause has specific requirements beyond normal joins:
 2. **At most one inequality condition.** Multiple inequalities produce error `AsOfJoinSupportsOnlyOneInequality`.
 3. **No OR in the ON clause.** OR breaks the partition-then-search semantics and produces error `AsOfJoinDoesNotSupportOr`.
 4. **The inequality MUST reference both sides.** A one-sided inequality produces error `AsOfJoinInequalityMustReferenceBothSides`.
-5. **The inequality column type MUST be orderable** (implement `IComparable`). Non-orderable types produce error `AsOfJoinInequalityColumnNotOrderable`.
+5. **The inequality column type MUST be orderable** (have a declared total-order contract). Non-orderable types produce error `AsOfJoinInequalityColumnNotOrderable`.
 6. **The tie-break expression MUST reference the right side only** and MUST have an orderable type.
 
 See [§23](#23-diagnostic-contract-and-catalog) for the full diagnostic catalog.
@@ -2499,7 +2682,7 @@ The inequality column MUST be of a comparable, orderable type. Supported types i
 - All numeric types (`int`, `long`, `decimal`, `double`, `float`, etc.)
 - `DateTime`, `DateTimeOffset`, `TimeSpan`
 - `string` (lexicographic ordering)
-- Any type implementing `IComparable`
+- Provider extension types with a declared total-order contract
 
 #### 8.11.10 Interaction with Other Clauses
 
@@ -2524,7 +2707,7 @@ asof join B.entities() b on a.Population >= b.Population
 asof join C.entities() c on a.Population >= c.Area
 ```
 
-Each ASOF JOIN independently materializes and sorts its right side.
+Each ASOF JOIN independently selects the nearest candidate under its own keys. With no tie-break, equal candidates retain source encounter order; reversing a lookup direction does not select a different duplicate representative.
 
 ### 8.12 Keywords Are Case-Insensitive
 
@@ -2553,7 +2736,7 @@ missing alias is diagnosed before `WITH ORDINALITY` is consumed.
 When the right side is a schema datasource, its named arguments are bound
 before APPLY planning and are evaluated once per left row when they reference
 left-side columns. The canonical parameter order is preserved for every row,
-including `NULL` values and reflected defaults. A row access method such as
+including `NULL` values and declared defaults. A row access method such as
 `alias.Split(...)` is a different context and remains positional-only.
 
 `CROSS APPLY` is a correlated join where the right side can reference columns from the left side. Only rows with matches are returned:
@@ -2647,9 +2830,9 @@ from schema.first() a
 cross apply a.ComplexType.PrimitiveValues as b
 ```
 
-When expanding **primitive arrays** (`int[]`, `double[]`, `List<double>`), each element becomes a row with a `Value` column.
+When expanding **primitive arrays** (`int[]`, `double[]`), each element becomes a row with a `Value` column.
 
-When expanding **complex type arrays** (`MyClass[]`), each property of the complex type is exposed as a column.
+When expanding **complex type arrays** (collections of records), each property of the complex type is exposed as a column.
 
 ### 9.5 APPLY WITH ORDINALITY
 
@@ -2777,6 +2960,12 @@ desc functions A.entities()
 ```
 
 All numeric aggregation functions accept any numeric type (`byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, etc.) as input. Different data sources may provide additional aggregate functions beyond the common set.
+
+Sum, Min and Max return the nullable input numeric type. Avg returns decimal? for integral inputs, otherwise the nullable decimal/float/double input type. Counts return long. Numeric nulls are ignored; empty/all-null input returns null for non-count functions and zero for counts. Integral and decimal arithmetic is checked. These rules also apply to existing distinct variants and aggregate windows. See §18.5 for the required function surface.
+
+The built-in `Min(column)` and `Max(column)` also accept strings. String extrema use case-sensitive ordinal comparison of UTF-16 code units, independent of the current culture. They ignore null inputs and return null for empty or all-null input; the empty string is a valid non-null value. Their result type is string. This comparison is not a configurable SQL collation.
+
+Temporal extrema use separate names: `MinDateTime`, `MaxDateTime`, `MinDateTimeOffset`, `MaxDateTimeOffset`, `MinTimeSpan`, and `MaxTimeSpan`. Provider-specific libraries may expose additional overloads; use `DESC FUNCTIONS` to inspect the available signatures.
 
 In a query with only one source, aggregates can be written without a source alias:
 
@@ -2998,11 +3187,11 @@ select Count(Country) from A.entities() group by Country
 
 -- ERROR: Name is not in GROUP BY
 select Name, City, Count(1) from A.entities() group by City
--- Throws NonAggregatedColumnInSelectException
+-- Reports a nonaggregated-column diagnostic
 
 -- ERROR: SELECT * with explicit GROUP BY expands to non-aggregated columns
 select * from A.entities() group by City
--- Throws NonAggregatedColumnInSelectException
+-- Reports a nonaggregated-column diagnostic
 
 -- VALID: GROUP BY ALL infers every expanded SELECT * column as a grouping key
 select * from A.entities() group by all
@@ -3251,7 +3440,7 @@ using value_column
 [take integer]
 ```
 
-The source is scanned once. For each source row, Musoq emits one output row per `IN (...)` entry, preserving the entry order. `ORDER BY`, `SKIP`, and `TAKE` are evaluated after row expansion. Implementations SHOULD stream this expansion internally rather than materializing an intermediate expanded row list, but final query results are still materialized according to the normal Musoq result-table behavior.
+The source is scanned once. For each source row, Musoq emits one output row per `IN (...)` entry, preserving the entry order. `ORDER BY`, `SKIP`, and `TAKE` are evaluated after row expansion. Evaluation strategy MUST preserve these rows and their paging semantics; streaming or materialization is not prescribed.
 
 #### 10.12.1 Example
 
@@ -3308,7 +3497,7 @@ on Metric in ((s.Population + s.Money) as Total)
 
 #### 10.12.4 Type and NULL Rules
 
-The generated value column uses the common type of all `IN (...)` value expressions, using the same compatibility rules as inline `VALUES` fields. Numeric values can widen when the existing type system allows it. If any value can be `NULL`, including an explicit `NULL` literal or a nullable value-type expression, the value column is nullable. Incompatible mixes, such as numeric and string expressions, are rejected.
+The generated value column uses the common type of all `IN (...)` value expressions, using the same compatibility rules as inline `VALUES` fields. Numeric values can widen when the existing type system allows it. If any value can be `NULL`, including an explicit `NULL` literal or a nullable scalar expression, the value column is nullable. Incompatible mixes, such as numeric and string expressions, are rejected.
 
 `NULL` values are preserved. UNPIVOT does not filter null value rows implicitly.
 
@@ -3512,8 +3701,8 @@ select Name, Lead(Population) over (order by Name) from a.entities()
 
 **NULL semantics for offset functions:**
 
-- When a value-type column (e.g., `decimal`, `int`, `long`) is accessed via `Lag` or `Lead`, the return type is automatically promoted to its nullable equivalent (e.g., `decimal?`, `int?`, `long?`). This allows `NULL` to represent the absence of a previous or next row without runtime errors.
-- Reference-type columns (e.g., `string`) are already nullable and need no promotion.
+- When a scalar column (e.g., `decimal`, `int`, `long`) is accessed via `Lag` or `Lead`, the return type is automatically promoted to its nullable equivalent (e.g., `decimal?`, `int?`, `long?`). This allows `NULL` to represent the absence of a previous or next row without runtime errors.
+- String and record columns are already nullable and need no promotion.
 
 #### 11.5.3 Aggregate Window Functions
 
@@ -3521,11 +3710,11 @@ Standard aggregate functions can be used as window functions when combined with 
 
 | Function | Return Type | Description |
 |----------|-------------|-------------|
-| `Sum(column)` | `decimal` | Sum of values. Running sum if `ORDER BY` is present; partition total if not. Numeric inputs are promoted to `decimal`. |
-| `Count(column)` | `int` | Count of non-null values. Running count with `ORDER BY`; partition count without. |
-| `Avg(column)` | `decimal` | Average of values. Running average with `ORDER BY`; partition average without. Numeric inputs are promoted to `decimal`. |
-| `Min(column)` | Same as column type | Minimum value. Running minimum with `ORDER BY`; partition minimum without. |
-| `Max(column)` | Same as column type | Maximum value. Running maximum with `ORDER BY`; partition maximum without. |
+| `Sum(column)` | Nullable input numeric type | Sum of non-null values. Running sum with `ORDER BY`; partition total without. Checked integral/decimal arithmetic. |
+| `Count(column)` | `long` | Count of non-null values. Running count with `ORDER BY`; partition count without. Empty frames return zero. |
+| `Avg(column)` | Integral inputs: `decimal?`; otherwise nullable input numeric type | Average of non-null values. Running average with `ORDER BY`; partition average without. Empty/all-null frames return null. |
+| `Min(column)` | Input scalar type, nullable | Minimum value. Running minimum with `ORDER BY`; partition minimum without. |
+| `Max(column)` | Input scalar type, nullable | Maximum value. Running maximum with `ORDER BY`; partition maximum without. |
 
 ```sql
 -- Running sum ordered by Name
@@ -3544,13 +3733,13 @@ select Name, City, Max(Population) over (partition by City) from a.entities()
 
 #### 11.5.4 Value Access Functions
 
-Value access functions retrieve a specific row's value from within the partition.
+Value access functions retrieve a specific row's value from within the partition. Their result retains the input scalar type, with nullable scalar metadata (`T?`) because a frame or requested position may have no value. This nullable metadata also applies when the particular input is nonnullable and its evaluated frames are nonempty. String and record results retain their logical type and admit `NULL`.
 
 | Function | Return Type | Description |
 |----------|-------------|-------------|
-| `FirstValue(column)` | Same as column type | Returns the first value in the partition (determined by `ORDER BY`). All rows in the partition receive the same result. |
-| `LastValue(column)` | Same as column type | Running last with `ORDER BY`: returns the current row's value. Without `ORDER BY`: returns the last value in the partition (all rows same). |
-| `NthValue(column, n)` | Same as column type | Returns the value from the `n`-th row in the partition. Returns `NULL` when fewer than `n` rows have been seen. `n` is 1-based. |
+| `FirstValue(column)` | Input scalar type, nullable | Returns the first value in the partition (determined by `ORDER BY`). All rows in the partition receive the same result. |
+| `LastValue(column)` | Input scalar type, nullable | Running last with `ORDER BY`: returns the current row's value. Without `ORDER BY`: returns the last value in the partition (all rows same). |
+| `NthValue(column, n)` | Input scalar type, nullable | Returns the value from the `n`-th row in the partition. Returns `NULL` when fewer than `n` rows have been seen. `n` is 1-based. |
 
 ```sql
 -- First value in partition
@@ -3924,7 +4113,7 @@ from a.entities()
 qualify rn <= 2
 ```
 
-Both produce identical results. `QUALIFY` is more concise and avoids the overhead of materializing intermediate CTE results.
+Both produce identical results. `QUALIFY` is more concise and expresses the filter directly in the window query.
 
 ---
 
@@ -4002,7 +4191,7 @@ select Name, City from B.Entities()
 
 ### 12.5 INTERSECT
 
-Returns only rows whose effective key appears in both queries:
+Returns distinct complete rows from the first query whose effective key appears in both queries. Membership uses the effective key; duplicate elimination compares the entire projected output row using the existing set-operation equality rules. With an explicit subset key, matching left rows with different non-key values remain separate results. Repeated identical output rows appear once:
 
 ```sql
 select Name, City from A.Entities()
@@ -4012,7 +4201,10 @@ select Name, City from B.Entities()
 
 ### 12.6 Chaining Set Operations
 
-Three or more queries can be chained:
+Three or more queries can be chained. Unparenthesized chains associate from
+left to right, with no implicit higher precedence for INTERSECT. To choose another
+grouping, use a CTE or derived-table wrapper. Trailing modifiers still apply once
+to the entire result (§12.8):
 
 ```sql
 select Name from A.Entities()
@@ -4425,9 +4617,26 @@ Musoq supports `WITH RECURSIVE` with one anchor, one top-level `UNION` or
 aggregation, grouping, windows, ordering, pagination, nested set operations,
 multiple self-references, unsupported join families, pivot/unpivot, mutual
 recursion, `SEARCH`, and `CYCLE` with dedicated diagnostics. These restrictions
-do not apply to the query consuming the completed CTE. See
-`docs/recursive-ctes.md` for the complete contract.
-- **Duplicate aliases**: Using the same alias for two tables within a CTE inner expression throws `AliasAlreadyUsedException`.
+do not apply to the query consuming the completed CTE.
+
+Evaluate the anchor once to form the first frontier. Each iteration evaluates the
+recursive member against only the preceding frontier, appends admitted rows, and
+uses those newly admitted rows as the next frontier. An empty frontier terminates.
+UNION ALL preserves multiplicity; UNION deduplicates across all admitted rows,
+including the anchor. Explicit UNION keys use §12 key equality and preserve the
+first admitted representative. Null key values compare equal for this purpose.
+The recursive output must match the anchor's column count and logical types;
+an explicit column list supplies unique names. Self-reference is visible only in
+the recursive member. Exactly one self-reference is allowed, including through
+supported derived forms. INNER JOIN and CROSS JOIN with nonrecursive sources and
+supported APPLY forms may accompany that reference; outer, ASOF, semi and anti
+recursive joins are rejected. A recursive CTE may use earlier completed CTEs;
+mutual recursion and forward dependencies are rejected.
+Execution limits are host-selected safety limits, with default maximum 1,000
+iterations, 10,000,000 admitted rows and 10,000,000 captured snapshot rows. Exceeding a limit reports a recursive-limit
+diagnostic, never a silently truncated successful relation. Cancellation remains
+cancellation. Without an outer ORDER BY, consumers must not assume result order.
+- **Duplicate aliases**: Using the same alias for two tables within a CTE inner expression reports the duplicate-alias diagnostic.
 
 ```sql
 -- ERROR: Duplicate alias 'a'
@@ -4440,6 +4649,9 @@ select * from p
 ---
 
 ## 15. TABLE and COUPLE Statements
+
+This section summarizes the optional TABLE/COUPLE profile. It does not require
+that profile for core-only conformance; its detailed rules are owned by the satellite.
 
 The TABLE and COUPLE statements are summarized here. For the complete specification including all supported types, source runtime settings profile binding, error handling, and integration patterns, see *Musoq TABLE/COUPLE Statements Specification* (`musoq-table-couple-spec.md`).
 
@@ -4454,6 +4666,23 @@ table TableName {
     Column3: type3?       -- ? suffix for nullable
 };
 ```
+
+TABLE always defines the coupled alias's visible columns and order. Source tables
+explicitly declare the logical schema origin. The default `ProviderDefined`
+requires exact declared/provider logical scalar types, including nullability:
+`int` differs from `int?`, and `int` differs from `long`. Equivalent type spellings
+resolve before comparison. `TableDefined` providers accept TABLE-established
+types and retain automatic scalar nullable lifting. Array/dictionary row
+representations do not imply either origin.
+
+Binding preserves source storage indexes and actual read types independently
+of declared output order. Missing, ambiguous, and incompatible declared columns
+fail with MQ3001, MQ3002, and MQ3005 at their declarations before row sources open,
+including unselected columns. Direct source calls and settings-only COUPLE retain
+the original provider schema. See TABLE/COUPLE section 6.2 for the full contract.
+
+The following nullable mappings describe `TableDefined` sources. For typed
+sources, a scalar type is nullable only when its declaration includes `?`.
 
 Supported type keywords:
 
@@ -4483,10 +4712,17 @@ Supported type keywords:
 | `object` | `object` |
 
 A TABLE column may also name a previously declared query-local enum
-case-insensitively, or a reachable native CLR enum by its exact fully qualified
-name. TABLE enum fields are permitted only when the datasource advertises
-logical scalar reads. Enum value types follow TABLE nullability rules while
-retaining their logical enum identity.
+case-insensitively. Host-native enum type names, including nullable forms, MUST NOT
+be named in TABLE declarations. Binding rejects them with
+`MQ2012_InvalidSchemaDefinition` at the offending column, naming the table,
+column, enum type, and suggested underlying primitive type. This applies even
+when the column is not selected or the datasource supports logical scalar
+reads. Declare the primitive type or a query-local ENUM instead.
+
+Query-local TABLE enum fields are permitted only when the datasource advertises
+logical scalar reads. Enum scalar types follow TABLE nullability rules while
+retaining their logical enum identity. Provider-defined enum columns supplied directly
+by a datasource remain supported.
 
 **Example:**
 
@@ -4572,11 +4808,11 @@ The result shape is:
 - `Name`
 - `Param 0`, `Param 1`, ... as needed to fit the widest overload
 
-Each parameter cell contains `ParameterName: Full.Type.Name`. Overloads with fewer parameters leave the remaining parameter columns empty. Usable reflected optional defaults are shown as `ParameterName: Full.Type.Name = literal` using invariant formatting; required and metadata-less parameters retain the required format.
+Each parameter cell contains `ParameterName: logical-type` using the canonical names in §3.9. Overloads with fewer parameters leave the remaining parameter columns empty. Usable declared optional defaults are shown as `ParameterName: logical-type = literal` using canonical formatting; required and metadata-less parameters retain the required format.
 
 ### 16.3 Describe a Specific Constructor Result
 
-Describe the columns produced by a concrete constructor call:
+Describe the columns produced by a concrete source call:
 
 ```sql
 desc A.entities()
@@ -4584,13 +4820,13 @@ desc A.entities()
 
 Returns a table with columns: `Name`, `Index`, `Type`.
 
-Arguments may be provided when the schema method is overloaded and the engine needs to identify a specific constructor:
+Arguments may be provided when the schema method is overloaded and the engine needs to identify a specific signature:
 
 ```sql
 desc dynamic.method(0, 'test', 10.5d)
 ```
 
-The argument values are matched against the selected constructor signature. The returned table describes the row shape produced by that constructor.
+The argument values are matched against the selected source signature. The returned table describes the row shape produced by that callable.
 
 The argument list accepts the same positional-prefix/named-suffix form as
 `FROM`. `DESC FUNCTIONS` is an inventory operation and rejects named source
@@ -4606,7 +4842,7 @@ desc A.entities() column Self              -- describe a complex object column
 desc A.entities() column Children          -- describe a complex type column
 desc A.entities() column Self.Children     -- nested property path
 desc A.entities() column Self.Other.Children  -- deep nested path
-desc A.entities() column Self.Dictionary   -- IEnumerable<T> path
+desc A.entities() column Self.Dictionary   -- collection path
 ```
 
 Returns a table with columns: `Name`, `Index`, `Type`.
@@ -4615,8 +4851,8 @@ Rules:
 
 - Root column names and nested property names are matched case-insensitively.
 - Property paths may be arbitrarily deep: `A.B.C.D` is valid if each step resolves.
-- The final target may be a complex object, an array, or any `IEnumerable<T>`.
-- If the final target is an array or `IEnumerable<T>`, the output describes the element type.
+- The final target may be a complex object, an array, or another ordered collection.
+- If the final target is an array or another ordered collection, the output describes the element type.
 - If the final target is a complex object, the output describes that object's properties so you can continue exploratory navigation.
 - If the final target is a primitive, `string`, or `object`, the statement fails.
 - If any path segment does not exist, the statement fails.
@@ -4784,9 +5020,9 @@ select * from cte
 
 ### 18.2 Discovering Available Functions
 
-Musoq provides a rich library of built-in functions covering string manipulation, math, date/time, type conversion, validation, JSON/XML processing, cryptography, compression, bitwise operations, networking utilities, and collections. Additionally, each data source may define its own functions.
+Musoq provides optional libraries of functions covering string manipulation, math, date/time, type conversion, validation, JSON/XML processing, cryptography, compression, bitwise operations, networking utilities, and collections. Additionally, each data source may define its own functions.
 
-Because the set of available functions depends on which data sources are in use, the authoritative way to discover them is the `DESC FUNCTIONS` statement (see [§16.5](#165-describe-schema-functions)):
+Because the set of available functions depends on which data sources are in use, the way to discover installed extensions is the `DESC FUNCTIONS` statement (see [§16.5](#165-describe-schema-functions)):
 
 ```sql
 -- List all functions available for a schema
@@ -4820,10 +5056,35 @@ Use `desc functions` to see the full list with signatures and descriptions for a
 
 `EnumValue(value)`, `EnumName(value)`, `IsDefined(value)`,
 `HasAnyFlags(value, members...)`, and `HasAllFlags(value, members...)` are
-compiler intrinsics rather than datasource library methods. Member arguments
+language intrinsics rather than datasource library methods. Member arguments
 must be quoted literals and are resolved before execution. Flag helpers require
 a flags enum. `EnumName` returns only an exact declared name and never builds a
 comma-separated composite.
+
+---
+
+### 18.5 Required function surface
+
+Core requires the scalar RowNumber operation (§5.6), enum intrinsics (§3.8),
+Length(string or collection), Count, Sum, Avg, Min, Max, and the window operations
+listed in §11. Names and context restrictions follow their owning sections.
+Length counts UTF-16 units or collection elements, returns int?, and returns null
+for null input. Count returns long, including zero for empty input. Numeric Sum,
+Min and Max retain their input numeric kind with nullable result metadata. Avg
+returns nullable decimal for integral inputs and preserves decimal, float or double
+for other numeric inputs. For example, Avg over integral values [1, 2] returns
+decimal 1.5. Numeric aggregates ignore null and return null for empty/all-null
+input. Integral and decimal aggregate arithmetic is checked; overflow fails the
+query. These result and empty-input rules also apply to aggregate windows and
+existing distinct variants. Floating-point results remain sensitive to input order.
+String Min/Max use §10.2. DISTINCT and FILTER alter the contributing input before
+the aggregate operates. Temporal extrema, AggregateValues, ToXxx, file readers,
+formatting helpers and functions used only in external-provider examples are
+library extensions with separately published signatures and behavior.
+
+DESC FUNCTIONS inventories the receiving provider's exposed functions; it does
+not redefine the minimum above. Additional functions may be supplied by a host or
+provider and must not change the language operations or overload their meanings.
 
 ---
 
@@ -4895,7 +5156,7 @@ select Country, City, Count(1) from A.entities() group by Country, City
 
 ### 19.5 NULL from OUTER Joins
 
-When `LEFT JOIN`, `RIGHT JOIN`, `FULL OUTER JOIN`, `OUTER APPLY`, or `ASOF LEFT JOIN` produces an unmatched side, columns from the missing side are `null`. Value types are automatically promoted to nullable:
+When `LEFT JOIN`, `RIGHT JOIN`, `FULL OUTER JOIN`, `OUTER APPLY`, or `ASOF LEFT JOIN` produces an unmatched side, columns from the missing side are `null`. Scalar types are automatically promoted to nullable:
 
 ```sql
 -- If no match, b.Population becomes decimal? with value null
@@ -4939,7 +5200,7 @@ select NullableValue ?? 0 from A.entities()
 select null ?? Name from A.entities()
 ```
 
-The result type is the compatible operand type selected by semantic analysis. For `Nullable<T> ?? T`, the result type is `T`. If the left operand is a statically non-nullable value type, Musoq treats the fallback as unreachable and uses the left operand directly. `??` is not a null-navigation operator; `?.` is not part of the language.
+The result type is the compatible operand type selected by semantic analysis. For `T? ?? T`, the result type is `T`. If the left operand is a statically non-nullable scalar type, Musoq treats the fallback as unreachable and uses the left operand directly. `??` is not a null-navigation operator; `?.` is not part of the language.
 
 ### 19.8 NULL-Related Functions
 
@@ -5014,6 +5275,8 @@ Full Unicode support across all operations including LIKE, GROUP BY, ORDER BY, a
 
 ### 21.1 Array Indexing
 
+Typed collection parameters and collection `let` values also support indexing (`$values[index]`). The result retains the declared element type, including nullable elements, and uses the same zero-based, modular negative-index and safe out-of-bounds rules below. Parameter indexing reads the collection captured for the current execution.
+
 Array elements are accessed with bracket notation (0-based):
 
 ```sql
@@ -5023,7 +5286,7 @@ select Array[2] from A.entities()     -- third element
 
 #### Negative Indexing
 
-Negative indices count from the end (Python-style wrapping):
+Negative indices count from the end using modular wrapping:
 
 ```sql
 select Array[-1] from A.entities()    -- last element
@@ -5032,7 +5295,13 @@ select Array[-2] from A.entities()    -- second to last
 
 #### Out-of-Bounds Access
 
-Out-of-bounds access **never throws an exception**. It returns the default value for the element type:
+Out-of-bounds access returns the element default: zero for numeric types, false
+for bool, U+0000 for char, and null for nullable, string, dynamic, record and
+collection elements. Empty collections return that default even for negative
+indices; the modulo rule applies only when length is nonzero. Element temporal
+defaults are tick zero and GUID defaults contain all zero bits.
+
+Examples:
 
 | Scenario | Result |
 |----------|--------|
@@ -5073,16 +5342,25 @@ select Self.Array[2] from A.entities()           -- property + index
 select Inc(Self.Array[2]) from A.entities()      -- function on indexed property
 ```
 
-Accessing a non-existing property throws `UnknownPropertyException` at compile time.
+Accessing a non-existing field of a known record type reports `MQ3028_UnknownProperty` during binding.
 
 ### 21.5 Method Calls on Entities
 
-Entity methods can be called with dot notation:
+A source alias can select a registered bindable schema/library method using dot
+notation. A method may receive the source entity through the registered
+injection contract; this does not invoke a function stored on a column value:
 
 ```sql
 select a.GetPopulation() from A.entities() a
 select a.ToUpperInvariant(a.City) from A.entities() a
 ```
+
+Calls on column values, such as `Self.ToString()`, are unsupported. If the prefix
+resolves to a column rather than a visible source alias, binding rejects the
+call with `MQ3117_UnsupportedColumnInstanceMethod`. Source aliases take
+precedence over identically named columns. Ambiguous columns retain their
+ambiguity diagnostic; unknown prefixes retain their unknown-alias diagnostic.
+Property navigation such as `Self.Name` remains supported.
 
 ---
 
@@ -5143,7 +5421,7 @@ Nullable date/time types (`DateTime?`, `DateTimeOffset?`, `TimeSpan?`) behave id
 **Edge cases:**
 - Unparseable strings (e.g., `"not-a-date"`) simply don't match — no exception thrown
 - `null` strings don't match any date/time comparison
-- Supported formats follow the invariant culture parsing rules (ISO 8601, common date patterns)
+- Portable conversion forms are defined in §3.9. Additional host parsing forms are extensions, not portable query syntax.
 - Supports all comparison operators: `=`, `<>`, `>`, `<`, `>=`, `<=`
 
 Ambiguous numeric date text such as `01/02/2026` can be interpreted in more
@@ -5162,8 +5440,8 @@ In arithmetic and bitwise operations involving different numeric types, values a
 | `byte + int` | `int` |
 | `int + long` | `long` |
 | `int + decimal` | `decimal` |
-| `sbyte AND byte` | `int?` |
-| `byte AND ulong` | `ulong?` |
+| `sbyte AND byte` | `int` (`int?` when an operand is nullable) |
+| `byte AND ulong` | `ulong` (`ulong?` when an operand is nullable) |
 
 ### 22.4 Object Column Coercion
 
@@ -5186,12 +5464,9 @@ engine implementation details are not part of the language contract. Hosts and
 agents should classify a failure by its diagnostic code, phase, source domain,
 arguments, related locations, and actions.
 
-The authoritative list of active codes and their unified contract is the in-code
-`Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry`. It is built from the
-in-code `ErrorCatalog` and `ErrorMetadataCatalog`, which define exact message
-templates, severity, phase, category, explanations, documentation references,
-and suggested fixes. Parser tests validate that the registry and metadata
-catalogs remain complete and coherent.
+This section defines the language diagnostic contract and catalog. Implementations
+MUST preserve the meanings of published codes; implementation registries are
+projections of this contract rather than prerequisites for understanding it.
 
 ### 23.1 Diagnostic envelope contract
 
@@ -5203,25 +5478,21 @@ Every diagnostic-aware API preserves the following fields:
 | Severity | Error blocks the relevant phase; warning is advisory and does not change execution. |
 | Phase | Parse, Bind, Schema, DataSource, CodeGeneration, Runtime, FeatureGate, or Internal. |
 | Source domain | Query, GeneratedSource, Schema, DataSource, Runtime, or Internal. |
-| Location | Absolute offset, line, column, and end location when known. A zero-length span is a real insertion point; null means unknown. |
+| Location | Zero-based absolute UTF-16 offset, one-based line and UTF-16 column, and end location when known. A zero-length span is a real insertion point; null means unknown. |
 | Arguments | Stable string facts such as symbol, callableKind, actualTypes, expectedCounts, schema, source, alias, and lifecycle operation. Values containing secrets are excluded. |
 | Related locations | Typed secondary locations for declarations, candidates, generated origins, and related source facts when exact mapping exists. |
 | Actions | Structured fixes and optional text edits, with the existing textual suggestions retained for compatibility. |
 | Details | Sanitized by default. Raw exception details are available only through an explicit verbose formatting operation. |
 | Correlation | Optional correlation ID for internal compiler and execution failures. |
 
-Query locations always refer to SQL source. Generated C# locations remain in the
+Query locations always refer to SQL source. Generated-artifact locations remain in the
 generated-source domain and are never clamped to an invented SQL location. A
-query related location is added only when an exact IR-to-source map exists.
+query related location is added only when an exact artifact-to-query map exists.
 
-ParseResult.Warnings, QueryAnalysisResult.Warnings, BuildResult.Warnings, and
-QueryInspectionResult.Warnings are the authoritative warning surfaces.
-BuildResult.ToEnvelopes() remains error-only; diagnostic-aware hosts that need
-both severities use the all-diagnostics envelope operation. CompileWithDiagnostics()
-is the warning-aware execution entry point. CompileForExecution() remains
-source-compatible and returns only CompiledQuery.
+Diagnostic-aware host operations expose warnings as well as errors. Execution-only
+operations may omit advisory warnings, but MUST preserve execution failures.
 
-Warnings do not alter parsed values, generated code, cache identity, datasource
+Warnings do not alter parsed values, execution behavior, query identity, datasource
 arguments, runtime behavior, or query results. Errors stop the next dependent
 phase, while independent sibling roots may continue so their diagnostics can be
 reported in source order. Nodes that depend on an invalid root are suppressed
@@ -5302,7 +5573,7 @@ The boundary token is not consumed while recovering.
 | MQ2045_DuplicateEnumMember | Member names repeat exactly or differ only by case. | Rename or remove the duplicate member. |
 | MQ2046_EnumMemberValueOutOfRange | A value cannot be represented by the declared backing type. | Change the value or choose a wider backing type. |
 | MQ2047_EmptyEnumDeclaration | The declaration contains no members. | Add at least one explicitly-valued member. |
-| MQ2048_UnsupportedEnumSyntax | A borrowed C#, PostgreSQL, or MySQL enum form is used. | Use Musoq's statement-level `enum Name : int { Member = 1 };` form. |
+| MQ2048_UnsupportedEnumSyntax | A borrowed host-language or database enum form is used. | Use Musoq's statement-level `enum Name : int { Member = 1 };` form. |
 | MQ2035_MissingRequiredAlias | A multi-source JOIN/APPLY source has no stable addressable alias. | Add a source alias; use brackets for a reserved word. |
 | MQ2022_InvalidAlias | An alias position contains an invalid token or malformed optional alias. | Use an identifier or bracketed identifier. |
 
@@ -5352,17 +5623,21 @@ migration. The current language version does not emit them.
 | MQ4001–MQ4016 | Schema definition or schema construction failure. | Schema source domain; include the schema declaration location when known. |
 | MQ7003–MQ7009 | Script-parameter or recursive-CTE runtime contract failure. | Query or Runtime domain; include safe parameter/limit facts, never secret values. |
 | MQ7010 | Datasource construction/open failure. | DataSource domain; include schema, source, alias, context ID, and operation open. |
-| MQ7011 | Datasource row read or deferred enumeration failure. | DataSource domain; preserve the original exception as InnerException and never argument values. |
+| MQ7011 | Datasource row read or deferred enumeration failure. | DataSource domain; retain safe cause information without exposing source argument values. |
 | MQ7012 | Datasource cleanup/disposal failure. | DataSource domain; cancellation remains cancellation, not a cleanup error. |
+| MQ7017 | A finite regex match budget was exhausted. | Runtime domain; include safe operator, engine, and limit facts without exposing pattern or input values. |
 | MQ8001 | Generated code did not compile. | GeneratedSource domain; retain target-native facts and add SQL relation only for exact mappings. |
 | MQ8002 | A compiled artifact is incompatible with the current host contract. | GeneratedSource or Runtime domain; recompile rather than treating it as syntax. |
-| MQ9001–MQ9002 | An engine invariant failed without a user-owned root classification. | Internal domain, safe message, and correlation ID; raw details require explicit verbose output. |
+| MQ9001–MQ9002 | An engine invariant failed without a query- or source-owned root classification. | Internal domain, safe message, and correlation ID; raw details require explicit verbose output. |
 
 Cancellation is propagated unchanged through datasource and runtime boundaries.
-Unexpected CLR exceptions are never rewritten as unsupported SQL syntax merely
+Unexpected implementation failures are never rewritten as unsupported SQL syntax merely
 because they crossed a query boundary.
 
 ### 23.7 v17 to v18 migration
+
+This historical identifier table is informative. Host API migration details are
+outside the language contract. Active codes and their meanings above are normative.
 
 Removed values are not reused. Hosts upgrading diagnostic consumers should use
 the following replacements:
@@ -5405,7 +5680,14 @@ Nested brackets (`[ [AS] alias_name ]`) mean the entire group is optional, with 
 ### 24.2 Statement-Level Grammar
 
 ```ebnf
-root           ::= [parameter_block [';']] script_item { ';' script_item } [';']
+root           ::= [parameter_block [';']] {declaration [';']} executable_statement [';']
+
+declaration    ::= script_variable_decl | enum_declaration
+                 | table_definition | couple_statement | profile_declaration
+
+executable_statement ::= select_query | cte_expression | desc_statement
+select_query   ::= set_operators
+profile_declaration ::= declaration syntax of an enabled satellite profile
 
 script_item    ::= script_variable_decl
                  | statement
@@ -5415,13 +5697,16 @@ parameter_keyword ::= PARAM | PARAMS
 
 parameter_decl ::= identifier ':' parameter_type ['=' parameter_default]
 
-parameter_type ::= type_name ['[]'] ['?']
+parameter_type ::= (type_name | record_type) { '?' | '[]' }
+record_type    ::= '(' parameter_decl {',' parameter_decl} [','] ')'
 
-parameter_default ::= literal | NULL
+parameter_default ::= constant_expression | record_literal | array_literal
 
-script_variable_decl ::= LET identifier ':' type_name ['?'] '=' constant_expression
+script_variable_decl ::= LET identifier [':' parameter_type] '=' constant_expression
 
-constant_expression ::= literal
+constant_expression ::= record_literal
+                      | array_literal
+                      | literal
                       | NULL
                       | script_reference
                       | '(' constant_expression ')'
@@ -5442,15 +5727,16 @@ statement      ::= select_query
                  | couple_statement
                  | desc_statement
 
-cte_expression ::= WITH cte_def {',' cte_def} set_operators
+cte_expression ::= WITH [RECURSIVE] cte_def {',' cte_def} set_operators
 
-cte_def        ::= identifier AS '(' set_operators ')'
+cte_def        ::= identifier ['(' identifier {',' identifier} ')'] AS '(' set_operators ')'
 ```
 
 ### 24.3 Query Grammar
 
 ```ebnf
-set_operators  ::= query { set_operator query }
+set_operators  ::= set_chain [ORDER BY order_list] [SKIP integer] [TAKE integer]
+set_chain      ::= query {set_operator query}
 
 set_operator   ::= UNION [set_operator_key_list]
                  | UNION ALL [set_operator_key_list]
@@ -5465,34 +5751,25 @@ query          ::= regular_query | reordered_query | pivot_query | unpivot_query
 
 regular_query  ::= SELECT [DISTINCT] select_list
                    FROM from_clause
-                   {join_or_apply}
                    [WHERE expression]
                    [group_by_clause]
                    [WINDOW window_def {',' window_def}]
                    [QUALIFY expression]
-                   [ORDER BY order_list]
-                   [SKIP integer]
-                   [TAKE integer]
+
 
 reordered_query ::= FROM from_clause
-                    {join_or_apply}
                     [WHERE expression]
                     [group_by_clause]
                     [WINDOW window_def {',' window_def}]
                     [QUALIFY expression]
                     SELECT [DISTINCT] select_list
-                    [ORDER BY order_list]
-                    [SKIP integer]
-                    [TAKE integer]
+
 
 pivot_query    ::= PIVOT from_clause
-                   {join_or_apply}
                    ON pivot_key_list IN '(' pivot_value {',' pivot_value} ')'
                    USING pivot_measure {',' pivot_measure}
                    [GROUP BY (expression_list | ALL)]
-                   [ORDER BY order_list]
-                   [SKIP integer]
-                   [TAKE integer]
+
 
 group_by_clause ::= GROUP BY (expression_list | ALL) [HAVING expression]
 
@@ -5506,13 +5783,10 @@ pivot_scalar_value ::= literal
 pivot_measure  ::= identifier {'.' identifier} '(' [DISTINCT] [arg_list | '*'] ')' [[AS] select_alias_name]
 
 unpivot_query  ::= UNPIVOT from_clause
-                   {join_or_apply}
                    ON identifier IN '(' unpivot_entry {',' unpivot_entry} ')'
                    USING identifier
                    [KEEP unpivot_keep {',' unpivot_keep}]
-                   [ORDER BY order_list]
-                   [SKIP integer]
-                   [TAKE integer]
+
 
 simple_reference ::= identifier {'.' identifier}
 
@@ -5546,18 +5820,21 @@ explicit_source ::= schema_source
                   | function_source
                   | row_method_source
                   | row_property_source
-                  | derived_source
-                  | values_source
 
 stable_source  ::= named_source [alias]
                  | explicit_source alias
+                 | derived_source
+                 | values_source
 
 cte_reference  ::= identifier
 in_memory_reference ::= identifier
 
-schema_source  ::= identifier '.' identifier '(' [source_arg_list] ')'
+schema_source  ::= ['#'] identifier '.' identifier '(' [source_arg_list] ')'
 
 function_source ::= function_call
+function_call ::= identifier {'.' identifier} '(' [arg_list] ')'
+method_call ::= identifier '(' [arg_list] ')'
+property_path ::= identifier {'.' identifier}
 
 row_method_source ::= identifier '.' method_call
 
@@ -5687,19 +5964,21 @@ nonempty_expression_list ::= expression {',' expression}
 
 comp_op        ::= '=' | '<>' | '!=' | '>' | '>=' | '<' | '<='
 
-coalesce_expr  ::= add_expr ['??' coalesce_expr]
+coalesce_expr  ::= bitwise_expr ['??' coalesce_expr]
 
-add_expr       ::= bitwise_expr {('+'|'-') bitwise_expr}
+add_expr       ::= mul_expr {('+'|'-') mul_expr}
 bitwise_expr   ::= shift_expr {('&'|'|'|'^') shift_expr}
-shift_expr     ::= mul_expr {('<<'|'>>') mul_expr}
+shift_expr     ::= add_expr {('<<'|'>>') add_expr}
 mul_expr       ::= unary_expr {('*'|'/'|'%') unary_expr}
 unary_expr     ::= ['-'] cast_expr
 
-cast_expr      ::= primary {'::' cast_type_name}
+cast_expr      ::= primary { '[' expression ']' | '.' identifier | '::' cast_type_name }
 
 cast_type_name ::= identifier
 
-primary        ::= literal
+primary        ::= record_literal
+                 | array_literal
+                 | literal
                  | script_reference
                  | identifier {'.' identifier} ['(' [arg_list] ')'] [filter_clause] [window_over]
                  | identifier '[' expression ']'
@@ -5774,7 +6053,10 @@ table_definition ::= TABLE identifier '{' column_def_list '}'
 
 column_def_list ::= column_def { ',' column_def } [',']
 
-column_def     ::= identifier ':' type_name ['?']
+column_def     ::= identifier ':' type_name ['?'] {read_modifier}
+
+read_modifier ::= 'encoding' string_literal | 'culture' string_literal
+                | 'format' string_literal | 'trim' | 'source' identifier string_literal
 
 type_name      ::= identifier
                   | qualified_type_name
@@ -5783,12 +6065,13 @@ qualified_type_name ::= identifier { '.' identifier }
 
 couple_statement ::= COUPLE couple_schema_source WITH couple_option { AND couple_option } AS identifier
 
-couple_schema_source ::= identifier '.' identifier
+couple_schema_source ::= ['#'] identifier '.' identifier
 
 couple_option ::= TABLE identifier
                 | SETTINGS identifier
 
 desc_statement ::= DESC desc_target [column_clause]
+                 | DESC ARGUMENTS desc_target
                  | DESC FUNCTIONS desc_function_target
                  | DESC SETTINGS desc_settings_target
                  | DESC QUERY '(' (set_operators | cte_expression) ')'
@@ -5839,7 +6122,7 @@ window_clause  ::= WINDOW window_def {',' window_def}
 window_def     ::= identifier AS '(' window_spec ')'
 ```
 
-Window functions are recognized at the expression level — when a function call is followed by the `OVER` keyword, the parser wraps it as a `WindowFunctionNode`.
+Window functions are recognized at the expression level — when a function call is followed by the `OVER` keyword, it is bound as a window expression.
 
 **Supported function names** (case-insensitive, underscores ignored):
 
@@ -5851,6 +6134,33 @@ Window functions are recognized at the expression level — when a function call
 | `PercentRank()` / `PERCENT_RANK()` | | | `Min(expr)` |
 | `CumeDist()` / `CUME_DIST()` | | | `Max(expr)` |
 | `Ntile(n)` / `NTILE(n)` | | | |
+
+---
+
+### 24.10 Shared grammar atoms
+
+```ebnf
+expression_list ::= expression {',' expression}
+arg_list       ::= expression_list
+order_list     ::= ordered_field {',' ordered_field}
+integer        ::= ['-'] digit {digit}
+integral_literal ::= ['-'] integer_literal [type_suffix]
+                   | hex_literal | binary_literal | octal_literal
+identifier     ::= identifier_start {identifier_continue}
+identifier_start ::= Unicode letter | '_'
+identifier_continue ::= Unicode letter | Unicode decimal digit | '_'
+digit          ::= '0'..'9'
+hex_digit      ::= digit | 'a'..'f' | 'A'..'F'
+octal_digit    ::= '0'..'7'
+```
+
+Bracketed identifiers may replace unquoted identifiers in identifier positions;
+their content extends to the closing bracket and may include spaces and reserved
+words. Comments and whitespace are trivia between tokens unless a lexical rule
+requires adjacency (for example raw literal prefixes). Integral enum literals
+must satisfy the backing type's range and integral-suffix restriction (§3.8).
+Indexing syntax is supported for declared columns, properties and script references;
+brackets directly following a scalar literal are not supported.
 
 ---
 
@@ -6068,9 +6378,11 @@ or a fallback hidden by a statically non-null left operand. Nullable, dynamic,
 and uncertain values remain quiet; branch evaluation and short-circuit
 semantics are unchanged.
 
-### Appendix G: Runtime V2 Cast and Grouping Quick Reference
+<a id="appendix-g-runtime-v2-cast-and-grouping-quick-reference"></a>
 
-Runtime v2 removes the old bare double-colon numeric grouping shorthand. The `::` token is postfix cast syntax only:
+### Appendix G: Cast and Grouping Quick Reference
+
+Bare double-colon numeric grouping shorthand is invalid. The `::` token is postfix cast syntax only:
 
 ```sql
 select Population::Int32 from A.entities()
@@ -6085,8 +6397,8 @@ select City as c, Count(*) from A.entities() group by c
 ```
 
 Quick rules:
-- `expr::TypeName` performs a strict cast to a supported CLR type name or C# primitive alias; aliases map to canonical CLR targets.
-- `expr::string` formats non-null values with invariant culture and preserves null as null.
+- `expr::TypeName` performs a strict cast to a supported Musoq type alias or primitive keyword; aliases map to canonical logical types.
+- `expr::string` formats non-null values with canonical formatting (§3.9) and preserves null as null.
 - Bare double-colon grouping references and bare cast targets are invalid syntax.
 - Direct positive integer literals in `GROUP BY` are SELECT-list ordinals.
 - `GROUP BY ALL` infers every non-aggregate, non-window SELECT expression after projection expansion.

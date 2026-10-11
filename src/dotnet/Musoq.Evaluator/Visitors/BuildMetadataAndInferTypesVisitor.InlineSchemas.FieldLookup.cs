@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Dynamic;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -16,6 +15,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var allFields = GetAllBinarySchemaFields(binaryNode);
                 foreach (var field in allFields)
                 {
+                    if (field is FieldDefinitionNode
+                        {
+                            TypeAnnotation: SubstreamTypeNode { Target: InlineSchemaTypeNode substreamInlineSchema }
+                        } && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
+                        return substreamInlineSchema.Fields;
+
                     if (field is FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode inlineSchema }
                         && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -84,31 +89,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         return FindInlineSchemaFields(fieldName);
     }
 
-    private static (Type ClrType, string? IntendedTypeName) ResolveTextFieldClrTypeWithIntendedName(
-        string schemaName,
-        TextFieldDefinitionNode field)
-    {
-        if (field is { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 })
-            return (typeof(object), $"Musoq.Generated.Interpreters.{schemaName}.CaptureResult_{field.Name}");
-
-        if (field.FieldType == TextFieldType.Repeat)
-        {
-            var elementSchemaName = field.PrimaryValue ?? "object";
-            return (typeof(object[]), $"Musoq.Generated.Interpreters.{elementSchemaName}[]");
-        }
-
-        if (field.FieldType == TextFieldType.Switch)
-            return (typeof(ExpandoObject), null);
-
-        if (field.FieldType == TextFieldType.SchemaReference)
-        {
-            var referencedSchemaName = field.PrimaryValue ?? "object";
-            return (typeof(object), $"Musoq.Generated.Interpreters.{referencedSchemaName}");
-        }
-
-        return (typeof(string), null);
-    }
-
     private (Type ClrType, string? IntendedTypeName) ResolveBinaryFieldClrTypeWithIntendedName(
         FieldDefinitionNode field)
     {
@@ -126,25 +106,12 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var (type, intendedTypeName) = ResolveTypeAnnotationWithSubstitution(field.TypeAnnotation, typeParamMap);
 
-        if (field.TypeAnnotation is InlineSchemaTypeNode)
-            return (type, CreateInlineSchemaIntendedTypeName(field.Name));
-
-        if (field.TypeAnnotation is ArrayTypeNode { ElementType: InlineSchemaTypeNode })
-            return (type, $"{CreateInlineSchemaIntendedTypeName(field.Name)}[]");
-
-        if (field.TypeAnnotation is RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode })
-            return (type, $"{CreateInlineSchemaIntendedTypeName(field.Name)}[]");
-
-        return (type, intendedTypeName);
+        return ApplyBinaryFieldIntendedTypeName(field, (type, intendedTypeName));
     }
 
-    private static string CreateInlineSchemaIntendedTypeName(string fieldName)
-    {
-        return $"Musoq.Generated.Interpreters.Inline_{fieldName}";
-    }
+    private static string CreateInlineSchemaIntendedTypeName(string fieldName) =>
+        $"Musoq.Generated.Interpreters.Inline_{fieldName}";
 
-    private static string CreateSwitchSchemaIntendedTypeName(string fieldName)
-    {
-        return $"Musoq.Generated.Interpreters.Switch_{fieldName}";
-    }
+    private static string CreateSwitchSchemaIntendedTypeName(string fieldName) =>
+        $"Musoq.Generated.Interpreters.Switch_{fieldName}";
 }

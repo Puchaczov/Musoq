@@ -66,10 +66,6 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             case ValuesRowShape values:
                 AnalyzeShape(values.GeneratedShape, sink);
                 break;
-            case ExpandoAdapterShape expando:
-                sink.AddClrType(expando.RuntimeType);
-                AddFields(expando.Fields, sink);
-                break;
             case TableRowShape table:
                 AddFields(table.Fields, sink);
                 AddFields(table.Contexts, sink);
@@ -87,6 +83,9 @@ internal static class ExecutionTargetCompatibilityAnalyzer
 
         switch (node)
         {
+            case ExecutionInitializeAggregateState initialize:
+                AddCallable(initialize.ResetMethod, initialize.ResetMethod.MethodName, sink);
+                break;
             case ExecutionSourceScan sourceScan:
                 sink.Add(
                     ExecutionTargetRequirementKind.SchemaProviderBinding,
@@ -114,7 +113,22 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                 sink.AddClrType(enumerable.EnumerableType);
                 break;
             case ExecutionComputePluginWindow plugin:
-                AddCallable(plugin.FactoryMethod, plugin.FunctionName, sink);
+                if (plugin.LibraryGet is { } operation)
+                    AddKernelOperation(operation, plugin.FunctionName, sink);
+                else
+                    AddCallable(plugin.SqlDeclaration, plugin.FunctionName, sink);
+                break;
+            case ExecutionComputeRankingWindow { LibraryGet: not null } ranking:
+                AddKernelOperation(ranking.LibraryGet, ranking.LibraryGet.MethodName, sink);
+                break;
+            case ExecutionWindowAggregateKernel { Descriptor.LibraryKernel: not null } window:
+                var operations = window.Descriptor.LibraryKernel;
+                sink.AddClrType(operations.StateType);
+                AddKernelOperation(operations.ResetMethod, operations.FunctionName, sink);
+                AddKernelOperation(operations.SetMethod, operations.FunctionName, sink);
+                AddKernelOperation(operations.GetMethod, operations.FunctionName, sink);
+                if (window.Descriptor.LibraryBatch is { } batch)
+                    AddKernelOperation(batch, batch.MethodName, sink);
                 break;
         }
     }
@@ -282,6 +296,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         sink.AddClrType(accumulator.InputType);
         sink.AddClrType(accumulator.ResultType);
         sink.AddClrType(accumulator.AccumulatorType);
+        AddCallable(ExecutionClrBindingFactory.FromClr(accumulator.Kernel.ResetMethod), accumulator.Kernel.FunctionName, sink);
     }
 
     private static IEnumerable<ExecutionPortableRowFieldDescriptor> CreateAggregatePortableFields(
@@ -345,6 +360,13 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             ExecutionTargetRequirementKind.GeneratedClrRow,
             typeName,
             typeSymbol: ExecutionPortableSymbolFactory.GeneratedRow(typeName, fields));
+    }
+
+    private static void AddKernelOperation(ExecutionCallableRef operation, string functionName, RequirementSink sink)
+    {
+        AddCallable(operation, functionName, sink);
+        sink.Add(ExecutionTargetRequirementKind.PluginInvocation,
+            $"{functionName} -> {operation.DisplayName}", callableSymbol: operation.Descriptor);
     }
 
     private static void AddCallable(ExecutionCallableRef method, string functionName, RequirementSink sink)

@@ -52,7 +52,7 @@ public sealed class StructuredInputArtifactQualificationTests
 
         Assert.IsTrue(loaded.Succeeded, FormatDiagnostics(loaded.Diagnostics));
         using var compiled = loaded.CompiledQuery ?? throw new AssertFailedException("No loaded structured query was produced.");
-        compiled.Parameters["patterns"] = new List<Dictionary<string, object?>>(2)
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>(2)
         {
             new(StringComparer.OrdinalIgnoreCase)
             {
@@ -64,12 +64,12 @@ public sealed class StructuredInputArtifactQualificationTests
                 ["Id"] = "todo",
                 ["Pattern"] = "TODO"
             }
-        };
+        });
 
         using var table = compiled.Run();
         Assert.AreEqual(2, table.Rows.Count);
-        Assert.AreEqual("fixme", table.Rows[0][0]);
-        Assert.AreEqual("todo", table.Rows[1][0]);
+        Assert.AreEqual("fixme", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("todo", table.Rows[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -104,13 +104,13 @@ public sealed class StructuredInputArtifactQualificationTests
 
         using var firstQuery = first.CompiledQuery ?? throw new AssertFailedException("First structured query was not compiled.");
         using var secondQuery = second.CompiledQuery ?? throw new AssertFailedException("Second structured query was not compiled.");
-        firstQuery.Parameters["patterns"] = CreatePatterns(("todo", "TODO"));
-        secondQuery.Parameters["patterns"] = CreatePatterns(("fixme", "FIXME"));
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(firstQuery.TypedParameters, firstQuery.ParameterDefinitions, "patterns", CreatePatterns(("todo", "TODO")));
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(secondQuery.TypedParameters, secondQuery.ParameterDefinitions, "patterns", CreatePatterns(("fixme", "FIXME")));
 
         using var firstTable = firstQuery.Run();
         using var secondTable = secondQuery.Run();
-        CollectionAssert.AreEqual(new[] { "todo" }, firstTable.Rows.Select(static row => (string)row[0]!).ToArray());
-        CollectionAssert.AreEqual(new[] { "fixme" }, secondTable.Rows.Select(static row => (string)row[0]!).ToArray());
+        CollectionAssert.AreEqual(new[] { "todo" }, firstTable.Rows.Select(static row => (string)row.ReadValue(0)!).ToArray());
+        CollectionAssert.AreEqual(new[] { "fixme" }, secondTable.Rows.Select(static row => (string)row.ReadValue(0)!).ToArray());
     }
 
     [TestMethod]
@@ -161,9 +161,9 @@ public sealed class StructuredInputArtifactQualificationTests
         Assert.IsTrue(firstLoaded.Succeeded, FormatDiagnostics(firstLoaded.Diagnostics));
         using (var firstQuery = firstLoaded.CompiledQuery ?? throw new AssertFailedException("No first query was loaded."))
         {
-            firstQuery.Parameters["patterns"] = CreatePatterns(("todo", "TODO"));
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(firstQuery.TypedParameters, firstQuery.ParameterDefinitions, "patterns", CreatePatterns(("todo", "TODO")));
             using var firstTable = firstQuery.Run();
-            Assert.AreEqual("todo", firstTable.Rows.Single()[0]);
+            Assert.AreEqual("todo", firstTable.Rows.Single().ReadValue(0));
         }
 
         var secondLoaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
@@ -174,9 +174,9 @@ public sealed class StructuredInputArtifactQualificationTests
         Assert.IsTrue(secondLoaded.Succeeded, FormatDiagnostics(secondLoaded.Diagnostics));
         using (var secondQuery = secondLoaded.CompiledQuery ?? throw new AssertFailedException("No second query was loaded."))
         {
-            secondQuery.Parameters["patterns"] = CreatePatterns(("fixme", "FIXME"));
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(secondQuery.TypedParameters, secondQuery.ParameterDefinitions, "patterns", CreatePatterns(("fixme", "FIXME")));
             using var secondTable = secondQuery.Run();
-            Assert.AreEqual("fixme", secondTable.Rows.Single()[0]);
+            Assert.AreEqual("fixme", secondTable.Rows.Single().ReadValue(0));
         }
 
         Assert.AreEqual(fingerprint, artifact.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256]);
@@ -238,7 +238,7 @@ public sealed class StructuredInputArtifactQualificationTests
         Assert.IsTrue(firstLoaded.Succeeded, FormatDiagnostics(firstLoaded.Diagnostics));
         using (var firstQuery = firstLoaded.CompiledQuery ?? throw new AssertFailedException("No first CTE query was loaded."))
         {
-            firstQuery.Parameters["suffix"] = "TODO";
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(firstQuery.TypedParameters, firstQuery.ParameterDefinitions, "suffix", "TODO");
             using var firstTable = firstQuery.Run();
             Assert.AreEqual(1, firstTable.Rows.Count);
         }
@@ -251,7 +251,7 @@ public sealed class StructuredInputArtifactQualificationTests
         Assert.IsTrue(secondLoaded.Succeeded, FormatDiagnostics(secondLoaded.Diagnostics));
         using (var secondQuery = secondLoaded.CompiledQuery ?? throw new AssertFailedException("No second CTE query was loaded."))
         {
-            secondQuery.Parameters["suffix"] = "FIXME";
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(secondQuery.TypedParameters, secondQuery.ParameterDefinitions, "suffix", "FIXME");
             using var secondTable = secondQuery.Run();
             Assert.AreEqual(0, secondTable.Rows.Count);
         }

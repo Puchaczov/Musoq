@@ -34,6 +34,55 @@ public sealed class MusoqErrorEnvelope
         IReadOnlyDictionary<string, string>? arguments = null,
         IReadOnlyList<DiagnosticRelatedLocation>? relatedLocations = null,
         string? correlationId = null)
+        : this(
+            code,
+            severity,
+            phase,
+            message,
+            line,
+            column,
+            length,
+            snippet,
+            explanation,
+            suggestedFixes,
+            docsReference,
+            details,
+            actions,
+            sourceKind,
+            offset,
+            endOffset,
+            endLine,
+            endColumn,
+            arguments,
+            relatedLocations,
+            correlationId,
+            null)
+    {
+    }
+
+    private MusoqErrorEnvelope(
+        DiagnosticCode code,
+        DiagnosticSeverity severity,
+        DiagnosticPhase phase,
+        string message,
+        int? line,
+        int? column,
+        int? length,
+        string? snippet,
+        string? explanation,
+        IReadOnlyList<string>? suggestedFixes,
+        string? docsReference,
+        string? details,
+        IReadOnlyList<DiagnosticAction>? actions,
+        DiagnosticSourceKind? sourceKind,
+        int? offset,
+        int? endOffset,
+        int? endLine,
+        int? endColumn,
+        IReadOnlyDictionary<string, string>? arguments,
+        IReadOnlyList<DiagnosticRelatedLocation>? relatedLocations,
+        string? correlationId,
+        DiagnosticInputLocation? inputLocation)
     {
         var resolvedSourceKind = sourceKind ?? DiagnosticSourceKindMapping.FromCode(code);
         var providerOwned = resolvedSourceKind == DiagnosticSourceKind.DataSource;
@@ -71,6 +120,7 @@ public sealed class MusoqErrorEnvelope
             ? inputRelatedLocations.Select(SanitizeRelatedLocation).ToArray()
             : inputRelatedLocations;
         CorrelationId = providerOwned ? SanitizeOptionalProviderText(correlationId) : correlationId;
+        InputLocation = inputLocation;
     }
 
     /// <summary>Stable error code (e.g., MQ3022).</summary>
@@ -139,6 +189,9 @@ public sealed class MusoqErrorEnvelope
     /// <summary>Optional correlation identifier for internal failures.</summary>
     public string? CorrelationId { get; }
 
+    /// <summary>Location within runtime input, separate from the SQL location.</summary>
+    public DiagnosticInputLocation? InputLocation { get; }
+
     /// <summary>
     ///     Creates an envelope from a <see cref="Diagnostic" /> and optional source query text.
     /// </summary>
@@ -203,7 +256,8 @@ public sealed class MusoqErrorEnvelope
             endColumn: endColumn,
             arguments: DiagnosticSafety.SanitizeArguments(diagnostic, queryText),
             relatedLocations: DiagnosticSafety.SanitizeRelatedLocations(diagnostic, queryText),
-            correlationId: diagnostic.CorrelationId);
+            correlationId: diagnostic.CorrelationId,
+            inputLocation: diagnostic.InputLocation);
     }
 
     /// <summary>
@@ -242,7 +296,8 @@ public sealed class MusoqErrorEnvelope
             envelope.EndColumn,
             envelope.Arguments,
             envelope.RelatedLocations,
-            envelope.CorrelationId);
+            envelope.CorrelationId,
+            envelope.InputLocation);
     }
 
     /// <summary>
@@ -312,6 +367,15 @@ public sealed class MusoqErrorEnvelope
 
     private static string? GetExceptionDetails(Exception exception)
     {
+        var current = exception;
+        while (current != null)
+        {
+            if (current is IVerboseDiagnosticDetails verboseDetails)
+                return verboseDetails.GetVerboseDiagnosticDetails();
+
+            current = current.InnerException;
+        }
+
         return exception.InnerException?.Message ?? exception.Message ?? exception.StackTrace;
     }
 }

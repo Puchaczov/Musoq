@@ -52,7 +52,7 @@ inner join #B.entities() b on a.Id = b.Id";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"]);
     }
 
@@ -89,7 +89,7 @@ inner join #B.entities() b on a.Population > b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1"],
@@ -130,7 +130,7 @@ inner join #B.entities() b on a.Population < b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B2"]);
     }
 
@@ -167,7 +167,7 @@ inner join #B.entities() b on a.Population >= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A1", "B2"]);
     }
 
@@ -204,7 +204,7 @@ inner join #B.entities() b on a.Population <= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B2"], ["A1", "B3"]);
     }
 
@@ -240,7 +240,7 @@ inner join #B.entities() b on b.Population < a.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1"],
@@ -280,7 +280,7 @@ inner join #B.entities() b on a.Population > b.Population + 25";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1"],
@@ -320,7 +320,7 @@ inner join #B.entities() b on a.Id = b.Id AND a.Population > b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"]);
     }
 
@@ -352,7 +352,7 @@ left join #B.entities() b on a.Id = b.Id";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A2", null]);
     }
 
@@ -384,7 +384,7 @@ right join #B.entities() b on a.Id = b.Id";
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], [null, "B2"]);
     }
 
@@ -421,7 +421,7 @@ inner join #B.entities() b on a.Id <> b.Id";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B2"], ["A2", "B1"]);
     }
 
@@ -459,7 +459,7 @@ inner join #B.entities() b on a.Id = b.Id OR a.Population = b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A2", "B2"]);
     }
 
@@ -503,7 +503,7 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
         var vm = CreateAndRunVirtualMachine(query, sources, options);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1"],

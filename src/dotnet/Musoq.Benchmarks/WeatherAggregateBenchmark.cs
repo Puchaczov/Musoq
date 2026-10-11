@@ -132,10 +132,10 @@ public class WeatherAggregateBenchmark
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters)
         {
             if (string.Equals(name, "measurements", StringComparison.OrdinalIgnoreCase))
             {

@@ -40,7 +40,7 @@ public sealed class PhysicalPlanTextAggregationStrategyTests : BasicEntityTestBa
                 "  PhysicalProject [e.City as e.City, AggRef(e.Count(e.City)) as e.Count(e.City)]",
                 "    PhysicalSingleKeyAggregate [key: e.City (String)] [aggs: Count(City)]",
                 "      PhysicalSchemaScan [#A.Entities() as e]",
-                "  PhysicalProject [e.City as e.City, e.Count(e.City) as Count(e.City)]",
+                "  PhysicalProject [e.City as City, e.Count(e.City) as Count(e.City)]",
                 "    PhysicalCteRef [eScore as eScore]"),
             planText);
     }
@@ -59,7 +59,7 @@ public sealed class PhysicalPlanTextAggregationStrategyTests : BasicEntityTestBa
                 "  PhysicalProject [e.City as e.City, e.Country as e.Country, AggRef(e.Count(e.Name)) as e.Count(e.Name)]",
                 "    PhysicalValueTupleAggregate [keys: e.Country, e.City] [aggs: Count(Name)]",
                 "      PhysicalSchemaScan [#A.Entities() as e]",
-                "  PhysicalProject [e.Country as e.Country, e.City as e.City, e.Count(e.Name) as Count(e.Name)]",
+                "  PhysicalProject [e.Country as Country, e.City as City, e.Count(e.Name) as Count(e.Name)]",
                 "    PhysicalCteRef [eScore as eScore]"),
             planText);
     }
@@ -80,7 +80,7 @@ public sealed class PhysicalPlanTextAggregationStrategyTests : BasicEntityTestBa
                 "      PhysicalSingleKeyAggregate [key: e.City (String)] [aggs: Count(City)]",
                 "        PhysicalSchemaScan [#A.Entities() as e]",
                 "  PhysicalSort [e.Count(e.City) DESC]",
-                "    PhysicalProject [e.City as e.City, e.Count(e.City) as CityCount]",
+                "    PhysicalProject [e.City as City, e.Count(e.City) as CityCount]",
                 "      PhysicalCteRef [eScore as eScore]"),
             planText);
     }

@@ -18,16 +18,16 @@ public sealed class GeneratedCodeSpecificationExecutionTests
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q277_SpecCoreNamedDatasourceArguments.cs");
         using var compiled = Compile(sample, sample.CreateSchemaProvider());
 
-        var table = compiled.Run();
+        using var table = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.Value", typeof(int)),
-            ("d.First", typeof(string)),
-            ("d.Second", typeof(int)),
-            ("p.Value", typeof(int)),
-            ("p.First", typeof(string)),
-            ("p.Second", typeof(int)));
+            ("Value", typeof(int)),
+            ("First", typeof(string)),
+            ("Second", typeof(int)),
+            ("Value", typeof(int)),
+            ("First", typeof(string)),
+            ("Second", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1, "parameter", 4, 1, "positional", 7]);
@@ -39,15 +39,15 @@ public sealed class GeneratedCodeSpecificationExecutionTests
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q321_SpecTableCoupleArguments.cs");
         using var compiled = Compile(sample, sample.CreateSchemaProvider());
 
-        var table = compiled.Run();
+        using var table = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.First", typeof(string)),
-            ("d.Second", typeof(int)),
-            ("p.First", typeof(string)),
-            ("p.Second", typeof(int)),
-            ("c.Text", typeof(string)));
+            ("First", typeof(string)),
+            ("Second", typeof(int)),
+            ("First", typeof(string)),
+            ("Second", typeof(int)),
+            ("Text", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["positional", 7, "parameter", 4, "cte"]);
@@ -59,13 +59,13 @@ public sealed class GeneratedCodeSpecificationExecutionTests
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q322_SpecTableSettingsProfiles.cs");
         using var compiled = Compile(sample, sample.CreateSchemaProvider());
 
-        var table = compiled.Run();
+        using var table = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Token", typeof(string)),
-            ("b.Token", typeof(string)),
-            ("c.Token", typeof(string)));
+            ("Token", typeof(string)),
+            ("Token", typeof(string)),
+            ("Token", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["blue-token", "red-token", "green-token"]);
@@ -90,7 +90,7 @@ public sealed class GeneratedCodeSpecificationExecutionTests
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q320_SpecTableReadModifiers.cs");
         using var compiled = Compile(sample, provider);
 
-        var table = compiled.Run();
+        using var table = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -109,7 +109,7 @@ public sealed class GeneratedCodeSpecificationExecutionTests
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q323_SpecTableCoupleComposition.cs");
         using var compiled = Compile(sample, sample.CreateSchemaProvider());
 
-        var table = compiled.Run();
+        using var table = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,

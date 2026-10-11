@@ -180,8 +180,8 @@ public partial class QueryInspectionTests
         Assert.AreEqual(1, executionPlans.Length);
         var plan = executionPlans[0];
 
-        Assert.AreEqual("bravo", table[0][0]);
-        Assert.AreEqual("alpha", table[1][0]);
+        Assert.AreEqual("bravo", table[0].ReadValue(0));
+        Assert.AreEqual("alpha", table[1].ReadValue(0));
         Assert.AreEqual(1, plan.AcceptedSkip);
         Assert.AreEqual(2, plan.AcceptedTake);
     }
@@ -204,8 +204,8 @@ public partial class QueryInspectionTests
         var plan = executionPlans[0];
 
         Assert.DoesNotContain("PhysicalTopOffset", inspection.PhysicalPlanText);
-        Assert.AreEqual("bravo", table[0][0]);
-        Assert.AreEqual("charlie", table[1][0]);
+        Assert.AreEqual("bravo", table[0].ReadValue(0));
+        Assert.AreEqual("charlie", table[1].ReadValue(0));
         Assert.AreEqual(1, plan.AcceptedOrderBy.Count);
         Assert.AreEqual(1, plan.AcceptedSkip);
         Assert.AreEqual(2, plan.AcceptedTake);
@@ -228,8 +228,8 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan residual: orderBy=1, skip=null, take=2", inspection.PlanningText);
         Assert.IsFalse(inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("bravo", table[1][0]);
+        Assert.AreEqual("alpha", table[0].ReadValue(0));
+        Assert.AreEqual("bravo", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -352,8 +352,8 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan residual: orderBy=0, skip=null, take=2", inspection.PlanningText);
         Assert.AreEqual(1, executionPlan.AcceptedOrderBy.Count);
         Assert.IsFalse(executionPlan.AcceptedTake.HasValue);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("bravo", table[1][0]);
+        Assert.AreEqual("alpha", table[0].ReadValue(0));
+        Assert.AreEqual("bravo", table[1].ReadValue(0));
     }
 
     private static SourcePlanResult AcceptOnlyOrdering(SourcePlanRequest request)
@@ -469,10 +469,10 @@ public partial class QueryInspectionTests
             return planner(request);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
             {

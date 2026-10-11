@@ -82,6 +82,9 @@ public class AccessMethodNode : Node
 
     public bool IsScalarSubqueryValueWrapper { get; set; }
 
+    /// <summary>Marks a trusted compiler-generated call rather than a user SQL call.</summary>
+    public bool IsCompilerGenerated { get; set; }
+
     public int ArgsCount => Arguments.Args.Length;
 
     public override Type ReturnType => Method != null ? ResolveGenericMethodReturnType() : typeof(void);

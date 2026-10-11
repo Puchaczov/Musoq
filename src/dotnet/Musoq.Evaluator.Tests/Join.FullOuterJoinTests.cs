@@ -308,15 +308,15 @@ full outer join #B.entities() b on a.Id = b.Id and b.City = 'match'";
     {
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)));
     }
 
     private static void AssertFullOuterNameColumns(Table table)
     {
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
     }
 }

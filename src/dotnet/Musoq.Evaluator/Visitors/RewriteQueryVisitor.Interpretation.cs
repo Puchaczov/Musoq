@@ -97,15 +97,7 @@ public sealed partial class RewriteQueryVisitor
             return;
         }
 
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method,
-            node.Alias, default, node.IsDistinct)
-        {
-            HasFilter = node.HasFilter,
-            FilterExpression = filterExpression,
-            FilterExpressionText = node.FilterExpressionText,
-            IsPivotGenerated = node.IsPivotGenerated,
-            IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
-        });
+        Nodes.Push(AccessMethodCallRewriter.Rewrite(node, args, filterExpression));
     }
 
     private static bool IsInterpretFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,

@@ -53,8 +53,8 @@ public sealed class DiagnosticRework083StarModifierContractTests : BasicEntityTe
         CollectionAssert.AreEqual(
             new[]
             {
-                "a.Name", "a.Country", "a.Population", "a.Money", "a.Month", "a.Time", "a.Id",
-                "a.NullableValue"
+                "Name", "Country", "Population", "Money", "Month", "Time", "Id",
+                "NullableValue"
             },
             table.Columns.Select(static column => column.ColumnName).ToArray());
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -76,7 +76,7 @@ public sealed class DiagnosticRework083StarModifierContractTests : BasicEntityTe
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         CollectionAssert.AreEqual(
-            new[] { "a.Name", "b.Name" },
+            new[] { "Name", "Name" },
             table.Columns.Select(static column => column.ColumnName).ToArray());
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["left", "right"]);
     }

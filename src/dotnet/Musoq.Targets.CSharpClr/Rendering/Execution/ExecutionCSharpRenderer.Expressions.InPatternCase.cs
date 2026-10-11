@@ -9,126 +9,19 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
 
-    private ExpressionSyntax RenderInCheck(ExecutionInCheck inCheck, ExecutionRenderContext context)
-    {
-        if (inCheck.Values.Count == 0)
-        {
-            return SyntaxFactory.LiteralExpression(
-                inCheck.IsNegated ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
-        }
-
-        if (inCheck.ConstantSet is { Kind: ExecutionConstantInSetKind.Switch } constantSet)
-            return ApplyInNegation(
-                RenderConstantSwitchInCheck(constantSet, inCheck.Expression, context),
-                inCheck.IsNegated);
-
-        if (inCheck.ConstantSet != null &&
-            TryGetConstantInSetFieldName(inCheck.ConstantSet, context, out var fieldName))
-        {
-            var constantMatch = inCheck.ConstantSet.Kind is ExecutionConstantInSetKind.HashSet or ExecutionConstantInSetKind.FrozenSet
-                ? RenderConstantHashSetInCheck(fieldName, inCheck.Expression, context)
-                : RenderConstantArrayInCheck(fieldName, inCheck.Expression, context);
-            return ApplyInNegation(constantMatch, inCheck.IsNegated);
-        }
-
-        var indexOf = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(Array)),
-                SyntaxFactory.IdentifierName(nameof(Array.IndexOf))))
-            .WithArgumentList(CreateArgumentList(
-                CreateArrayCreation(inCheck.Expression.ReturnType, inCheck.Values.Select(value => RenderExpression(value, context))),
-                RenderExpression(inCheck.Expression, context)));
-
-        var match = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.GreaterThanOrEqualExpression,
-                indexOf,
-            CreateIntLiteral(0)));
-        return ApplyInNegation(match, inCheck.IsNegated);
-    }
-
-    private static ExpressionSyntax ApplyInNegation(ExpressionSyntax expression, bool isNegated)
-    {
-        return isNegated
-            ? SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.ParenthesizedExpression(expression))
-            : expression;
-    }
-
-    private ParenthesizedExpressionSyntax RenderConstantSwitchInCheck(
-        ExecutionConstantInSet constantSet,
-        ExecutionExpression expression,
-        ExecutionRenderContext context)
-    {
-        var matchPattern = CreateConstantInSwitchPattern(constantSet.Values);
-        var arms = SyntaxFactory.SeparatedList(
-        [
-            SyntaxFactory.SwitchExpressionArm(
-                matchPattern,
-                SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)),
-            SyntaxFactory.SwitchExpressionArm(
-                SyntaxFactory.DiscardPattern(),
-                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
-        ]);
-
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.SwitchExpression(RenderExpression(expression, context), arms));
-    }
-
-    private static PatternSyntax CreateConstantInSwitchPattern(IReadOnlyList<ExecutionConstantValue> values)
-    {
-        return values
-            .Distinct()
-            .Select(value => (PatternSyntax)SyntaxFactory.ConstantPattern(RenderLiteral(value)))
-            .Aggregate(static (left, right) => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, left, right));
-    }
-
-    private ParenthesizedExpressionSyntax RenderConstantArrayInCheck(
-        string fieldName,
-        ExecutionExpression expression,
-        ExecutionRenderContext context)
-    {
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.GreaterThanOrEqualExpression,
-                CreateArrayIndexOfExpression(SyntaxFactory.IdentifierName(fieldName), RenderExpression(expression, context)),
-                CreateIntLiteral(0)));
-    }
-
-    private ParenthesizedExpressionSyntax RenderConstantHashSetInCheck(
-        string fieldName,
-        ExecutionExpression expression,
-        ExecutionRenderContext context)
-    {
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(fieldName),
-                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Contains))))
-                .WithArgumentList(CreateArgumentList(RenderExpression(expression, context))));
-    }
-
-    private static InvocationExpressionSyntax CreateArrayIndexOfExpression(
-        ExpressionSyntax values,
-        ExpressionSyntax value)
-    {
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(Array)),
-                    SyntaxFactory.IdentifierName(nameof(Array.IndexOf))))
-            .WithArgumentList(CreateArgumentList(values, value));
-    }
+    private ExpressionSyntax RenderInCheck(ExecutionInCheck inCheck, ExecutionRenderContext context) =>
+        new ExecutionMembershipSyntaxFactory(
+            expression => RenderExpression(expression, context),
+            set => TryGetConstantInSetFieldName(set, context, out var name) ? name : null,
+            RenderLiteral, ++_membershipExpressionSequence).Render(inCheck);
 
     private InvocationExpressionSyntax RenderPatternMatch(
         ExecutionPatternMatch patternMatch,
         ExecutionRenderContext context)
         => ExecutionLikeSyntaxFactory.Render(
             patternMatch,
-            expression => RenderExpression(expression, context));
+            expression => RenderExpression(expression, context),
+            context.Session.RegexMatchTimeout);
 
     private ExpressionSyntax RenderCaseWhen(ExecutionCaseWhen caseWhen, ExecutionRenderContext context)
     {
@@ -164,7 +57,7 @@ public sealed partial class ExecutionCSharpRenderer
                 current);
         }
 
-        return current;
+        return SyntaxFactory.ParenthesizedExpression(current);
     }
 
     private static ExpressionSyntax CreateMissingCaseElseExpression(Type returnType)

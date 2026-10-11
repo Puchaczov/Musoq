@@ -18,22 +18,23 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         using var runnable = new AsyncParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
-        query.Parameters["value"] = 1;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
 
         var execution = query.RunAsync().AsTask();
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
 
-        query.Parameters["value"] = 2;
+        Assert.Throws<InvalidOperationException>(() => query.TypedParameters.Set("value", 2));
         runnable.Release.TrySetResult(true);
 
         var result = await execution;
 
         Assert.AreEqual(1, runnable.AsyncRunCount);
         Assert.AreEqual(0, runnable.SynchronousRunCount);
-        Assert.AreEqual(1, result[0][0]);
+        Assert.AreEqual(1, result[0].ReadValue(0));
 
+        query.TypedParameters.Set("value", 2);
         var next = await query.RunAsync();
-        Assert.AreEqual(2, next[0][0]);
+        Assert.AreEqual(2, next[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -67,7 +68,7 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         using var runnable = new AsyncParameterizedRunnable();
         var query = new CompiledQuery(runnable);
-        query.Parameters["value"] = 3;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
 
         var execution = query.RunAsync().AsTask();
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
@@ -119,14 +120,14 @@ public sealed class CompiledQueryAsyncExecutionTests
         public abstract Table Run(CancellationToken token);
     }
 
-    private sealed class AsyncParameterizedRunnable : RunnableBase, IAsyncTableRunnable, IParameterizedRunnable, IDisposable
+    private sealed class AsyncParameterizedRunnable : RunnableBase, IAsyncTableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable, IDisposable
     {
         internal readonly ManualResetEventSlim Started = new(false);
         internal readonly TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int _executionCompleted;
         private int _disposedBeforeExecutionCompleted;
 
-        public IDictionary<string, object?> Parameters { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
 
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 
@@ -142,7 +143,7 @@ public sealed class CompiledQueryAsyncExecutionTests
         public override Table Run(CancellationToken token)
         {
             SynchronousRunCount++;
-            return CreateTable((int)Parameters["value"]!);
+            return CreateTable(TypedParameters.GetRequired<int>("value"));
         }
 
         public async ValueTask<Table> RunAsync(CancellationToken token)
@@ -152,7 +153,7 @@ public sealed class CompiledQueryAsyncExecutionTests
             try
             {
                 await Release.Task.WaitAsync(token);
-                return CreateTable((int)Parameters["value"]!);
+                return CreateTable(TypedParameters.GetRequired<int>("value"));
             }
             finally
             {
@@ -181,11 +182,12 @@ public sealed class CompiledQueryAsyncExecutionTests
 
     private sealed class ValueRow(int value) : Row
     {
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            => TypedColumnVisit.Apply(0, value, ref visitor);
+
         public override int Count => 1;
 
-        public override object this[int columnNumber] => columnNumber == 0
-            ? value
-            : throw new IndexOutOfRangeException();
+
     }
 
     private sealed class ThrowingSchemaProvider : ISchemaProvider

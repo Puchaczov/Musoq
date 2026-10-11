@@ -35,6 +35,11 @@ public static class SourcePlanningPlanResultBuilder
             ? acceptedPredicate ?? request.Predicate
             : acceptedPredicate;
 
+        if (!SourcePlanningRowExecution.CanEvaluatePredicate(planAcceptedPredicate))
+        {
+            return SourcePlanResult.RejectAll(request);
+        }
+
         return new SourcePlanResult
         {
             ExecutionPlan = new SourceExecutionPlan

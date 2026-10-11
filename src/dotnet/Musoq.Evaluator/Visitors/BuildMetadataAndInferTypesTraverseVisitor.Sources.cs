@@ -128,9 +128,11 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         apply = applies.Pop();
         apply.Source.Accept(this);
-        apply.With.Accept(this);
 
         var sourceId = apply.Source is JoinFromNode ? MetaAttributes.ProcessedQueryId : apply.Source.Id;
+        SetApplyInputSource(Scope[sourceId]);
+        apply.With.Accept(this);
+
         var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
         var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
         secondTableSymbol = ApplyOrdinalityIfNeeded(apply, Scope[apply.With.Id], secondTableSymbol);
@@ -159,6 +161,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         while (applies.Count > 0)
         {
             apply = applies.Pop();
+            SetApplyInputSource(id);
             apply.With.Accept(this);
 
             var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
@@ -186,6 +189,12 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
             apply.Accept(Visitor);
         }
+    }
+
+    private void SetApplyInputSource(string identifier)
+    {
+        if (Visitor is BuildMetadataAndInferTypesVisitor metadataVisitor)
+            metadataVisitor.SetApplyInputSource(identifier);
     }
 
     private TableSymbol ApplyOrdinalityIfNeeded(

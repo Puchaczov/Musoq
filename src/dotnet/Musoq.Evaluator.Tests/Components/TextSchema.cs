@@ -19,7 +19,7 @@ public class TextSchema(IEnumerable<TextEntity> entities) : SchemaBase("test", C
         return new TextEntityTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, TextEntity>(name, new TestEntitySource<TextEntity>(
             [_entities],

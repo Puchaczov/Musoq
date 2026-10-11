@@ -23,7 +23,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         {
             var planningShapeResolver = new ExecutionPlanningShapeResolverAdapter(shapeResolver);
             var executionStrategies = fixedExecutionStrategies ??
-                ExecutionStrategyPlanner.Plan(physicalPlan, _compilationOptions, cteExecutionPlan, planningShapeResolver).Strategies;
+                ExecutionStrategyPlanner.Plan(physicalPlan, _compilationOptions, cteExecutionPlan, planningShapeResolver, AuthorizedSourcePlanningFixture.Describe(physicalPlan)).Strategies;
             var executionArtifacts = new ExecutionPlanningArtifacts(
                 executionStrategies,
                 new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),

@@ -291,10 +291,10 @@ internal sealed class DynamicLikeApplySchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
         if (string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
         {

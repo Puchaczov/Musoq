@@ -227,7 +227,7 @@ public class WindowFunctionBenchmarkParityTests
             "from #test.entities() " +
             "qualify Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) > 100000");
 
-        var names = table.Select(row => (string)row.Values[0]).OrderBy(name => name).ToArray();
+        var names = table.Select(row => (string)row.ReadValues()[0]).OrderBy(name => name).ToArray();
 
         CollectionAssert.AreEqual(new[] { "Bea", "Cal", "Dana", "Eli" }, names);
     }
@@ -259,18 +259,18 @@ public class WindowFunctionBenchmarkParityTests
         var table = Run(
             "select Name, RowNumber() over (order by Salary desc) as rn from #test.entities()");
 
-        var rows = table.OrderBy(row => Convert.ToInt64(row.Values[1])).ToArray();
+        var rows = table.OrderBy(row => Convert.ToInt64(row.ReadValues()[1])).ToArray();
 
-        Assert.AreEqual("Bea", rows[0].Values[0]);
-        Assert.AreEqual(1L, Convert.ToInt64(rows[0].Values[1]));
-        Assert.AreEqual("Cal", rows[1].Values[0]);
-        Assert.AreEqual(2L, Convert.ToInt64(rows[1].Values[1]));
-        Assert.AreEqual("Dana", rows[2].Values[0]);
-        Assert.AreEqual(3L, Convert.ToInt64(rows[2].Values[1]));
-        Assert.AreEqual("Ada", rows[3].Values[0]);
-        Assert.AreEqual(4L, Convert.ToInt64(rows[3].Values[1]));
-        Assert.AreEqual("Eli", rows[4].Values[0]);
-        Assert.AreEqual(5L, Convert.ToInt64(rows[4].Values[1]));
+        Assert.AreEqual("Bea", rows[0].ReadValues()[0]);
+        Assert.AreEqual(1L, Convert.ToInt64(rows[0].ReadValues()[1]));
+        Assert.AreEqual("Cal", rows[1].ReadValues()[0]);
+        Assert.AreEqual(2L, Convert.ToInt64(rows[1].ReadValues()[1]));
+        Assert.AreEqual("Dana", rows[2].ReadValues()[0]);
+        Assert.AreEqual(3L, Convert.ToInt64(rows[2].ReadValues()[1]));
+        Assert.AreEqual("Ada", rows[3].ReadValues()[0]);
+        Assert.AreEqual(4L, Convert.ToInt64(rows[3].ReadValues()[1]));
+        Assert.AreEqual("Eli", rows[4].ReadValues()[0]);
+        Assert.AreEqual(5L, Convert.ToInt64(rows[4].ReadValues()[1]));
     }
 
     [TestMethod]
@@ -335,8 +335,8 @@ public class WindowFunctionBenchmarkParityTests
 
     private static void AssertLagValue(Table table, string name, int? expected)
     {
-        var row = table.Single(item => (string)item.Values[0] == name);
-        var actual = row.Values[2];
+        var row = table.Single(item => (string)item.ReadValues()[0] == name);
+        var actual = row.ReadValues()[2];
 
         if (expected == null)
         {
@@ -349,9 +349,9 @@ public class WindowFunctionBenchmarkParityTests
 
     private static void AssertWindowDecimal(Table table, string name, decimal expected)
     {
-        var row = table.Single(item => (string)item.Values[0] == name);
+        var row = table.Single(item => (string)item.ReadValues()[0] == name);
 
-        Assert.AreEqual(expected, Convert.ToDecimal(row.Values[2]));
+        Assert.AreEqual(expected, Convert.ToDecimal(row.ReadValues()[2]));
     }
 
     private static IReadOnlyList<WinEntity> CreateEntities()
@@ -388,7 +388,7 @@ public class WindowFunctionBenchmarkParityTests
             return new WinTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
             return EnsureSourceType<T, WinEntity>(name, new EntitySource<WinEntity>([entities], WinTable.NameToIndexMap, WinTable.IndexToObjectAccessMap));
         }

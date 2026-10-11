@@ -115,8 +115,7 @@ public static class ClassEmitter
         bool implementsProfiledRunnable = false,
         bool implementsContextualRunnable = false,
         bool implementsContextualProfiledRunnable = false,
-        bool isMetadataOnly = false,
-        bool implementsStructuralParameterSnapshotProvider = false)
+        bool isMetadataOnly = false)
     {
         ArgumentNullException.ThrowIfNull(generator);
         var orderedMembers = ReorderMembers(members);
@@ -125,7 +124,8 @@ public static class ClassEmitter
             SyntaxFactory.IdentifierName(nameof(BaseOperations)),
             SyntaxFactory.IdentifierName(nameof(ITableRunnable)),
             SyntaxFactory.IdentifierName(nameof(IQueryProgressSource)),
-            SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
+            SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable)),
+            SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable))
         };
 
         if (implementsContextualRunnable)
@@ -139,9 +139,6 @@ public static class ClassEmitter
 
         if (isMetadataOnly)
             baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IMetadataOnlyRunnable)));
-
-        if (implementsStructuralParameterSnapshotProvider)
-            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IStructuralParameterSnapshotProvider)));
 
         return generator.ClassDeclaration(
             className,
@@ -158,8 +155,7 @@ public static class ClassEmitter
         string className,
         Type outputType,
         IList<SyntaxNode> members,
-        bool isMetadataOnly = false,
-        bool implementsStructuralParameterSnapshotProvider = false)
+        bool isMetadataOnly = false)
     {
         ArgumentNullException.ThrowIfNull(generator);
         ArgumentNullException.ThrowIfNull(outputType);
@@ -172,14 +168,12 @@ public static class ClassEmitter
                     SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
                         LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
             SyntaxFactory.IdentifierName(nameof(IQueryProgressSource)),
-            SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
+            SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable)),
+            SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable))
         };
 
         if (isMetadataOnly)
             baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IMetadataOnlyRunnable)));
-
-        if (implementsStructuralParameterSnapshotProvider)
-            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IStructuralParameterSnapshotProvider)));
 
         return generator.ClassDeclaration(
             className,
@@ -276,7 +270,7 @@ public static class ClassEmitter
 
     /// <summary>
     ///     Creates a syntax tree directly from the compilation unit without the expensive Formatter.Format() step.
-    ///     Uses NormalizeWhitespace() instead, which is an O(n) pass that adds standard whitespace trivia —
+    ///     Uses NormalizeWhitespace() instead, which is an O(n) pass that adds standard whitespace trivia Ă˘â‚¬â€ť
     ///     much faster than the full Roslyn Formatter which requires a Workspace and formatting options.
     ///     The tree is then re-parsed to ensure proper structure for Roslyn compilation.
     /// </summary>
@@ -301,7 +295,7 @@ public static class ClassEmitter
                 // contextual-keyword classification. We deliberately omit
                 // the workspace formatter and redundant-parenthesis pass.
                 return CSharpSyntaxTree.ParseText(
-                    compilationUnit.NormalizeWhitespace().ToFullString(),
+                    UnreferencedRowDeclarationCleanup.Apply(compilationUnit).NormalizeWhitespace(indentation: string.Empty, eol: "\n").ToFullString(),
                     new CSharpParseOptions(LanguageVersion.CSharp13),
                     path ?? string.Empty,
                     Encoding.UTF8);
@@ -516,7 +510,7 @@ public static class ClassEmitter
         if (createContext)
         {
             statements.Add(SyntaxFactory.ParseStatement(
-                "var queryContext = new QueryRunContext(token, Parameters, PhaseChanged, DataSourceProgress, this, queryId: \"compiled\", provider: Provider, sourceRuntimeSettingsBySourceContextId: SourceRuntimeSettingsBySourceContextId, sourceRuntimeSettingDescriptionsBySourceContextId: SourceRuntimeSettingDescriptionsBySourceContextId, sourceExecutionPlans: SourceExecutionPlans, logger: Logger, queryProgress: QueryProgress);"));
+                "var queryContext = new QueryRunContext(token, TypedParameters, PhaseChanged, DataSourceProgress, this, queryId: \"compiled\", provider: Provider, sourceRuntimeSettingsBySourceContextId: SourceRuntimeSettingsBySourceContextId, sourceRuntimeSettingDescriptionsBySourceContextId: SourceRuntimeSettingDescriptionsBySourceContextId, sourceExecutionPlans: SourceExecutionPlans, logger: Logger, queryProgress: QueryProgress);"));
         }
 
         if (!forceTableResultMaterialization)
@@ -726,7 +720,6 @@ public static class ClassEmitter
             MethodDeclarationHelper.CreateSourceRuntimeSettingDescriptionsBySourceContextIdProperty();
         var sourceExecutionPlansParam = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
         var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IQueryRunnable.Logger));
-        var parametersParam = CreateParametersProperty();
         var parameterDefinitionsParam = CreateParameterDefinitionsProperty(parameterDefinitions);
         var parameterContractsParam = CreateParameterContractsProperty(parameterDefinitions);
         var phaseChangedEvent = MethodDeclarationHelper.CreatePhaseChangedEvent();
@@ -742,7 +735,8 @@ public static class ClassEmitter
         members.Add(sourceRuntimeSettingDescriptionsParam);
         members.Add(sourceExecutionPlansParam);
         members.Add(loggerParam);
-        members.Add(parametersParam);
+        members.Add(SyntaxFactory.ParseMemberDeclaration(
+            "public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;")!);
         members.Add(parameterDefinitionsParam);
         members.Add(parameterContractsParam);
         members.Add(phaseChangedEvent);
@@ -761,7 +755,7 @@ public static class ClassEmitter
                 SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(initialContextName),
-                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.RuntimeParameters)))),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.TypedParameters)))),
                 SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(initialContextName),
@@ -788,7 +782,11 @@ public static class ClassEmitter
                         $"{initialContextName}.{nameof(QueryRunContext.QueryProgress)} == null ? null : " +
                         $"{initialContextName}.{nameof(QueryRunContext.QueryProgressOptions)}"))
                     .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName("queryProgressOptions")))
-            ])));
+            ])))
+            .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression,
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression, SyntaxFactory.IdentifierName(nameof(QueryRunContext.TypedParameters)),
+                    SyntaxFactory.ParseExpression($"{initialContextName}.TypedParameters")))));
     }
 
     private static LocalDeclarationStatementSyntax CreateLocalDeclaration(
@@ -801,23 +799,6 @@ public static class ClassEmitter
                 .WithVariables(SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(name))
                         .WithInitializer(SyntaxFactory.EqualsValueClause(initializer)))));
-    }
-
-    private static PropertyDeclarationSyntax CreateParametersProperty()
-    {
-        return SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.ParseTypeName("IDictionary<string, System.Object>"),
-                nameof(IParameterizedRunnable.Parameters))
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-            .WithAccessorList(
-                SyntaxFactory.AccessorList(
-                    SyntaxFactory.SingletonList(
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
-            .WithInitializer(
-                SyntaxFactory.EqualsValueClause(
-                    SyntaxFactory.ParseExpression("new Dictionary<string, System.Object>(StringComparer.Ordinal)")))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     private static PropertyDeclarationSyntax CreateParameterDefinitionsProperty(

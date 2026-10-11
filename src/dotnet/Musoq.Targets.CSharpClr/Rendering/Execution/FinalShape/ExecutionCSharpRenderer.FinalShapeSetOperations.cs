@@ -162,6 +162,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
+            CreateIntersectDistinctState(setOperation, context),
             StatementEmitter.CreateForeach(
                 leftRowName,
                 CreateRowsRead(setOperation.Left, context),
@@ -174,8 +175,9 @@ public sealed partial class ExecutionCSharpRenderer
                         setOperation.Left,
                         setOperation,
                         context),
-                    StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context),
+                    StatementEmitter.CreateBlock(CreateIntersectDistinctOutput(setOperation, leftRowName,
+                        CreateFinalShapeOutputStatement(
+                            CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context), context),
                         context)))))
         ];
     }
@@ -258,6 +260,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
+            CreateIntersectDistinctState(setOperation, context),
             CreateSetKeyHashSetDeclaration(
                 rightKeysName,
                 setOperation.FieldTypes.RequireClrTypes(),
@@ -297,11 +300,11 @@ public sealed partial class ExecutionCSharpRenderer
             _ => throw UnsupportedShape.Of($"Set key condition {condition}")
         };
 
-        return SyntaxFactory.IfStatement(
-            conditionExpression,
-            StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                CreateFinalShapeCreationFromSetRow(rowName, source, context),
-                context)));
+        var output = CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromSetRow(rowName, source, context), context);
+        return SyntaxFactory.IfStatement(conditionExpression,
+            StatementEmitter.CreateBlock(setOperation.Kind == SetOpKind.Intersect
+                ? CreateIntersectDistinctOutput(setOperation, rowName, output, context)
+                : output));
     }
 
     private InvocationExpressionSyntax CreateFinalShapeRowsAnyMatch(
@@ -387,14 +390,15 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
-        if (sink.UsesGeneratedRowCarrier &&
+        if (context.Session.ReuseStoredRows &&
             TryGetTypedRowBufferShape(source.Name, context, out var sourceShape) &&
             string.Equals(sourceShape.TypeName, sink.ShapeTypeName, StringComparison.Ordinal))
         {
             return SyntaxFactory.IdentifierName(rowVariableName);
         }
 
-        if (!TryGetTypedRowBufferShape(source.Name, context, out sourceShape))
+        sourceShape = GetSetOperationSourceShape(source, context);
+        if (sourceShape is null)
             return CreateFinalShapeCreationFromRow(rowVariableName, context);
 
         var arguments = sink.Fields

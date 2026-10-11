@@ -159,7 +159,7 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
         Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, candidate.Query));
         using var table = build.CompiledQuery!.Run();
         Assert.HasCount(1, table);
-        Assert.AreEqual("some\text", table[0][0]);
+        Assert.AreEqual("some\text", table[0].ReadValue(0));
     }
 
     private static QueryAnalysisResult Analyze(AdvisoryCase candidate)

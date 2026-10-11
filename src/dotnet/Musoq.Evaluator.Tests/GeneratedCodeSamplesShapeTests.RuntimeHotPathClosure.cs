@@ -111,7 +111,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("foreach (var bChunk in bRows)", hashJoinComputeMethod);
         Assert.Contains("foreach (var aChunk in aRows)", hashJoinComputeMethod);
         Assert.Contains("token.ThrowIfCancellationRequested();", hashJoinComputeMethod);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));", hashJoinComputeMethod);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", hashJoinComputeMethod);
     }
 
     [TestMethod]

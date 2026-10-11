@@ -71,7 +71,7 @@ public sealed partial class ExecutionShapeResolver
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
                 continue;
 
-            var fieldType = ResolveBinaryFieldType(field, generatedType, context);
+            var fieldType = ResolveBinaryFieldType(field, generatedType, context, columns);
 
             if (field is FieldDefinitionNode { IsConditional: true } &&
                 fieldType.IsValueType &&
@@ -92,44 +92,6 @@ public sealed partial class ExecutionShapeResolver
 
         return columns;
     }
-    private static Type ResolveBinaryFieldType(
-        SchemaFieldNode field,
-        Type? generatedType,
-        BinaryColumnResolutionContext context)
-    {
-        if (TryGetGeneratedFieldType(generatedType, field.Name, out var generatedFieldType))
-            return generatedFieldType;
-
-        if (field is FieldDefinitionNode { TypeAnnotation: SchemaReferenceTypeNode reference })
-            return ResolveSchemaReferenceFieldType(reference, context);
-
-        if (field is FieldDefinitionNode
-            {
-                TypeAnnotation: ArrayTypeNode
-                {
-                    ElementType: SchemaReferenceTypeNode arrayElementReference
-                }
-            })
-        {
-            var elementType = ResolveSchemaReferenceFieldType(arrayElementReference, context);
-            return elementType.MakeArrayType();
-        }
-
-        if (field is FieldDefinitionNode
-            {
-                TypeAnnotation: RepeatUntilTypeNode
-                {
-                    ElementType: SchemaReferenceTypeNode repeatElementReference
-                }
-            })
-        {
-            var elementType = ResolveSchemaReferenceFieldType(repeatElementReference, context);
-            return elementType.MakeArrayType();
-        }
-
-        var fieldType = field.ReturnType;
-        return fieldType == null || fieldType == typeof(void) ? typeof(object) : fieldType;
-    }
     private static Type ResolveSchemaReferenceFieldType(
         SchemaReferenceTypeNode reference,
         BinaryColumnResolutionContext context)
@@ -145,26 +107,6 @@ public sealed partial class ExecutionShapeResolver
         }
 
         return typeof(object);
-    }
-
-    private static bool TryGetGeneratedFieldType(Type? generatedType, string fieldName, out Type fieldType)
-    {
-        var property = generatedType?.GetProperty(fieldName);
-        if (property != null)
-        {
-            fieldType = property.PropertyType;
-            return true;
-        }
-
-        var field = generatedType?.GetField(fieldName);
-        if (field == null)
-        {
-            fieldType = typeof(object);
-            return false;
-        }
-
-        fieldType = field.FieldType;
-        return true;
     }
 
     private static void AddInheritedBinaryFields(

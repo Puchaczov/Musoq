@@ -72,16 +72,16 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xA5, table[0][0]);
-        Assert.AreEqual((sbyte)-2, table[0][1]);
-        Assert.AreEqual((short)-4660, table[0][2]);
-        Assert.AreEqual((ushort)60000, table[0][3]);
-        Assert.AreEqual(0x12345678, table[0][4]);
-        Assert.AreEqual(0x89ABCDEFu, table[0][5]);
-        Assert.AreEqual(-0x0102030405060708L, table[0][6]);
-        Assert.AreEqual(0xFEDCBA9876543210UL, table[0][7]);
-        Assert.AreEqual(3.25f, (float)table[0][8], 0.00001f);
-        Assert.AreEqual(-12.5d, (double)table[0][9], 0.0000001d);
+        Assert.AreEqual((byte)0xA5, table[0].ReadValue(0));
+        Assert.AreEqual((sbyte)-2, table[0].ReadValue(1));
+        Assert.AreEqual((short)-4660, table[0].ReadValue(2));
+        Assert.AreEqual((ushort)60000, table[0].ReadValue(3));
+        Assert.AreEqual(0x12345678, table[0].ReadValue(4));
+        Assert.AreEqual(0x89ABCDEFu, table[0].ReadValue(5));
+        Assert.AreEqual(-0x0102030405060708L, table[0].ReadValue(6));
+        Assert.AreEqual(0xFEDCBA9876543210UL, table[0].ReadValue(7));
+        Assert.AreEqual(3.25f, (float)table[0].ReadValue(8), 0.00001f);
+        Assert.AreEqual(-12.5d, (double)table[0].ReadValue(9), 0.0000001d);
     }
 
     [TestMethod]
@@ -147,19 +147,19 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC }, (byte[])table[0][1]);
-        Assert.AreEqual("Hello", table[0][2]);
-        Assert.AreEqual("Hi", table[0][3]);
-        Assert.AreEqual("Yo", table[0][4]);
-        Assert.AreEqual("ABC", table[0][5]);
-        Assert.AreEqual("Café", table[0][6]);
-        Assert.AreEqual("CICS", table[0][7]);
-        Assert.AreEqual("Hi", table[0][8]);
-        Assert.AreEqual("Left ", table[0][9]);
-        Assert.AreEqual("Right", table[0][10]);
-        Assert.AreEqual("Go", table[0][11]);
-        Assert.AreEqual((byte)0x5A, table[0][12]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC }, (byte[])table[0].ReadValue(1));
+        Assert.AreEqual("Hello", table[0].ReadValue(2));
+        Assert.AreEqual("Hi", table[0].ReadValue(3));
+        Assert.AreEqual("Yo", table[0].ReadValue(4));
+        Assert.AreEqual("ABC", table[0].ReadValue(5));
+        Assert.AreEqual("Café", table[0].ReadValue(6));
+        Assert.AreEqual("CICS", table[0].ReadValue(7));
+        Assert.AreEqual("Hi", table[0].ReadValue(8));
+        Assert.AreEqual("Left ", table[0].ReadValue(9));
+        Assert.AreEqual("Right", table[0].ReadValue(10));
+        Assert.AreEqual("Go", table[0].ReadValue(11));
+        Assert.AreEqual((byte)0x5A, table[0].ReadValue(12));
     }
 
     [TestMethod]
@@ -186,7 +186,7 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsEmpty((byte[])table[0][0]);
-        Assert.AreEqual((byte)0x5A, table[0][1]);
+        Assert.IsEmpty((byte[])table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x5A, table[0].ReadValue(1));
     }
 }

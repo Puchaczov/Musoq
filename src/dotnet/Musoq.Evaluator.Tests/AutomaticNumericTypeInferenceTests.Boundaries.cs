@@ -27,57 +27,57 @@ public partial class AutomaticNumericTypeInferenceTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void WhenComparingObjectDoubleWithIntLiteral_WithVerySmallFraction_ShouldNotMatch()
+    public void WhenComparingDeclaredDoubleWithIntLiteral_WithVerySmallFraction_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 1000";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)1000.0000001;
+        item1.Value = (double)(1000.0000001);
         item1.Name = "SmallFraction";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)1000;
+        item2.Value = (double)(1000);
         item2.Name = "Exact";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Exact", table[0].Values[0]);
+        Assert.AreEqual("Exact", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void WhenComparingObjectFloatWithIntLiteral_WithNegativeFraction_ShouldNotMatch()
+    public void WhenComparingDecodedDoubleWithIntLiteral_WithNegativeFraction_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = -100";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)-100.5f;
+        item1.Value = (double)(-100.5f);
         item1.Name = "NegativeFraction";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)-100;
+        item2.Value = (double)(-100);
         item2.Name = "Exact";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Exact", table[0].Values[0]);
+        Assert.AreEqual("Exact", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -98,7 +98,7 @@ public partial class AutomaticNumericTypeInferenceTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("MinInt32", table[0].Values[0]);
+        Assert.AreEqual("MinInt32", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -119,7 +119,7 @@ public partial class AutomaticNumericTypeInferenceTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("MaxInt32", table[0].Values[0]);
+        Assert.AreEqual("MaxInt32", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -147,28 +147,28 @@ public partial class AutomaticNumericTypeInferenceTests
     }
 
     [TestMethod]
-    public void WhenComparingObjectColumnWithBoundaryMaxInt32_StrictMode_ShouldMatchExactly()
+    public void WhenComparingDeclaredNumericColumnWithBoundaryMaxInt32_StrictMode_ShouldMatchExactly()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 2147483647";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)2147483647;
+        item1.Value = (double)(2147483647);
         item1.Name = "Exact";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)2147483647.1;
+        item2.Value = (double)(2147483647.1);
         item2.Name = "WithFraction";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Exact", table[0].Values[0]);
+        Assert.AreEqual("Exact", table[0].ReadValues()[0]);
     }
 
 }

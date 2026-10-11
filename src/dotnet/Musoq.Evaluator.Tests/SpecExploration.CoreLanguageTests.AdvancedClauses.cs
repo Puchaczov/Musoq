@@ -292,7 +292,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("p.City", typeof(string)), ("b.Population", typeof(decimal)));
+            ("City", typeof(string)), ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
             new object?[] { "NYC", 8000000m });
     }
@@ -486,7 +486,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(object)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 

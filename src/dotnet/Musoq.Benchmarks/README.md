@@ -1,14 +1,58 @@
 # Musoq Benchmarks
 
+## Q44 join-to-window materialization
+
+`JoinWindowMaterializationBenchmark` measures complete execution of the Q44 join-to-window path.
+Compilation and fixture setup happen outside the measured method; each operation enumerates every
+deferred output row and validates its row count and window-sum checksum. `MemoryDiagnoser` records
+managed allocations for ascending and shuffled order keys, one or two rows per join key, and three
+input sizes.
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release --no-build -- `
+  --filter "*JoinWindowMaterializationBenchmark*" --job short --memory --exporters json `
+  --artifacts artifacts/soa-q44/baseline-1 --inProcess
+```
+
+For before/after comparisons, collect three isolated cohorts per revision with
+the same SDK, runtime, inputs, and job settings; compare the median cohort means
+and allocations. Record the exact revisions and environment alongside ignored
+JSON artifacts. Historical implementation measurements remain in Git history.
+
 ## Structured input preparation qualification
 
 `StructuredInputPreparationBenchmark` measures typed and structural record,
 array, nested, nullable, empty, retained-`let`, host-parameter, CTE, source
 invocation, and post-preparation enumeration paths at sizes 1, 3, 32, and
-1,024.  The benchmark uses `MemoryDiagnoser`; generated-code and decoded-IL
-hard gates live in `Musoq.Benchmarks.Tests` and never assert machine-dependent
-timings.  See `Baselines/StructuredInputPreparationQualification.md` for the
-commands and acceptance rules.
+1,024. The benchmark uses `MemoryDiagnoser`; permanent contract tests live in
+`Musoq.Evaluator.Tests` and `Musoq.Converter.Tests`. Use
+`StructuralInputRuntimeRemovalTests` and `StructuredInputArtifactQualificationTests`
+for focused correctness checks; performance acceptance uses benchmark reports.
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release --no-build -- `
+  --filter "*StructuredInputPreparationBenchmark*" --memory --exporters json
+```
+
+Compare equivalent cohorts with the same revisions, environment, filters, and
+job settings recorded alongside ignored JSON artifacts. Generated preparation
+must retain typed constructors and concrete calls, without object argument
+packs, reflection or dynamic invocation, or boxing in generated compute/CTE
+methods and approved runtime helpers. Empty collections use the typed singleton;
+typed and generated fixtures must agree on results. Evaluate scalar-source and
+VALUES workloads separately and distinguish necessary storage from invocation
+allocations. Historical characterization reports remain in Git history.
+
+## Production lexer keyword lookup
+
+`LexerOptimizationBenchmark` compares production span and string lookup over the
+same keywords and non-keywords. The string method is the BenchmarkDotNet baseline;
+both methods accumulate the same token checksum.
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release --no-build -- `
+  --filter "*LexerOptimizationBenchmark*" --job short --memory --exporters json
+```
 
 
 ## Recursive CTE performance gate

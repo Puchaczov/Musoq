@@ -27,6 +27,12 @@ internal static class ExecutionPlanRepresentationPlanner
                 .Select(pair => new ExecutionStoredTableRepresentationPlan(
                     pair.Key,
                     pair.Value.RowShape,
+                    kind: StoredTableColumnarBufferEligibility.CanUseWindowBuffer(
+                        plan,
+                        pair.Key,
+                        pair.Value.RowShape)
+                        ? ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer
+                        : ExecutionStoredTableRepresentationKind.GeneratedRowList,
                     ownership: SelectOwnership(
                         pair.Key,
                         pair.Value.RowShape,
@@ -35,7 +41,17 @@ internal static class ExecutionPlanRepresentationPlanner
                             ? consumers
                             : [])))
                 .ToArray();
-        var planned = plan with { StoredTableRepresentations = representations };
+        var membershipParameters = ExecutionIrAnalysis
+            .CollectExpressions<ExecutionCollectionInCheck>(plan.Body)
+            .Select(static check => check.Collection.Name)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var planned = plan with
+        {
+            StoredTableRepresentations = representations,
+            NonNullMembershipParameters = ExecutionIrCollections.Freeze(membershipParameters)
+        };
         return StoredTableRepresentationAnnotator.Apply(planned, representations);
     }
 

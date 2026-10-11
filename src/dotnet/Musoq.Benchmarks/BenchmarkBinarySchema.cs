@@ -14,7 +14,7 @@ public class BenchmarkBinarySchema(IEnumerable<IReadOnlyList<BenchmarkBinaryEnti
         return new BenchmarkBinaryEntityTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, BenchmarkBinaryEntity>(name, new BenchmarkEntitySource<BenchmarkBinaryEntity>(
             chunks,

@@ -35,6 +35,11 @@ public sealed record ExecutionInCheck : ExecutionExpression
 
     public bool IsNegated { get; init; }
 
+    /// <summary>Distinguishes SQL IN null and member-evaluation semantics from literal CONTAINS.</summary>
+    public bool UsesSqlNullSemantics { get; init; }
+
+    public ExecutionMembershipBinding? TypedBinding { get; init; }
+
     internal ExecutionInCheck(
         ExecutionExpression expression,
         IReadOnlyList<ExecutionExpression> values,

@@ -36,6 +36,16 @@ public static partial class EvaluationHelper
         return newTable;
     }
 
+    public static Table GetQueryDescription(IEnumerable<QueryColumnDescription> columns)
+    {
+        ArgumentNullException.ThrowIfNull(columns);
+        var table = new Table("desc", [new Column("Name", typeof(string), 0),
+            new Column("Index", typeof(int), 1), new Column("Type", typeof(string), 2)]);
+        foreach (var column in columns)
+            table.AddUnchecked(new DescriptionColumnRow(column.Name, column.Index, column.TypeName));
+        return table;
+    }
+
     public static Table GetQueryDescription(IEnumerable<ISchemaColumn> columns)
     {
         ArgumentNullException.ThrowIfNull(columns);

@@ -36,7 +36,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -72,7 +72,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -125,8 +125,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Country", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
 
         var inspection = CompileSubqueryForInspection(query);

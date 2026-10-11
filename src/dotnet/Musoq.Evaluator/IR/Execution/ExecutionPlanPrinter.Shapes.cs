@@ -39,9 +39,6 @@ public static partial class ExecutionPlanPrinter
             case TableRowShape tableRow:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}TableRow [{tableRow.Alias}]");
                 break;
-            case ExpandoAdapterShape expando:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}ExpandoAdapter [{expando.Alias}: {expando.TypeName}]");
-                break;
             default:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}UnknownShape [{shape.GetType().Name}]");
                 break;
@@ -62,7 +59,6 @@ public static partial class ExecutionPlanPrinter
             GeneratedRowContextAccess generatedContext => $"generated row context {generatedContext.TypeName}[{generatedContext.Index.ToString(CultureInfo.InvariantCulture)}]",
             GeneratedRowTypeAccess generatedRow => $"generated row {generatedRow.TypeName}.{generatedRow.FieldName}",
             GeneratedRowNestedAccess generatedNested => $"generated row {generatedNested.TypeName}.{generatedNested.FieldName}.{generatedNested.PropertyPath}",
-            ExpandoDictionaryAccess expando => $"expando key \"{expando.Key}\"",
             PositionalAccess positional => $"position {positional.Index}",
             ContextAccess context => $"context {context.Index}",
             ReflectedMemberAccess reflected => $"reflected member {reflected.PropertyPath}",

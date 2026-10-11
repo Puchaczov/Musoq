@@ -108,10 +108,7 @@ public static class LogicalOperationVisitorHelper
     internal const int ContainsThreshold = 5;
 
     /// <summary>
-    ///     Processes an In operation. Small value lists (fewer than <see cref="ContainsThreshold"/>)
-    ///     are converted to a series of OR-ed equality checks for efficient short-circuit evaluation.
-    ///     Larger value lists are converted to a <see cref="ContainsNode"/> which generates an
-    ///     array-based Contains call, avoiding deeply nested expressions that hinder JIT optimization.
+    ///     Retains SQL membership as a distinct operation regardless of list size.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -131,32 +128,7 @@ public static class LogicalOperationVisitorHelper
         if (right.Args == null)
             throw new ArgumentException("ArgsListNode arguments cannot be null");
 
-        if (right.Args.Length == 0)
-        {
-            nodes.Push(new BooleanNode(false).WithSpan(span));
-            return;
-        }
-
-        if (right.Args.Length >= ContainsThreshold)
-        {
-            nodes.Push(new ContainsNode(left, right).WithSpan(span));
-            return;
-        }
-
-        if (right.Args[0] == null)
-            throw new ArgumentException("Arguments in ArgsListNode cannot be null");
-
-        Node exp = new EqualityNode(left, right.Args[0]).WithSpan(span);
-
-        for (var i = 1; i < right.Args.Length; i++)
-        {
-            if (right.Args[i] == null)
-                throw new ArgumentException($"Argument at index {i} in ArgsListNode cannot be null");
-
-            exp = new OrNode(exp, new EqualityNode(left, right.Args[i]).WithSpan(span)).WithSpan(span);
-        }
-
-        nodes.Push(exp);
+        nodes.Push(new InNode(left, right).WithSpan(span));
     }
 
     private static void ValidateBinaryOperation(Stack<Node> nodes)

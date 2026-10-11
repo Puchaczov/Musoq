@@ -9,6 +9,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationClrTypeWithIntendedName(
         TypeAnnotationNode typeAnnotation)
     {
+        if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
+            return ResolveTypeAnnotationClrTypeWithIntendedName(substream.Target);
+
         if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
             return ResolveSchemaReferenceTypeWithIntendedName(schemaRef);
 

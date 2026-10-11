@@ -11,7 +11,18 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionMaterializeList materialize,
         ExecutionRenderContext context)
     {
-        if (context.Session.UseDirectTypedStoredRowsAlias &&
+        if (materialize.GeneratedRowShape != null &&
+            materialize.Source is ExecutionStoredTableRows columnarStoredRows &&
+            TryGetTypedStoredTableResult(columnarStoredRows.TableIndex, materialize.GeneratedRowShape, context, out var storedResult) &&
+            storedResult.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer)
+        {
+            return CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                materialize.Buffer.Name,
+                RenderExpression(materialize.Source, context));
+        }
+
+        if (context.Session.ReuseStoredRows &&
             materialize.GeneratedRowShape != null &&
             materialize.Source is ExecutionStoredTableRows storedRows &&
             TryGetTypedStoredTableResult(storedRows.TableIndex, materialize.GeneratedRowShape, context, out _))
@@ -215,81 +226,6 @@ public sealed partial class ExecutionCSharpRenderer
             method);
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeExpandoList(
-        ExecutionMaterializeExpandoList materialize,
-        ExecutionRenderContext context)
-    {
-        var bufferDeclaration = CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            materialize.Buffer.Name,
-            SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(materialize.Shape.TypeName))
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
-        var resolverName = CreateExpandoResolverVariableName(materialize.Shape.Alias);
-        var adapterDeclaration = CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            materialize.Shape.Alias,
-            CreateExpandoAdapterCreation(resolverName, materialize.Shape));
-        var addStatement = CreateListAddStatement(materialize.Buffer.Name, materialize.Shape.Alias);
-        var loopStatements = new List<StatementSyntax> { adapterDeclaration };
-
-        if (materialize.Predicate == null)
-        {
-            loopStatements.Add(addStatement);
-        }
-        else
-        {
-            loopStatements.Add(StatementEmitter.CreateIf(
-                this.RenderBooleanCondition(materialize.Predicate, context),
-                StatementEmitter.CreateBlock(addStatement)));
-        }
-
-        var loop = StatementEmitter.CreateForeach(
-            resolverName,
-            RenderExpression(materialize.Source, context),
-            StatementEmitter.CreateBlock(loopStatements));
-
-        return [bufferDeclaration, loop];
-    }
-
-    private IEnumerable<StatementSyntax> RenderMaterializeChunkedExpandoList(
-        ExecutionMaterializeExpandoList materialize,
-        ExecutionRenderContext context)
-    {
-        var bufferDeclaration = CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            materialize.Buffer.Name,
-            SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(materialize.Shape.TypeName))
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
-        var resolverName = CreateExpandoResolverVariableName(materialize.Shape.Alias);
-        var adapterDeclaration = CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            materialize.Shape.Alias,
-            CreateExpandoAdapterCreation(resolverName, materialize.Shape));
-        var addStatement = CreateListAddStatement(materialize.Buffer.Name, materialize.Shape.Alias);
-        var loopStatements = new List<StatementSyntax> { adapterDeclaration };
-
-        if (materialize.Predicate == null)
-        {
-            loopStatements.Add(addStatement);
-        }
-        else
-        {
-            loopStatements.Add(StatementEmitter.CreateIf(
-                this.RenderBooleanCondition(materialize.Predicate, context),
-                StatementEmitter.CreateBlock(addStatement)));
-        }
-
-        return
-        [
-            bufferDeclaration,
-            CreateChunkedMaterializationLoop(
-                materialize.Source,
-                new ExecutionVariable(resolverName, materialize.Shape.RuntimeType),
-                StatementEmitter.CreateBlock(loopStatements),
-                context)
-        ];
-    }
-
     private StatementSyntax CreateChunkedMaterializationLoop(
         ExecutionExpression source,
         ExecutionVariable item,
@@ -311,11 +247,6 @@ public sealed partial class ExecutionCSharpRenderer
     private static Type ResolveMaterializedElementType(ExecutionMaterializeFilteredList materialize)
     {
         return materialize.Item.Type.RequireClrType();
-    }
-
-    private static string CreateExpandoResolverVariableName(string alias)
-    {
-        return $"{alias}Resolver";
     }
 
     private static ExpressionStatementSyntax CreateListAddStatement(string listName, string valueName)

@@ -1,0 +1,728 @@
+﻿// === Parsed Query ===
+/*
+with patterns as (
+    select p1.Id, p1.Pattern
+    from values {
+        (Id: 'todo', Pattern: 'TODO'),
+        (Id: 'fixme', Pattern: 'FIXME'),
+    } p1
+), numbers as (
+    select p2.Value
+    from values {
+        (Value: 1),
+        (Value: 2),
+    } p2
+)
+select m.PatternId, n.Value
+from #inputs.match('TODO FIXME', patterns: patterns) m
+cross join #inputs.numbers(values: numbers) n
+*/
+
+// === Logical Plan ===
+/*
+Cte
+  Definition [patterns]
+    MultiStatement
+      Project [p1.Id as Id, p1.Pattern as Pattern]
+        ValuesScan [2 rows as p1]
+  Definition [numbers]
+    MultiStatement
+      Project [p2.Value as Value]
+        ValuesScan [2 rows as p2]
+  Query
+    MultiStatement
+      Project [m.PatternId as m.PatternId, n.Value as n.Value]
+        Join [Cross] [TRUE]
+          SchemaScan [#inputs.match('TODO FIXME', CTE(patterns)) as m]
+          SchemaScan [#inputs.numbers(CTE(numbers)) as n]
+      Project [m.PatternId as PatternId, n.Value as Value]
+        CteRef [mn as mn]
+*/
+
+// === Physical Plan ===
+/*
+PhysicalCte
+  Definition [patterns]
+    PhysicalMultiStatement
+      PhysicalProject [p1.Id as Id, p1.Pattern as Pattern]
+        PhysicalValuesScan [2 rows as p1]
+  Definition [numbers]
+    PhysicalMultiStatement
+      PhysicalProject [p2.Value as Value]
+        PhysicalValuesScan [2 rows as p2]
+  Query
+    PhysicalMultiStatement
+      PhysicalProject [m.PatternId as m.PatternId, n.Value as n.Value]
+        PhysicalNestedLoopJoin [Cross] [TRUE]
+          PhysicalSchemaScan [#inputs.match('TODO FIXME', CTE(patterns)) as m]
+          PhysicalSchemaScan [#inputs.numbers(CTE(numbers)) as n]
+      PhysicalProject [m.PatternId as PatternId, n.Value as Value]
+        PhysicalCteRef [mn as mn]
+*/
+
+// === Execution Plan ===
+/*
+ExecutionPlan [compiled]
+  Shapes
+    UnknownShape [ValuesRowShape]
+      Id: string <- field Id
+      Pattern: string <- field Pattern
+    Generated [Cte0Row0]
+      Id: string <- field Id
+      Pattern: string <- field Pattern
+    UnknownShape [ValuesRowShape]
+      Value: int <- field Value
+    Generated [Cte1Row0]
+      Value: int <- field Value
+    SourceEntity [m: PatternMatchRow]
+      PatternId: string <- property PatternId
+    SourceEntity [n: NumberRow]
+      Value: int <- property Value
+    Generated [ResultRow0]
+      PatternId: string <- field PatternId
+      Value: int <- field Value
+  StoredTableRepresentations
+    [0] GeneratedRowList; row=Cte0Row0; ownership=ConstructFresh; lifetime=Execution
+    [1] GeneratedRowList; row=Cte1Row0; ownership=Copy; lifetime=Execution
+  StructuralPreparation
+    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { ReturnType = string, Value = string:006C00690074006500720061006C }
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    ParallelBlock [cte-level-0, tasks 2, maxDegree 2]
+      ParallelTask [patterns -> __parallelCteLevel0Task0Result]
+        PhaseBoundary [Begin:cte0]
+        PhaseBoundary [From:cte0]
+        CreateValuesRows [cte0_p1Rows: p1Values23663CDFRow0 x 2]
+        CreateTable [cte0: Cte0Row0]
+        PhaseBoundary [Select:cte0]
+        ForEach [p1 in cte0_p1Rows]
+          AppendRow [cte0 <- Cte0Row0(Id: p1.Id, Pattern: p1.Pattern)]
+        Assign [__parallelCteLevel0Task0Result = cte0]
+        PhaseBoundary [End:cte0]
+      ParallelTask [numbers -> __parallelCteLevel0Task1Result]
+        PhaseBoundary [Begin:cte1]
+        PhaseBoundary [From:cte1]
+        CreateValuesRows [cte1_p2Rows: p2Values992C6A43Row0 x 2]
+        CreateTable [cte1: Cte1Row0]
+        PhaseBoundary [Select:cte1]
+        ForEach [p2 in cte1_p2Rows]
+          AppendRow [cte1 <- Cte1Row0(Value: p2.Value)]
+        Assign [__parallelCteLevel0Task1Result = cte1]
+        PhaseBoundary [End:cte1]
+      ParallelMerge
+        StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0: List<Cte0Row0>]
+        StoreTable [__parallelCteLevel0Task1Result -> _cteRowResults.Slot1: List<Cte1Row0>]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte2]
+    SourceScan [m: PatternMatchRow] -> mRows
+    SourceScan [n: NumberRow] -> nRows
+    CreateShapeRows [result: ResultRow0 from ResultRow0]
+    MaterializeChunked [nRows -> nRowsBuffer]
+    ChunkedForEach [m in mRows]
+      Let [mPatternId: string = m.PatternId]
+      ForEach [n in nRowsBuffer]
+        AppendShape [result <- ResultRow0(PatternId: mPatternId, Value: n.Value)]
+    PhaseBoundary [End:cte2]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
+*/
+
+// === Generated C# ===
+
+// === SyntaxTree:  ===
+namespace GeneratedSample_Q346_StructuredParallelCteArguments
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
+    using Musoq.Schema;
+    using Musoq.Schema.Optimization;
+    using Musoq.Evaluator;
+    using Musoq.Evaluator.Tables;
+    using Musoq.Evaluator.Helpers;
+    using Musoq.Evaluator.Runtime;
+    using Musoq.Schema.DataSources;
+    using System.Linq;
+
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    {
+        private static readonly Column[] __columns_compiled_cte0_0 = new Column[]
+        {
+            new Column("Id", typeof(string), 0),
+            new Column("Pattern", typeof(string), 1)
+        };
+        private static readonly Column[] __columns_compiled_cte1_1 = new Column[]
+        {
+            new Column("Value", typeof(int), 0)
+        };
+        private static readonly Column[] __columns_compiled_result_4 = new Column[]
+        {
+            new Column("PatternId", typeof(string), 0),
+            new Column("Value", typeof(int), 1)
+        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_m_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("PatternId", typeof(string), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_n_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Value", typeof(int), 0) });
+        public ILogger Logger { get; set; }
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
+        public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
+        public ISchemaProvider Provider { get; set; }
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
+
+        public event DataSourceEventHandler DataSourceProgress;
+        public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
+        public Table Run(CancellationToken token)
+        {
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_4, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+        }
+
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
+            {
+                yield return __musoqShapeRow;
+            }
+        }
+
+        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
+            try
+            {
+                var _cteRowResults = new CteRowResults();
+                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultRow0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                List<Cte0Row0> __parallelCteLevel0Task0Result = null;
+                List<Cte1Row0> __parallelCteLevel0Task1Result = null;
+                var cteLevel0Runner = new CteLevel0Runner(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                Parallel.Invoke(new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = 2 }, cteLevel0Runner.RunCteLevel0Task0, cteLevel0Runner.RunCteLevel0Task1);
+                token.ThrowIfCancellationRequested();
+                __parallelCteLevel0Task0Result = cteLevel0Runner.Task0Result;
+                __parallelCteLevel0Task1Result = cteLevel0Runner.Task1Result;
+                _cteRowResults.Slot0 = __parallelCteLevel0Task0Result;
+                _cteRowResults.Slot1 = __parallelCteLevel0Task1Result;
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+                try
+                {
+                    var __mSchema = provider.GetSchema("#inputs");
+                    var mRowsSourceContext = new SourceExecutionContext("m:3", sourceExecutionPlans["m:3"], token, __schemaColumns_compiled_m_2, sourceRuntimeSettingsBySourceContextId["m:3"], logger, OnDataSourceProgress);
+                    Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> mRowsSource;
+                    try
+                    {
+                        Musoq.Examples.DataSources.StructuredInputs.MatchSource mRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_bf092b5d455e98b0("TODO FIXME", token), __musoqPrepareCte_58d3d7af1e4c1fc9(_cteRowResults.Slot0, token), mRowsSourceContext);
+                        mRowsSource = DataSourceLifecycle.OpenTypedRowSource<Musoq.Examples.DataSources.StructuredInputs.MatchSource, Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(__mSchema, "match", mRowsSourceInstance, mRowsSourceContext, "#inputs", "m", "m:3");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (global::Musoq.Schema.Exceptions.DataSourceLifecycleException)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        throw global::Musoq.Schema.Exceptions.DataSourceLifecycleException.ForOpen("#inputs", "match", "m", "m:3", exception);
+                    }
+
+                    var mRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(mRowsSource.Chunks, __musoqProgressContext, "m:3") : mRowsSource.Chunks;
+                    var __nSchema = provider.GetSchema("#inputs");
+                    var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_3, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress);
+                    Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.NumberRow> nRowsSource;
+                    try
+                    {
+                        Musoq.Examples.DataSources.StructuredInputs.NumbersSource nRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.NumbersSource(__musoqPrepareCte_0f62f7df03ef7c5f(_cteRowResults.Slot1, token), nRowsSourceContext);
+                        nRowsSource = DataSourceLifecycle.OpenTypedRowSource<Musoq.Examples.DataSources.StructuredInputs.NumbersSource, Musoq.Examples.DataSources.StructuredInputs.NumberRow>(__nSchema, "numbers", nRowsSourceInstance, nRowsSourceContext, "#inputs", "n", "n:3");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (global::Musoq.Schema.Exceptions.DataSourceLifecycleException)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        throw global::Musoq.Schema.Exceptions.DataSourceLifecycleException.ForOpen("#inputs", "numbers", "n", "n:3", exception);
+                    }
+
+                    var nRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Examples.DataSources.StructuredInputs.NumberRow>(nRowsSource.Chunks, __musoqProgressContext, "n:3") : nRowsSource.Chunks;
+                    var nRowsBuffer = EvaluationHelper.MaterializeChunkedRows(nRows);
+                    foreach (var mChunk in mRows)
+                    {
+                        if (mChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> mChunkView)
+                        {
+                            if (mChunkView.Source is Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow[] mChunkViewArray)
+                            {
+                                int mChunkViewOffset = mChunkView.Offset;
+                                for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
+                                {
+                                    if ((mIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var m = mChunkViewArray[mChunkViewOffset + mIndex];
+                                    string mPatternId = m.PatternId;
+                                    foreach (var n in nRowsBuffer)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        __musoqFinalShapeRows.Add(new ResultRow0(mPatternId, n.Value));
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (mChunkView.Source is List<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> mChunkViewList)
+                            {
+                                int mChunkViewOffset = mChunkView.Offset;
+                                for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
+                                {
+                                    if ((mIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var m = mChunkViewList[mChunkViewOffset + mIndex];
+                                    string mPatternId = m.PatternId;
+                                    foreach (var n in nRowsBuffer)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        __musoqFinalShapeRows.Add(new ResultRow0(mPatternId, n.Value));
+                                    }
+                                }
+
+                                continue;
+                            }
+                        }
+
+                        for (int mIndex = 0, mIndexCount = mChunk.Count; mIndex < mIndexCount; ++mIndex)
+                        {
+                            if ((mIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var m = mChunk[mIndex];
+                            string mPatternId = m.PatternId;
+                            foreach (var n in nRowsBuffer)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                __musoqFinalShapeRows.Add(new ResultRow0(mPatternId, n.Value));
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte2", QueryPhase.End);
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+        {
+            DataSourceProgress?.Invoke(this, e);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnPhaseChanged(string queryId, QueryPhase phase)
+        {
+            PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static List<Cte0Row0> BuildCteLevel0Task0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        {
+            List<Cte0Row0> __parallelCteLevel0Task0Result = null;
+            token.ThrowIfCancellationRequested();
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            List<Cte0Row0> cte0 = null!;
+            try
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.From);
+                p1Values23663CDFRow0[] cte0_p1Rows = new p1Values23663CDFRow0[]
+                {
+                    new p1Values23663CDFRow0("todo", "TODO"),
+                    new p1Values23663CDFRow0("fixme", "FIXME")
+                };
+                cte0 = new List<Cte0Row0>();
+                OnPhaseChanged("compiled:cte0", QueryPhase.Select);
+                foreach (var p1 in cte0_p1Rows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    cte0.Add(new Cte0Row0(p1.Id, p1.Pattern));
+                }
+
+                __parallelCteLevel0Task0Result = cte0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
+
+            return __parallelCteLevel0Task0Result;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static List<Cte1Row0> BuildCteLevel0Task1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        {
+            List<Cte1Row0> __parallelCteLevel0Task1Result = null;
+            token.ThrowIfCancellationRequested();
+            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+            List<Cte1Row0> cte1 = null!;
+            try
+            {
+                OnPhaseChanged("compiled:cte1", QueryPhase.From);
+                p2Values992C6A43Row0[] cte1_p2Rows = new p2Values992C6A43Row0[]
+                {
+                    new p2Values992C6A43Row0(1),
+                    new p2Values992C6A43Row0(2)
+                };
+                cte1 = new List<Cte1Row0>();
+                OnPhaseChanged("compiled:cte1", QueryPhase.Select);
+                foreach (var p2 in cte1_p2Rows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    cte1.Add(new Cte1Row0(p2.Value));
+                }
+
+                __parallelCteLevel0Task1Result = cte1;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte1", QueryPhase.End);
+            }
+
+            return __parallelCteLevel0Task1Result;
+        }
+
+        private static string __musoqCheckStructural_bf092b5d455e98b0(string value, System.Threading.CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            long __musoqStructuralNodes = 0L;
+            long __musoqStructuralStrings = 0L;
+            int __musoqStructuralMaxDepth = 0;
+            __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+            if (1 > __musoqStructuralMaxDepth)
+                __musoqStructuralMaxDepth = 1;
+            if (value != null)
+                __musoqStructuralStrings = checked(__musoqStructuralStrings + checked((long)value.Length * 2L));
+            global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded("inline", "m.argument[0]", new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics(__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), 32, 100000L, 67108864L, token, "m:3");
+            return value;
+        }
+
+        private static int[] __musoqPrepareCte_0f62f7df03ef7c5f(IReadOnlyList<Cte1Row0>? rows, CancellationToken token)
+        {
+            {
+                token.ThrowIfCancellationRequested();
+                long __musoqStructuralNodes = 0L;
+                long __musoqStructuralStrings = 0L;
+                int __musoqStructuralMaxDepth = 0;
+                __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                if (1 > __musoqStructuralMaxDepth)
+                    __musoqStructuralMaxDepth = 1;
+                if (rows is not null)
+                {
+                    for (var __musoqStructural_cteIndex0 = 0; __musoqStructural_cteIndex0 < rows.Count; __musoqStructural_cteIndex0++)
+                    {
+                        if ((__musoqStructural_cteIndex0 & 1023) == 0)
+                            token.ThrowIfCancellationRequested();
+                        var __musoqStructural_cteRow1 = rows[__musoqStructural_cteIndex0];
+                        __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                        if (2 > __musoqStructuralMaxDepth)
+                            __musoqStructuralMaxDepth = 2;
+                    }
+                }
+
+                global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded("cte", "n.argument[0]", new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics(__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), 32, 100000L, 67108864L, token, "n:3");
+            }
+
+            if (rows is null || rows.Count == 0)
+                return System.Array.Empty<int>();
+            token.ThrowIfCancellationRequested();
+            var result = new int[rows.Count];
+            for (var index = 0; index < rows.Count; index++)
+            {
+                token.ThrowIfCancellationRequested();
+                var row = rows[index];
+                result[index] = row.Value;
+            }
+
+            return result;
+        }
+
+        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_58d3d7af1e4c1fc9(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
+        {
+            {
+                token.ThrowIfCancellationRequested();
+                long __musoqStructuralNodes = 0L;
+                long __musoqStructuralStrings = 0L;
+                int __musoqStructuralMaxDepth = 0;
+                __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                if (1 > __musoqStructuralMaxDepth)
+                    __musoqStructuralMaxDepth = 1;
+                if (rows is not null)
+                {
+                    for (var __musoqStructural_cteIndex0 = 0; __musoqStructural_cteIndex0 < rows.Count; __musoqStructural_cteIndex0++)
+                    {
+                        if ((__musoqStructural_cteIndex0 & 1023) == 0)
+                            token.ThrowIfCancellationRequested();
+                        var __musoqStructural_cteRow1 = rows[__musoqStructural_cteIndex0];
+                        __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                        if (2 > __musoqStructuralMaxDepth)
+                            __musoqStructuralMaxDepth = 2;
+                        __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                        if (3 > __musoqStructuralMaxDepth)
+                            __musoqStructuralMaxDepth = 3;
+                        if (__musoqStructural_cteRow1.Id != null)
+                            __musoqStructuralStrings = checked(__musoqStructuralStrings + checked((long)__musoqStructural_cteRow1.Id.Length * 2L));
+                        __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                        if (3 > __musoqStructuralMaxDepth)
+                            __musoqStructuralMaxDepth = 3;
+                        if (__musoqStructural_cteRow1.Pattern != null)
+                            __musoqStructuralStrings = checked(__musoqStructuralStrings + checked((long)__musoqStructural_cteRow1.Pattern.Length * 2L));
+                        __musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);
+                        if (3 > __musoqStructuralMaxDepth)
+                            __musoqStructuralMaxDepth = 3;
+                        if ("literal" != null)
+                            __musoqStructuralStrings = checked(__musoqStructuralStrings + checked((long)"literal".Length * 2L));
+                    }
+                }
+
+                global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded("cte", "m.argument[1]", new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics(__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), 32, 100000L, 67108864L, token, "m:3");
+            }
+
+            if (rows is null || rows.Count == 0)
+                return System.Array.Empty<Musoq.Examples.DataSources.StructuredInputs.PatternInput>();
+            token.ThrowIfCancellationRequested();
+            var result = new Musoq.Examples.DataSources.StructuredInputs.PatternInput[rows.Count];
+            for (var index = 0; index < rows.Count; index++)
+            {
+                token.ThrowIfCancellationRequested();
+                var row = rows[index];
+                result[index] = new Musoq.Examples.DataSources.StructuredInputs.PatternInput(row.Id, row.Pattern, "literal");
+            }
+
+            return result;
+        }
+
+        private sealed class Cte0Row0
+        {
+            public Cte0Row0(string __value0, string __value1)
+            {
+                Id = __value0;
+                Pattern = __value1;
+            }
+
+            public string Id { get; }
+            public string Pattern { get; }
+        }
+
+        private sealed class Cte1Row0
+        {
+            public Cte1Row0(int __value0)
+            {
+                Value = __value0;
+            }
+
+            public int Value { get; }
+        }
+
+        private sealed class CteLevel0Runner
+        {
+            private readonly CteRowResults _cteRowResults;
+            private readonly Microsoft.Extensions.Logging.ILogger _logger;
+            private readonly QueryRunContext? _musoqProgressContext;
+            private readonly Musoq.Schema.DataSourceEventHandler _onDataSourceProgress;
+            private readonly Action<string, QueryPhase> _onPhaseChanged;
+            private readonly Musoq.Evaluator.QueryProgressEventHandler _onQueryProgress;
+            private readonly Musoq.Schema.ISchemaProvider _provider;
+            private readonly IReadOnlyDictionary<string, SourceExecutionPlan> _sourceExecutionPlans;
+            private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _sourceRuntimeSettingsBySourceContextId;
+            private readonly CancellationToken _token;
+            public CteLevel0Runner(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+            {
+                _provider = provider;
+                _sourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId;
+                _sourceExecutionPlans = sourceExecutionPlans;
+                _logger = logger;
+                _token = token;
+                _musoqProgressContext = __musoqProgressContext;
+                _onDataSourceProgress = OnDataSourceProgress;
+                _onQueryProgress = OnQueryProgress;
+                _onPhaseChanged = OnPhaseChanged;
+                this._cteRowResults = _cteRowResults;
+            }
+
+            public List<Cte0Row0> Task0Result { get; private set; }
+            public List<Cte1Row0> Task1Result { get; private set; }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public void RunCteLevel0Task0()
+            {
+                Task0Result = BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteRowResults);
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public void RunCteLevel0Task1()
+            {
+                Task1Result = BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteRowResults);
+            }
+        }
+
+        private sealed class CteRowResults
+        {
+            public List<Cte0Row0> Slot0;
+            public List<Cte1Row0> Slot1;
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(string __value0, int __value1)
+            {
+                PatternId = __value0;
+                Value = __value1;
+            }
+
+            public override int Count => 2;
+            public string PatternId { get; private set; }
+            public int Value { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.PatternId = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Value = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.PatternId),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Value),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "PatternId" => true,
+                "Value" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.PatternId, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Value, ref visitor);
+            }
+        }
+
+        private sealed class p1Values23663CDFRow0 : Row
+        {
+            public p1Values23663CDFRow0(string __value0, string __value1)
+            {
+                Id = __value0;
+                Pattern = __value1;
+            }
+
+            public override int Count => 2;
+            public string Id { get; private set; }
+            public string Pattern { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Pattern = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Pattern),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Pattern" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Pattern, ref visitor);
+            }
+        }
+
+        private sealed class p2Values992C6A43Row0 : Row
+        {
+            public p2Values992C6A43Row0(int __value0)
+            {
+                Value = __value0;
+            }
+
+            public override int Count => 1;
+            public int Value { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Value = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Value),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Value" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Value, ref visitor);
+            }
+        }
+    }
+}

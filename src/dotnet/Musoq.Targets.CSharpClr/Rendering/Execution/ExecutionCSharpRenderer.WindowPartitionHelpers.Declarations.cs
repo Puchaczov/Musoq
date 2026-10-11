@@ -18,17 +18,6 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(CreateArgumentList(CreateBufferCountExpression(buffer))));
     }
 
-    private static LocalDeclarationStatementSyntax CreatePartitionCountBuilderDeclaration(
-        ExecutionVariable builder,
-        ExecutionVariable buffer)
-    {
-        return CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            builder.Name,
-            SyntaxFactory.ObjectCreationExpression(CreateVariableTypeSyntax(builder))
-                .WithArgumentList(CreateArgumentList(CreateBufferCountExpression(buffer))));
-    }
-
     private static LocalDeclarationStatementSyntax CreateWindowPartitionBuilderDeclaration(
         ExecutionVariable partitionBuilder,
         ExecutionVariable buffer)
@@ -84,44 +73,6 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.IdentifierName(builder.Name),
                         SyntaxFactory.IdentifierName(nameof(WindowIntOrderBuilder.Add))))
                 .WithArgumentList(CreateArgumentList(arguments.ToArray())));
-    }
-
-    private IEnumerable<StatementSyntax> CreatePartitionCountBuilderAddStatements(
-        ExecutionVariable builder,
-        ExecutionWindowKeyArray partitionKeys,
-        ExecutionWindowAggregateKernel kernel,
-        string indexVariableName)
-    {
-        var valueExpression = RenderExpression(kernel.Value);
-        var valuePresent = CreateWindowAggregateValuePresentExpression(
-            valueExpression,
-            kernel.Descriptor.InputType.RequireClrType());
-
-        if (IsTrueLiteral(valuePresent))
-            yield return CreateDiscardAssignment(CastIfNeeded(valueExpression, kernel.Descriptor.InputType));
-
-        var partitionKey = kernel.PartitionKey ??
-                           throw new InvalidOperationException("Partition count builder requires a partition key expression.");
-        var partitionKeyType = GetArrayElementType(partitionKeys.Variable);
-        var addMethodName = HasGeneratedWindowKeyType(partitionKeys) || partitionKeyType.IsValueType
-            ? nameof(WindowPartitionCountBuilder<object>.AddUnchecked)
-            : nameof(WindowPartitionCountBuilder<object>.AddReferenceUnchecked);
-        var keyExpression = HasGeneratedWindowKeyType(partitionKeys)
-            ? CreateWindowPartitionKeyExpression(partitionKeys, partitionKey)
-            : CastIfNeededWhenRequired(
-                RenderExpression(partitionKey),
-                partitionKey.ReturnType.RequireClrType(),
-                partitionKeyType);
-        yield return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(builder.Name),
-                        SyntaxFactory.IdentifierName(addMethodName)))
-                .WithArgumentList(CreateArgumentList(
-                    keyExpression,
-                    valuePresent,
-                    SyntaxFactory.IdentifierName(indexVariableName))));
     }
 
     private static ExpressionSyntax CastIfNeededWhenRequired(

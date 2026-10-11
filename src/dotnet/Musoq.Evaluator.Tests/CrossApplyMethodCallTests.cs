@@ -27,7 +27,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -48,7 +48,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Lorem"], ["ipsum"], ["dolor"], ["sit"],
@@ -79,7 +79,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("b.Value", typeof(string)), ("c.Value", typeof(string)));
+            table, ("Value", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());
@@ -110,7 +110,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("b.Value", typeof(string)), ("c.Value", typeof(string)));
+            table, ("Value", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new[] { "1", "2" }.SelectMany(number => words.Select(word => new object?[] { number, word })).ToArray());
@@ -140,7 +140,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("b.Value", typeof(string)), ("c.Value", typeof(char)));
+            table, ("Value", typeof(string)), ("Value", typeof(char)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             words.SelectMany(word => word.Select(character => new object?[] { word, character })).ToArray());
@@ -167,7 +167,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var expectedWords = inputText.Split(' ')
             .Skip(1)
             .ToList();
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table, expectedWords.Select(word => new object?[] { word }).ToArray());
     }
@@ -191,7 +191,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         var expectedWords = new[] { "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing" };
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table, expectedWords.Select(word => new object?[] { word }).ToArray());
     }
@@ -215,7 +215,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         var expectedWords = new[] { "consectetur", "adipiscing" };
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table, expectedWords.Select(word => new object?[] { word }).ToArray());
     }

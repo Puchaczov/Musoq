@@ -87,6 +87,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 return ConvertAggregateFinalBinaryExpression(binary, context);
             case UnaryOp unary:
                 return ConvertAggregateFinalUnaryExpression(unary, context);
+            case IsNullCheck isNull:
+                return ConvertAggregateFinalNullCheck(isNull, context);
             case AggregateRef aggregateRef:
                 return CreateAggregateFinalCall(aggregateRef.Identifier, context);
             case ColumnRef columnRef:
@@ -97,6 +99,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 return ConvertAggregateFinalStrictCast(strictCast, context);
             case PatternMatch patternMatch:
                 return AggregateFinalPatternMatchConversion.Convert(patternMatch, context);
+            case InCheck membership:
+                return AggregateFinalMembershipConversion.Convert(membership, context);
             default:
                 return LoweringAttempt<ExecutionExpression>.Unsupported(
                     $"Execution IR {context.AggregateKind} final expression lowering cannot convert expression {IrExpressionPrinter.Print(expression)}.");
@@ -134,6 +138,18 @@ internal sealed partial class PhysicalLoweringImplementation
             return operand;
 
         return LoweringAttempt<ExecutionExpression>.Built(new ExecutionUnary(unary.Kind, operand.Value, unary.ReturnType));
+    }
+
+    private static LoweringAttempt<ExecutionExpression> ConvertAggregateFinalNullCheck(
+        IsNullCheck isNull,
+        AggregateFinalizationContext context)
+    {
+        var expression = ConvertAggregateFinalExpression(isNull.Expression, context);
+        if (!expression.IsBuilt)
+            return expression;
+
+        return LoweringAttempt<ExecutionExpression>.Built(new ExecutionIsNullCheck(
+            expression.Value, isNull.IsNegated, isNull.ReturnType));
     }
 
     private static LoweringAttempt<ExecutionExpression> ConvertAggregateFinalStrictCast(

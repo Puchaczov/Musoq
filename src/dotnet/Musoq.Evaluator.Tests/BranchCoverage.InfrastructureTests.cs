@@ -161,121 +161,121 @@ public partial class BranchCoverageImprovementTests
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullObject_ShouldReturnDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_NullObject_ShouldReturnDefault()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(null, 0, typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int[], int>(null, 0);
 
         Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullIndex_ShouldReturnDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_NullIndex_ShouldReturnDefault()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(new[] { 1, 2 }, null, typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int[], int>(new[] { 1, 2 }, null);
 
         Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_String_ShouldReturnChar()
+    public void SafeArrayAccess_TypedIndexedAccess_String_ShouldReturnChar()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement("abc", 1, typeof(char));
+        var result = Helpers.SafeArrayAccess.GetTypedStringCharacter("abc", 1);
 
         Assert.AreEqual('b', result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Array_ShouldReturnElement()
+    public void SafeArrayAccess_TypedIndexedAccess_Array_ShouldReturnElement()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(new[] { 10, 20, 30 }, 1, typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int[], int>(new[] { 10, 20, 30 }, 1);
 
         Assert.AreEqual(20, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Array_NegativeIndex_ShouldWrapAround()
+    public void SafeArrayAccess_TypedIndexedAccess_Array_NegativeIndex_ShouldWrapAround()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(new[] { 10, 20, 30 }, -1, typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int[], int>(new[] { 10, 20, 30 }, -1);
 
         Assert.AreEqual(30, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Array_OutOfBounds_ShouldReturnDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_Array_OutOfBounds_ShouldReturnDefault()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(new[] { 10 }, 5, typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int[], int>(new[] { 10 }, 5);
 
         Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_EmptyArray_ShouldReturnDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_EmptyArray_ShouldReturnDefault()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(Array.Empty<int>(), 0, typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int[], int>(Array.Empty<int>(), 0);
 
         Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_DictionaryByStringKey_ShouldReturnValue()
+    public void SafeArrayAccess_TypedIndexedAccess_DictionaryByStringKey_ShouldReturnValue()
     {
         var dict = new Dictionary<string, int> { ["hello"] = 42 };
 
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(dict, "hello", typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(dict, "hello");
 
         Assert.AreEqual(42, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_DictionaryMissingKey_ShouldReturnDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_DictionaryMissingKey_ShouldReturnDefault()
     {
         var dict = new Dictionary<string, int> { ["hello"] = 42 };
 
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(dict, "missing", typeof(int));
+        var result = Helpers.SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(dict, "missing");
 
         Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullableType_ShouldReturnNull()
+    public void SafeArrayAccess_TypedIndexedAccess_NullableType_ShouldReturnNull()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(null, 0, typeof(int?));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<int?[], int?>(null, 0);
 
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_ReferenceType_ShouldReturnNull()
+    public void SafeArrayAccess_TypedIndexedAccess_ReferenceType_ShouldReturnNull()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(null, 0, typeof(string));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<string[], string>(null, 0);
 
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullElementType_ShouldReturnNull()
+    public void SafeArrayAccess_TypedIndexedAccess_NullElementType_ShouldReturnNull()
     {
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(null, 0, null);
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<string[], string>(null, 0);
 
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_ListWithIndexer_ShouldReturnElement()
+    public void SafeArrayAccess_TypedIndexedAccess_ListWithIndexer_ShouldReturnElement()
     {
         var list = new List<string> { "a", "b", "c" };
 
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(list, 1, typeof(string));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<List<string>, string>(list, 1);
 
         Assert.AreEqual("b", result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_ListWithOutOfBoundsIndexer_ShouldReturnDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_ListWithOutOfBoundsIndexer_ShouldReturnDefault()
     {
         var list = new List<string> { "a" };
 
-        var result = Helpers.SafeArrayAccess.GetIndexedElement(list, 99, typeof(string));
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<List<string>, string>(list, 99);
 
         Assert.IsNull(result);
     }

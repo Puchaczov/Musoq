@@ -117,16 +117,16 @@ asof join #B.entities() b on b.Population >= a.Population";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (string)r[0]).ToList();
+        var rows = table.OrderBy(r => (string)r.ReadValue(0)).ToList();
 
         // b.Population >= a.Population: find smallest right key >= left probe
         // A1 (10) -> B1 (20) — smallest B >= 10
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B1", rows[0][1]);
+        Assert.AreEqual("A1", rows[0].ReadValue(0));
+        Assert.AreEqual("B1", rows[0].ReadValue(1));
 
         // A2 (50) -> B2 (60) — smallest B >= 50
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.AreEqual("B2", rows[1][1]);
+        Assert.AreEqual("A2", rows[1].ReadValue(0));
+        Assert.AreEqual("B2", rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -162,8 +162,8 @@ asof join #B.entities() b on a.Population >= b.Population";
         Assert.AreEqual(1, table.Count);
 
         // A1 (100) should match one of B1/B2 (both 90) — the closest keys
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual(90m, (decimal)table[0][2]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual(90m, (decimal)table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -195,15 +195,15 @@ asof left join #B.entities() b on a.NullableValue >= b.NullableValue";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var rows = table.OrderBy(r => (string)r[0]).ToList();
+        var rows = table.OrderBy(r => (string)r.ReadValue(0)).ToList();
 
         // A2 (50) >= B1 (30) — match
-        var a2Row = rows.First(r => (string)r[0] == "A2");
-        Assert.AreEqual("B1", a2Row[1]);
+        var a2Row = rows.First(r => (string)r.ReadValue(0) == "A2");
+        Assert.AreEqual("B1", a2Row.ReadValue(1));
 
         // A1 (null) — null probe should not match, left join returns nulls
-        var a1Row = rows.First(r => (string)r[0] == "A1");
-        Assert.IsNull(a1Row[1]);
+        var a1Row = rows.First(r => (string)r.ReadValue(0) == "A1");
+        Assert.IsNull(a1Row.ReadValue(1));
     }
 
     [TestMethod]
@@ -241,9 +241,9 @@ asof join #C.entities() c on a.Population >= c.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.AreEqual("C1", table[0][2]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
+        Assert.AreEqual("C1", table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -279,8 +279,8 @@ asof join #B.entities() b on a.Population > b.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual(10m, (decimal)table[0][2]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual(10m, (decimal)table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -315,8 +315,8 @@ asof join #B.entities() b on a.Population < b.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual(90m, (decimal)table[0][2]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual(90m, (decimal)table[0].ReadValue(2));
     }
 
     [TestMethod]

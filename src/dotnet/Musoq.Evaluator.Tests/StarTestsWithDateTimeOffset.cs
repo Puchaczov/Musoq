@@ -62,14 +62,14 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
         var createdAtIndex = table.Columns.ToList().IndexOf(createdAtColumn);
         var updatedAtIndex = table.Columns.ToList().IndexOf(updatedAtColumn);
 
-        Assert.AreEqual(1, table[0].Values[idIndex]);
-        Assert.AreEqual("Test1", table[0].Values[nameIndex]);
-        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 1, 1)), table[0].Values[createdAtIndex]);
-        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 1, 2)), table[0].Values[updatedAtIndex]);
+        Assert.AreEqual(1, table[0].ReadValues()[idIndex]);
+        Assert.AreEqual("Test1", table[0].ReadValues()[nameIndex]);
+        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 1, 1)), table[0].ReadValues()[createdAtIndex]);
+        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 1, 2)), table[0].ReadValues()[updatedAtIndex]);
 
-        Assert.AreEqual(2, table[1].Values[idIndex]);
-        Assert.AreEqual("Test2", table[1].Values[nameIndex]);
-        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[1].Values[createdAtIndex]);
-        Assert.IsNull(table[1].Values[updatedAtIndex]);
+        Assert.AreEqual(2, table[1].ReadValues()[idIndex]);
+        Assert.AreEqual("Test2", table[1].ReadValues()[nameIndex]);
+        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[1].ReadValues()[createdAtIndex]);
+        Assert.IsNull(table[1].ReadValues()[updatedAtIndex]);
     }
 }

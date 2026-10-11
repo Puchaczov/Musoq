@@ -16,10 +16,14 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("/// <summary>");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated nested interpreter for inline schema '{className}'.");
         builder.AppendLine("/// </summary>");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : BytesInterpreterBase<{className}>");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : BytesInterpreterBase<{className}>, global::Musoq.Plugins.IJsonPayload");
         builder.AppendLine("{");
+        builder.Append(PartialPayloadCodeEmitter.Members(className));
 
         var fields = inlineSchema.Fields;
+        builder.Append(PartialPayloadCodeEmitter.JsonMembers(fields
+            .Where(static field => field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
+            .Select(field => (field.Name, EscapeCSharpIdentifier(field.Name)))));
         foreach (var field in fields)
         {
             if (field.Name == "_") continue;
@@ -37,7 +41,7 @@ public partial class InterpreterCodeGenerator
                 : clrTypeName;
 
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    /// <summary>Gets the {field.Name} field value.</summary>");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {propertyTypeName} {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {propertyTypeName} {EscapeCSharpIdentifier(field.Name)} {{ get; set; }}");
             builder.AppendLine();
         }
 
@@ -57,6 +61,8 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("    {");
         builder.AppendLine("        InitializeParsePosition(data, offset);");
         builder.AppendLine("        SetCurrentField(null);");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        var __parsedValue = new {className}();");
+        builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
         foreach (var outerRef in outerRefs)
@@ -68,7 +74,6 @@ public partial class InterpreterCodeGenerator
         if (outerRefs.Count > 0)
             builder.AppendLine();
 
-        var fieldInitializers = new List<string>();
         foreach (var field in fields)
         {
             if (field is not FieldDefinitionNode parsedField) continue;
@@ -80,21 +85,12 @@ public partial class InterpreterCodeGenerator
 
             if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
             {
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(parsedField.Name)}\", {GetLocalVarName(parsedField.Name)});");
-                fieldInitializers.Add(
-                    $"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
+                AppendGeneratedLine(builder, $"        __parsedValue.{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)};");
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(parsedField.Name)}\");");
             }
         }
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        return new {className}");
-        builder.AppendLine("        {");
-        for (var i = 0; i < fieldInitializers.Count; i++)
-        {
-            var comma = i < fieldInitializers.Count - 1 ? "," : "";
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"            {fieldInitializers[i]}{comma}");
-        }
-
-        builder.AppendLine("        };");
+        builder.AppendLine("        return __parsedValue;");
         builder.AppendLine("    }");
 
         builder.AppendLine("}");

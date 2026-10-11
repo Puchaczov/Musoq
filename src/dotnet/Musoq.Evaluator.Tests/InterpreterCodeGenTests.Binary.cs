@@ -36,8 +36,8 @@ public partial class InterpreterCodeGenTests
 
         // Assert
         Assert.Contains("public sealed class Header : BytesInterpreterBase<Header>", code);
-        Assert.Contains("public int Magic { get; init; }", code);
-        Assert.Contains("public short Version { get; init; }", code);
+        Assert.Contains("public int Magic { get; set; }", code);
+        Assert.Contains("public short Version { get; set; }", code);
         Assert.Contains("ReadInt32Le(data)", code);
         Assert.Contains("ReadInt16Le(data)", code);
     }
@@ -105,7 +105,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public byte Flags { get; init; }", code);
+        Assert.Contains("public byte Flags { get; set; }", code);
         Assert.Contains("ReadByte(data)", code);
         Assert.DoesNotContain("ReadByteLE", code);
         Assert.DoesNotContain("ReadByteBE", code);
@@ -188,10 +188,10 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public int Magic { get; init; }", code);
-        Assert.Contains("public int Value { get; init; }", code);
+        Assert.Contains("public int Magic { get; set; }", code);
+        Assert.Contains("public int Value { get; set; }", code);
 
-        Assert.DoesNotContain("public byte _ { get; init; }", code);
+        Assert.DoesNotContain("public byte _ { get; set; }", code);
     }
 
     [TestMethod]
@@ -213,7 +213,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public byte[] Data { get; init; }", code);
+        Assert.Contains("public byte[] Data { get; set; }", code);
         Assert.Contains("ReadBytes(data, 16)", code);
     }
 
@@ -356,7 +356,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public byte[] Bytes { get; init; }",
+        Assert.Contains("public byte[] Bytes { get; set; }",
             code, $"Expected byte[] property but got:\n{code}");
         Assert.Contains("List<byte>",
             code, $"Expected List<byte> but got:\n{code}");
@@ -404,7 +404,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public Record[] Records { get; init; }",
+        Assert.Contains("public Record[] Records { get; set; }",
             code, $"Expected Record[] property but got:\n{code}");
         Assert.Contains("List<Record>",
             code, $"Expected List<Record> but got:\n{code}");

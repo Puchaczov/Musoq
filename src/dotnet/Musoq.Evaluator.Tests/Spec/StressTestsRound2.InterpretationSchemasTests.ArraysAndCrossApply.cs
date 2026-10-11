@@ -85,10 +85,10 @@ public partial class StressTestsRound2InterpretationSchemasTests
 
         // Only items with Tag<>0 pass filter
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual((byte)3, table[1][0]);
-        Assert.AreEqual(30, table[1][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual((byte)3, table[1].ReadValue(0));
+        Assert.AreEqual(30, table[1].ReadValue(1));
     }
 
     /// <summary>
@@ -142,12 +142,12 @@ public partial class StressTestsRound2InterpretationSchemasTests
 
         // Cat=1: 3 entries (10+15+25=50), Cat=2: 2 entries (20+30=50)
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(3, Convert.ToInt32(table[0][1]));
-        Assert.AreEqual((short)50, table[0][2]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[1][1]));
-        Assert.AreEqual((short)50, table[1][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(3, Convert.ToInt32(table[0].ReadValue(1)));
+        Assert.AreEqual((short)50, table[0].ReadValue(2));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual(2, Convert.ToInt32(table[1].ReadValue(1)));
+        Assert.AreEqual((short)50, table[1].ReadValue(2));
     }
 
     /// <summary>
@@ -184,10 +184,10 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual((short)10, table[0][2]);
-        Assert.AreEqual((short)20, table[1][2]);
-        Assert.AreEqual((short)30, table[2][2]);
-        Assert.AreEqual((short)40, table[3][2]);
+        Assert.AreEqual((short)10, table[0].ReadValue(2));
+        Assert.AreEqual((short)20, table[1].ReadValue(2));
+        Assert.AreEqual((short)30, table[2].ReadValue(2));
+        Assert.AreEqual((short)40, table[3].ReadValue(2));
     }
 
     /// <summary>
@@ -232,7 +232,7 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)150, table[0][0]); // 10+20+30+40+50
+        Assert.AreEqual((short)150, table[0].ReadValue(0)); // 10+20+30+40+50
     }
 
     /// <summary>
@@ -272,9 +272,9 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((short)10, table[0][0]);
-        Assert.AreEqual((short)20, table[1][0]);
-        Assert.AreEqual((short)30, table[2][0]);
+        Assert.AreEqual((short)10, table[0].ReadValue(0));
+        Assert.AreEqual((short)20, table[1].ReadValue(0));
+        Assert.AreEqual((short)30, table[2].ReadValue(0));
     }
 
     #endregion

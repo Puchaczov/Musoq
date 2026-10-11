@@ -41,7 +41,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("", table[0][0]);
+        Assert.AreEqual("", table[0].ReadValue(0));
     }
 
     #endregion
@@ -71,8 +71,8 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("beta", table[0][1]);
+        Assert.AreEqual("alpha", table[0].ReadValue(0));
+        Assert.AreEqual("beta", table[0].ReadValue(1));
     }
 
     #endregion
@@ -107,8 +107,8 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("div", table[0][0]);
-        Assert.AreEqual("div", table[1][0]);
+        Assert.AreEqual("div", table[0].ReadValue(0));
+        Assert.AreEqual("div", table[1].ReadValue(0));
     }
 
     #endregion
@@ -137,7 +137,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(" this is a comment ", table[0][0]);
+        Assert.AreEqual(" this is a comment ", table[0].ReadValue(0));
     }
 
     #endregion
@@ -171,8 +171,8 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        var timestamps = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        var messages = new HashSet<string> { (string)table[0][1], (string)table[1][1] };
+        var timestamps = new HashSet<string> { (string)table[0].ReadValue(0), (string)table[1].ReadValue(0) };
+        var messages = new HashSet<string> { (string)table[0].ReadValue(1), (string)table[1].ReadValue(1) };
         Assert.Contains("2024-01-15 10:30:00", timestamps);
         Assert.Contains("2024-01-15 10:30:05", timestamps);
         Assert.Contains("Application started", messages);
@@ -205,7 +205,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello world", table[0][0]);
+        Assert.AreEqual("hello world", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("arg1, arg2", table[0][0]);
+        Assert.AreEqual("arg1, arg2", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("quoted text", table[0][0]);
+        Assert.AreEqual("quoted text", table[0].ReadValue(0));
     }
 
     #endregion
@@ -284,7 +284,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("html", table[0][0]);
+        Assert.AreEqual("html", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -309,7 +309,7 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("username", table[0][0]);
+        Assert.AreEqual("username", table[0].ReadValue(0));
     }
 
     #endregion
@@ -340,8 +340,8 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("prefix", table[0][0]);
-        Assert.AreEqual("content", table[0][1]);
+        Assert.AreEqual("prefix", table[0].ReadValue(0));
+        Assert.AreEqual("content", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -367,8 +367,8 @@ public class TextBetweenFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("content", table[0][0]);
-        Assert.AreEqual("suffix", table[0][1]);
+        Assert.AreEqual("content", table[0].ReadValue(0));
+        Assert.AreEqual("suffix", table[0].ReadValue(1));
     }
 
     #endregion

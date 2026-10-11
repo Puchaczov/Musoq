@@ -33,6 +33,9 @@ public sealed record ExecutionReturnDesc : ExecutionNode
             : ExecutionIrCollections.Freeze(argumentDescriptions);
     }
 
+    /// <summary>Gets prebound native result descriptions without compiler-only CLR type witnesses.</summary>
+    public IReadOnlyList<Musoq.Schema.QueryColumnDescription>? QueryDescriptions { get; init; }
+
     public string SchemaName { get; init; }
     public string MethodName { get; init; }
     public DescType Type { get; init; }

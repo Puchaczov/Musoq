@@ -40,8 +40,8 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Token", typeof(string)),
-            ("s.Token", typeof(string)));
+            ("Token", typeof(string)),
+            ("Token", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [new object?[] { "prod-token", "staging-token" }]);
@@ -125,7 +125,7 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
             ]);
 
         Assert.IsTrue(resolver.Requests.Any(request => request.ProfileName == "prod"));
-        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value =>
+        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value =>
             Equals(value, "prod-token") || Equals(value, "prod-optional")));
     }
 

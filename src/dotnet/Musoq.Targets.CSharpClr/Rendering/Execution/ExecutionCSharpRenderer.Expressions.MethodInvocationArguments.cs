@@ -24,11 +24,11 @@ public sealed partial class ExecutionCSharpRenderer
 
             if (injectAttribute != null)
             {
-                renderedArguments.Add(SyntaxFactory.Argument(CreateInjectedMethodArgument(methodCall, parameter, injectAttribute)));
+                renderedArguments.Add(SyntaxFactory.Argument(CreateInjectedMethodArgument(methodCall, parameter, injectAttribute, context)));
                 continue;
             }
 
-            if (parameter.GetCustomAttribute<ParamArrayAttribute>() != null)
+            if (global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter))
             {
                 while (argumentIndex < methodCall.Arguments.Count)
                     renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++], context)));

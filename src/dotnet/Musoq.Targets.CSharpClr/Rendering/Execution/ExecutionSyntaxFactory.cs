@@ -265,7 +265,9 @@ internal static class ExecutionSyntaxFactory
         return CreateObjectCreation(
             "Column",
             CreateStringLiteral(field.Name),
-            SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.ColumnType)),
+            SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
+                ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                : CreateTypeOfTypeSyntax(field.ColumnType)),
             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.OutputIndex)));
     }
 
@@ -276,7 +278,9 @@ internal static class ExecutionSyntaxFactory
             return CreateObjectCreation(
                 nameof(Column),
                 CreateStringLiteral(field.Name),
-                SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.Type)),
+                SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
+                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                    : CreateTypeOfTypeSyntax(field.Type)),
                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
                 SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
                 EnumDescriptorSyntax.Create(field.EnumType));
@@ -285,7 +289,9 @@ internal static class ExecutionSyntaxFactory
         return CreateObjectCreation(
             nameof(Column),
             CreateStringLiteral(field.Name),
-            SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.Type)),
+            SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
+                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                    : CreateTypeOfTypeSyntax(field.Type)),
             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)));
     }
 
@@ -301,7 +307,9 @@ internal static class ExecutionSyntaxFactory
                 .WithArgumentList(CreateArgumentList(
                     CreateStringLiteral(field.Name),
                     SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
-                    SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.Type)),
+                    SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
+                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                    : CreateTypeOfTypeSyntax(field.Type)),
                     SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
                     EnumDescriptorSyntax.Create(field.EnumType),
                     SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
@@ -314,7 +322,9 @@ internal static class ExecutionSyntaxFactory
             .WithArgumentList(CreateArgumentList(
                 CreateStringLiteral(field.Name),
                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
-                SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.Type)),
+                SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
+                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                    : CreateTypeOfTypeSyntax(field.Type)),
                 CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers)));
     }
 

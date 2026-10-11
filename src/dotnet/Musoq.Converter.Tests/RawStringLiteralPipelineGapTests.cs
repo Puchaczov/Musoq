@@ -46,7 +46,7 @@ public sealed class RawStringLiteralPipelineGapTests
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(expectedPath, table[0][0]);
+        Assert.AreEqual(expectedPath, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -61,8 +61,8 @@ public sealed class RawStringLiteralPipelineGapTests
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(string.Empty, table[0][0]);
-        Assert.AreEqual("a'b", table[0][1]);
+        Assert.AreEqual(string.Empty, table[0].ReadValue(0));
+        Assert.AreEqual("a'b", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -80,8 +80,8 @@ from #raw.files(R'C:\logs\app.log', true) f",
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(true, table[0][0]);
-        Assert.AreEqual(true, table[0][1]);
+        Assert.AreEqual(true, table[0].ReadValue(0));
+        Assert.AreEqual(true, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -100,6 +100,6 @@ where f.Path = $path",
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"C:\A", table[0][0]);
+        Assert.AreEqual(@"C:\A", table[0].ReadValue(0));
     }
 }

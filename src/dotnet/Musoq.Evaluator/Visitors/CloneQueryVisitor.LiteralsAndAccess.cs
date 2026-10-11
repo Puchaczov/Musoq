@@ -102,7 +102,8 @@ public partial class CloneQueryVisitor
             HasFilter = node.HasFilter,
             FilterExpression = filterExpression,
             FilterExpressionText = node.FilterExpressionText,
-            IsPivotGenerated = node.IsPivotGenerated, IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
+            IsPivotGenerated = node.IsPivotGenerated, IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
+            IsCompilerGenerated = node.IsCompilerGenerated
         });
     }
 
@@ -125,7 +126,7 @@ public partial class CloneQueryVisitor
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span, node.IntendedTypeName));
+        Nodes.Push(ColumnAccessNodeCopy.Create(node));
     }
 
     public override void Visit(AllColumnsNode node)
@@ -169,14 +170,13 @@ public partial class CloneQueryVisitor
     public override void Visit(AccessObjectKeyNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var clonedNode = new AccessObjectKeyNode(node.Token, node.PropertyInfo) { DestinationKind = node.DestinationKind };
-        Nodes.Push(clonedNode);
+        Nodes.Push(new AccessObjectKeyNode(node));
     }
 
     public override void Visit(PropertyValueNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new PropertyValueNode(node.Name, node.PropertyInfo).WithSpan(node.Span));
+        Nodes.Push(StructuralProjectionBinding.CloneProperty(node).WithSpan(node.Span));
     }
 
     public override void Visit(DotNode node)

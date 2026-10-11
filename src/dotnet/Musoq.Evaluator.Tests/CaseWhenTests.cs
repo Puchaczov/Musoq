@@ -29,7 +29,7 @@ public class CaseWhenTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(1, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -50,7 +50,7 @@ public class CaseWhenTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0, table[0].Values[0]);
+        Assert.AreEqual(0, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -71,7 +71,7 @@ public class CaseWhenTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(1, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -93,7 +93,7 @@ public class CaseWhenTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("TEST", table[0].Values[0]);
+        Assert.AreEqual("TEST", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public class CaseWhenTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("TEST", table[0].Values[0]);
+        Assert.AreEqual("TEST", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -137,7 +137,7 @@ public class CaseWhenTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("TEST", table[0].Values[0]);
+        Assert.AreEqual("TEST", table[0].ReadValues()[0]);
     }
 
     [TestMethod]

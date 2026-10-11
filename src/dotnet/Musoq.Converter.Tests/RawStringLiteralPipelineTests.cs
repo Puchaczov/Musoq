@@ -60,8 +60,8 @@ public sealed class RawStringLiteralPipelineTests
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(expectedPath, table[0][0]);
-        Assert.AreEqual(true, table[0][1]);
+        Assert.AreEqual(expectedPath, table[0].ReadValue(0));
+        Assert.AreEqual(true, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -87,13 +87,13 @@ order by r'C:\A'",
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"C:\A", table[0][0]);
-        Assert.AreEqual(@"C:\A", table[0][1]);
-        Assert.AreEqual(@"C:\new\test", table[0][2]);
-        Assert.AreEqual(true, table[0][3]);
-        Assert.AreEqual(true, table[0][4]);
-        Assert.AreEqual(true, table[0][5]);
-        Assert.AreEqual(4, table[0][6]);
+        Assert.AreEqual(@"C:\A", table[0].ReadValue(0));
+        Assert.AreEqual(@"C:\A", table[0].ReadValue(1));
+        Assert.AreEqual(@"C:\new\test", table[0].ReadValue(2));
+        Assert.AreEqual(true, table[0].ReadValue(3));
+        Assert.AreEqual(true, table[0].ReadValue(4));
+        Assert.AreEqual(true, table[0].ReadValue(5));
+        Assert.AreEqual(4, table[0].ReadValue(6));
     }
 
     [TestMethod]
@@ -113,8 +113,8 @@ order by f.Path",
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"C:\A", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual(@"C:\A", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -133,7 +133,7 @@ where f.Path = $path",
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"C:\A", table[0][0]);
+        Assert.AreEqual(@"C:\A", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -148,9 +148,9 @@ where f.Path = $path",
         var table = compiled.Run();
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"\n", table[0][0]);
-        Assert.AreEqual("\n", table[0][1]);
-        Assert.AreEqual("'", table[0][2]);
-        Assert.AreEqual(@"\'", table[0][3]);
+        Assert.AreEqual(@"\n", table[0].ReadValue(0));
+        Assert.AreEqual("\n", table[0].ReadValue(1));
+        Assert.AreEqual("'", table[0].ReadValue(2));
+        Assert.AreEqual(@"\'", table[0].ReadValue(3));
     }
 }

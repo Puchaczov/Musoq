@@ -490,7 +490,7 @@ semi join eligible e on j.Id = e.Id";
     private static string[] SerializeRows(Table table)
     {
         return table
-            .Select(row => string.Join("|", row.Values.Select(static value => value?.ToString() ?? "<null>")))
+            .Select(row => string.Join("|", row.ReadValues().Select(static value => value?.ToString() ?? "<null>")))
             .OrderBy(static value => value, StringComparer.Ordinal)
             .ToArray();
     }

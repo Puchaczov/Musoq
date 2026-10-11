@@ -118,12 +118,12 @@ public sealed class CteSidecarAndFusionPlannerTests
     }
 
     [TestMethod]
-    public void SingleUseHashBuildFusionPlanner_WhenProducerIsSourceBackedOrExpando_ShouldRejectFusionEligibility()
+    public void SingleUseHashBuildFusionPlanner_WhenProducerIsSourceBackedOrMissingShape_ShouldRejectFusionEligibility()
     {
         Assert.IsFalse(SingleUseHashBuildFusionPlanner.CanFuseProducerSource(
             new PhysicalCteRefNode("cte", "c", OutputSchema.Empty)));
         Assert.IsFalse(SingleUseHashBuildFusionPlanner.CanFuseProducerShape(
-            new ExpandoAdapterShape("x", "ExpandoRow", typeof(object), [])));
+            null));
     }
 
     [TestMethod]

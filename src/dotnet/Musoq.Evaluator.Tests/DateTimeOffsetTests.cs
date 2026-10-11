@@ -37,7 +37,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(DateTimeOffset?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 1, 1)), table[0].Values[0]);
+        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 1, 1)), table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -63,8 +63,8 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0].Values[0]);
-        Assert.IsNull(table[0].Values[1]);
+        Assert.IsNull(table[0].ReadValues()[0]);
+        Assert.IsNull(table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -94,7 +94,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(DateTimeOffset?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[0].Values[0]);
+        Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -123,7 +123,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
+        Assert.AreEqual(TimeSpan.Zero, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -152,6 +152,6 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
+        Assert.AreEqual(TimeSpan.Zero, table[0].ReadValues()[0]);
     }
 }

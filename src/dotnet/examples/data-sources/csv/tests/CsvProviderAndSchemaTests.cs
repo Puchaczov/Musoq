@@ -50,7 +50,7 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
     }
 
     [TestMethod]
-    public void Schema_WhenTableIsRequested_ShouldReturnCoupledColumnsAndCsvRowMetadata()
+    public void Schema_WhenTableIsRequested_ShouldReturnCoupledColumnsAndNativeContractMetadata()
     {
         var recorder = new CsvDataSourceApiRecorder();
         var schema = new CsvSchema(recorder);
@@ -65,7 +65,7 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
 
         var table = schema.GetTableByName(CsvSchema.File, CreateMetadataContext(columns), "people.csv", true);
 
-        Assert.AreEqual(typeof(CsvRow), table.Metadata.TableEntityType);
+        Assert.AreEqual(typeof(QueryScopedRowContract), table.Metadata.TableEntityType);
         Assert.AreEqual(2, table.Columns.Length);
         Assert.AreEqual("Name", table.Columns[0].ColumnName);
         Assert.AreEqual("true", table.Columns[0].ReadModifiers[ColumnReadModifiers.Trim]);
@@ -109,7 +109,7 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
             "people.csv");
 
         Assert.AreEqual(identity, descriptor.Identity);
-        Assert.AreEqual(typeof(CsvRow), descriptor.RowType);
+        Assert.AreEqual(typeof(QueryScopedRowContract), descriptor.RowType);
         Assert.AreEqual(SourceTransferCapabilities.QueryScopedRows, descriptor.TransferCapabilities);
         Assert.AreEqual("Name", descriptor.Columns.Single().ColumnName);
         Assert.AreEqual("Name", recorder.DescribeSourceCalls.Single().Columns.Single().ColumnName);
@@ -129,7 +129,7 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
             "people.csv");
 
         Assert.AreEqual(SourceTransferCapabilities.None, descriptor.TransferCapabilities);
-        Assert.AreEqual(typeof(CsvRow), descriptor.RowType);
+        Assert.AreEqual(typeof(QueryScopedRowContract), descriptor.RowType);
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
     }
 
     [TestMethod]
-    public void Schema_WhenRowSourceIsRequested_ShouldReturnCsvRowSourceAndRecordExecutionContext()
+    public void Schema_WhenNativeSourceIsRequested_ShouldPreserveConcreteShapeAndExecutionContext()
     {
         var recorder = new CsvDataSourceApiRecorder();
         var schema = new CsvSchema(recorder);
@@ -165,12 +165,13 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
         };
         var context = CreateExecutionContext(plan, columns);
 
-        var source = schema.GetRowSource<CsvRow>(CsvSchema.File, context, "people.csv");
-
-        Assert.IsInstanceOfType<CsvFileSource>(source);
-        Assert.AreEqual(typeof(CsvRow), recorder.RowSourceCalls.Single().RequestedRowType);
-        Assert.AreEqual(identity, recorder.RowSourceCalls.Single().Execution.Plan.Identity);
-        Assert.AreEqual("Name", recorder.RowSourceCalls.Single().Execution.AllColumns.Single().ColumnName);
-        Assert.AreEqual("people.csv", recorder.RowSourceCalls.Single().Parameters[0]);
+        var shape = new QueryRowShape([new QueryRowField(0, 0, "Name", typeof(string), true)]);
+        var source = schema.GetQueryScopedRowSource<NativeCsvTestRow, NativeCsvTestMaterializer, SourceArguments<string, EmptySourceArguments>>(
+            CsvSchema.File, new QueryScopedRowSourceRequest(context, shape), SourceArguments.Create("people.csv", SourceArguments.Empty));
+        Assert.IsInstanceOfType<Musoq.Schema.DataSources.RowSource<NativeCsvTestRow>>(source);
+        Assert.AreEqual(typeof(NativeCsvTestRow), recorder.QueryRowSourceCalls.Single().RequestedRowType);
+        Assert.AreEqual(identity, recorder.QueryRowSourceCalls.Single().Execution.Plan.Identity);
+        Assert.AreEqual("Name", recorder.QueryRowSourceCalls.Single().Execution.AllColumns.Single().ColumnName);
+        Assert.AreEqual("people.csv", recorder.QueryRowSourceCalls.Single().Parameters.Path);
     }
 }

@@ -65,10 +65,10 @@ public sealed class EnumQueryScopedRowTests
 
         using var table = build.CompiledQuery!.Run();
         Assert.AreEqual(3, table.Count);
-        CollectionAssert.AreEqual(new object?[] { 20, 3u, "Running" }, table[0].Values);
-        CollectionAssert.AreEqual(new object?[] { 10, 1u, "Queued" }, table[1].Values);
-        CollectionAssert.AreEqual(new object?[] { 99, 8u, null }, table[2].Values);
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum));
+        CollectionAssert.AreEqual(new object?[] { 20, 3u, "Running" }, table[0].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { 10, 1u, "Queued" }, table[1].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { 99, 8u, null }, table[2].ReadValues());
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
 
         var status = table.Columns.ElementAt(0);
         Assert.AreEqual(typeof(int?), status.ColumnType);
@@ -103,9 +103,9 @@ public sealed class EnumQueryScopedRowTests
         Assert.DoesNotContain("reader.Read<object>", inspection.GeneratedCSharpCode);
 
         using var table = build.CompiledQuery!.Run();
-        CollectionAssert.AreEqual(new object?[] { (short)20, 3u, (short)20 }, table[0].Values);
-        CollectionAssert.AreEqual(new object?[] { (short)10, 1u, (short)10 }, table[1].Values);
-        CollectionAssert.AreEqual(new object?[] { (short)99, 8u, (short)99 }, table[2].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)20, 3u, (short)20 }, table[0].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { (short)10, 1u, (short)10 }, table[1].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { (short)99, 8u, (short)99 }, table[2].ReadValues());
         Assert.AreEqual(typeof(short), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(short), table.Columns.ElementAt(0).SourceReadType);
         Assert.AreEqual(EnumTypeOrigin.NativeClr, table.Columns.ElementAt(0).EnumType!.Origin);
@@ -135,7 +135,7 @@ public sealed class EnumQueryScopedRowTests
         using var table = build.CompiledQuery!.Run();
         Assert.AreEqual(expectedType, table.Columns.Single().ColumnType);
         Assert.AreEqual(expectedKind, table.Columns.Single().EnumType!.UnderlyingKind);
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum));
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
     }
 
     [TestMethod]

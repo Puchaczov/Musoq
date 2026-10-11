@@ -35,10 +35,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("a", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual("b", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual("b", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -50,7 +50,7 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeRankWindow [resultRanks <- resultWindowRows order by d.Dummy ASC]", result.ExecutionPlanText);
         Assert.Contains("var resultRanks = new long[resultWindowRows.Count];", result.GeneratedCSharpCode);
-        Assert.Contains("long resultRanksRank = 1L;", result.GeneratedCSharpCode);
+        Assert.Contains("RankKernel.Get(in resultRanksContext)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeRank", StringComparison.Ordinal));
     }
 
@@ -70,10 +70,10 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeRankWindow [resultRanks <- resultWindowRows partition by c.City order by c.Score DESC]", result.ExecutionPlanText);
         Assert.Contains("WindowIntOrderBuilder<string>", result.GeneratedCSharpCode);
-        Assert.Contains("resultRanksIntOrderBuilder.Add((string)(string)c[0], (int)(int)c[1], windowIndex);", result.GeneratedCSharpCode);
+        Assert.Contains("resultRanksIntOrderBuilder.Add((string)c.GetValue<string>(0), (int)c.GetValue<int>(1), windowIndex);", result.GeneratedCSharpCode);
         Assert.Contains("var resultRanksPartitions = resultRanksIntOrderBuilder.ToSortedPartitionSet(true);", result.GeneratedCSharpCode);
-        Assert.Contains("var resultRanks = resultRanksIntOrderBuilder.ComputeRank(resultRanksPartitions);", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultRanksOrderKeys", StringComparison.Ordinal));
+        Assert.Contains("RankKernel.Get(in resultRanksContext)", result.GeneratedCSharpCode);
+        Assert.Contains("var resultRanksOrderKeys = resultRanksIntOrderBuilder.OrderKeys;", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeRank", StringComparison.Ordinal));
     }
 
@@ -93,10 +93,10 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeDenseRankWindow [resultDenseRanks <- resultWindowRows partition by c.City order by c.Score DESC]", result.ExecutionPlanText);
         Assert.Contains("WindowIntOrderBuilder<string>", result.GeneratedCSharpCode);
-        Assert.Contains("resultDenseRanksIntOrderBuilder.Add((string)(string)c[0], (int)(int)c[1], windowIndex);", result.GeneratedCSharpCode);
+        Assert.Contains("resultDenseRanksIntOrderBuilder.Add((string)c.GetValue<string>(0), (int)c.GetValue<int>(1), windowIndex);", result.GeneratedCSharpCode);
         Assert.Contains("var resultDenseRanksPartitions = resultDenseRanksIntOrderBuilder.ToSortedPartitionSet(true);", result.GeneratedCSharpCode);
-        Assert.Contains("var resultDenseRanks = resultDenseRanksIntOrderBuilder.ComputeDenseRank(resultDenseRanksPartitions);", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultDenseRanksOrderKeys", StringComparison.Ordinal));
+        Assert.Contains("DenseRankKernel.Get(in resultDenseRanksContext)", result.GeneratedCSharpCode);
+        Assert.Contains("var resultDenseRanksOrderKeys = resultDenseRanksIntOrderBuilder.OrderKeys;", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeDenseRank", StringComparison.Ordinal));
     }
 
@@ -117,12 +117,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(3L, table[2][1]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(3L, table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -143,8 +143,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual("bea", table[1][0]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -164,12 +164,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("b", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("a", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
-        Assert.AreEqual("c", table[2][0]);
-        Assert.AreEqual(3L, table[2][1]);
+        Assert.AreEqual("b", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("a", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
+        Assert.AreEqual("c", table[2].ReadValue(0));
+        Assert.AreEqual(3L, table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -209,12 +209,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("bea", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("cal", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
-        Assert.AreEqual("dee", table[2][0]);
-        Assert.AreEqual(3L, table[2][1]);
+        Assert.AreEqual("bea", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("cal", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
+        Assert.AreEqual("dee", table[2].ReadValue(0));
+        Assert.AreEqual(3L, table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -256,18 +256,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual(3L, table[0][3]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(2L, table[1][2]);
-        Assert.AreEqual(2L, table[1][3]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual(3L, table[2][2]);
-        Assert.AreEqual(1L, table[2][3]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
+        Assert.AreEqual(3L, table[0].ReadValue(3));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual(2L, table[1].ReadValue(2));
+        Assert.AreEqual(2L, table[1].ReadValue(3));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual(3L, table[2].ReadValue(2));
+        Assert.AreEqual(1L, table[2].ReadValue(3));
     }
 
 }

@@ -4,6 +4,8 @@ namespace Musoq.Targets.CSharpClr;
 
 internal sealed class ExecutionRenderSession
 {
+    private static readonly TimeSpan DefaultRegexMatchTimeout = new CompilationOptions().RegexMatchTimeout;
+
     internal Dictionary<ExecutionConstantInSet, string> ConstantInSetFieldNames { get; } = [];
     internal List<ExecutionCSharpRenderer.ConstantInSetField> ConstantInSetFields { get; } = [];
     internal Dictionary<string, string> StaticMetadataFieldNames { get; } = new(StringComparer.Ordinal);
@@ -21,6 +23,8 @@ internal sealed class ExecutionRenderSession
         new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<int, TypedStoredTableResult> TypedStoredTableResults { get; set; } =
         new Dictionary<int, TypedStoredTableResult>();
+    internal IReadOnlyDictionary<string, TypedStoredTableResult> ColumnarStoredTableResultsByTableName { get; set; } =
+        new Dictionary<string, TypedStoredTableResult>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<string, GeneratedRowShape> TypedRowBufferVariables { get; set; } =
         new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<ExecutionBlock, ExecutionCSharpRenderer.SingleKeyAggregateUpdateHelper> SingleKeyAggregateUpdateHelpersByBlock { get; set; } =
@@ -40,13 +44,14 @@ internal sealed class ExecutionRenderSession
     internal bool IncludeCteIndexResults { get; set; }
     internal bool IncludeCteRowResults { get; set; }
     internal bool IncludeTableResults { get; set; } = true;
+    internal TimeSpan RegexMatchTimeout { get; set; } = DefaultRegexMatchTimeout;
     internal bool UseQueryRunContext { get; set; }
     internal string QueryIdentifier { get; set; } = "compiled";
     internal bool EmitChunkLoopCancellationChecks { get; set; } = true;
     internal bool SkipInitialLoopCancellationCheck { get; set; }
     internal string? RecursiveCteCancellationCounterName { get; set; }
     internal bool SuppressSingleKeyAggregateUpdateHelpers { get; set; }
-    internal bool UseDirectTypedStoredRowsAlias { get; set; }
+    internal bool ReuseStoredRows { get; set; }
     internal IReadOnlyDictionary<string, string> DirectSortedRowBufferSources { get; set; } =
         new Dictionary<string, string>(StringComparer.Ordinal);
     internal FinalShapeYieldSink? FinalShapeYieldSink { get; set; }

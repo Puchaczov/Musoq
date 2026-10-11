@@ -80,7 +80,7 @@ public sealed class DiagnosticREC115ValidMutationTests
             for (var rowIndex = 0; rowIndex < seed.Count; rowIndex++)
             {
                 for (var columnIndex = 0; columnIndex < seed.Columns.Count(); columnIndex++)
-                    Assert.AreEqual(seed[rowIndex][columnIndex], mutated[rowIndex][columnIndex], candidate.Id);
+                    Assert.AreEqual(seed[rowIndex].ReadValue(columnIndex), mutated[rowIndex].ReadValue(columnIndex), candidate.Id);
             }
         }
     }
@@ -92,7 +92,7 @@ public sealed class DiagnosticREC115ValidMutationTests
         {
             var result = Execute(candidate.Query, candidate.Id);
             Assert.AreEqual(1, result.Count, candidate.Id);
-            Assert.AreEqual("b", result[0][0], candidate.Id);
+            Assert.AreEqual("b", result[0].ReadValue(0), candidate.Id);
         }
     }
 

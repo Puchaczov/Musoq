@@ -67,12 +67,11 @@ internal static partial class ExecutionNodeFacts
             case ExecutionArrayAssign arrayAssign:
                 yield return arrayAssign.Array;
                 break;
-            case ExecutionAdaptExpando adapt:
-                yield return adapt.Target;
-                yield return adapt.Source;
-                break;
             case ExecutionCreateObject createObject:
                 yield return createObject.Target;
+                break;
+            case ExecutionInitializeAggregateState initialize:
+                yield return initialize.Target;
                 break;
             case ExecutionMethodTargetDeclarationCandidate candidate:
                 yield return candidate.Target;
@@ -117,9 +116,6 @@ internal static partial class ExecutionNodeFacts
             case ExecutionMaterializeFilteredList materialize:
                 yield return materialize.Buffer;
                 yield return materialize.Item;
-                break;
-            case ExecutionMaterializeExpandoList materialize:
-                yield return materialize.Buffer;
                 break;
             case ExecutionHashAdd hashAdd:
                 yield return hashAdd.Hash;

@@ -13,11 +13,12 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private static ISchemaTable CreatePartialInterpretTable()
+    private ISchemaTable CreatePartialInterpretTable(string schemaName)
     {
         return new DynamicTable(
         [
-            new SchemaColumn("ParsedFields", 0, typeof(Dictionary<string, object?>)),
+            new SchemaColumn("ParsedFields", 0, typeof(object),
+                $"Musoq.Generated.Interpreters.{schemaName}"),
             new SchemaColumn("ErrorField", 1, typeof(string)),
             new SchemaColumn("ErrorMessage", 2, typeof(string)),
             new SchemaColumn("BytesConsumed", 3, typeof(int))
@@ -67,6 +68,13 @@ public partial class BuildMetadataAndInferTypesVisitor
 
                     if (field.FieldType == TextFieldType.Repeat)
                     {
+                        if (field.RepeatElement != null)
+                        {
+                            var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field);
+                            columns.Add(new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName));
+                            continue;
+                        }
+
                         var elementSchemaName = field.PrimaryValue ?? "object";
                         columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object[]),
                             $"Musoq.Generated.Interpreters.{elementSchemaName}[]"));
@@ -75,7 +83,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
                     if (field.FieldType == TextFieldType.Switch)
                     {
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(ExpandoObject)));
+                        var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field);
+                        columns.Add(new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName));
                         continue;
                     }
 
@@ -213,7 +222,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return InferComputedFieldType(computedField.Expression, columns);
 
         var expressionType = computedField.Expression.ReturnType;
-        return expressionType == null || expressionType == typeof(void)
+        return expressionType == null || expressionType == typeof(void) || expressionType == typeof(object)
             ? InferComputedFieldType(computedField.Expression, columns)
             : expressionType;
     }

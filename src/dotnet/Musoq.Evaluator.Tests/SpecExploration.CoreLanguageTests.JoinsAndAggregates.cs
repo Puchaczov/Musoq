@@ -35,7 +35,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.City", typeof(string)), ("b.City", typeof(string)));
+            ("City", typeof(string)), ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
             new object?[] { "NYC", "NYC" });
     }
@@ -66,7 +66,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { "PersonA", "PersonB" },
             new object?[] { "PersonC", null });
@@ -99,7 +99,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { "A1", "B1" }, new object?[] { "A1", "B2" },
             new object?[] { "A2", "B1" }, new object?[] { "A2", "B2" });

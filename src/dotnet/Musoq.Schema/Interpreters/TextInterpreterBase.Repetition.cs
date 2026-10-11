@@ -11,7 +11,7 @@ public abstract partial class TextInterpreterBase<TOut>
         if (iteration < maxIterations)
             return;
 
-        throw new ParseException(
+        throw ParseException.ForText(
             ParseErrorCode.MaxIterationsExceeded,
             SchemaName,
             fieldName,
@@ -27,7 +27,7 @@ public abstract partial class TextInterpreterBase<TOut>
         if (ParsePosition > startPosition)
             return;
 
-        throw new ParseException(
+        throw ParseException.ForText(
             ParseErrorCode.MaxIterationsExceeded,
             SchemaName,
             fieldName,

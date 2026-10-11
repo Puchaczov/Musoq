@@ -46,8 +46,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => string.Equals(row[0] as string, "left", StringComparison.Ordinal)));
-        Assert.IsTrue(table.Any(row => string.Equals(row[0] as string, "right", StringComparison.Ordinal)));
+        Assert.IsTrue(table.Any(row => string.Equals(row.ReadValue(0) as string, "left", StringComparison.Ordinal)));
+        Assert.IsTrue(table.Any(row => string.Equals(row.ReadValue(0) as string, "right", StringComparison.Ordinal)));
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
         var pairs = Enumerable.Range(0, table.Count)
-            .Select(index => $"{table[index][0]}:{table[index][1]}")
+            .Select(index => $"{table[index].ReadValue(0)}:{table[index].ReadValue(1)}")
             .OrderBy(pair => pair, StringComparer.Ordinal)
             .ToArray();
 
@@ -89,10 +89,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -115,8 +115,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -152,10 +152,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("empty", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("filled", table[1][0]);
-        Assert.AreEqual(7, table[1][1]);
+        Assert.AreEqual("empty", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual("filled", table[1].ReadValue(0));
+        Assert.AreEqual(7, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -165,7 +165,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         Assert.Contains("Let [iName: string = i.Name]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(i.Name: iName, NextValue: NULL)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: iName, NextValue: NULL)]", result.ExecutionPlanText);
         Assert.Contains("NextValue: int? <- field NextValue", result.ExecutionPlanText);
         Assert.Contains("(n.Value + 1)", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -193,10 +193,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("empty", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("filled", table[1][0]);
-        Assert.AreEqual(8, table[1][1]);
+        Assert.AreEqual("empty", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual("filled", table[1].ReadValue(0));
+        Assert.AreEqual(8, table[1].ReadValue(1));
     }
 
 }

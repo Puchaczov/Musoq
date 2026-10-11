@@ -44,8 +44,8 @@ public class BugProbeTextModifierLowerUpperTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("host", table[0][0]); // Should be lowercased
-        Assert.AreEqual("localhost", table[0][1]);
+        Assert.AreEqual("host", table[0].ReadValue(0)); // Should be lowercased
+        Assert.AreEqual("localhost", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -73,8 +73,8 @@ public class BugProbeTextModifierLowerUpperTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("host", table[0][0]);
-        Assert.AreEqual("LOCALHOST", table[0][1]); // Should be uppercased
+        Assert.AreEqual("host", table[0].ReadValue(0));
+        Assert.AreEqual("LOCALHOST", table[0].ReadValue(1)); // Should be uppercased
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class BugProbeTextModifierLowerUpperTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("warning", table[0][0]); // Should be lowercased
+        Assert.AreEqual("warning", table[0].ReadValue(0)); // Should be lowercased
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class BugProbeTextModifierLowerUpperTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABC", table[0][0]); // Should be uppercased
-        Assert.AreEqual("123", table[0][1]);
+        Assert.AreEqual("ABC", table[0].ReadValue(0)); // Should be uppercased
+        Assert.AreEqual("123", table[0].ReadValue(1));
     }
 }

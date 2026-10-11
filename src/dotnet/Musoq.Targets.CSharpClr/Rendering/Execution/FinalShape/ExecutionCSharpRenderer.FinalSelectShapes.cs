@@ -5,8 +5,13 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static ClassDeclarationSyntax RenderFinalSelectShapeClass(FinalShapeResult finalResult)
+    private static MemberDeclarationSyntax RenderFinalSelectShapeClass(FinalShapeResult finalResult,
+        FinalOutputPlan? output)
     {
+        if (output?.RowRepresentation == FinalOutputRowRepresentation.SelectValueShape)
+            return RenderRowCarrierStruct(FinalSelectShapeNaming.CreateTypeName(finalResult),
+                finalResult.Shape.Fields, GetGeneratedFieldName);
+
         return RenderRowCarrierClass(
             FinalSelectShapeNaming.CreateTypeName(finalResult),
             finalResult.Shape.Fields,

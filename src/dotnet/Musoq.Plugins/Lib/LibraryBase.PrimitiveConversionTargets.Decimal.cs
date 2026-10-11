@@ -10,7 +10,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(string? value)
     {
@@ -25,7 +25,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
     /// <returns>Converted to decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(string value, string culture)
     {
@@ -40,7 +40,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(byte? value)
     {
@@ -52,7 +52,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(sbyte? value)
     {
@@ -64,7 +64,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(short? value)
     {
@@ -76,7 +76,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(ushort? value)
     {
@@ -88,7 +88,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(long? value)
     {
@@ -100,7 +100,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(ulong? value)
     {
@@ -112,7 +112,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(float? value)
     {
@@ -134,7 +134,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(double? value)
     {
@@ -159,7 +159,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(bool? value) => value.HasValue ? value.Value ? 1m : 0m : null;
 
@@ -168,7 +168,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(char? value) => value.HasValue ? value.Value : null;
 
@@ -177,7 +177,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(object? value)
     {

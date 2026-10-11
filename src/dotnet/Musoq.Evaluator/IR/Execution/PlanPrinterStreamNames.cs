@@ -16,6 +16,4 @@ public static partial class ExecutionPlanPrinter
     private static string FormatMaterializeFilteredName(ExecutionExpression source) =>
         ExecutionRowStreams.IsChunked(source) ? "MaterializeFilteredChunked" : "MaterializeFiltered";
 
-    private static string FormatMaterializeExpandoName(ExecutionExpression source) =>
-        ExecutionRowStreams.IsChunked(source) ? "MaterializeChunkedExpando" : "MaterializeExpando";
 }

@@ -17,13 +17,17 @@ public partial class BuildMetadataAndInferTypesVisitor
         FieldDefinitionNode field,
         (Type ClrType, string? IntendedTypeName) resolvedType)
     {
-        if (field.TypeAnnotation is InlineSchemaTypeNode)
+        var typeAnnotation = field.TypeAnnotation;
+        if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
+            typeAnnotation = substream.Target;
+
+        if (typeAnnotation is InlineSchemaTypeNode)
             return (resolvedType.ClrType, CreateInlineSchemaIntendedTypeName(field.Name));
 
-        if (field.TypeAnnotation is ArrayTypeNode { ElementType: InlineSchemaTypeNode })
+        if (typeAnnotation is ArrayTypeNode { ElementType: InlineSchemaTypeNode })
             return (resolvedType.ClrType, $"{CreateInlineSchemaIntendedTypeName(field.Name)}[]");
 
-        if (field.TypeAnnotation is RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode })
+        if (typeAnnotation is RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode })
             return (resolvedType.ClrType, $"{CreateInlineSchemaIntendedTypeName(field.Name)}[]");
 
         return resolvedType;

@@ -35,10 +35,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("arrays", table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
-        Assert.AreEqual((short)1, table[0][2]);
-        Assert.AreEqual((short)3, table[2][2]);
+        Assert.AreEqual("arrays", table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
+        Assert.AreEqual((short)1, table[0].ReadValue(2));
+        Assert.AreEqual((short)3, table[2].ReadValue(2));
     }
 
     [TestMethod]
@@ -71,10 +71,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("string-arrays", table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
-        Assert.AreEqual("Ada", table[0][2]);
-        Assert.AreEqual("Cal", table[2][2]);
+        Assert.AreEqual("string-arrays", table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
+        Assert.AreEqual("Ada", table[0].ReadValue(2));
+        Assert.AreEqual("Cal", table[2].ReadValue(2));
     }
 
     [TestMethod]
@@ -107,12 +107,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("inline-arrays", table[0][0]);
-        Assert.AreEqual((byte)2, table[0][1]);
-        Assert.AreEqual((byte)0xA1, table[0][2]);
-        Assert.AreEqual((short)258, table[0][3]);
-        Assert.AreEqual((byte)0xB2, table[1][2]);
-        Assert.AreEqual((short)772, table[1][3]);
+        Assert.AreEqual("inline-arrays", table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0xA1, table[0].ReadValue(2));
+        Assert.AreEqual((short)258, table[0].ReadValue(3));
+        Assert.AreEqual((byte)0xB2, table[1].ReadValue(2));
+        Assert.AreEqual((short)772, table[1].ReadValue(3));
     }
 
     [TestMethod]
@@ -145,9 +145,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("repeat-primitives", table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual((byte)0, table[3][1]);
+        Assert.AreEqual("repeat-primitives", table[0].ReadValue(0));
+        Assert.AreEqual((byte)1, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0, table[3].ReadValue(1));
     }
 
     [TestMethod]
@@ -180,9 +180,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("repeat-bits", table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual((byte)0, table[1][1]);
+        Assert.AreEqual("repeat-bits", table[0].ReadValue(0));
+        Assert.AreEqual((byte)1, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -215,9 +215,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("repeat-strings", table[0][0]);
-        Assert.AreEqual("Ada", table[0][1]);
-        Assert.AreEqual("END", table[2][1]);
+        Assert.AreEqual("repeat-strings", table[0].ReadValue(0));
+        Assert.AreEqual("Ada", table[0].ReadValue(1));
+        Assert.AreEqual("END", table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -250,13 +250,13 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("repeat-inline", table[0][0]);
-        Assert.AreEqual((byte)0xA1, table[0][1]);
-        Assert.AreEqual((short)258, table[0][2]);
-        Assert.AreEqual((byte)0xB2, table[1][1]);
-        Assert.AreEqual((short)772, table[1][2]);
-        Assert.AreEqual((byte)0x00, table[2][1]);
-        Assert.AreEqual((short)1029, table[2][2]);
+        Assert.AreEqual("repeat-inline", table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xA1, table[0].ReadValue(1));
+        Assert.AreEqual((short)258, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0xB2, table[1].ReadValue(1));
+        Assert.AreEqual((short)772, table[1].ReadValue(2));
+        Assert.AreEqual((byte)0x00, table[2].ReadValue(1));
+        Assert.AreEqual((short)1029, table[2].ReadValue(2));
     }
 
     [TestMethod]
@@ -289,10 +289,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("schema-arrays", table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
-        Assert.AreEqual((byte)0xAA, table[0][2]);
-        Assert.AreEqual((byte)0xCC, table[2][2]);
+        Assert.AreEqual("schema-arrays", table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0xCC, table[2].ReadValue(2));
     }
 
     [TestMethod]
@@ -325,9 +325,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("repeat-schemas", table[0][0]);
-        Assert.AreEqual((byte)0xAA, table[0][1]);
-        Assert.AreEqual((byte)0x00, table[2][1]);
+        Assert.AreEqual("repeat-schemas", table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x00, table[2].ReadValue(1));
     }
 
 }

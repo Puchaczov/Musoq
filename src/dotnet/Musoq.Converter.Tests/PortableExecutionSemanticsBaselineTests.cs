@@ -16,9 +16,9 @@ public sealed class PortableExecutionSemanticsBaselineTests
         var row = ExecuteSingleRow(
             "select 10 / 3 as Divided, 10 % 3 as Modulo, 1.5 + 2.25 as DecimalSum from #system.dual()");
 
-        Assert.AreEqual(3, row[0]);
-        Assert.AreEqual(1, row[1]);
-        Assert.AreEqual(3.75m, row[2]);
+        Assert.AreEqual(3, row.ReadValue(0));
+        Assert.AreEqual(1, row.ReadValue(1));
+        Assert.AreEqual(3.75m, row.ReadValue(2));
     }
 
     [TestMethod]
@@ -27,8 +27,8 @@ public sealed class PortableExecutionSemanticsBaselineTests
         var row = ExecuteSingleRow(
             "select 10 + null as NullArithmetic, case when null is null then 'yes' else 'no' end as NullCase from #system.dual()");
 
-        Assert.IsNull(row[0]);
-        Assert.AreEqual("yes", row[1]);
+        Assert.IsNull(row.ReadValue(0));
+        Assert.AreEqual("yes", row.ReadValue(1));
     }
 
     [TestMethod]
@@ -37,8 +37,8 @@ public sealed class PortableExecutionSemanticsBaselineTests
         var row = ExecuteSingleRow(
             "select 'alpha' = 'ALPHA' as EqualValue, case when 'a' < 'b' then 1 else 0 end as OrderedValue from #system.dual()");
 
-        Assert.AreEqual(false, row[0]);
-        Assert.AreEqual(1, row[1]);
+        Assert.AreEqual(false, row.ReadValue(0));
+        Assert.AreEqual(1, row.ReadValue(1));
     }
 
     [TestMethod]
@@ -47,10 +47,10 @@ public sealed class PortableExecutionSemanticsBaselineTests
         var row = ExecuteSingleRow(
             "select ToDateTime('2020-01-02') - ToDateTime('2020-01-01') as Difference, ToDateTimeOffset('2020-01-01T01:00:00+01:00') as OffsetValue from #system.dual()");
 
-        Assert.AreEqual(TimeSpan.FromDays(1), row[0]);
+        Assert.AreEqual(TimeSpan.FromDays(1), row.ReadValue(0));
         Assert.AreEqual(
             DateTimeOffset.Parse("2020-01-01T01:00:00+01:00", System.Globalization.CultureInfo.InvariantCulture),
-            row[1]);
+            row.ReadValue(1));
     }
 
     [TestMethod]
@@ -60,19 +60,19 @@ public sealed class PortableExecutionSemanticsBaselineTests
             "param(left: double, right: double) select $left = $right as EqualValue from #system.dual()",
             compiled =>
             {
-                compiled.Parameters["left"] = 0d;
-                compiled.Parameters["right"] = -0d;
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "left", 0d);
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "right", -0d);
             });
         var nan = ExecuteSingleRow(
             "param(left: double, right: double) select $left = $right as EqualValue from #system.dual()",
             compiled =>
             {
-                compiled.Parameters["left"] = double.NaN;
-                compiled.Parameters["right"] = double.NaN;
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "left", double.NaN);
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "right", double.NaN);
             });
 
-        Assert.AreEqual(true, signedZero[0]);
-        Assert.AreEqual(false, nan[0]);
+        Assert.AreEqual(true, signedZero.ReadValue(0));
+        Assert.AreEqual(false, nan.ReadValue(0));
     }
 
     private static Evaluator.Tables.Row ExecuteSingleRow(string query)

@@ -84,7 +84,7 @@ public partial class SchemaExtendedTests
             NullLogger.Instance
         );
 
-        var source = schema.GetRowSource<DiagnosticsCompatibilityEntity>("items", ctx);
+        var source = schema.GetRowSource<DiagnosticsCompatibilityEntity, EmptySourceArguments>("items", ctx, SourceArguments.Empty);
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
         Assert.HasCount(1, rows);
@@ -143,8 +143,13 @@ public partial class SchemaExtendedTests
             AddTable<DiagnosticsCompatibilityTable>("items");
             AddSource<DiagnosticsCompatibilitySource>("items");
         }
+
+        public override RowSource<T> GetRowSource<T, TArguments>(string name,
+            SourceExecutionContext context, TArguments arguments)
+            => EnsureSourceType<T, DiagnosticsCompatibilityEntity>(name, new DiagnosticsCompatibilitySource(context));
     }
 
+        // Native source construction is explicit; execution does not reflect constructors.
     private sealed class DiagnosticsCompatibilityTable : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } = [new SchemaColumn("Value", 0, typeof(int))];

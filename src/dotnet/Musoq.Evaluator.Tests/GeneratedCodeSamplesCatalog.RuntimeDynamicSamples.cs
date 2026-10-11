@@ -17,7 +17,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "select label, metric, payload from #runtime.events() where 2 = runtimekey and runtimekey = 2 and true = enabled"),
             RuntimeDynamicInspection(
                 "Q233_PublicDynamicNestedNullable",
-                "select branch.measurement, branch.raw from #runtime.events() where branch is not null"),
+                "select branch.Measurement, branch.Raw from #runtime.events() where branch is not null"),
             RuntimeDynamicInspection(
                 "Q234_PublicDynamicJoinMethod",
                 "select Scale(e.metric, l.factor) from #runtime.events() e inner join #runtime.lookup() l on e.runtimekey = l.id")

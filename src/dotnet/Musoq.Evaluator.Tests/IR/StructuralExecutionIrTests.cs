@@ -8,7 +8,7 @@ using Musoq.Schema.StructuralInputs;
 namespace Musoq.Evaluator.Tests.IR;
 
 [TestClass]
-public sealed class StructuralExecutionIrTests
+public sealed partial class StructuralExecutionIrTests
 {
     [TestMethod]
     public void StructuralExpressions_PreserveAuthoredOrderAndPresence()

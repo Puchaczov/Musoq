@@ -127,8 +127,8 @@ from first a
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
             ("c.GetBytes(c.Name)", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

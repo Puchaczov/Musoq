@@ -107,8 +107,8 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a out
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)), ("a.Country", typeof(string)), ("a.Population", typeof(int)),
-            ("b.Country", typeof(string)), ("b.Money", typeof(decimal?)), ("b.Month", typeof(string)));
+            ("City", typeof(string)), ("Country", typeof(string)), ("Population", typeof(int)),
+            ("Country", typeof(string)), ("Money", typeof(decimal?)), ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
@@ -172,7 +172,7 @@ select a.Name, b.Value from first a outer apply a.Skills b";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("a.Name", typeof(string)), ("b.Value", typeof(string)));
+            table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Name1", "Skill1"], ["Name1", "Skill2"], ["Name1", "Skill3"],

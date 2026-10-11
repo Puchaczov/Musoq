@@ -29,7 +29,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
 
 
-        var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var resultIds = table.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         Assert.AreEqual(rowCount, resultIds.Distinct().Count(), "Duplicate IDs found in results");
 
         var expectedIds = Enumerable.Range(0, rowCount).ToList();
@@ -63,8 +63,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelIds = tableParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
-        var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
+        var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds,
             "Result sets differ between parallel and non-parallel execution");
     }
@@ -96,8 +96,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelIds = tableParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
-        var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
+        var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds,
             "Result sets differ between parallel and non-parallel execution");
 
@@ -125,7 +125,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(size, table.Count, $"Expected {size} rows but got {table.Count}");
 
 
-        var resultPairs = table.Select(row => ((string)row[0], (string)row[1])).OrderBy(x => int.Parse(x.Item1))
+        var resultPairs = table.Select(row => ((string)row.ReadValue(0), (string)row.ReadValue(1))).OrderBy(x => int.Parse(x.Item1))
             .ToList();
         for (var i = 0; i < size; i++)
         {
@@ -171,8 +171,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelItems = tableParallel.Select(row => (string)row[0]).OrderBy(int.Parse).ToList();
-        var nonParallelItems = tableNonParallel.Select(row => (string)row[0]).OrderBy(int.Parse).ToList();
+        var parallelItems = tableParallel.Select(row => (string)row.ReadValue(0)).OrderBy(int.Parse).ToList();
+        var nonParallelItems = tableNonParallel.Select(row => (string)row.ReadValue(0)).OrderBy(int.Parse).ToList();
         CollectionAssert.AreEqual(nonParallelItems, parallelItems,
             "Result sets differ between parallel and non-parallel execution");
     }
@@ -195,8 +195,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(leftSize, table.Count, $"Expected {leftSize} rows but got {table.Count}");
 
 
-        var matchedCount = table.Count(row => row[1] != null);
-        var unmatchedCount = table.Count(row => row[1] == null);
+        var matchedCount = table.Count(row => row.ReadValue(1) != null);
+        var unmatchedCount = table.Count(row => row.ReadValue(1) == null);
 
         Assert.AreEqual(rightSize, matchedCount, $"Expected {rightSize} matched rows but got {matchedCount}");
         Assert.AreEqual(leftSize - rightSize, unmatchedCount,

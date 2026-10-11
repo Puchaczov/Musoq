@@ -58,13 +58,13 @@ internal sealed partial class PhysicalLoweringImplementation
         var expressionText = IrExpressionPrinter.Print(expression);
         var groupKeyText = IrExpressionPrinter.Print(groupKey);
 
-        if (string.Equals(expressionText, groupKeyText, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(expressionText, groupKeyText, StringComparison.Ordinal))
             return true;
 
         var normalizedExpression = AggregateRefRewriter.NormalizeIdentifier(expressionText);
         if (!string.IsNullOrWhiteSpace(normalizedExpression) &&
-            (string.Equals(normalizedExpression, AggregateRefRewriter.NormalizeIdentifier(groupKeyText), StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(normalizedExpression, AggregateRefRewriter.NormalizeIdentifier(groupKeyName), StringComparison.OrdinalIgnoreCase)))
+            (string.Equals(normalizedExpression, AggregateRefRewriter.NormalizeIdentifier(groupKeyText), StringComparison.Ordinal) ||
+             string.Equals(normalizedExpression, AggregateRefRewriter.NormalizeIdentifier(groupKeyName), StringComparison.Ordinal)))
         {
             return true;
         }
@@ -72,10 +72,10 @@ internal sealed partial class PhysicalLoweringImplementation
         if (expression is not ColumnRef columnRef)
             return false;
 
-        if (string.Equals(columnRef.ColumnName, groupKeyName, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(columnRef.ColumnName, groupKeyName, StringComparison.Ordinal))
             return true;
 
-        return string.Equals($"{columnRef.Alias}.{columnRef.ColumnName}", groupKeyName, StringComparison.OrdinalIgnoreCase);
+        return string.Equals($"{columnRef.Alias}.{columnRef.ColumnName}", groupKeyName, StringComparison.Ordinal);
     }
 
     private static ProjectedField[]? SelectAggregateOutputFields(

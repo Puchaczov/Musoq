@@ -12,7 +12,7 @@ public class TestSchema(List<TestEntity> entities) : SchemaBase("test", CreateMe
         return new TestTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, TestEntity>(name, new TestRowSource(entities));
     }

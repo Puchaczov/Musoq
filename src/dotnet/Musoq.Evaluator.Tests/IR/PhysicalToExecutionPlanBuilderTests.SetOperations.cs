@@ -107,7 +107,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     }
 
     [TestMethod]
-    public void Build_WhenSetOperationArmsUseExpandoSources_ShouldReturnExecutionPlan()
+    public void Build_WhenSetOperationArmsUseErasedExpandoSources_ShouldRejectLegacyTransfer()
     {
         var leftScan = CreateScan();
         var rightScan = CreateScan("q");
@@ -131,16 +131,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             });
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
-        var result = builder.Build(setOperation, "Q_DynamicSetOperation");
-        var plan = RequireExecutionPlan(result);
-        var planText = ExecutionPlanPrinter.Print(plan);
-
-        Assert.Contains("ExpandoAdapter [p: pDynamicRow0]", planText);
-        Assert.Contains("ExpandoAdapter [q: qDynamicRow0]", planText);
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", planText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: p.Name)]", planText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: q.Name)]", planText);
-        Assert.IsFalse(planText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => builder.Build(setOperation, "Q_DynamicSetOperation"));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]

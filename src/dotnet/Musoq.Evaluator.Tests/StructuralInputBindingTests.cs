@@ -22,7 +22,7 @@ using Musoq.Schema.StructuralInputs;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class StructuralInputBindingTests
+public sealed partial class StructuralInputBindingTests
 {
     [TestMethod]
     public void ParameterDeclaration_ShouldBindRecursiveShapeAndStructuredDefault()
@@ -198,12 +198,12 @@ public sealed class StructuralInputBindingTests
             context);
 
         Assert.AreEqual(2, table.Rows.Count);
-        Assert.AreEqual(0, table.Rows[0][0]);
-        Assert.AreEqual("text", table.Rows[0][1]);
-        Assert.AreEqual("string", table.Rows[0][3]);
-        Assert.AreEqual(1, table.Rows[1][0]);
-        Assert.AreEqual("value", table.Rows[1][1]);
-        Assert.AreEqual("int", table.Rows[1][3]);
+        Assert.AreEqual(0, table.Rows[0].ReadValue(0));
+        Assert.AreEqual("text", table.Rows[0].ReadValue(1));
+        Assert.AreEqual("string", table.Rows[0].ReadValue(3));
+        Assert.AreEqual(1, table.Rows[1].ReadValue(0));
+        Assert.AreEqual("value", table.Rows[1].ReadValue(1));
+        Assert.AreEqual("int", table.Rows[1].ReadValue(3));
     }
 
     private static BuildMetadataAndInferTypesVisitor Analyze(string query)

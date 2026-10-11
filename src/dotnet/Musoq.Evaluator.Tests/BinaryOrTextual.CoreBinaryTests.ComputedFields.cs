@@ -44,9 +44,9 @@ public partial class BinaryOrTextualCoreBinaryTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("r.Width", typeof(int)),
-            ("r.Height", typeof(int)),
-            ("r.Area", typeof(int)));
+            ("Width", typeof(int)),
+            ("Height", typeof(int)),
+            ("Area", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [10, 5, 50]);
     }
 
@@ -89,8 +89,8 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("p.Size", typeof(int)));
+            ("Name", typeof(string)),
+            ("Size", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["huge.bin", 5000],
@@ -138,11 +138,11 @@ public partial class BinaryOrTextualCoreBinaryTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m.ValueA", typeof(int)),
-            ("m.ValueB", typeof(int)),
-            ("m.Sum", typeof(int)),
-            ("m.Diff", typeof(int)),
-            ("m.Product", typeof(int)));
+            ("ValueA", typeof(int)),
+            ("ValueB", typeof(int)),
+            ("Sum", typeof(int)),
+            ("Diff", typeof(int)),
+            ("Product", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [15, 7, 22, 8, 105]);
     }
 }

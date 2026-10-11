@@ -45,11 +45,6 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
         "is not supported",
         DisplayName = "unsupported parameter type")]
     [DataRow(
-        "param(ids: int[]?); select 1 from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
-        "nullable collection",
-        DisplayName = "nullable collection parameter")]
-    [DataRow(
         "param(ids: object[]); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
         "is not supported",
@@ -62,8 +57,8 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
     [DataRow(
         "param(ids: int[] = null); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3061_InvalidScriptParameterDefault,
-        "cannot declare a default value",
-        DisplayName = "collection parameter default")]
+        "null",
+        DisplayName = "null default for nonnullable collection")]
     [DataRow(
         "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')",
         DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,

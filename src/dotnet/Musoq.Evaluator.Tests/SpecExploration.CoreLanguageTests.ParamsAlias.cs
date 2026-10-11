@@ -26,7 +26,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Charlie", table[1][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("Charlie", table[1].ReadValue(0));
     }
 }

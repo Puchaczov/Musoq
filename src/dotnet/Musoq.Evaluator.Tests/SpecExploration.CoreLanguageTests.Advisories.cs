@@ -84,7 +84,7 @@ public partial class SpecExplorationCoreLanguageTests
             var compiledQuery = build.CompiledQuery ??
                 throw new AssertFailedException("Successful advisory compilation produced no compiled query.");
             using var table = compiledQuery.Run(TokenSource.Token);
-            Assert.AreEqual(expected, table[0][0], query);
+            Assert.AreEqual(expected, table[0].ReadValue(0), query);
         }
     }
 

@@ -48,13 +48,13 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    SourceScan [o: Order] -> oRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    MaterializeChunked [oRows -> oRowsBuffer]",
             "    ChunkedForEach [p in pRows]",
             "      ForEach [o in oRowsBuffer]",
             "        If [(p.Age > o.PersonAge)]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -96,12 +96,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    SourceScan [o: Order] -> oRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    MaterializeChunked [oRows -> oRowsBuffer]",
             "    ChunkedForEach [p in pRows]",
             "      ForEach [o in oRowsBuffer]",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -151,13 +151,13 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    SourceScan [o: Order] -> oRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateRangeIndex [resultRangeIndex <- oRows by oRangeCandidate.PersonAge >]",
             "    ChunkedForEach [p in pRows]",
             "      RangeProbe [o <- resultRangeIndex where p.Age]",
             "        If [(p.Age > o.PersonAge)]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

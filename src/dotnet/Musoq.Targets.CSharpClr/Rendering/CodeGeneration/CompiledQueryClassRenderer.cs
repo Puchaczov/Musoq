@@ -51,9 +51,6 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
 
     private SyntaxNode CreateClassDeclaration(IList<SyntaxNode> members)
     {
-        var implementsStructuralParameterSnapshotProvider =
-            _context.ScriptParameterDefinitions.Any(static definition => definition.Contract.IsStructured);
-
         if (_context.ResultMode == QueryResultMode.TypedEnumerable)
         {
             var outputType = _context.OutputType
@@ -63,8 +60,7 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 DefaultClassName,
                 outputType,
                 members,
-                _context.IsMetadataOnly,
-                implementsStructuralParameterSnapshotProvider);
+                _context.IsMetadataOnly);
         }
 
             return ClassEmitter.CreateClassDeclaration(
@@ -74,8 +70,7 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 IsInstrumentationEnabled,
                 _context.EnableContextualExecution,
                 IsInstrumentationEnabled && _context.EnableContextualExecution,
-                _context.IsMetadataOnly,
-                implementsStructuralParameterSnapshotProvider);
+                _context.IsMetadataOnly);
     }
 
     private IEnumerable<string> ResolveNamespaces(IReadOnlyList<SyntaxNode> members)
@@ -131,12 +126,10 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
         var members = new List<SyntaxNode>();
         var profiledComputeMethodName = QueryMethodNameResolver.ResolveProfiled(computeMethodName);
 
-        if (_context.ScriptParameterDefinitions.Any(static definition => definition.Contract.IsStructured))
-        {
-            members.AddRange(StructuralParameterCaptureSyntaxFactory.CreateMembers(
-                _context.ScriptVariableDefinitions,
-                _context.ScriptParameterDefinitions));
-        }
+        for (var index = 0; index < _context.ScriptParameterDefinitions.Count; index++)
+            if (_context.ScriptParameterDefinitions[index].Contract.StructuralType is { } descriptor)
+                members.AddRange(new TypedStructuredJsonSyntax(_context.ScriptVariableDefinitions.Count + index)
+                    .Create(descriptor, _context.ScriptParameterDefinitions[index]));
 
         foreach (var classMember in _context.ClassMembers)
         {

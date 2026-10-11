@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ public sealed class StructuredInputExecutionModeQualificationTests
                 useCteParallelization: mode == ParallelizationMode.Full));
             using var table = compiled.Run();
             results[mode] = table.Rows
-                .Select(static row => $"{row[0]}:{row[1]}")
+                .Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
                 .ToArray();
             Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
         }
@@ -54,7 +55,7 @@ public sealed class StructuredInputExecutionModeQualificationTests
                 useCteParallelization: enabled));
             using var table = compiled.Run();
             results[enabled] = table.Rows
-                .Select(static row => $"{row[0]}:{row[1]}")
+                .Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
                 .ToArray();
             Assert.AreEqual(2, StructuredInputSourceCounters.NumbersConstructed);
         }
@@ -110,7 +111,7 @@ public sealed class StructuredInputExecutionModeQualificationTests
                         }
                     }
                 };
-                return compiled.Run(new TypedQueryRunOptions(CancellationToken.None, parameters)).ToArray();
+                return compiled.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters, compiled.ParameterDefinitions))).ToArray();
             })));
 
         foreach (var (result, index) in results.GetAwaiter().GetResult().Select((result, index) => (result, index)))

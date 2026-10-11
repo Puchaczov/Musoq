@@ -38,7 +38,7 @@ public abstract partial class TextInterpreterBase<TOut>
     {
         var remaining = GetTextRemaining(text, fieldName).ToString();
         if (greedy && lazy)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -68,7 +68,7 @@ public abstract partial class TextInterpreterBase<TOut>
         }
         catch (ArgumentException exception)
         {
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -78,7 +78,7 @@ public abstract partial class TextInterpreterBase<TOut>
         }
         catch (NotSupportedException exception)
         {
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -88,7 +88,7 @@ public abstract partial class TextInterpreterBase<TOut>
         }
 
         if (!match.Success)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.PatternMismatch,
                 SchemaName,
                 fieldName,
@@ -109,7 +109,7 @@ public abstract partial class TextInterpreterBase<TOut>
         while (ParsePosition < text.Length && IsTextWhitespace(text[ParsePosition])) ParsePosition++;
 
         if (required && ParsePosition == startPos)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.ExpectedWhitespace,
                 SchemaName,
                 fieldName,
@@ -140,7 +140,7 @@ public abstract partial class TextInterpreterBase<TOut>
             var found = remaining.Length >= literal.Length
                 ? remaining.Slice(0, literal.Length).ToString()
                 : remaining.ToString();
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.LiteralMismatch,
                 SchemaName,
                 fieldName,

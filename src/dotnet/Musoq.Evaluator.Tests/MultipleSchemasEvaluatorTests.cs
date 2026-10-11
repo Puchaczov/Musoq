@@ -28,7 +28,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(0, table[0].Values[0]);
+        Assert.AreEqual(0, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -47,7 +47,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(1, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(0, table[0].Values[0]);
+        Assert.AreEqual(0, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(1, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -104,7 +104,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(0, table[0].Values[0]);
+        Assert.AreEqual(0, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -138,8 +138,8 @@ group by first.FirstItem";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("group-a", table[0].Values[0]);
-        Assert.AreEqual("0", table[0].Values[1]);
+        Assert.AreEqual("group-a", table[0].ReadValues()[0]);
+        Assert.AreEqual("0", table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -155,7 +155,7 @@ group by first.FirstItem";
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(5, table[0].Values[0]);
+        Assert.AreEqual(5, table[0].ReadValues()[0]);
     }
 
     [TestMethod]

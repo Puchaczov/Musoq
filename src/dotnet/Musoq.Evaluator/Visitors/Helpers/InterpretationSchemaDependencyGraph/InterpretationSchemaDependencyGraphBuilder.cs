@@ -98,7 +98,7 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
         if (!string.IsNullOrWhiteSpace(schema.Extends))
             yield return schema.Extends;
 
-        foreach (var field in schema.Fields)
+        foreach (var field in InterpretationTextFieldTypeResolver.EnumerateDefinitions(schema.Fields))
         {
             if (field.FieldType == TextFieldType.Switch)
             {

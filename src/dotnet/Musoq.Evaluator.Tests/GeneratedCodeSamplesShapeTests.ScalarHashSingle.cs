@@ -10,7 +10,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(ScalarSubqueryJoinOnSampleFileName).Content;
 
-        Assert.Contains("ParallelSingleKeyAggregateLoop", sample);
+        Assert.DoesNotContain("ParallelSingleKeyAggregateLoop", sample);
+        Assert.Contains("TypedAggregateSet [Set(cte0Group.__agg0, city)]", sample);
+        Assert.Contains("token.ThrowIfCancellationRequested();", sample);
         Assert.Contains("CorrelatedScalarSubqueryResultExtractor.GetValue", sample);
         Assert.IsFalse(
             sample.Contains("CorrelatedScalarSubqueryResult<string>?", StringComparison.Ordinal),

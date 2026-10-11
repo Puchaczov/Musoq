@@ -13,6 +13,19 @@ namespace Musoq.Evaluator.Tests;
 public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
 {
     [TestMethod]
+    [TestProperty("CandidateId", "P1-100")]
+    public void PostfixCast_InlineStringLiteral_ShouldReturnNullableInt32Metadata()
+    {
+        const string query = "select '42'::Int32 as Value from values { (N: 0) } v";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new[] { CreateFullCastEntity() });
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [42]);
+    }
+
+    [TestMethod]
     public void PostfixCast_AllSupportedClrTargets_ShouldCastStringsThroughLibrary()
     {
         var source = new[]
@@ -34,7 +47,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
                 DoubleText::Double as DoubleValue,
                 DecimalText::Decimal as DecimalValue,
                 CharText::Char as CharValue,
-                ObjectValue::String as StringValue,
+                NumericValue::String as StringValue,
                 DateTimeText::DateTime as DateTimeValue,
                 DateTimeOffsetText::DateTimeOffset as DateTimeOffsetValue,
                 TimeSpanText::TimeSpan as TimeSpanValue,
@@ -107,7 +120,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
                     DoubleText::double as DoubleValue,
                     DecimalText::decimal as DecimalValue,
                     CharText::char as CharValue,
-                    ObjectValue::string as StringValue
+                    NumericValue::string as StringValue
                 from #schema.first()",
             [CreateFullCastEntity()]).Run();
 
@@ -152,7 +165,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
     public void PostfixCast_CSharpAliases_ShouldMatchCaseInsensitively()
     {
         var table = CreateAndRunVirtualMachine(
-            "select Int32Text::INT as IntValue, SingleText::Float as FloatValue, ObjectValue::STRING as StringValue from #schema.first()",
+            "select Int32Text::INT as IntValue, SingleText::Float as FloatValue, NumericValue::STRING as StringValue from #schema.first()",
             [CreateFullCastEntity()]).Run();
 
         TableMaterializationTestHelper.AssertColumns(
@@ -176,8 +189,8 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             CultureInfo.CurrentUICulture = culture;
 
             var table = CreateAndRunVirtualMachine(
-                "select ObjectValue::string as TextValue, NullText::string as NullValue from #schema.first()",
-                [new CastEntity { ObjectValue = 1234.5m, NullText = null }]).Run();
+                "select NumericValue::string as TextValue, NullText::string as NullValue from #schema.first()",
+                [new CastEntity { NumericValue = 1234.5m, NullText = null }]).Run();
 
             TableMaterializationTestHelper.AssertColumns(
                 table,
@@ -272,8 +285,8 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
     public void PostfixCast_UnsupportedRuntimeConversion_ShouldThrow()
     {
         var vm = CreateAndRunVirtualMachine(
-            "select ObjectValue::Guid from #schema.first()",
-            [new CastEntity { ObjectValue = 42 }]);
+            "select NumericValue::Guid from #schema.first()",
+            [new CastEntity { NumericValue = 42 }]);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
         AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
@@ -338,7 +351,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, rows).Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [200], [2]);
     }
 
@@ -395,7 +408,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             DoubleText = "2.25",
             DecimalText = "123.45",
             CharText = "Z",
-            ObjectValue = 42,
+            NumericValue = 42,
             DateTimeText = "2024-06-15T13:45:30",
             DateTimeOffsetText = "2024-06-15T13:45:30+02:00",
             TimeSpanText = "01:02:03",
@@ -433,7 +446,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
 
         public string CharText { get; init; } = string.Empty;
 
-        public object? ObjectValue { get; init; }
+        public decimal? NumericValue { get; init; }
 
         public string DateTimeText { get; init; } = string.Empty;
 

@@ -48,10 +48,10 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(3L, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(3L, table[0].ReadValue(1));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 
     #endregion
@@ -88,12 +88,12 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)5, table[0][1]);
-        Assert.AreEqual((short)30, table[0][2]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((short)50, table[1][1]);
-        Assert.AreEqual((short)100, table[1][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)5, table[0].ReadValue(1));
+        Assert.AreEqual((short)30, table[0].ReadValue(2));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((short)50, table[1].ReadValue(1));
+        Assert.AreEqual((short)100, table[1].ReadValue(2));
     }
 
     #endregion
@@ -128,10 +128,10 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(15, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(100, table[1][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(15m, table[0].GetValue<decimal?>(1));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual(100m, table[1].GetValue<decimal?>(1));
     }
 
     #endregion
@@ -165,10 +165,10 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(4L, table[0][0]);
-        Assert.AreEqual(65, table[0][1]);
-        Assert.AreEqual(5, table[0][2]);
-        Assert.AreEqual(30, table[0][3]);
+        Assert.AreEqual(4L, table[0].ReadValue(0));
+        Assert.AreEqual(65, table[0].ReadValue(1));
+        Assert.AreEqual(5, table[0].ReadValue(2));
+        Assert.AreEqual(30, table[0].ReadValue(3));
     }
 
     #endregion
@@ -206,8 +206,8 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual(30, table[0][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual(30, table[0].ReadValue(1));
     }
 
     #endregion
@@ -244,12 +244,12 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ERROR", table[0][0]);
-        Assert.AreEqual(3L, table[0][1]);
-        Assert.AreEqual("INFO", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
-        Assert.AreEqual("WARN", table[2][0]);
-        Assert.AreEqual(1L, table[2][1]);
+        Assert.AreEqual("ERROR", table[0].ReadValue(0));
+        Assert.AreEqual(3L, table[0].ReadValue(1));
+        Assert.AreEqual("INFO", table[1].ReadValue(0));
+        Assert.AreEqual(1L, table[1].ReadValue(1));
+        Assert.AreEqual("WARN", table[2].ReadValue(0));
+        Assert.AreEqual(1L, table[2].ReadValue(1));
     }
 
     #endregion
@@ -287,8 +287,8 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)100, table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
+        Assert.AreEqual((byte)100, table[0].ReadValue(0));
+        Assert.AreEqual(4L, table[0].ReadValue(1));
     }
 
     #endregion
@@ -329,12 +329,12 @@ public class SchemaAggregationFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)90, table[0][1]);
-        Assert.AreEqual(3L, table[0][2]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((short)60, table[1][1]);
-        Assert.AreEqual(2L, table[1][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)90, table[0].ReadValue(1));
+        Assert.AreEqual(3L, table[0].ReadValue(2));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((short)60, table[1].ReadValue(1));
+        Assert.AreEqual(2L, table[1].ReadValue(2));
     }
 
     #endregion

@@ -24,7 +24,7 @@ public partial class SubqueryTests
             ORDER BY a.Name";
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedBoundarySources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ExpectedSomeRows(comparison));
@@ -74,7 +74,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("InResult", typeof(string)),
             ("NotInResult", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -121,7 +121,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Empty"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -160,7 +160,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("Total", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -240,7 +240,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("AnyGreater", typeof(bool)),
             ("AllGreater", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(

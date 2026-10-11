@@ -49,8 +49,8 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("key", table[0][0]);
-        Assert.AreEqual("value", table[0][1]);
+        Assert.AreEqual("key", table[0].ReadValue(0));
+        Assert.AreEqual("value", table[0].ReadValue(1));
     }
 
     #endregion
@@ -177,9 +177,9 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(20, table[0][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(20, table[0].ReadValue(2));
     }
 
     #endregion
@@ -222,7 +222,7 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
     }
 
     #endregion
@@ -257,10 +257,10 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("age", table[0][0]);
-        Assert.AreEqual("30", table[0][1]);
-        Assert.AreEqual("name", table[1][0]);
-        Assert.AreEqual("John", table[1][1]);
+        Assert.AreEqual("age", table[0].ReadValue(0));
+        Assert.AreEqual("30", table[0].ReadValue(1));
+        Assert.AreEqual("name", table[1].ReadValue(0));
+        Assert.AreEqual("John", table[1].ReadValue(1));
     }
 
     #endregion
@@ -301,10 +301,10 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0, table[0][0]);
-        Assert.AreEqual(0, table[0][1]);
-        Assert.AreEqual(100, table[0][2]);
-        Assert.AreEqual(200, table[0][3]);
+        Assert.AreEqual(0, table[0].ReadValue(0));
+        Assert.AreEqual(0, table[0].ReadValue(1));
+        Assert.AreEqual(100, table[0].ReadValue(2));
+        Assert.AreEqual(200, table[0].ReadValue(3));
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
     }
 
     #endregion
@@ -381,10 +381,10 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x5153554D, table[0][0]);
-        Assert.AreEqual((short)1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
-        Assert.AreEqual(100, table[0][3]);
+        Assert.AreEqual(0x5153554D, table[0].ReadValue(0));
+        Assert.AreEqual((short)1, table[0].ReadValue(1));
+        Assert.AreEqual(1, table[0].ReadValue(2));
+        Assert.AreEqual(100, table[0].ReadValue(3));
     }
 
     /// <summary>
@@ -419,9 +419,9 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(5, table[0][1]);
-        Assert.AreEqual(50, table[0][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(5, table[0].ReadValue(1));
+        Assert.AreEqual(50, table[0].ReadValue(2));
     }
 
     #endregion

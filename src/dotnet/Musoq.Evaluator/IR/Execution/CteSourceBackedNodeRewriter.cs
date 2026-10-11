@@ -206,10 +206,6 @@ internal sealed class CteSourceBackedNodeRewriter
                     : Fail(out rewritten);
             case ExecutionArrayAccess arrayAccess:
                 return TryRewriteArrayAccess(arrayAccess, out rewritten);
-            case ExecutionCompositeKey composite:
-                return TryRewriteExpressionList(composite.Parts, out var compositeParts)
-                    ? Succeed(composite with { Parts = compositeParts }, out rewritten)
-                    : Fail(out rewritten);
             case ExecutionValueTupleKey tuple:
                 return TryRewriteExpressionList(tuple.Parts, out var tupleParts)
                     ? Succeed(tuple with { Parts = tupleParts }, out rewritten)

@@ -66,7 +66,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => ((string)row.Values[0]).StartsWith('1')));
+        Assert.IsTrue(table.All(row => ((string)row.ReadValues()[0]).StartsWith('1')));
     }
 
     #endregion
@@ -97,8 +97,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 30 && Convert.ToInt32(row.Values[1]) == 8));
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 50 && Convert.ToInt32(row.Values[1]) == 10));
+        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 30 && Convert.ToInt32(row.ReadValues()[1]) == 8));
+        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 50 && Convert.ToInt32(row.ReadValues()[1]) == 10));
     }
 
     #endregion
@@ -126,8 +126,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows passing the filter");
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 4), "Should contain Length = 4");
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 6), "Should contain Length = 6");
+        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 4), "Should contain Length = 4");
+        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 6), "Should contain Length = 6");
     }
 
     [TestMethod]
@@ -150,7 +150,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows with Name = 'Test'");
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "Test"));
+        Assert.IsTrue(table.All(row => (string)row.ReadValues()[0] == "Test"));
     }
 
     [TestMethod]
@@ -174,7 +174,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Should have 3 rows matching ToUpper = 'TEST'");
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "TEST"));
+        Assert.IsTrue(table.All(row => (string)row.ReadValues()[0] == "TEST"));
     }
 
     #endregion
@@ -207,9 +207,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Should have 3 rows");
-        Assert.AreEqual(5, Convert.ToInt32(table[0][1]), "First row should have Length = 5");
-        Assert.AreEqual(4, Convert.ToInt32(table[1][1]), "Second row should have Length = 4");
-        Assert.AreEqual(3, Convert.ToInt32(table[2][1]), "Third row should have Length = 3");
+        Assert.AreEqual(5, Convert.ToInt32(table[0].ReadValue(1)), "First row should have Length = 5");
+        Assert.AreEqual(4, Convert.ToInt32(table[1].ReadValue(1)), "Second row should have Length = 4");
+        Assert.AreEqual(3, Convert.ToInt32(table[2].ReadValue(1)), "Third row should have Length = 3");
     }
 
     [TestMethod]
@@ -237,8 +237,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows");
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 3 && (string)row.Values[1] == "ABC"));
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 5 && (string)row.Values[1] == "ALPHA"));
+        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 3 && (string)row.ReadValues()[1] == "ABC"));
+        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 5 && (string)row.ReadValues()[1] == "ALPHA"));
     }
 
     #endregion
@@ -269,8 +269,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows");
-        Assert.IsTrue(table.Any(row => (decimal)row.Values[0] == 120m));
-        Assert.IsTrue(table.Any(row => (decimal)row.Values[0] == 200m));
+        Assert.IsTrue(table.Any(row => (decimal)row.ReadValues()[0] == 120m));
+        Assert.IsTrue(table.Any(row => (decimal)row.ReadValues()[0] == 200m));
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 Polish cities");
-        Assert.IsTrue(table.All(row => ((string)row.Values[0]).Contains("Poland")));
+        Assert.IsTrue(table.All(row => ((string)row.ReadValues()[0]).Contains("Poland")));
     }
 
     #endregion
@@ -330,8 +330,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Poland", (string)table[0][0]);
-        Assert.AreEqual(3, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual("Poland", (string)table[0].ReadValue(0));
+        Assert.AreEqual(3, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     [TestMethod]
@@ -359,13 +359,13 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        var polandRow = table.First(r => (string)r[0] == "Poland");
-        Assert.AreEqual(300m, (decimal)polandRow[1]);
-        Assert.AreEqual(600m, (decimal)polandRow[2]);
+        var polandRow = table.First(r => (string)r.ReadValue(0) == "Poland");
+        Assert.AreEqual(300m, (decimal)polandRow.ReadValue(1));
+        Assert.AreEqual(600m, (decimal)polandRow.ReadValue(2));
 
-        var germanyRow = table.First(r => (string)r[0] == "Germany");
-        Assert.AreEqual(500m, (decimal)germanyRow[1]);
-        Assert.AreEqual(1000m, (decimal)germanyRow[2]);
+        var germanyRow = table.First(r => (string)r.ReadValue(0) == "Germany");
+        Assert.AreEqual(500m, (decimal)germanyRow.ReadValue(1));
+        Assert.AreEqual(1000m, (decimal)germanyRow.ReadValue(2));
     }
 
     #endregion
@@ -396,8 +396,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (int?)row.Values[0] == 10));
-        Assert.IsTrue(table.Any(row => (int?)row.Values[0] == 20));
+        Assert.IsTrue(table.Any(row => (int?)row.ReadValues()[0] == 10));
+        Assert.IsTrue(table.Any(row => (int?)row.ReadValues()[0] == 20));
     }
 
     [TestMethod]
@@ -424,7 +424,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(row => row.Values[0] == null));
+        Assert.IsTrue(table.All(row => row.ReadValues()[0] == null));
     }
 
     #endregion
@@ -455,8 +455,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Warsaw"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Krakow"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Warsaw"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Krakow"));
     }
 
     [TestMethod]
@@ -484,7 +484,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        foreach (var row in table) Assert.AreEqual(row[1], row[2], "L1 and L2 should have the same value");
+        foreach (var row in table) Assert.AreEqual(row.ReadValue(1), row.ReadValue(2), "L1 and L2 should have the same value");
     }
 
     [TestMethod]
@@ -516,8 +516,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Long"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Medium"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Long"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Medium"));
     }
 
     #endregion
@@ -550,14 +550,14 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count);
 
-        var shortRow = table.First(row => Convert.ToInt32(row[0]) == 2);
-        Assert.AreEqual("Short", shortRow[1]);
+        var shortRow = table.First(row => Convert.ToInt32(row.ReadValue(0)) == 2);
+        Assert.AreEqual("Short", shortRow.ReadValue(1));
 
-        var longRow1 = table.First(row => Convert.ToInt32(row[0]) == 4);
-        Assert.AreEqual("Long", longRow1[1]);
+        var longRow1 = table.First(row => Convert.ToInt32(row.ReadValue(0)) == 4);
+        Assert.AreEqual("Long", longRow1.ReadValue(1));
 
-        var longRow2 = table.First(row => Convert.ToInt32(row[0]) == 6);
-        Assert.AreEqual("Long", longRow2[1]);
+        var longRow2 = table.First(row => Convert.ToInt32(row.ReadValue(0)) == 6);
+        Assert.AreEqual("Long", longRow2.ReadValue(1));
     }
 
     [TestMethod]
@@ -588,14 +588,14 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count);
 
-        var mediumRow = table.First(row => (string)row[0] == "ABC");
-        Assert.AreEqual("Medium", mediumRow[1]);
+        var mediumRow = table.First(row => (string)row.ReadValue(0) == "ABC");
+        Assert.AreEqual("Medium", mediumRow.ReadValue(1));
 
-        var longRow1 = table.First(row => (string)row[0] == "ABCD");
-        Assert.AreEqual("Long", longRow1[1]);
+        var longRow1 = table.First(row => (string)row.ReadValue(0) == "ABCD");
+        Assert.AreEqual("Long", longRow1.ReadValue(1));
 
-        var longRow2 = table.First(row => (string)row[0] == "ABCDEF");
-        Assert.AreEqual("Long", longRow2[1]);
+        var longRow2 = table.First(row => (string)row.ReadValue(0) == "ABCDEF");
+        Assert.AreEqual("Long", longRow2.ReadValue(1));
     }
 
     [TestMethod]
@@ -624,14 +624,14 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count);
 
-        var matchRow1 = table.First(row => (string)row[0] == "abc");
-        Assert.AreEqual("Match", matchRow1[1]);
+        var matchRow1 = table.First(row => (string)row.ReadValue(0) == "abc");
+        Assert.AreEqual("Match", matchRow1.ReadValue(1));
 
-        var matchRow2 = table.First(row => (string)row[0] == "ABC");
-        Assert.AreEqual("Match", matchRow2[1]);
+        var matchRow2 = table.First(row => (string)row.ReadValue(0) == "ABC");
+        Assert.AreEqual("Match", matchRow2.ReadValue(1));
 
-        var noMatchRow = table.First(row => (string)row[0] == "def");
-        Assert.AreEqual("NoMatch", noMatchRow[1]);
+        var noMatchRow = table.First(row => (string)row.ReadValue(0) == "def");
+        Assert.AreEqual("NoMatch", noMatchRow.ReadValue(1));
     }
 
     #endregion
@@ -662,8 +662,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (decimal)row.Values[0] == 101m && (decimal)row.Values[1] == 111m));
-        Assert.IsTrue(table.Any(row => (decimal)row.Values[0] == 201m && (decimal)row.Values[1] == 211m));
+        Assert.IsTrue(table.Any(row => (decimal)row.ReadValues()[0] == 101m && (decimal)row.ReadValues()[1] == 111m));
+        Assert.IsTrue(table.Any(row => (decimal)row.ReadValues()[0] == 201m && (decimal)row.ReadValues()[1] == 211m));
     }
 
 

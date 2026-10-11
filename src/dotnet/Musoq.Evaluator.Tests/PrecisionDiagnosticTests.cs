@@ -2,18 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Diagnostics;
-using Musoq.Parser.Lexing;
 
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class PrecisionDiagnosticTests : BasicEntityTestBase
+public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
 {
     [TestMethod]
     public void UnsupportedCastTarget_UsesDedicatedBindDiagnostic()
@@ -113,23 +108,12 @@ public sealed class PrecisionDiagnosticTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void MultiRowValuesScalarSubquery_IsRejectedBeforeExecution()
+    public void MultiRowValuesScalarSubquery_ShouldPassSemanticAnalysis()
     {
         const string query = "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) from #A.Entities()";
-        var scalar = GetScalarSubquery(query);
-        var scalarQuery = scalar.Subquery as QueryNode;
-        Assert.IsNotNull(scalarQuery);
-        var scalarSource = scalarQuery.From is ExpressionFromNode expressionFrom
-            ? expressionFrom.Expression
-            : scalarQuery.From;
-        Assert.IsInstanceOfType<ValuesFromNode>(scalarSource);
-        Assert.AreEqual(2, ((ValuesFromNode)scalarSource).Rows.Count);
-
-        var diagnostic = AnalyzeSingleError(
-            query,
-            DiagnosticCode.MQ3095_ScalarSubqueryCardinality);
-
-        Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
+        var result = CreateAnalyzer().Analyze(query);
+        Assert.IsTrue(result.IsParsed, Describe(result));
+        Assert.IsEmpty(result.Errors, Describe(result));
     }
 
     [TestMethod]
@@ -165,24 +149,4 @@ public sealed class PrecisionDiagnosticTests : BasicEntityTestBase
         return new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(sources));
     }
 
-    private static ScalarSubqueryNode GetScalarSubquery(string query)
-    {
-        var collector = new ScalarCollector();
-        var root = new Musoq.Parser.Parser(new Lexer(query, true)).ComposeAll();
-        root.Accept(new ScalarTraversal(collector));
-        Assert.AreEqual(1, collector.Nodes.Count);
-        return collector.Nodes[0];
-    }
-
-    private sealed class ScalarCollector : NoOpExpressionVisitor
-    {
-        public List<ScalarSubqueryNode> Nodes { get; } = [];
-
-        public override void Visit(ScalarSubqueryNode node) => Nodes.Add(node);
-    }
-
-    private sealed class ScalarTraversal(ScalarCollector collector)
-        : RawTraverseVisitor<ScalarCollector>(collector)
-    {
-    }
 }

@@ -26,8 +26,8 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("lower", table[0][0]);
-        Assert.AreEqual("upper", table[0][1]);
+        Assert.AreEqual("lower", table[0].ReadValue(0));
+        Assert.AreEqual("upper", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -35,7 +35,7 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
     {
         const string query = "let key: string = 'constant'; select $key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
-        vm.Parameters["key"] = "override";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "override");
 
         var exception = Assert.Throws<QueryExecutionException>(
             () => _ = vm.Run(TestContext.CancellationToken).Count);

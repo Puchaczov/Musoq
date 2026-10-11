@@ -26,7 +26,7 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
             children,
             filterSecondRowsSource: CorrelateChildren(observedKeys)).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("m1.Key", typeof(string)), ("m2.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["one", 10], ["one", 11], ["two", 21]);
         CollectionAssert.AreEqual(new object?[] { "one", "two", "empty" }, observedKeys.ToArray());
     }
@@ -45,7 +45,7 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
             Children(),
             filterSecondRowsSource: CorrelateChildren()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("m1.Key", typeof(string)), ("m2.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["one", 10], ["one", 11], ["two", 20], ["two", 21]);
     }
 
@@ -79,9 +79,9 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m1.Key", typeof(string)),
-            ("m2.Id", typeof(int)),
-            ("m3.Id", typeof(int)));
+            ("Key", typeof(string)),
+            ("Id", typeof(int)),
+            ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["one", 10, 100], ["one", 11, 110], ["two", 21, 210]);
         CollectionAssert.AreEqual(new object?[] { 10, 11, 21 }, observedChildIds.ToArray());
     }
@@ -101,8 +101,8 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m1.Key", typeof(string)),
-            ("m2.Id", typeof(int?)),
+            ("Key", typeof(string)),
+            ("Id", typeof(int?)),
             ("Matched", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -129,8 +129,8 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m1.Key", typeof(string)),
-            ("m2.Id", typeof(int?)),
+            ("Key", typeof(string)),
+            ("Id", typeof(int?)),
             ("Matched", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -208,7 +208,7 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
             Children(),
             filterSecondRowsSource: CorrelateChildren()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("m1.Key", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["one"], ["one"], ["two"]);
     }
 
@@ -232,7 +232,7 @@ public sealed class LikeApplyConformanceTests : GenericEntityTestBase
             children,
             filterSecondRowsSource: CorrelateChildren()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("m1.Key", typeof(string)), ("m2.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["unicode", 2]);
     }
 

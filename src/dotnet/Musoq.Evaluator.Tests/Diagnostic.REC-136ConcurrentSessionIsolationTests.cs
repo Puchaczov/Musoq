@@ -44,8 +44,8 @@ public sealed class DiagnosticRec136ConcurrentSessionIsolationTests
                 using var table = compiled.Run();
 
                 Assert.HasCount(1, table, $"provider case {index}");
-                Assert.AreEqual(expected, table[0][0], $"provider case {index}");
-                return (Index: index, Value: (string)table[0][0]);
+                Assert.AreEqual(expected, table[0].ReadValue(0), $"provider case {index}");
+                return (Index: index, Value: (string)table[0].ReadValue(0));
             })));
 
         Assert.HasCount(CasesPerFamily, observations);
@@ -71,11 +71,11 @@ public sealed class DiagnosticRec136ConcurrentSessionIsolationTests
                     CreateBasicProvider($"REC136-parameter-{index}"),
                     new TestsLoggerResolver(),
                     TestCompilationOptions);
-                compiled.Parameters["value"] = expected;
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", expected);
 
                 using var table = compiled.Run();
                 Assert.HasCount(1, table, $"parameter case {index}");
-                Assert.AreEqual(expected, table[0][0], $"parameter case {index}");
+                Assert.AreEqual(expected, table[0].ReadValue(0), $"parameter case {index}");
                 return expected;
             })));
 
@@ -94,8 +94,8 @@ public sealed class DiagnosticRec136ConcurrentSessionIsolationTests
 
                 using var table = compiled.Run();
                 Assert.HasCount(1, table, $"settings case {index}");
-                Assert.AreEqual(expected, table[0][0], $"settings case {index}");
-                return (string)table[0][0];
+                Assert.AreEqual(expected, table[0].ReadValue(0), $"settings case {index}");
+                return (string)table[0].ReadValue(0);
             })));
 
         CollectionAssert.AreEquivalent(
@@ -234,7 +234,7 @@ public sealed class DiagnosticRec136ConcurrentSessionIsolationTests
                     table.Columns.Any(column => column.ColumnName.Equals("Country", StringComparison.OrdinalIgnoreCase)),
                     $"star case {index}");
                 Assert.IsTrue(
-                    table.Rows.SelectMany(static row => row.Values).Any(value => Equals(value, (decimal)index)),
+                    table.Rows.SelectMany(static row => row.ReadValues()).Any(value => Equals(value, (decimal)index)),
                     $"star case {index} returned a row from another session");
                 Assert.IsTrue(
                     table.Columns.Any(column => column.ColumnName == "Population3x"),

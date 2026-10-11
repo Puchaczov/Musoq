@@ -37,7 +37,7 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Artifact.AssemblyBytes.Length > 0);
         Assert.AreEqual("ArtifactBasic.CompiledQuery", result.Artifact.RunnableTypeName);
         Assert.AreEqual(CompiledQueryArtifact.CurrentArtifactFormatVersion, result.Artifact.ArtifactFormatVersion);
-        Assert.AreEqual("3", result.Artifact.ArtifactFormatVersion);
+        Assert.AreEqual("5", result.Artifact.ArtifactFormatVersion);
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("AssemblyName"));
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("ScriptSha256"));
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("SemanticShapeSha256"));
@@ -73,7 +73,7 @@ public class CompiledQueryArtifactApiTests
             throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
         var table = compiledQuery.Run();
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -130,7 +130,7 @@ public class CompiledQueryArtifactApiTests
         Assert.AreEqual(storedGeneratedCodeHash, recomputedGeneratedCodeHash);
         var compiledQuery = loadResult.CompiledQuery ??
             throw new AssertFailedException("Successful artifact validation did not produce a compiled query.");
-        Assert.AreEqual("cached", compiledQuery.Run()[0][0]);
+        Assert.AreEqual("cached", compiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -148,7 +148,7 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Succeeded);
         var compiledQuery = result.CompiledQuery ??
             throw new AssertFailedException("Successful provider rebind did not produce a compiled query.");
-        Assert.AreEqual("second", compiledQuery.Run()[0][0]);
+        Assert.AreEqual("second", compiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -171,7 +171,7 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Succeeded);
         var compiledQuery = result.CompiledQuery ??
             throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
-        Assert.AreEqual("load-token", compiledQuery.Run()[0][0]);
+        Assert.AreEqual("load-token", compiledQuery.Run()[0].ReadValue(0));
         Assert.IsGreaterThanOrEqualTo(loadProvider.Schema.PlanCount, 1);
         Assert.IsGreaterThanOrEqualTo(loadProvider.Schema.DescribeRuntimeSettingsCount, 1);
     }
@@ -208,7 +208,7 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(invoked);
         var compiledQuery = result.CompiledQuery ??
             throw new AssertFailedException("Successful custom load did not produce a compiled query.");
-        Assert.AreEqual("single", compiledQuery.Run()[0][0]);
+        Assert.AreEqual("single", compiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -236,7 +236,7 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Succeeded);
         var compiledQuery = result.CompiledQuery ??
             throw new AssertFailedException("Successful lifecycle load did not produce a compiled query.");
-        Assert.AreEqual("single", compiledQuery.Run()[0][0]);
+        Assert.AreEqual("single", compiledQuery.Run()[0].ReadValue(0));
         compiledQuery.Dispose();
         Assert.IsTrue(owner!.Disposed);
         Assert.Throws<ObjectDisposedException>(() => compiledQuery.Run());
@@ -281,7 +281,7 @@ public class CompiledQueryArtifactApiTests
         const string query = "select i.Value from #artifact.items() i";
         var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
         var metadata = CopyMetadata(artifact);
-        metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] = "runtime-v2=old";
+        metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] = "runtime-v2=2;schema=2;parameters=1";
         var tampered = CopyArtifact(artifact, metadata: metadata);
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
@@ -409,7 +409,7 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Succeeded);
         var compiledQuery = result.CompiledQuery ??
             throw new AssertFailedException("Successful hash validation did not produce a compiled query.");
-        Assert.AreEqual("single", compiledQuery.Run()[0][0]);
+        Assert.AreEqual("single", compiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -630,11 +630,14 @@ public class CompiledQueryArtifactApiTests
     }
 
     [TestMethod]
-    public void CreateExecutableFromArtifactWithDiagnostics_WhenArtifactFormatIsOld_ReturnsArtifactDiagnostic()
+    [DataRow("1")]
+    [DataRow("2")]
+    [DataRow("3")]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenArtifactFormatIsOld_ReturnsArtifactDiagnostic(string version)
     {
         const string query = "select i.Value from #artifact.items() i";
         var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
-        var oldFormat = CopyArtifact(artifact, artifactFormatVersion: "1");
+        var oldFormat = CopyArtifact(artifact, artifactFormatVersion: version);
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,
@@ -839,7 +842,7 @@ public sealed class ArtifactSchema(string value) : SchemaBase("artifact", Create
         return new ArtifactTable(typeof(ArtifactRow), typeof(string));
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource(value));
     }
@@ -863,7 +866,7 @@ public sealed class ArtifactReadModifierSchema(string modifierValue) : SchemaBas
         return new ArtifactReadModifierTable(modifierValue);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource("single"));
     }
@@ -887,7 +890,7 @@ public sealed class ArtifactIntendedTypeSchema(string intendedTypeName) : Schema
         return new ArtifactIntendedTypeTable(intendedTypeName);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource("single"));
     }
@@ -911,7 +914,7 @@ public sealed class ArtifactIntSchema(int value) : SchemaBase("artifact", Create
         return new ArtifactTable(typeof(ArtifactIntRow), typeof(int));
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, ArtifactIntRow>(name, new ArtifactIntRowSource(value));
     }
@@ -972,7 +975,7 @@ public sealed class SettingsArtifactSchema() : SchemaBase("settings", CreateLibr
         return SourcePlanResult.RejectAll(request);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         executionContext.SourceRuntimeSettings.TryGetValue("TOKEN", out var token);
         return EnsureSourceType<T, SettingsArtifactRow>(name, new SettingsArtifactRowSource(token ?? "<missing>"));

@@ -12,7 +12,8 @@ namespace Musoq.Evaluator.IR.Execution;
 internal static class ExecutionClrBindingFactory
 {
     internal static ExecutionTypeRef FromClr(Type clrType) =>
-        new(ExecutionPortableSymbolFactory.FromType(clrType));
+        new(ExecutionPortableSymbolFactory.FromType(
+            clrType is Musoq.Parser.Nodes.NullNode.NullType ? typeof(DBNull) : clrType));
 
     internal static ExecutionTypeRef? FromOptionalClr(Type? clrType) =>
         clrType is null ? null : FromClr(clrType);

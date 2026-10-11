@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Tests;
@@ -9,6 +10,66 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : BinaryOrTextualEvaluatorTestBase
 {
+    [TestMethod]
+    public void TextInterpretation_ExpectedWhitespace_ShouldExposeMq7111InputDiagnostic()
+    {
+        const string query = @"
+            text Spaced { Prefix: chars[2], _: whitespace+, Value: rest };
+            select r.Value
+            from #test.lines() f
+            cross apply Parse<Spaced>(f.Text) r";
+
+        var compiled = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
+            {
+                ["#test"] = [new TextEntity { Name = "private-name.txt", Text = "ab-secret" }]
+            }),
+            LoggerResolver,
+            TestCompilationOptions);
+
+        var exception = Assert.ThrowsExactly<ParseException>(() => _ = compiled.Run(CancellationToken.None).Count);
+        var envelope = MusoqErrorEnvelope.FromException(exception);
+
+        Assert.AreEqual(ParseErrorCode.ExpectedWhitespace, exception.ErrorCode);
+        Assert.AreEqual(DiagnosticCode.MQ7111_InterpretationExpectedWhitespace, envelope.Code);
+        Assert.AreEqual("ISE0011", envelope.Arguments["interpretationCode"]);
+        Assert.AreEqual(2L, envelope.InputLocation?.CharacterOffset);
+        Assert.DoesNotContain("ab-secret", MusoqErrorEnvelopeFormatter.FormatJson(envelope));
+    }
+
+    [TestMethod]
+    public void BinaryInterpretation_InsufficientData_ShouldExposeMq7101InputDiagnostic()
+    {
+        const string query = @"
+            binary Header { Prefix: byte, Value: int le };
+            select r.Value
+            from #test.files() f
+            cross apply Interpret<Header>(f.Content) r";
+
+        var compiled = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
+            {
+                ["#test"] = [new BinaryEntity { Name = "private-name.bin", Content = [0x07] }]
+            }),
+            LoggerResolver,
+            TestCompilationOptions);
+
+        var exception = Assert.ThrowsExactly<ParseException>(() => _ = compiled.Run(CancellationToken.None).Count);
+        var envelope = MusoqErrorEnvelope.FromException(exception);
+
+        Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
+        Assert.AreEqual(DiagnosticCode.MQ7101_InterpretationInsufficientData, envelope.Code);
+        Assert.AreEqual("ISE0001", envelope.Arguments["interpretationCode"]);
+        Assert.IsNotNull(envelope.InputLocation?.ByteOffset);
+        Assert.IsNull(envelope.InputLocation?.CharacterOffset);
+        Assert.IsNull(envelope.Offset);
+        Assert.DoesNotContain("private-name.bin", MusoqErrorEnvelopeFormatter.FormatJson(envelope));
+    }
+
     [TestMethod]
     public void BinaryInterpretation_InvalidEncoding_ShouldExposeStableIse0010Envelope()
     {
@@ -97,14 +158,14 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual((byte)7, parsedFields["Prefix"]);
         Assert.IsFalse(parsedFields.ContainsKey("Value"));
-        Assert.AreEqual("Value", table[0][1]);
-        StringAssert.Contains((string)table[0][2]!, "ISE0010");
-        StringAssert.Contains((string)table[0][2]!, "Encoded.Value");
-        Assert.DoesNotContain("C3", (string)table[0][2]!, StringComparison.OrdinalIgnoreCase);
-        Assert.AreEqual(1, table[0][3]);
+        Assert.AreEqual("Value", table[0].ReadValue(1));
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "ISE0010");
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "Encoded.Value");
+        Assert.DoesNotContain("C3", (string)table[0].ReadValue(2)!, StringComparison.OrdinalIgnoreCase);
+        Assert.AreEqual(1, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -156,45 +217,46 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
 
         var safeTable = safeCompiled.Run(CancellationToken.None);
         Assert.AreEqual(1, safeTable.Count);
-        Assert.AreEqual("invalid.txt", safeTable[0][0]);
-        Assert.IsNull(safeTable[0][1]);
+        Assert.AreEqual("invalid.txt", safeTable[0].ReadValue(0));
+        Assert.IsNull(safeTable[0].ReadValue(1));
     }
 
     [TestMethod]
-    public void AppendixC_ErrorCodes_ShouldRetainStableIseEnvelopeShape()
+    [DataRow(ParseErrorCode.InsufficientData, "ISE0001", DiagnosticCode.MQ7101_InterpretationInsufficientData)]
+    [DataRow(ParseErrorCode.ValidationFailed, "ISE0002", DiagnosticCode.MQ7102_InterpretationValidationFailed)]
+    [DataRow(ParseErrorCode.PatternMismatch, "ISE0003", DiagnosticCode.MQ7103_InterpretationPatternMismatch)]
+    [DataRow(ParseErrorCode.LiteralMismatch, "ISE0004", DiagnosticCode.MQ7104_InterpretationLiteralMismatch)]
+    [DataRow(ParseErrorCode.DelimiterNotFound, "ISE0005", DiagnosticCode.MQ7105_InterpretationDelimiterNotFound)]
+    [DataRow(ParseErrorCode.ExpectedDelimiter, "ISE0006", DiagnosticCode.MQ7106_InterpretationExpectedDelimiter)]
+    [DataRow(ParseErrorCode.InvalidSize, "ISE0007", DiagnosticCode.MQ7107_InterpretationInvalidSize)]
+    [DataRow(ParseErrorCode.InvalidPosition, "ISE0008", DiagnosticCode.MQ7108_InterpretationInvalidPosition)]
+    [DataRow(ParseErrorCode.MaxIterationsExceeded, "ISE0009", DiagnosticCode.MQ7109_InterpretationMaxIterationsExceeded)]
+    [DataRow(ParseErrorCode.EncodingError, "ISE0010", DiagnosticCode.MQ7110_InterpretationEncodingError)]
+    [DataRow(ParseErrorCode.ExpectedWhitespace, "ISE0011", DiagnosticCode.MQ7111_InterpretationExpectedWhitespace)]
+    [DataRow(ParseErrorCode.NoAlternativeMatched, "ISE0012", DiagnosticCode.MQ7112_InterpretationNoAlternativeMatched)]
+    [DataRow(ParseErrorCode.InvalidSchemaReference, "ISE0013", DiagnosticCode.MQ7113_InterpretationInvalidSchemaReference)]
+    [DataRow(ParseErrorCode.FieldReferenceError, "ISE0014", DiagnosticCode.MQ7114_InterpretationFieldReferenceError)]
+    [DataRow(ParseErrorCode.GeneralError, "ISE0015", DiagnosticCode.MQ7115_InterpretationGeneralError)]
+    public void AppendixC_ErrorCodes_ShouldRetainStableIseEnvelopeShape(
+        ParseErrorCode code,
+        string expected,
+        DiagnosticCode expectedDiagnosticCode)
     {
-        var expectedCodes = new[]
-        {
-            (ParseErrorCode.InsufficientData, "ISE0001"),
-            (ParseErrorCode.ValidationFailed, "ISE0002"),
-            (ParseErrorCode.PatternMismatch, "ISE0003"),
-            (ParseErrorCode.LiteralMismatch, "ISE0004"),
-            (ParseErrorCode.DelimiterNotFound, "ISE0005"),
-            (ParseErrorCode.ExpectedDelimiter, "ISE0006"),
-            (ParseErrorCode.InvalidSize, "ISE0007"),
-            (ParseErrorCode.InvalidPosition, "ISE0008"),
-            (ParseErrorCode.MaxIterationsExceeded, "ISE0009"),
-            (ParseErrorCode.EncodingError, "ISE0010"),
-            (ParseErrorCode.ExpectedWhitespace, "ISE0011"),
-            (ParseErrorCode.NoAlternativeMatched, "ISE0012"),
-            (ParseErrorCode.InvalidSchemaReference, "ISE0013"),
-            (ParseErrorCode.FieldReferenceError, "ISE0014"),
-            (ParseErrorCode.GeneralError, "ISE0015")
-        };
+        var exception = new ParseException(code, "RuntimeSchema", "Payload.Value", 17, "safe diagnostic detail");
+        var diagnostic = exception.ToDiagnostic();
 
-        foreach (var (code, expected) in expectedCodes)
-        {
-            var exception = new ParseException(code, "RuntimeSchema", "Payload.Value", 17, "safe diagnostic detail");
-
-            Assert.AreEqual(expected, exception.FormattedErrorCode);
-            Assert.AreEqual(code, exception.ErrorCode);
-            Assert.AreEqual("RuntimeSchema", exception.SchemaName);
-            Assert.AreEqual("Payload.Value", exception.FieldName);
-            Assert.AreEqual(17, exception.Position);
-            Assert.AreEqual("safe diagnostic detail", exception.Details);
-            StringAssert.Contains(exception.Message, expected);
-            StringAssert.Contains(exception.Message, "RuntimeSchema.Payload.Value");
-            StringAssert.Contains(exception.Message, "safe diagnostic detail");
-        }
+        Assert.AreEqual(expected, exception.FormattedErrorCode);
+        Assert.AreEqual(code, exception.ErrorCode);
+        Assert.AreEqual(expectedDiagnosticCode, diagnostic.Code);
+        Assert.AreEqual(expected, diagnostic.Arguments["interpretationCode"]);
+        Assert.AreEqual("RuntimeSchema", exception.SchemaName);
+        Assert.AreEqual("Payload.Value", exception.FieldName);
+        Assert.AreEqual(17, exception.Position);
+        Assert.AreEqual("safe diagnostic detail", exception.Details);
+        StringAssert.Contains(exception.GetPartialInterpretationMessage(), expected);
+        StringAssert.Contains(exception.GetPartialInterpretationMessage(), "RuntimeSchema.Payload.Value");
+        StringAssert.Contains(exception.GetPartialInterpretationMessage(), "at position 17");
+        Assert.DoesNotContain("safe diagnostic detail", exception.GetPartialInterpretationMessage());
+        Assert.DoesNotContain("safe diagnostic detail", exception.Message);
     }
 }

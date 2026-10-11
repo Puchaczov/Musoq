@@ -86,10 +86,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 rankingPartitions.Variable.Name,
-                CreateWindowHelperInvocation(
-                    nameof(Evaluator.Helpers.WindowFunctionHelpers.ResolvePartitionSet),
-                    CreateBufferCountExpression(ranking.Buffer),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))));
+                CreateWindowPartitionSetInvocation(ranking.Buffer)));
         }
 
         var rankingSortedPartitions = ranking.SortedPartitions ??
@@ -135,11 +132,14 @@ public sealed partial class ExecutionCSharpRenderer
             ranking.Buffer,
             StatementEmitter.CreateBlock(extractionStatements)));
         AddFusedIntOrderPartitionDeclarations(statements, ranking, builder);
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            ranking.Results.Name,
-            CreateFusedIntRankingInvocation(ranking, builder, ranking.SortedPartitions ?? ranking.Partitions)));
-
+        if (ranking.LibraryGet is null)
+            throw UnsupportedShape.Of("Ranking execution requires a registered library operation.");
+        var keys = new ExecutionVariable($"{ranking.Results.Name}OrderKeys", typeof(int[]));
+        statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), keys.Name,
+            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(builder.Name), SyntaxFactory.IdentifierName("OrderKeys"))));
+        statements.AddRange(CreateRankingKernelStatements(ranking, new ExecutionWindowKeyArray(keys, false),
+            ranking.SortedPartitions ?? ranking.Partitions));
         return statements;
     }
 }

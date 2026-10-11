@@ -1,34 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using static Musoq.Evaluator.Tests.GeneratedExecutionIlInspection;
 
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class WindowFunctionNoBoxingTests : BasicEntityTestBase
+public sealed class WindowFunctionNoBoxingTests : BasicEntityTestBase
 {
-    private static readonly OpCode[] OneByteOpCodes = new OpCode[0x100];
-    private static readonly OpCode[] TwoByteOpCodes = new OpCode[0x100];
-
-    static WindowFunctionNoBoxingTests()
-    {
-        foreach (var field in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
-        {
-            if (field.GetValue(null) is not OpCode opCode)
-                continue;
-
-            var value = unchecked((ushort)opCode.Value);
-            if (value < 0x100)
-                OneByteOpCodes[value] = opCode;
-            else if ((value & 0xff00) == 0xfe00)
-                TwoByteOpCodes[value & 0xff] = opCode;
-        }
-    }
-
     [TestMethod]
     public void GeneratedWindowComputeMethods_WhenTypedWindowQueryCompiled_ShouldNotEmitBoxOpcode()
     {
@@ -39,10 +19,11 @@ public class WindowFunctionNoBoxingTests : BasicEntityTestBase
                    Sum(Population) over (partition by City order by Name) as RunningSum
             from #A.Entities()";
         var sources = CreateSingleSource(
-            new BasicEntity("NYC", "Alice", 2),
-            new BasicEntity("NYC", "Bob", 3),
-            new BasicEntity("LA", "Diana", 4));
-        var vm = CreateAndRunVirtualMachine(query, sources);
+            new BasicEntity("NYC", "Alice", 2) { Name = "Alice" },
+            new BasicEntity("NYC", "Bob", 3) { Name = "Bob" },
+            new BasicEntity("LA", "Diana", 4) { Name = "Diana" });
+        using var vm = CreateAndRunVirtualMachine(query, sources);
+        AssertWindowResults(vm, ExpectedWindowRows.Product);
 
         var boxedMethods = GetGeneratedComputeMethods(vm)
             .Where(ContainsBoxOpcode)
@@ -63,10 +44,11 @@ public class WindowFunctionNoBoxingTests : BasicEntityTestBase
                    Sum(Population) over (partition by Id order by Id) as RunningSum
             from #A.Entities()";
         var sources = CreateSingleSource(
-            new BasicEntity("NYC", "Alice", 2) { Id = 1 },
-            new BasicEntity("NYC", "Bob", 3) { Id = 1 },
-            new BasicEntity("LA", "Diana", 4) { Id = 2 });
-        var vm = CreateAndRunVirtualMachine(query, sources);
+            new BasicEntity("NYC", "Alice", 2) { Name = "Alice", Id = 1 },
+            new BasicEntity("NYC", "Bob", 3) { Name = "Bob", Id = 1 },
+            new BasicEntity("LA", "Diana", 4) { Name = "Diana", Id = 2 });
+        using var vm = CreateAndRunVirtualMachine(query, sources);
+        AssertWindowResults(vm, ExpectedWindowRows.Peers);
 
         var boxedMethods = GetGeneratedComputeMethods(vm)
             .Where(ContainsBoxOpcode)
@@ -87,10 +69,11 @@ public class WindowFunctionNoBoxingTests : BasicEntityTestBase
                    Sum(Population) over (partition by NullableValue order by NullableValue) as RunningSum
             from #A.Entities()";
         var sources = CreateSingleSource(
-            new BasicEntity("NYC", "Alice", 2) { NullableValue = 1 },
-            new BasicEntity("NYC", "Bob", 3) { NullableValue = 1 },
-            new BasicEntity("LA", "Diana", 4) { NullableValue = null });
-        var vm = CreateAndRunVirtualMachine(query, sources);
+            new BasicEntity("NYC", "Alice", 2) { Name = "Alice", NullableValue = 1 },
+            new BasicEntity("NYC", "Bob", 3) { Name = "Bob", NullableValue = 1 },
+            new BasicEntity("LA", "Diana", 4) { Name = "Diana", NullableValue = null });
+        using var vm = CreateAndRunVirtualMachine(query, sources);
+        AssertWindowResults(vm, ExpectedWindowRows.Peers);
 
         var boxedMethods = GetGeneratedComputeMethods(vm)
             .Where(ContainsBoxOpcode)
@@ -111,10 +94,11 @@ public class WindowFunctionNoBoxingTests : BasicEntityTestBase
                    Sum(Population) over (partition by City order by City asc, Id desc) as RunningSum
             from #A.Entities()";
         var sources = CreateSingleSource(
-            new BasicEntity("NYC", "Alice", 2) { Id = 5 },
-            new BasicEntity("NYC", "Bob", 3) { Id = 3 },
-            new BasicEntity("LA", "Diana", 4) { Id = 9 });
-        var vm = CreateAndRunVirtualMachine(query, sources);
+            new BasicEntity("NYC", "Alice", 2) { Name = "Alice", Id = 5 },
+            new BasicEntity("NYC", "Bob", 3) { Name = "Bob", Id = 3 },
+            new BasicEntity("LA", "Diana", 4) { Name = "Diana", Id = 9 });
+        using var vm = CreateAndRunVirtualMachine(query, sources);
+        AssertWindowResults(vm, ExpectedWindowRows.Ordered);
 
         var boxedMethods = GetGeneratedComputeMethods(vm)
             .Where(ContainsBoxOpcode)
@@ -126,60 +110,32 @@ public class WindowFunctionNoBoxingTests : BasicEntityTestBase
             $"Generated multi-column mixed-direction window compute methods should not emit IL box opcodes: {string.Join(", ", boxedMethods)}");
     }
 
-    private static IEnumerable<MethodInfo> GetGeneratedComputeMethods(CompiledQuery query)
+    private enum ExpectedWindowRows { Ordered, Peers, Product }
+
+    private static void AssertWindowResults(CompiledQuery query, ExpectedWindowRows expected)
     {
-        var runnableField = typeof(CompiledQuery).GetField("_runnable", BindingFlags.Instance | BindingFlags.NonPublic) ??
-                            throw new InvalidOperationException("Compiled query runnable field was not found.");
-        var runnable = runnableField.GetValue(query) ??
-                       throw new InvalidOperationException("Compiled query runnable was not initialized.");
-
-        return runnable
-            .GetType()
-            .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-            .Where(static method => method.Name.StartsWith("ComputeTable_", StringComparison.Ordinal));
-    }
-
-    private static bool ContainsBoxOpcode(MethodInfo method)
-    {
-        var il = method.GetMethodBody()?.GetILAsByteArray();
-        if (il == null || il.Length == 0)
-            return false;
-
-        for (var index = 0; index < il.Length;)
+        using var table = query.Run();
+        var rows = table.ToArray();
+        Assert.HasCount(3, rows);
+        var names = rows.Select(row => row.GetValue<string>(0)).ToArray();
+        CollectionAssert.AreEquivalent(new[] { "Alice", "Bob", "Diana" }, names);
+        var sumColumn = expected == ExpectedWindowRows.Product ? 3 : 2;
+        var expectedColumns = expected == ExpectedWindowRows.Product
+            ? new[] { ("Name", typeof(string)), ("RowNo", typeof(long)), ("Product", typeof(decimal)), ("RunningSum", typeof(decimal?)) }
+            : new[] { ("Name", typeof(string)), ("RowNo", typeof(long)), ("RunningSum", typeof(decimal?)) };
+        TableMaterializationTestHelper.AssertColumns(table, expectedColumns);
+        var byName = rows.ToDictionary(row => row.GetValue<string>(0), StringComparer.Ordinal);
+        Assert.AreEqual(expected == ExpectedWindowRows.Peers ? 5m : 2m, byName["Alice"].GetValue<decimal?>(sumColumn));
+        Assert.AreEqual(5m, byName["Bob"].GetValue<decimal?>(sumColumn));
+        Assert.AreEqual(4m, byName["Diana"].GetValue<decimal?>(sumColumn));
+        CollectionAssert.AreEquivalent(new[] { 1L, 2L }, new[] { byName["Alice"].GetValue<long>(1), byName["Bob"].GetValue<long>(1) });
+        Assert.AreEqual(1L, byName["Diana"].GetValue<long>(1));
+        if (expected == ExpectedWindowRows.Product)
         {
-            var opCode = ReadOpCode(il, ref index);
-            if (opCode == OpCodes.Box)
-                return true;
-
-            index += GetOperandSize(opCode.OperandType, il, index);
+            Assert.AreEqual(2m, byName["Alice"].GetValue<decimal>(2));
+            Assert.AreEqual(6m, byName["Bob"].GetValue<decimal>(2));
+            Assert.AreEqual(4m, byName["Diana"].GetValue<decimal>(2));
         }
-
-        return false;
     }
 
-    private static OpCode ReadOpCode(byte[] il, ref int index)
-    {
-        var value = il[index++];
-        if (value != 0xfe)
-            return OneByteOpCodes[value];
-
-        return TwoByteOpCodes[il[index++]];
-    }
-
-    private static int GetOperandSize(OperandType operandType, byte[] il, int operandIndex)
-    {
-        return operandType switch
-        {
-            OperandType.InlineNone => 0,
-            OperandType.ShortInlineBrTarget or OperandType.ShortInlineI or OperandType.ShortInlineVar => 1,
-            OperandType.InlineVar => 2,
-            OperandType.InlineBrTarget or OperandType.InlineField or OperandType.InlineI or OperandType.InlineMethod
-                or OperandType.InlineSig or OperandType.InlineString or OperandType.InlineTok or OperandType.InlineType
-                => 4,
-            OperandType.InlineI8 or OperandType.InlineR => 8,
-            OperandType.ShortInlineR => 4,
-            OperandType.InlineSwitch => 4 + (BitConverter.ToInt32(il, operandIndex) * 4),
-            _ => throw new ArgumentOutOfRangeException(nameof(operandType), operandType, null)
-        };
-    }
 }

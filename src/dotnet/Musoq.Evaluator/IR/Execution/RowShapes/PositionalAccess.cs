@@ -1,3 +1,3 @@
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record PositionalAccess(int Index) : FieldAccessStrategy;
+public sealed record PositionalAccess(int Index, ExecutionTypeRef? ValueType = null) : FieldAccessStrategy;

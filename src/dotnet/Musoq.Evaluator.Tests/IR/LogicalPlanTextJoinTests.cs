@@ -22,7 +22,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "    Join [Inner] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
-                "  Project [a.Name as a.Name, b.City as b.City]",
+                "  Project [a.Name as Name, b.City as City]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -42,7 +42,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "    Join [RightOuter] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
-                "  Project [a.Name as a.Name, b.Name as b.Name]",
+                "  Project [a.Name as Name, b.Name as Name]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -62,7 +62,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "    Join [FullOuter] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
-                "  Project [a.Name as a.Name, b.Name as b.Name]",
+                "  Project [a.Name as Name, b.Name as Name]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -82,7 +82,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "    Join [Inner] [(a.Population > b.Population)]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
-                "  Project [a.Name as a.Name, b.Name as b.Name]",
+                "  Project [a.Name as Name, b.Name as Name]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -102,7 +102,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "    Join [AsofInner] [((a.Country = b.Country) AND (a.Population >= b.Population))]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
-                "  Project [a.Name as a.Name, b.Name as b.Name]",
+                "  Project [a.Name as Name, b.Name as Name]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -118,7 +118,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [a.Name as a.Name]",
+                "  Project [a.Name as Name]",
                 "    Join [LeftSemi] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]"),
@@ -136,7 +136,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "MultiStatement",
-                "  Project [a.Name as a.Name]",
+                "  Project [a.Name as Name]",
                 "    Join [LeftAntiSemi] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]"),
@@ -158,7 +158,7 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "    Join [Cross] [TRUE]",
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
-                "  Project [a.Name as a.Name, b.City as b.City]",
+                "  Project [a.Name as Name, b.City as City]",
                 "    CteRef [ab as ab]"),
             planText);
     }

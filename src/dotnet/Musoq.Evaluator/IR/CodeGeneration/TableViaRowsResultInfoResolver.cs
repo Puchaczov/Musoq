@@ -1,9 +1,12 @@
+using System.Runtime.CompilerServices;
 using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Evaluator.IR.CodeGeneration;
 
 internal static class TableViaRowsResultInfoResolver
 {
+    private static readonly ConditionalWeakTable<ExecutionPlan, TableViaRowsRenderPlan> Plans = new();
+
     public static bool TryResolveRenderPlan(ExecutionPlan plan, out TableViaRowsRenderPlan renderPlan)
     {
         if (!TryResolve(plan, out var resultInfo))
@@ -12,7 +15,9 @@ internal static class TableViaRowsResultInfoResolver
             return false;
         }
 
-        renderPlan = new TableViaRowsRenderPlan(resultInfo, FinalProjectionSinkPlanner.Plan(plan, resultInfo));
+        // Plans are immutable. Identity-based storage also keeps record copies with a new body independent.
+        renderPlan = Plans.GetValue(plan, key =>
+            new TableViaRowsRenderPlan(resultInfo, FinalProjectionSinkPlanner.Plan(key, resultInfo)));
         return true;
     }
 

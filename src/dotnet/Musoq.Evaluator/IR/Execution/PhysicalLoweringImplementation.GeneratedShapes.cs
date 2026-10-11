@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static GeneratedRowShape CreateGeneratedShape(string typeName, ProjectedField[] fields)
+    private GeneratedRowShape CreateGeneratedShape(string typeName, ProjectedField[] fields)
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -20,10 +21,13 @@ internal sealed partial class PhysicalLoweringImplementation
                 FieldNullability.Unknown,
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
                 sourceReadType: field.Expression.ReturnType,
-                enumType: field.Expression.EnumType)).ToArray());
+                enumType: field.Expression.EnumType) with
+                {
+                    GeneratedTypeName = _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression)
+                }).ToArray());
     }
 
-    private static GeneratedRowShape CreateGeneratedShape(
+    private GeneratedRowShape CreateGeneratedShape(
         string typeName,
         ProjectedField[] fields,
         IReadOnlyDictionary<string, RowShape> sourceLookup)
@@ -33,16 +37,12 @@ internal sealed partial class PhysicalLoweringImplementation
         return new GeneratedRowShape(
             typeName,
             fields.Select(field => CreateProjectedFieldBinding(field, sourceLookup, usedFieldNames)).ToArray(),
-            CreateContextBindings(sourceLookup),
-            SupportsGeneratedFieldAccess(sourceLookup));
+            CreateContextBindings(sourceLookup));
     }
 
-    private static bool SupportsGeneratedFieldAccess(IReadOnlyDictionary<string, RowShape> sourceLookup)
-    {
-        return !sourceLookup.Values.Any(static shape => shape is ExpandoAdapterShape);
-    }
 
-    private static FieldBinding CreateProjectedFieldBinding(
+
+    private FieldBinding CreateProjectedFieldBinding(
         ProjectedField field,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         HashSet<string> usedFieldNames)
@@ -62,7 +62,8 @@ internal sealed partial class PhysicalLoweringImplementation
             sourceReadType: columnType,
             enumType: field.Expression.EnumType);
 
-        var generatedTypeName = TryResolveGeneratedTypeName(expression, sourceLookup);
+        var generatedTypeName = _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression) ??
+                                TryResolveGeneratedTypeName(expression, sourceLookup);
         return generatedTypeName is { } resolvedGeneratedTypeName
             ? binding with { GeneratedTypeName = resolvedGeneratedTypeName }
             : binding;
@@ -72,11 +73,13 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionExpression expression,
         IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
+        if (expression is ExecutionMethodCall { GeneratedResultTypeName: { } resultName })
+            return resultName;
+        if (expression is ExecutionStructuralRecord { GeneratedTypeName: { } nativeType })
+            return nativeType;
         var returnType = expression.ReturnType.ResolveClrType();
-        if (returnType != typeof(object) && !returnType.IsArray)
-            return null;
-
-        if (expression is ExecutionFieldRead { AccessStrategy: GeneratedRowNestedAccess })
+        if (!GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType) &&
+            returnType != DynamicEntityBoundary.ExpandoType && !returnType.IsArray)
             return null;
 
         if (expression is not ExecutionFieldRead { Alias: { } alias, FieldName: { } fieldName } ||
@@ -110,7 +113,7 @@ internal sealed partial class PhysicalLoweringImplementation
     }
 
     private static bool IsCompatibleGeneratedTypeName(Type returnType, string generatedTypeName) =>
-        returnType == typeof(object) ||
+        GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType) || returnType == DynamicEntityBoundary.ExpandoType ||
         (returnType.IsArray && generatedTypeName.EndsWith("[]", StringComparison.Ordinal));
 
     private static Type ResolveProjectedFieldType(ExecutionExpression expression)
@@ -214,7 +217,7 @@ internal sealed partial class PhysicalLoweringImplementation
                                              (caseWhen.ElseExpression != null &&
                                               ContainsNullablePositionalFieldRead(caseWhen.ElseExpression)),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsNullablePositionalFieldRead),
-            ExecutionCompositeKey compositeKey => compositeKey.Parts.Any(ContainsNullablePositionalFieldRead),
+
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsNullablePositionalFieldRead),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(ContainsNullablePositionalFieldRead),
             _ => false

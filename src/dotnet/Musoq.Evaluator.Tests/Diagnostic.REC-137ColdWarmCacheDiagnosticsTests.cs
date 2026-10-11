@@ -135,7 +135,7 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
                 Assert.HasCount(1, firstTable, caseId + "/first");
                 var firstDescriptor = firstTable.Columns.Single().EnumType;
                 Assert.IsNotNull(firstDescriptor, caseId + "/first has no enum descriptor");
-                Assert.AreEqual(1, Convert.ToInt32(firstTable[0][0]), caseId + "/first returned the wrong enum value");
+                Assert.AreEqual(1, Convert.ToInt32(firstTable[0].ReadValue(0)), caseId + "/first returned the wrong enum value");
                 firstFingerprint = firstDescriptor.Fingerprint;
             }
 
@@ -210,7 +210,7 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         using var table = query.Run();
         Assert.HasCount(1, table, caseId);
         Assert.HasCount(1, table.Columns, caseId);
-        return table[0][0];
+        return table[0].ReadValue(0);
     }
 
     private static string RunSingleEnumFingerprint(BuildResult result, string caseId)
@@ -221,7 +221,7 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         Assert.HasCount(1, table, caseId);
         var descriptor = table.Columns.Single().EnumType;
         Assert.IsNotNull(descriptor, caseId + " has no enum descriptor");
-        Assert.AreEqual(1, Convert.ToInt32(table[0][0]), caseId + " returned a stale enum value");
+        Assert.AreEqual(1, Convert.ToInt32(table[0].ReadValue(0)), caseId + " returned a stale enum value");
         return descriptor.Fingerprint;
     }
 
@@ -317,10 +317,10 @@ public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider
         };
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (!string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
             throw new NotSupportedException(name);
@@ -342,11 +342,12 @@ public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider
             new REC137RowSource(provider.SchemaSignature));
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (!provider.IncludeEnum || !string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("REC-137 query-scoped enum rows were not enabled.");
@@ -467,6 +468,10 @@ public sealed class REC137SettingsSchema : SchemaBase
         AddTable<REC137SettingsTable>("items");
         AddSource<REC137SettingsSource>("items");
     }
+
+    public override RowSource<T> GetRowSource<T, TArguments>(string name,
+        SourceExecutionContext context, TArguments arguments)
+        => EnsureSourceType<T, REC137SettingsRow>(name, new REC137SettingsSource(context));
 
     public string MetadataVersion { get; set; } = "default";
 

@@ -49,7 +49,7 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
                 column.Index,
                 column.Type,
                 FieldNullability.Unknown,
-                new PositionalAccess(column.Index),
+                new PositionalAccess(column.Index, ExecutionClrBindingFactory.FromClr(column.Type)),
                 sourceReadType: column.SourceReadType,
                 enumType: column.EnumType) with
             {
@@ -110,7 +110,6 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             SourceEntityShape => PlanningRowShapeKind.SourceEntity,
             TableRowShape => PlanningRowShapeKind.TableRow,
             ValuesRowShape => PlanningRowShapeKind.Values,
-            ExpandoAdapterShape => PlanningRowShapeKind.ExpandoAdapter,
             GeneratedRowShape => PlanningRowShapeKind.Generated,
             _ => PlanningRowShapeKind.Generated
         };
@@ -123,7 +122,6 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             ClrPropertyAccess => PlanningFieldAccessKind.ClrMember,
             ReflectedMemberAccess => PlanningFieldAccessKind.ReflectedMember,
             PositionalAccess => PlanningFieldAccessKind.Positional,
-            ExpandoDictionaryAccess => PlanningFieldAccessKind.ExpandoDictionary,
             GeneratedFieldAccess or GeneratedRowTypeAccess => PlanningFieldAccessKind.GeneratedField,
             GeneratedRowContextAccess or ContextAccess => PlanningFieldAccessKind.GeneratedContext,
             NestedClrPropertyAccess => PlanningFieldAccessKind.NestedClrMember,

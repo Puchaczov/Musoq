@@ -40,18 +40,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("A", table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(8, table[0][2]);
-        Assert.AreEqual(101, table[0][3]);
-        Assert.AreEqual("A", table[1][0]);
-        Assert.AreEqual(15, table[1][1]);
-        Assert.AreEqual(14, table[1][2]);
-        Assert.AreEqual(102, table[1][3]);
-        Assert.AreEqual("B", table[2][0]);
-        Assert.AreEqual(12, table[2][1]);
-        Assert.AreEqual(10, table[2][2]);
-        Assert.AreEqual(201, table[2][3]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(8, table[0].ReadValue(2));
+        Assert.AreEqual(101, table[0].ReadValue(3));
+        Assert.AreEqual("A", table[1].ReadValue(0));
+        Assert.AreEqual(15, table[1].ReadValue(1));
+        Assert.AreEqual(14, table[1].ReadValue(2));
+        Assert.AreEqual(102, table[1].ReadValue(3));
+        Assert.AreEqual("B", table[2].ReadValue(0));
+        Assert.AreEqual(12, table[2].ReadValue(1));
+        Assert.AreEqual(10, table[2].ReadValue(2));
+        Assert.AreEqual(201, table[2].ReadValue(3));
     }
 
     [TestMethod]
@@ -83,15 +83,15 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(12, table[0][1]);
-        Assert.AreEqual("warmup", table[0][2]);
-        Assert.AreEqual(15, table[1][0]);
-        Assert.AreEqual(20, table[1][1]);
-        Assert.AreEqual("ready", table[1][2]);
-        Assert.AreEqual(20, table[2][0]);
-        Assert.AreEqual(20, table[2][1]);
-        Assert.AreEqual("ready", table[2][2]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(12, table[0].ReadValue(1));
+        Assert.AreEqual("warmup", table[0].ReadValue(2));
+        Assert.AreEqual(15, table[1].ReadValue(0));
+        Assert.AreEqual(20, table[1].ReadValue(1));
+        Assert.AreEqual("ready", table[1].ReadValue(2));
+        Assert.AreEqual(20, table[2].ReadValue(0));
+        Assert.AreEqual(20, table[2].ReadValue(1));
+        Assert.AreEqual("ready", table[2].ReadValue(2));
     }
 
     [TestMethod]
@@ -116,12 +116,12 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(5, table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual(10, table[1][0]);
-        Assert.AreEqual(8, table[1][1]);
-        Assert.AreEqual(101, table[1][2]);
+        Assert.AreEqual(5, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual(10, table[1].ReadValue(0));
+        Assert.AreEqual(8, table[1].ReadValue(1));
+        Assert.AreEqual(101, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -140,8 +140,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B-Zulu", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B-Zulu", table[0].ReadValue(1));
     }
 
     [TestMethod]

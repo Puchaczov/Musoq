@@ -62,6 +62,13 @@ public sealed partial class LogicalPlanBuilder
         FinalizeQueryNode();
     }
 
+    private static IReadOnlyList<ProjectedField>? FindDescriptionProjection(LogicalNode query)
+    {
+        if (query is IrNodes.ProjectNode projection)
+            return Array.AsReadOnly(projection.Fields);
+        return query.Children.Count == 1 ? FindDescriptionProjection(query.Children[0]) : null;
+    }
+
     public void Visit(DescNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -76,7 +83,10 @@ public sealed partial class LogicalPlanBuilder
                 [],
                 string.Empty,
                 CreateDescriptionOutputSchema(),
-                query.OutputSchema));
+                query.OutputSchema)
+            {
+                QueryProjection = FindDescriptionProjection(query)
+            });
             return;
         }
 
@@ -116,7 +126,7 @@ public sealed partial class LogicalPlanBuilder
             column,
             arguments,
             sourceContextId,
-            node.Type == DescForType.Arguments ? CreateArgumentDescriptionOutputSchema() : OutputSchema.Empty,
+            ResolveDescriptionOutputSchema(node.Type),
             ColumnSpan: node.Column?.Span,
             ArgumentDescriptions: argumentDescriptions));
     }
@@ -381,6 +391,13 @@ public sealed partial class LogicalPlanBuilder
             new ColumnSchema("MaxStringBytes", typeof(long?), 10)
         ]);
     }
+    private static OutputSchema ResolveDescriptionOutputSchema(DescForType type) => type switch
+    {
+        DescForType.Arguments => CreateArgumentDescriptionOutputSchema(),
+        DescForType.FunctionsForSchema => FunctionDescriptionSchema.Create(),
+        _ => OutputSchema.Empty
+    };
+
     private static OutputSchema CreateDescriptionOutputSchema()
     {
         return new OutputSchema(

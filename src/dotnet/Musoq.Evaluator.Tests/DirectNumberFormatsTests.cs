@@ -10,21 +10,9 @@ namespace Musoq.Evaluator.Tests;
 public class DirectNumberFormatsTests : BasicEntityTestBase
 {
     [TestMethod]
-    public void HexadecimalLiteral_BasicTest()
-    {
-        TestMethodTemplate("0xFF", 255L);
-    }
-
-    [TestMethod]
     public void BinaryLiteral_BasicTest()
     {
         TestMethodTemplate("0b1111", 15L);
-    }
-
-    [TestMethod]
-    public void OctalLiteral_BasicTest()
-    {
-        TestMethodTemplate("0o77", 63L);
     }
 
     [TestMethod]

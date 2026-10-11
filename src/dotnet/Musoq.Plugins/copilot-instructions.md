@@ -56,7 +56,6 @@ Musoq.Plugins/
 │   ├── BindableMethodAttribute.cs     # Marks method as callable from SQL
 │   ├── BindableClassAttribute.cs      # Marks class as containing bindable methods
 │   ├── BindablePropertyAsTableAttribute.cs # Exposes property as virtual table
-│   ├── AggregationMethodAttribute.cs  # Base marker for aggregate metadata
 │   ├── AggregateFunctionAttribute.cs  # Declares a typed runtime-v2 aggregate kernel
 │   ├── AggregateParentAttribute.cs    # Marks aggregate parent-depth metadata
 │   ├── WindowFunctionAttribute.cs     # Marks method as a window function
@@ -71,7 +70,7 @@ Musoq.Plugins/
 ├── Helpers/                            # Utility functions
 ├── LibraryMethodResolver.cs            # Resolves SQL function calls to C# methods
 ├── ILibraryMethodResolver.cs           # Method resolver interface
-├── IWindowFunction.cs                  # Window function interface
+├── WindowFrameContext.cs               # Typed partition and frame inputs
 ├── IQueryStats.cs                      # Query statistics interface
 ├── QueryStats.cs                       # Query statistics implementation
 ├── Constants.cs                        # Shared constants
@@ -120,6 +119,8 @@ public static class PositiveTotalAggregate
         public decimal Value;
     }
 
+    public static void Reset(ref State state) => state = default;
+
     public static void Set(ref State state, decimal? value)
     {
         if (!value.HasValue || value.Value < 0m)
@@ -151,7 +152,7 @@ public static class PositiveTotalAggregate
 
 - `[AggregateFunction(typeof(...), Name = ...)]` advertises the runtime-v2 kernel for a SQL aggregate declaration.
 - Plain `[AggregationMethod]` declarations are metadata-only compatibility and are not executable runtime-v2 aggregates.
-- The kernel must expose a concrete `State` type, `Set(ref State, args...)`, `Get(in State)`, and optional `Merge(ref State, in State)`.
+- The kernel must expose a concrete `State`, `Reset(ref State)`, `Set(ref State, args...)`, `Get(in State)`, and optional `Merge(ref State, in State)`. Prefer struct state for numeric hot paths; a concrete reference state must be independently initialized for each owner. Operation signatures are exact, including `ref` versus `in`; kernel types and results must be concretized before rendering. Kernels cannot hold shared static state.
 - `Set` arguments are the aggregate value arguments only. `[AggregateParent]` is metadata and is excluded from the kernel call.
 - For multiple aggregate arguments, declare separate `Set` parameters. Planning also records tuple-shaped input metadata, but generated code should pass the concrete arguments directly.
 - Use nullable result types for aggregates that can have no qualifying values. `Count` is the normal exception and returns `long`.
@@ -160,27 +161,30 @@ public static class PositiveTotalAggregate
 
 ### Window Function
 
-Implement `IWindowFunction` and mark with `[WindowFunctionAttribute]`:
+Declare the SQL signature on `LibraryBase` or a registered descendant and register
+an exact typed operation. Grouped and window declarations can share a SQL name:
 
 ```csharp
-[WindowFunction]
-public class RowNumber : IWindowFunction
-{
-    public void PartitionStart()
-    {
-    }
-
-    public void AccumulateValue(object? value)
-    {
-    }
-
-    public object? GetCurrentValue()
-    {
-        // Store and return state from a real implementation.
-        return null;
-    }
-}
+[WindowFunction(typeof(SumAggregateKernel<decimal>),
+    WindowEvaluationModes.WholePartition | WindowEvaluationModes.Running |
+        WindowEvaluationModes.RecomputeFrames,
+    AggregateEmptyResultBehavior.Null)]
+public decimal? InvoiceSum(decimal? amount)
+    => AggregateFunction.NotInvoked<decimal?>();
 ```
+
+The engine calls `Reset(ref State)`, `Set(ref State, args...)`, and `Get(in State)`
+directly. It owns independent states and partition/frame scheduling. A typed
+context kernel instead registers `ContextType = typeof(WindowFrameContext<>)`
+and exposes `Get(in WindowFrameContext<TInput>, extraArgs...)` with exact SQL
+argument and result types. Ranking kernels receive `WindowRankingContext`.
+Optional batch kernels expose `bool TryEvaluate(in WindowBatchContext<TInput,
+TResult>)`; returning false requests serial evaluation over captured inputs.
+Advertise only modes and execution permissions whose semantics the kernel can
+preserve. Merge presence does not authorize regrouping. Omitted permissions mean
+serial execution. Kernel operations are implementation members and stay absent
+from public discovery. Window factory interfaces have been removed; declare
+typed kernels through `WindowFunctionAttribute`.
 
 ## Key Classes
 
@@ -188,7 +192,7 @@ public class RowNumber : IWindowFunction
 |-------|---------|
 | `LibraryBase` | Abstract base class — all function categories are partial classes of this |
 | `LibraryMethodResolver` | Resolves SQL function names to C# `MethodInfo` objects |
-| `IWindowFunction` | Interface for window function implementations |
+| `WindowFrameContext<T>` | Typed partition values, frame bounds and cancellation |
 | `QueryStats` | Provides query-level statistics (row count, etc.) |
 
 ## Dependencies

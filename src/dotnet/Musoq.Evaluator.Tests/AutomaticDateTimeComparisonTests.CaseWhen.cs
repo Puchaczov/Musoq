@@ -37,7 +37,7 @@ public partial class AutomaticDateTimeComparisonTests
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Event 1", table[0].Values[0]);
+        Assert.AreEqual("Event 1", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public partial class AutomaticDateTimeComparisonTests
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Event 1", table[0].Values[0]);
+        Assert.AreEqual("Event 1", table[0].ReadValues()[0]);
     }
 
 
@@ -95,7 +95,7 @@ public partial class AutomaticDateTimeComparisonTests
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
             .OrderBy(x => x.Name).ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
@@ -127,8 +127,8 @@ public partial class AutomaticDateTimeComparisonTests
 
         Assert.AreEqual(3, table.Count);
 
-        var recentCount = table.Count(row => row.Values[1] as string == "Recent");
-        var oldCount = table.Count(row => row.Values[1] as string == "Old");
+        var recentCount = table.Count(row => row.ReadValues()[1] as string == "Recent");
+        var oldCount = table.Count(row => row.ReadValues()[1] as string == "Old");
 
         Assert.AreEqual(2, recentCount);
         Assert.AreEqual(1, oldCount);
@@ -154,7 +154,7 @@ public partial class AutomaticDateTimeComparisonTests
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
             .OrderBy(x => x.Name).ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
@@ -186,8 +186,8 @@ public partial class AutomaticDateTimeComparisonTests
 
         Assert.AreEqual(3, table.Count);
 
-        var earlyCount = table.Count(row => row.Values[1] as string == "Early");
-        var lateCount = table.Count(row => row.Values[1] as string == "Late");
+        var earlyCount = table.Count(row => row.ReadValues()[1] as string == "Early");
+        var lateCount = table.Count(row => row.ReadValues()[1] as string == "Late");
 
         Assert.AreEqual(2, earlyCount);
         Assert.AreEqual(1, lateCount);
@@ -218,7 +218,7 @@ public partial class AutomaticDateTimeComparisonTests
 
                 foreach (var row in table)
                 {
-                    var result = row.Values[1] as string;
+                    var result = row.ReadValues()[1] as string;
                     Assert.IsTrue(result == "Match" || result == "NoMatch",
                         $"Result should be either 'Match' or 'NoMatch' for operator {op}, got: {result}");
                 }
@@ -250,7 +250,7 @@ public partial class AutomaticDateTimeComparisonTests
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.Values[0] as string, Position = row.Values[1] as string })
+        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Position = row.ReadValues()[1] as string })
             .OrderBy(x => x.Name).ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
@@ -286,7 +286,7 @@ public partial class AutomaticDateTimeComparisonTests
 
                 foreach (var row in table)
                 {
-                    var category = row.Values[1] as string;
+                    var category = row.ReadValues()[1] as string;
                     Assert.IsTrue(category == "NotEarliest" || category == "Earliest",
                         $"Category should be either 'NotEarliest' or 'Earliest' for type {dateTimeType.TypeName}, got: {category}");
                 }
@@ -318,7 +318,7 @@ public partial class AutomaticDateTimeComparisonTests
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
             .OrderBy(x => x.Name).ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);

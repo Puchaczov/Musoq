@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
@@ -14,10 +14,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetRequired_WhenValueExists_ShouldReturnTypedValue()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["author"] = "Ada"
-        };
+            slots.Set("author", "Ada");
+        });
 
         var value = ScriptParameterBinder.GetRequired<string>(parameters, "author");
 
@@ -25,23 +25,16 @@ public sealed class ScriptParameterBinderTests
     }
 
     [TestMethod]
-    public void GetRequired_WhenParametersAreReadOnlyDictionary_ShouldReturnTypedValue()
+    public void GetRequired_WhenSnapshotIsCaptured_ShouldReturnTypedValue()
     {
-        IReadOnlyDictionary<string, object?> parameters =
-            new ReadOnlyDictionary<string, object?>(new Dictionary<string, object?>(StringComparer.Ordinal)
-            {
-                ["author"] = "Ada"
-            });
-
-        var value = ScriptParameterBinder.GetRequired<string>(parameters, "author");
-
-        Assert.AreEqual("Ada", value);
+        var parameters = Capture(slots => slots.Set("author", "Ada"));
+        Assert.AreEqual("Ada", ScriptParameterBinder.GetRequired<string>(parameters, "author"));
     }
 
     [TestMethod]
     public void GetRequired_WhenValueIsMissing_ShouldThrow()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal);
+        var parameters = Capture(static _ => { });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.GetRequired<string>(parameters, "author"));
@@ -52,7 +45,7 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetOptional_WhenValueIsMissing_ShouldReturnDefault()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal);
+        var parameters = Capture(static _ => { });
 
         var value = ScriptParameterBinder.GetOptional(parameters, "limit", 100);
 
@@ -62,10 +55,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetOptional_WhenValueExists_ShouldReturnTypedValue()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["limit"] = 25
-        };
+            slots.Set("limit", 25);
+        });
 
         var value = ScriptParameterBinder.GetOptional(parameters, "limit", 100);
 
@@ -75,10 +68,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetRequired_WhenValueTypeValueIsNull_ShouldThrow()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["limit"] = null
-        };
+            slots.Set<int?>("limit", null);
+        });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.GetRequired<int>(parameters, "limit"));
@@ -89,10 +82,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetRequired_WhenReferenceTypeValueIsNull_ShouldReturnNull()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["author"] = null
-        };
+            slots.Set<string?>("author", null);
+        });
 
         var value = ScriptParameterBinder.GetRequired<string>(parameters, "author");
 
@@ -102,10 +95,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetOptional_WhenNullableValueTypeValueIsNull_ShouldReturnNull()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["limit"] = null
-        };
+            slots.Set<int?>("limit", null);
+        });
 
         var value = ScriptParameterBinder.GetOptional<int?>(parameters, "limit", 100);
 
@@ -115,10 +108,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetRequired_WhenValueHasDifferentType_ShouldThrow()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["limit"] = "100"
-        };
+            slots.Set("limit", "100");
+        });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.GetRequired<int>(parameters, "limit"));
@@ -130,51 +123,54 @@ public sealed class ScriptParameterBinderTests
     public void GetRequiredCollection_WhenValueIsArray_ShouldReturnReadOnlyList()
     {
         var values = new[] { 1, 2, 3 };
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["ids"] = values
-        };
+            slots.SetCollection("ids", values);
+        });
 
         var result = ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids");
 
-        Assert.AreSame(values, result);
+        Assert.AreNotSame(values, result);
+        CollectionAssert.AreEqual(values.ToArray(), result.ToArray());
     }
 
     [TestMethod]
     public void GetRequiredCollection_WhenValueIsList_ShouldReturnReadOnlyList()
     {
         var values = new List<int> { 1, 2, 3 };
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["ids"] = values
-        };
+            slots.SetCollection("ids", values);
+        });
 
         var result = ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids");
 
-        Assert.AreSame(values, result);
+        Assert.AreNotSame(values, result);
+        CollectionAssert.AreEqual(values.ToArray(), result.ToArray());
     }
 
     [TestMethod]
     public void GetRequiredCollection_WhenValueIsReadOnlyList_ShouldReturnTypedValue()
     {
         IReadOnlyList<int> values = Array.AsReadOnly(new[] { 1, 2, 3 });
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["ids"] = values
-        };
+            slots.SetCollection("ids", values);
+        });
 
         var result = ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids");
 
-        Assert.AreSame(values, result);
+        Assert.AreNotSame(values, result);
+        CollectionAssert.AreEqual(values.ToArray(), result.ToArray());
     }
 
     [TestMethod]
     public void GetRequiredCollection_WhenValueIsNull_ShouldThrow()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["ids"] = null
-        };
+            slots.SetCollection<int>("ids", null);
+        });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids"));
@@ -185,10 +181,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetRequiredCollection_WhenValueHasDifferentElementType_ShouldThrow()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["ids"] = new[] { "1", "2" }
-        };
+            slots.SetCollection("ids", new[] { "1", "2" });
+        });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids"));
@@ -199,10 +195,10 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void GetOptional_WhenValueHasDifferentType_ShouldThrowDiagnosticException()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["limit"] = "100"
-        };
+            slots.Set("limit", "100");
+        });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.GetOptional(parameters, "limit", 100));
@@ -213,16 +209,22 @@ public sealed class ScriptParameterBinderTests
     [TestMethod]
     public void ValidateNoUnknownParameters_WhenParameterIsNotDeclared_ShouldThrowDiagnosticException()
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        var parameters = Capture(slots =>
         {
-            ["limit"] = 100,
-            ["extra"] = "value"
-        };
+            slots.Set("limit", 100);
+            slots.Set("extra", "value");
+        });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
             ScriptParameterBinder.ValidateNoUnknownParameters(parameters, ["limit"]));
 
         Assert.AreEqual(DiagnosticCode.MQ7006_UnknownScriptParameter, ex.Code);
         Assert.AreEqual("Script parameter 'extra' was provided but is not declared.", ex.Message);
+    }
+    private static ExecutionState Capture(Action<TypedParameterValues> configure)
+    {
+        var slots = new TypedParameterValues();
+        configure(slots);
+        return ExecutionState.Capture(slots.Capture());
     }
 }

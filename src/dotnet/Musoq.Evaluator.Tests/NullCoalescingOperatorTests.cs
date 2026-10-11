@@ -15,7 +15,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(42m, table[0][0]);
+        Assert.AreEqual(42m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -26,7 +26,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(1, table[0][0]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -37,7 +37,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(42m, table[0][0]);
+        Assert.AreEqual(42m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -48,7 +48,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(42m, table[0][0]);
+        Assert.AreEqual(42m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -59,7 +59,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(0, table[0][0]);
+        Assert.AreEqual(0, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(5, table[0][0]);
+        Assert.AreEqual(5, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -81,7 +81,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual("fallback", table[0][0]);
+        Assert.AreEqual("fallback", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -107,7 +107,7 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual("live", table[0][0]);
+        Assert.AreEqual("live", table[0].ReadValue(0));
     }
 
     [TestMethod]

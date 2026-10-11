@@ -27,7 +27,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("i.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("Number", typeof(int)),
             ("NumberOrdinal", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(

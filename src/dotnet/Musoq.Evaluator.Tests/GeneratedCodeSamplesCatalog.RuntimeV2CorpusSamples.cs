@@ -108,9 +108,9 @@ internal static partial class GeneratedCodeSamplesCatalog
               FROM #test.entities()"),
             RuntimeV2RegressionWithOptions(
                 "Q108_RuntimeV2DecimalConversion",
-                @"SELECT Id, TryConvertToDecimalComparison(Amount) as AmountDecimal
+                @"SELECT Id, ToDecimal(Amount) as AmountDecimal
               FROM #test.entities()
-              WHERE TryConvertToDecimalComparison(Amount) > 100.50d",
+              WHERE ToDecimal(Amount) > 100.50d",
                 new CompilationOptions(
                     useCommonSubexpressionElimination: true,
                     usePrimitiveTypeValidation: false)

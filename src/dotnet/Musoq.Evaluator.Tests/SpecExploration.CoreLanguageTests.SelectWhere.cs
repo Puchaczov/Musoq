@@ -28,7 +28,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
         Assert.AreEqual("FullName", table.Columns.ElementAt(0).ColumnName);
     }
 
@@ -157,7 +157,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("b", table[0][0]);
+        Assert.AreEqual("b", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -220,7 +220,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("b", table[0][0]);
+        Assert.AreEqual("b", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -283,7 +283,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -305,7 +305,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -378,8 +378,8 @@ public partial class SpecExplorationCoreLanguageTests
 
         Assert.AreEqual(table1.Count, table2.Count);
 
-        var sorted1 = table1.Select(r => (string)r[0]).OrderBy(x => x).ToList();
-        var sorted2 = table2.Select(r => (string)r[0]).OrderBy(x => x).ToList();
+        var sorted1 = table1.Select(r => (string)r.ReadValue(0)).OrderBy(x => x).ToList();
+        var sorted2 = table2.Select(r => (string)r.ReadValue(0)).OrderBy(x => x).ToList();
 
         for (var i = 0; i < sorted1.Count; i++)
             Assert.AreEqual(sorted1[i], sorted2[i]);

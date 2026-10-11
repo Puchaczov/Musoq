@@ -148,7 +148,7 @@ internal static class GeneratedRowContextPruner
         ExecutionPlan plan,
         IReadOnlySet<string> contextCarryingTypeNames)
     {
-        var variableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body);
+        var variableTypeNamesByName = GeneratedRowVariableTypes.Collect(plan.Body);
         var result = ResolveDirectContextConsumerGeneratedRowTypeNames(
             plan.Body,
             variableTypeNamesByName,
@@ -366,149 +366,6 @@ internal static class GeneratedRowContextPruner
         }
     }
 
-    private static Dictionary<string, HashSet<string>> CollectGeneratedRowVariableTypeNames(ExecutionBlock block)
-    {
-        var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-
-        foreach (var node in ExecutionIrAnalysis.FlattenNodes(block))
-        {
-            foreach (var variable in ExecutionNodeFacts.GetDeclaredVariables(node))
-            {
-                if (!string.IsNullOrWhiteSpace(variable.GeneratedRowTypeName))
-                    AddVariableType(result, variable.Name, variable.GeneratedRowTypeName);
-            }
-
-            AddGeneratedRowVariableTypeFromNode(result, node);
-            AddGeneratedRowItemTypeFromSource(result, node);
-        }
-
-        return result;
-    }
-
-    private static void AddGeneratedRowVariableTypeFromNode(
-        Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionNode node)
-    {
-        switch (node)
-        {
-            case ExecutionLet let:
-                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, let.Variable, let.Value);
-                break;
-            case ExecutionAssign assign:
-                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, assign.Variable, assign.Value);
-                break;
-            case ExecutionMaterializeList { GeneratedRowShape: { } shape } materialize:
-                AddVariableType(variableTypeNamesByName, materialize.Buffer.Name, shape.TypeName);
-                break;
-            case ExecutionMaterializeFilteredList { GeneratedRowShape: { } shape } materialize:
-                AddVariableType(variableTypeNamesByName, materialize.Buffer.Name, shape.TypeName);
-                break;
-            case ExecutionHashProbe { GeneratedRowTypeName: { } typeName } hashProbe:
-                AddVariableType(variableTypeNamesByName, hashProbe.Matches.Name, typeName);
-                break;
-        }
-    }
-
-    private static void AddGeneratedRowVariableTypeFromSource(
-        Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionVariable variable,
-        ExecutionExpression source)
-    {
-        if (TryResolveGeneratedRowTypeName(source, out var typeName))
-            AddVariableType(variableTypeNamesByName, variable.Name, typeName);
-    }
-
-    private static void AddGeneratedRowItemTypeFromSource(
-        Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionNode node)
-    {
-        switch (node)
-        {
-            case ExecutionForEach loop:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
-                break;
-            case ExecutionForEachWithOrdinality loop:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
-                break;
-            case ExecutionForEachIndexed loop:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
-                break;
-            case ExecutionMaterializeFilteredList materialize:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, materialize.Item, materialize.Source);
-                break;
-        }
-    }
-
-    private static void AddGeneratedRowItemTypeFromSource(
-        Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionVariable item,
-        ExecutionExpression source)
-    {
-        if (TryResolveGeneratedRowTypeName(source, out var typeName))
-        {
-            AddVariableType(variableTypeNamesByName, item.Name, typeName);
-            return;
-        }
-
-        if (source is ExecutionVariableRead variableRead &&
-            variableTypeNamesByName.TryGetValue(variableRead.Variable.Name, out var typeNames))
-        {
-            foreach (var sourceTypeName in typeNames)
-                AddVariableType(variableTypeNamesByName, item.Name, sourceTypeName);
-        }
-    }
-
-    private static void AddGeneratedRowItemTypeFromSource(
-        Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionVariable item,
-        ExecutionVariable source)
-    {
-        if (!string.IsNullOrWhiteSpace(source.GeneratedRowTypeName))
-        {
-            AddVariableType(variableTypeNamesByName, item.Name, source.GeneratedRowTypeName);
-            return;
-        }
-
-        if (!variableTypeNamesByName.TryGetValue(source.Name, out var typeNames))
-            return;
-
-        foreach (var sourceTypeName in typeNames)
-            AddVariableType(variableTypeNamesByName, item.Name, sourceTypeName);
-    }
-
-    private static bool TryResolveGeneratedRowTypeName(ExecutionExpression source, out string typeName)
-    {
-        switch (source)
-        {
-            case ExecutionStoredTableRows { GeneratedRowShape: { } shape }:
-                typeName = shape.TypeName;
-                return true;
-            case ExecutionVariableRead { Variable.GeneratedRowTypeName: { } generatedRowTypeName }:
-                typeName = generatedRowTypeName;
-                return true;
-            case ExecutionRowStream { Variable.GeneratedRowTypeName: { } generatedRowTypeName }:
-                typeName = generatedRowTypeName;
-                return true;
-            default:
-                typeName = string.Empty;
-                return false;
-        }
-    }
-
-    private static void AddVariableType(
-        Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        string variableName,
-        string typeName)
-    {
-        if (!variableTypeNamesByName.TryGetValue(variableName, out var typeNames))
-        {
-            typeNames = new HashSet<string>(StringComparer.Ordinal);
-            variableTypeNamesByName.Add(variableName, typeNames);
-        }
-
-        typeNames.Add(typeName);
-    }
-
     private static bool TryAddAliasGeneratedRowTypes(
         string? alias,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
@@ -596,7 +453,7 @@ internal static class GeneratedRowContextPruner
         {
             var rewritten = (ExecutionCreateTable)base.RewriteCreateTable(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape }
+                ? rewritten with { RowShape = rowShape, ColumnMetadata = ReboundTableColumnMetadata.Create(rewritten.ColumnMetadata, rowShape) }
                 : rewritten;
         }
 

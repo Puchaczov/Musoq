@@ -154,7 +154,7 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
             "dotnet",
             "Musoq.Targets.Abstractions",
             "TargetContractVersions.cs"));
-        StringAssert.Contains(versionsText, "const int ExecutionIr = 8");
+        StringAssert.Contains(versionsText, "const int ExecutionIr = 10");
         StringAssert.Contains(versionsText, "const int HostAbi = 8");
         StringAssert.Contains(versionsText, "const int PackageFormat = 2");
     }

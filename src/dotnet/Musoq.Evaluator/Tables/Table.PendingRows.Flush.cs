@@ -19,7 +19,7 @@ public partial class Table
                     var materializer = _deferredMaterializer;
                     _deferredMaterializer = null;
                     materializer?.Invoke(this);
-                    while (_pendingRows.TryDequeue(out var row)) base.Rows.Add(row);
+                    while (_pendingRows.TryDequeue(out var row)) _rows.Add(row);
                     FlushPendingDirectRows();
                 }
                 finally

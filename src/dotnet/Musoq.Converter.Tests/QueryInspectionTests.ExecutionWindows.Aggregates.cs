@@ -23,9 +23,9 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows] [", result.ExecutionPlanText);
         Assert.Contains("ComputeCountWindowKernel[WholePartition] [", result.ExecutionPlanText);
-        Assert.Contains("resultSums0PrefixSum[resultSums0PartitionIndex + 1]", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Set(ref resultSums0State", result.GeneratedCSharpCode);
         Assert.Contains("ResolveRangePeerFrameEnd(resultSums0OrderKeys", result.GeneratedCSharpCode);
-        Assert.Contains("++resultCounts1Count;", result.GeneratedCSharpCode);
+        Assert.Contains("CountNullableAggregateKernel<int>.Get(in resultCounts1State)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowCount()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeTypedPluginWindowFunction<object, decimal>", StringComparison.Ordinal));
@@ -55,21 +55,21 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("cal", table[0][0]);
-        Assert.AreEqual("eng", table[0][1]);
-        Assert.AreEqual(5, table[0][2]);
-        Assert.AreEqual(5m, table[0][3]);
-        Assert.AreEqual(1, table[0][4]);
-        Assert.AreEqual("amy", table[1][0]);
-        Assert.AreEqual("ops", table[1][1]);
-        Assert.AreEqual(2, table[1][2]);
-        Assert.AreEqual(2m, table[1][3]);
-        Assert.AreEqual(2, table[1][4]);
-        Assert.AreEqual("bea", table[2][0]);
-        Assert.AreEqual("ops", table[2][1]);
-        Assert.AreEqual(3, table[2][2]);
-        Assert.AreEqual(5m, table[2][3]);
-        Assert.AreEqual(2, table[2][4]);
+        Assert.AreEqual("cal", table[0].ReadValue(0));
+        Assert.AreEqual("eng", table[0].ReadValue(1));
+        Assert.AreEqual(5, table[0].ReadValue(2));
+        Assert.AreEqual(5, table[0].ReadValue(3));
+        Assert.AreEqual(1L, table[0].ReadValue(4));
+        Assert.AreEqual("amy", table[1].ReadValue(0));
+        Assert.AreEqual("ops", table[1].ReadValue(1));
+        Assert.AreEqual(2, table[1].ReadValue(2));
+        Assert.AreEqual(2, table[1].ReadValue(3));
+        Assert.AreEqual(2L, table[1].ReadValue(4));
+        Assert.AreEqual("bea", table[2].ReadValue(0));
+        Assert.AreEqual("ops", table[2].ReadValue(1));
+        Assert.AreEqual(3, table[2].ReadValue(2));
+        Assert.AreEqual(5, table[2].ReadValue(3));
+        Assert.AreEqual(2L, table[2].ReadValue(4));
     }
 
     [TestMethod]
@@ -90,8 +90,8 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[Running] [", result.ExecutionPlanText);
         Assert.Contains("frame rows between unbounded preceding and current row", result.ExecutionPlanText);
-        Assert.Contains("resultSumsSum += (decimal)", result.GeneratedCSharpCode);
-        Assert.Contains("] = resultSumsSum;", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Set(ref resultSumsState", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultSumsValues", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
@@ -115,8 +115,8 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[WholePartition] [", result.ExecutionPlanText);
         Assert.Contains("frame rows between unbounded preceding and unbounded following", result.ExecutionPlanText);
-        Assert.Contains("resultSumsSum += (decimal)", result.GeneratedCSharpCode);
-        Assert.Contains("resultSumsFinalValue = resultSumsSum;", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Set(ref resultSumsState", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultSumsValues", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
@@ -138,12 +138,12 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows] [", result.ExecutionPlanText);
         Assert.Contains("frame rows between 1 preceding and current row", result.ExecutionPlanText);
-        Assert.Contains("resultSumsPrefix", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForMinMaxFramedAggregateWindows_ShouldEmitDequeKernels()
+    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForMinMaxFramedAggregateWindows_ShouldEmitTypedFrameKernels()
     {
         var result = Inspect(@"
                 with c as (
@@ -160,8 +160,8 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeMinWindowKernel[BoundedRows] [", result.ExecutionPlanText);
         Assert.Contains("ComputeMaxWindowKernel[BoundedRows] [", result.ExecutionPlanText);
-        Assert.Contains("resultMins0DequeValues", result.GeneratedCSharpCode);
-        Assert.Contains("resultMaxs1DequeValues", result.GeneratedCSharpCode);
+        Assert.Contains("MinAggregateKernel<int>.Set(ref resultMins0State", result.GeneratedCSharpCode);
+        Assert.Contains("MaxAggregateKernel<int>.Set(ref resultMaxs1State", result.GeneratedCSharpCode);
         Assert.Contains(".CompareTo(", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowMin()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowMax()", StringComparison.Ordinal));
@@ -190,18 +190,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
-        Assert.AreEqual(2m, table[0][2]);
-        Assert.AreEqual(2.5m, table[0][3]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(5m, table[1][2]);
-        Assert.AreEqual(3.5m, table[1][3]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(4, table[2][1]);
-        Assert.AreEqual(7m, table[2][2]);
-        Assert.AreEqual(4m, table[2][3]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(2, table[0].ReadValue(1));
+        Assert.AreEqual(2, table[0].ReadValue(2));
+        Assert.AreEqual(2.5m, table[0].ReadValue(3));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
+        Assert.AreEqual(5, table[1].ReadValue(2));
+        Assert.AreEqual(3.5m, table[1].ReadValue(3));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(4, table[2].ReadValue(1));
+        Assert.AreEqual(7, table[2].ReadValue(2));
+        Assert.AreEqual(4m, table[2].ReadValue(3));
     }
 
     [TestMethod]
@@ -224,18 +224,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(1, table[1][1]);
-        Assert.AreEqual(3, table[1][2]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(2, table[2][1]);
-        Assert.AreEqual(5, table[2][2]);
-        Assert.AreEqual("dan", table[3][0]);
-        Assert.AreEqual(1, table[3][1]);
-        Assert.AreEqual(5, table[3][2]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(3, table[0].ReadValue(1));
+        Assert.AreEqual(3, table[0].ReadValue(2));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(1, table[1].ReadValue(1));
+        Assert.AreEqual(3, table[1].ReadValue(2));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(2, table[2].ReadValue(1));
+        Assert.AreEqual(5, table[2].ReadValue(2));
+        Assert.AreEqual("dan", table[3].ReadValue(0));
+        Assert.AreEqual(1, table[3].ReadValue(1));
+        Assert.AreEqual(5, table[3].ReadValue(2));
     }
 
     [TestMethod]
@@ -253,7 +253,7 @@ public partial class QueryInspectionTests
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame rows between 2 preceding and 1 preceding]", result.ExecutionPlanText);
-        Assert.Contains("resultSumsPrefix", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
     }
 
@@ -278,22 +278,22 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(0m, table[0][2]);
-        Assert.AreEqual(0, table[0][3]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(1m, table[1][2]);
-        Assert.AreEqual(1, table[1][3]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual(3m, table[2][2]);
-        Assert.AreEqual(2, table[2][3]);
-        Assert.AreEqual("dan", table[3][0]);
-        Assert.AreEqual(4, table[3][1]);
-        Assert.AreEqual(5m, table[3][2]);
-        Assert.AreEqual(2, table[3][3]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual(0L, table[0].ReadValue(3));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual(1, table[1].ReadValue(2));
+        Assert.AreEqual(1L, table[1].ReadValue(3));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(1));
+        Assert.AreEqual(3, table[2].ReadValue(2));
+        Assert.AreEqual(2L, table[2].ReadValue(3));
+        Assert.AreEqual("dan", table[3].ReadValue(0));
+        Assert.AreEqual(4, table[3].ReadValue(1));
+        Assert.AreEqual(5, table[3].ReadValue(2));
+        Assert.AreEqual(2L, table[3].ReadValue(3));
     }
 
     [TestMethod]
@@ -311,7 +311,7 @@ public partial class QueryInspectionTests
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row]", result.ExecutionPlanText);
-        Assert.Contains("resultSumsPrefixSum[resultSumsPartitionIndex + 1]", result.GeneratedCSharpCode);
+        Assert.Contains("SumAggregateKernel<int>.Set(ref resultSumsState", result.GeneratedCSharpCode);
         Assert.Contains("ResolveRangePeerFrameEnd(resultSumsOrderKeys", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(", StringComparison.Ordinal));
@@ -339,18 +339,18 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amy", table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
-        Assert.AreEqual(2m, table[0][2]);
-        Assert.AreEqual(3, table[0][3]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(5m, table[1][2]);
-        Assert.AreEqual(2, table[1][3]);
-        Assert.AreEqual("cal", table[2][0]);
-        Assert.AreEqual(4, table[2][1]);
-        Assert.AreEqual(9m, table[2][2]);
-        Assert.AreEqual(1, table[2][3]);
+        Assert.AreEqual("amy", table[0].ReadValue(0));
+        Assert.AreEqual(2, table[0].ReadValue(1));
+        Assert.AreEqual(2, table[0].ReadValue(2));
+        Assert.AreEqual(3L, table[0].ReadValue(3));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual(3, table[1].ReadValue(1));
+        Assert.AreEqual(5, table[1].ReadValue(2));
+        Assert.AreEqual(2L, table[1].ReadValue(3));
+        Assert.AreEqual("cal", table[2].ReadValue(0));
+        Assert.AreEqual(4, table[2].ReadValue(1));
+        Assert.AreEqual(9, table[2].ReadValue(2));
+        Assert.AreEqual(1L, table[2].ReadValue(3));
     }
 
 }

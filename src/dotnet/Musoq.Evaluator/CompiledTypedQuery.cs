@@ -20,7 +20,7 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
         var parameterizedRunnable = runnable as IParameterizedRunnable;
         _runState = new TypedRunState(
             parameterizedRunnable?.ParameterDefinitions,
-            parameterizedRunnable?.Parameters);
+            (runnable as ITypedParameterizedRunnable)?.TypedParameters);
     }
 
     public event QueryPhaseEventHandler PhaseChanged
@@ -41,7 +41,8 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
         remove => _runState.RemoveQueryProgress(value);
     }
 
-    public IDictionary<string, object?> Parameters => _runState.Parameters;
+    /// <summary>Gets parameter slots that retain their concrete types.</summary>
+    public TypedParameterValues TypedParameters => _runState.TypedParameters;
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _runState.ParameterDefinitions;
 
@@ -73,27 +74,10 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
 
     private TypedQueryRunOptions CaptureOptions(TypedQueryRunOptions options)
     {
-        if (_runnable is IMetadataOnlyRunnable { IsMetadataOnly: true })
-            return options;
-
-        if (_runState.ParameterDefinitions.Count == 0)
-            return options;
-
-        var rawParameters = options.Parameters ?? ParameterSnapshot.EmptyReadOnly;
-        try
-        {
-            var snapshot = StructuralParameterSnapshotter.CaptureForExecution(
-                _runState.ParameterDefinitions,
-                rawParameters,
-                options.CancellationToken,
-                _runnable as IStructuralParameterSnapshotProvider);
-            return TypedQueryRunOptions.CreateCaptured(options, snapshot);
-        }
-        catch (ScriptParameterBindingException exception)
-        {
-            throw QueryExecutionException.ForScriptParameterBinding(exception);
-        }
+        ArgumentNullException.ThrowIfNull(options.TypedParameters);
+        return options;
     }
+
     private sealed class ConfiguredTypedRunEnumerable(
         ITypedRunnable<TOut> runnable,
         TypedQueryRunOptions options) : IEnumerable<TOut>

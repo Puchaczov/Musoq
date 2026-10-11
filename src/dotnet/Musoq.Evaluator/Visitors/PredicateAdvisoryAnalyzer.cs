@@ -95,6 +95,9 @@ internal static partial class PredicateAdvisoryAnalyzer
         if (TryReportNullComparison(context, resolver, node))
             return;
 
+        if (reportGeneric && TryReportSelfComparison(context, node))
+            return;
+
         if (reportGeneric &&
             node is IsNullNode { IsNegated: false, Expression: AccessColumnNode column } &&
             IsStaticallyNonNullable(column.ReturnType))

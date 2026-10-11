@@ -22,8 +22,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .Select(static sample => sample.FileName)
             .ToArray();
         var missingTableContractSamples = samples
-            .Where(static sample =>
-                !sample.Content.Contains("BaseOperations, ITableRunnable,", StringComparison.Ordinal) ||
+            .Where(static sample => !HasDeclaredResultContract(sample.FileName, sample.Content) ||
                 !sample.Content.Contains("IQueryProgressSource", StringComparison.Ordinal))
             .Select(static sample => sample.FileName)
             .ToArray();
@@ -35,6 +34,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             missingTableContractSamples,
             $"Generated samples should declare ITableRunnable: {string.Join(", ", missingTableContractSamples)}");
     }
+
 
     [TestMethod]
     public void InClauseSamples_WhenCheckedIn_ShouldStayWithinInlineArrayAllocationBudget()
@@ -81,9 +81,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
         var groupedSort = samples["Q07_GroupByHavingOrderBy.cs"].Content;
 
-        Assert.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", simpleSelect);
-        Assert.Contains("yield return new ResultShape0(ko3iko.Name, population);", simpleSelect);
-        Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population);", simpleSelect);
+        Assert.Contains("private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(", simpleSelect);
+        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population);", simpleSelect);
+        Assert.Contains("yield return __musoqShapeRow;", simpleSelect);
         Assert.DoesNotContain("private Table ComputeTable_compiled_0(", simpleSelect);
         Assert.Contains("result.Add(new ResultShape0(", groupedSort);
         Assert.Contains(EnsureCapacityPattern, groupedSort);
@@ -100,25 +100,25 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .SelectMany(static sample => sample.Content
                 .Split(["\r\n", "\n"], StringSplitOptions.None)
                 .Where(static line =>
-                    line.Contains(".GetRowSource<", StringComparison.Ordinal) &&
+                    line.Contains(".SourceInvocation<", StringComparison.Ordinal) &&
                     line.Contains(").Chunks;", StringComparison.Ordinal))
                 .Select(line => $"{sample.FileName}: {line.Trim()}"))
             .ToArray();
 
         Assert.IsEmpty(
             inlineRowSourceReads,
-            $"Direct source scans should split GetRowSource<T>() from .Chunks: {string.Join(Environment.NewLine, inlineRowSourceReads)}");
+            $"Direct source scans should split SourceInvocation<T>() from .Chunks: {string.Join(Environment.NewLine, inlineRowSourceReads)}");
 
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
-        Assert.Contains("var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource", simpleSelect);
+        Assert.Contains("var ko3ikoRowsSource = SourceInvocation<", simpleSelect);
         Assert.Contains("var ko3ikoRows =", simpleSelect);
         Assert.Contains("ko3ikoRowsSource.Chunks", simpleSelect);
 
         var innerJoin = samples["Q03_InnerJoin.cs"].Content;
-        Assert.Contains("var aRowsSource = __aSchema.GetRowSource", innerJoin);
+        Assert.Contains("var aRowsSource = SourceInvocation<", innerJoin);
         Assert.Contains("var aRows =", innerJoin);
         Assert.Contains("aRowsSource.Chunks", innerJoin);
-        Assert.Contains("var bRowsSource = __bSchema.GetRowSource", innerJoin);
+        Assert.Contains("var bRowsSource = SourceInvocation<", innerJoin);
         Assert.Contains("var bRows =", innerJoin);
         Assert.Contains("bRowsSource.Chunks", innerJoin);
     }
@@ -136,11 +136,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "public event QueryPhaseEventHandler PhaseChanged;",
             "public Table Run(CancellationToken token)",
             "private IEnumerable<ResultRow0> ComputeRows_compiled_0(",
-            "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(",
+            "private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(",
             "private void OnDataSourceProgress",
             "private void OnPhaseChanged",
-            "private sealed class ResultRow0",
-            "private sealed class ResultShape0");
+            "private sealed class ResultRow0");
+        Assert.DoesNotContain("private sealed class ResultShape0", sample);
         Assert.IsTrue(
             Regex.IsMatch(
                 sample,
@@ -198,46 +198,46 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var numericWidening = samples[ScriptParameterNumericWideningComparisonSampleFileName].Content;
 
         Assert.Contains(
-            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");",
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
             whereSelect);
         Assert.Contains(
-            "var paramMinPopulation = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState.Parameters, \"minPopulation\", 100);",
+            "var paramMinPopulation = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState, \"minPopulation\", 100);",
             whereSelect);
         Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
         Assert.Contains("if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", whereSelect);
-        Assert.Contains("yield return new ResultShape0(ko3iko.Name, population, paramCountry);", whereSelect);
-        Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population, __musoqShapeRow.RequestedCountry);", whereSelect);
+        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population, paramCountry);", whereSelect);
+        Assert.Contains("yield return __musoqShapeRow;", whereSelect);
 
-        Assert.Contains("var paramFlag = ScriptParameterBinder.GetOptional<bool>(__musoqExecutionState.Parameters, \"flag\", true);", primitiveDefaults);
-        Assert.Contains("var paramCode = ScriptParameterBinder.GetOptional<char>(__musoqExecutionState.Parameters, \"code\", 'x');", primitiveDefaults);
+        Assert.Contains("var paramFlag = ScriptParameterBinder.GetOptional<bool>(__musoqExecutionState, \"flag\", true);", primitiveDefaults);
+        Assert.Contains("var paramCode = ScriptParameterBinder.GetOptional<char>(__musoqExecutionState, \"code\", 'x');", primitiveDefaults);
         Assert.Contains(
-            "var paramLimit = ScriptParameterBinder.GetOptional<int?>(__musoqExecutionState.Parameters, \"limit\", default(int?));",
+            "var paramLimit = ScriptParameterBinder.GetOptionalNullable<int>(__musoqExecutionState, \"limit\", default(int?));",
             primitiveDefaults);
         Assert.Contains(
-            "var paramId = ScriptParameterBinder.GetOptional<Guid>(__musoqExecutionState.Parameters, \"id\", new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\"));",
+            "var paramId = ScriptParameterBinder.GetOptional<Guid>(__musoqExecutionState, \"id\", new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\"));",
             primitiveDefaults);
         Assert.Contains(
-            "var paramCreated = ScriptParameterBinder.GetOptional<DateTime>(__musoqExecutionState.Parameters, \"created\", new DateTime(638397614450000000L, DateTimeKind.Utc));",
+            "var paramCreated = ScriptParameterBinder.GetOptional<DateTime>(__musoqExecutionState, \"created\", new DateTime(638397614450000000L, DateTimeKind.Utc));",
             primitiveDefaults);
         Assert.AreEqual(5, CountOccurrences(primitiveDefaults, "ScriptParameterBinder.Get"));
         Assert.Contains(
             "new ResultRow0(paramFlag, paramCode, paramLimit, paramId, paramCreated)",
             primitiveDefaults);
 
-        Assert.Contains("var paramKey = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState.Parameters, \"key\", \"KEY_1\");", sourceArgument);
+        Assert.Contains("var paramKey = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState, \"key\", \"KEY_1\");", sourceArgument);
         Assert.AreEqual(1, CountOccurrences(sourceArgument, "ScriptParameterBinder.Get"));
-        Assert.Contains("new object[] { paramKey }", sourceArgument);
+        Assert.Contains("global::Musoq.Schema.SourceArguments.Create(paramKey, global::Musoq.Schema.SourceArguments.Empty)", sourceArgument);
         var parameterBindingIndex = sourceArgument.IndexOf("var paramKey = ", StringComparison.Ordinal);
         var sourceRowsIndex = sourceArgument.IndexOf("var __ko3ikoSchema = ", StringComparison.Ordinal);
         Assert.IsLessThan(sourceRowsIndex, parameterBindingIndex);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", typedComparison);
+        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", typedComparison);
         Assert.AreEqual(1, CountOccurrences(typedComparison, "ScriptParameterBinder.Get"));
         Assert.Contains("if ((Operators.SqlCompare<string, string>(country, paramCountry", typedComparison);
         Assert.DoesNotContain("TryConvertTo", typedComparison);
 
         Assert.Contains(
-            "var paramMinPopulation = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState.Parameters, \"minPopulation\");",
+            "var paramMinPopulation = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"minPopulation\");",
             numericWidening);
         Assert.AreEqual(1, CountOccurrences(numericWidening, "ScriptParameterBinder.Get"));
         Assert.Contains("if ((population >= paramMinPopulation))", numericWidening);
@@ -302,7 +302,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         AssertScriptParameterBinderCount(ScriptParameterWindowHelperCaptureSampleFileName, window, 2);
         Assert.Contains("ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersPartitionKeys, resultRowNumbersOrderKeys, paramCountry, paramLabel);", window);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(ko3iko.Name, (long)resultRowNumbers[windowIndex], paramLabel));", window);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(ko3iko.Name, (long)resultRowNumbers[windowIndex], paramLabel));", window);
         Assert.IsFalse(window.Contains("AppendResultWindowRows(resultWindowRows, result, resultRowNumbers, paramLabel);", StringComparison.Ordinal));
         Assert.Contains("WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys, string paramCountry, string paramLabel)", window);
         Assert.Contains("resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey((ko3iko.Name + paramLabel));", window);

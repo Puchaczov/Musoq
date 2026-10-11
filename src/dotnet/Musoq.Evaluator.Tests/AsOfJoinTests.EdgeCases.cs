@@ -39,10 +39,10 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("b.Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1", 50m, 50m]);
     }
 
@@ -75,8 +75,8 @@ asof left outer join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "A1", null });
     }
 
@@ -107,8 +107,8 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -139,8 +139,8 @@ asof left join #B.entities() b on a.Population >= b.Population";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "A1", null });
     }
 

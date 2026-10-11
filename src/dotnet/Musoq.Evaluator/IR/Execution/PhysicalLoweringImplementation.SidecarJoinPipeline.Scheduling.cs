@@ -105,7 +105,6 @@ internal sealed partial class PhysicalLoweringImplementation
                                                                           TryCollectExecutionExpressionAliases(branch.Result, aliases)) &&
                                           (caseWhen.ElseExpression == null || TryCollectExecutionExpressionAliases(caseWhen.ElseExpression, aliases)),
             ExecutionCoalesce coalesce => coalesce.Expressions.All(expression => TryCollectExecutionExpressionAliases(expression, aliases)),
-            ExecutionCompositeKey key => key.Parts.All(part => TryCollectExecutionExpressionAliases(part, aliases)),
             ExecutionValueTupleKey key => key.Parts.All(part => TryCollectExecutionExpressionAliases(part, aliases)),
             ExecutionAggregateCall aggregate => aggregate.Arguments.All(argument => TryCollectExecutionExpressionAliases(argument, aliases)),
             _ => true

@@ -67,6 +67,7 @@ internal static partial class SourcePlanningPlanner
                 metadataContext.AllColumns,
                 descriptor,
                 columnName => ResolveColumnSpan(context, sourceNode, columnName));
+            descriptor = ValidateQueryScopedRowsCapability(schema, descriptor);
         }
         catch (SchemaProviderFailureException exception) when (semanticSource?.HasRequiredRuntimeArguments == true)
         {
@@ -158,5 +159,45 @@ internal static partial class SourcePlanningPlanner
         result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
         result = SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
         return (result, descriptor);
+    }
+
+    private static SourceDescriptor ValidateQueryScopedRowsCapability(
+        ISchema schema,
+        SourceDescriptor descriptor)
+    {
+        if (!descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows) &&
+            descriptor.RowType is not null && DynamicEntityBoundary.IsNameIndexedSource(descriptor.RowType))
+            return descriptor with
+            {
+                ContractDiagnostics = [.. descriptor.ContractDiagnostics, SourceContractDiagnostic.Error(
+                    "Erased dynamic rows require native QueryScopedRows transfer with authoritative concrete columns.",
+                    "ErasedDynamicTransferRemoved")]
+            };
+
+        if (descriptor.RowType == typeof(QueryScopedRowContract) &&
+            !descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows))
+            return descriptor with
+            {
+                ContractDiagnostics = [.. descriptor.ContractDiagnostics, SourceContractDiagnostic.Error(
+                    "Authoritative query-scoped columns require native QueryScopedRows transfer.", "QueryScopedContractMissingTransfer")]
+            };
+
+        if (!descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows) ||
+            schema is IQueryScopedRowSourceSchema)
+        {
+            return descriptor;
+        }
+
+        var runtimeSchemaTypeName = schema.GetType().FullName ?? schema.GetType().Name;
+        var diagnostic = SourceContractDiagnostic.Error(
+            $"Schema '{schema.Name}' advertises '{nameof(SourceTransferCapabilities.QueryScopedRows)}', " +
+            $"but runtime schema type '{runtimeSchemaTypeName}' does not implement " +
+            $"'{nameof(IQueryScopedRowSourceSchema)}'.",
+            "QueryScopedRowsMissingRuntimeImplementation");
+
+        return descriptor with
+        {
+            ContractDiagnostics = [.. descriptor.ContractDiagnostics, diagnostic]
+        };
     }
 }

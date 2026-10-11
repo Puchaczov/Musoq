@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -44,7 +43,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var columnNames = firstRow.Fields.Select(field => field.Name).ToArray();
         var columnNameSet = new HashSet<string>(columnNames, StringComparer.OrdinalIgnoreCase);
-        var columnTypes = new Type[columnNames.Length];
 
         for (var rowIndex = 0; rowIndex < rows.Length; rowIndex++)
         {
@@ -76,21 +74,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
         }
 
-        for (var columnIndex = 0; columnIndex < columnNames.Length; columnIndex++)
-        {
-            var columnName = columnNames[columnIndex];
-            var expressions = rows
-                .Select(row => row.Fields.Single(field => string.Equals(field.Name, columnName, StringComparison.OrdinalIgnoreCase)).Expression)
-                .ToArray();
-
-            columnTypes[columnIndex] = ResolveValuesColumnType(columnName, expressions, node);
-        }
-
-        var columns = new ISchemaColumn[columnNames.Length];
-        for (var index = 0; index < columnNames.Length; index++)
-            columns[index] = new SchemaColumn(columnNames[index], index, columnTypes[index]);
-
-        return columns;
+        return ValuesColumnSchemaFactory.Create(node, rows);
     }
 
     private static void ThrowValuesShapeMismatch(

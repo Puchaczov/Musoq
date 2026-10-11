@@ -27,7 +27,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
@@ -48,7 +48,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Lorem"], ["ipsum"], ["dolor"], ["sit"],
@@ -72,7 +72,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["ipsum"], ["dolor"], ["sit"], ["amet,"],
@@ -97,7 +97,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["ipsum"], ["dolor"], ["sit"], ["amet,"], ["consectetur"], ["adipiscing"]);
@@ -121,7 +121,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["consectetur"], ["adipiscing"]);
     }
 
@@ -173,7 +173,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("b.Value", typeof(string)), ("c.Value", typeof(string)));
+            table, ("Value", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());

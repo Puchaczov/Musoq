@@ -36,7 +36,6 @@ internal static class ExecutionNodeDefinitionCatalog
         yield return Definition<ExecutionContinue>("control.continue", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionContinueIf>("control.continue-if", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionBreak>("control.break", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionAdaptExpando>("row.adapt-expando", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionCreateObject>("object.create", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionMethodTargetDeclarationCandidate>("optimizer.method-target-declaration", ExecutionRendererNodeFamily.Unsupported);
         yield return Definition<ExecutionIf>("control.if", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static node => [node.Body]);
@@ -49,7 +48,6 @@ internal static class ExecutionNodeDefinitionCatalog
         yield return Definition<ExecutionAppendRecord>("record-list.append", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionMaterializeList>("collection.materialize", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionMaterializeFilteredList>("collection.materialize-filtered", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionMaterializeExpandoList>("collection.materialize-expando", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionSetOperation>("set.operation", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionDistinctTable>("table.distinct", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionSortTable>("table.sort", ExecutionRendererNodeFamily.TableControlFlow);
@@ -67,6 +65,7 @@ internal static class ExecutionNodeDefinitionCatalog
         yield return Definition<ExecutionReturnDesc>("return.desc", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionReturnTable>("return.table", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionCreateAggregateLibrary>("aggregate.library.create", ExecutionRendererNodeFamily.Aggregate);
+        yield return Definition<ExecutionInitializeAggregateState>("aggregate.state.initialize", ExecutionRendererNodeFamily.Aggregate);
         yield return Definition<ExecutionCreateAggregateContext>("aggregate.context.create", ExecutionRendererNodeFamily.Aggregate);
         yield return Definition<ExecutionEnsureAggregateGroup>("aggregate.group.ensure", ExecutionRendererNodeFamily.Aggregate);
         yield return Definition<ExecutionCreateSingleKeyAggregateContext>("aggregate.single-key.context.create", ExecutionRendererNodeFamily.Aggregate);

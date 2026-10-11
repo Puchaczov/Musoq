@@ -30,7 +30,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var asOf = ReadSample("Q285_SpecCoreAsOfLeftJoinRowPresence.cs").Content;
         Assert.Contains("[AsofLeft]", asOf);
         Assert.Contains("AsOfProbeNoMatch", asOf);
-        Assert.Contains("b.Name: NULL", asOf);
+        Assert.Contains("Name: NULL", asOf);
     }
 
     [TestMethod]

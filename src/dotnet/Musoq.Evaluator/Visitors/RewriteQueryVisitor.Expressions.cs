@@ -84,7 +84,7 @@ public sealed partial class RewriteQueryVisitor
     {
         var index = Nodes.Pop();
         var array = Nodes.Pop();
-        Nodes.Push(new ArrayIndexNode(array, index).CopySpansFrom(node));
+        Nodes.Push(new ArrayIndexNode(array, index, node.ReturnType).CopySpansFrom(node));
     }
 
     public void Visit(AndNode node)
@@ -293,7 +293,7 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span, node.IntendedTypeName));
+        Nodes.Push(ColumnAccessNodeCopy.Create(node));
     }
 
     public void Visit(AllColumnsNode node)
@@ -362,13 +362,13 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(AccessObjectKeyNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessObjectKeyNode(node.Token, node.PropertyInfo));
+        Nodes.Push(new AccessObjectKeyNode(node));
     }
 
     public void Visit(PropertyValueNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new PropertyValueNode(node.Name, node.PropertyInfo));
+        Nodes.Push(StructuralProjectionBinding.CloneProperty(node));
     }
 
     public void Visit(DotNode node)

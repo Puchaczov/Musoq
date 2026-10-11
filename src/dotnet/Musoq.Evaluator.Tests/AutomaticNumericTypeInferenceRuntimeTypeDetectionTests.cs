@@ -11,10 +11,10 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     #region Runtime Type Detection for Object Columns
 
     [TestMethod]
-    public void WhenObjectContainsByte_AndComparingToInt_ShouldWork()
+    public void WhenDeclaredColumnContainsByte_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: byte," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -36,16 +36,16 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Medium");
         CollectionAssert.Contains(results, "Large");
     }
 
     [TestMethod]
-    public void WhenObjectContainsLong_AndComparingToInt_ShouldWork()
+    public void WhenDeclaredColumnContainsLong_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: long," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -67,16 +67,16 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Medium");
         CollectionAssert.Contains(results, "Large");
     }
 
     [TestMethod]
-    public void WhenObjectContainsDouble_AndComparingToDecimal_ShouldWork()
+    public void WhenDeclaredColumnContainsDouble_AndComparingToDecimal_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Price: object," +
+                             "  Price: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -98,16 +98,16 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Item B");
         CollectionAssert.Contains(results, "Item C");
     }
 
     [TestMethod]
-    public void WhenObjectContainsDecimal_AndComparingToDecimal_ShouldWork()
+    public void WhenDeclaredColumnContainsDecimal_AndComparingToDecimal_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Price: object," +
+                             "  Price: decimal," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -129,37 +129,37 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Item B", table[0].Values[0]);
+        Assert.AreEqual("Item B", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void WhenObjectContainsMixedNumericTypes_ShouldHandleAll()
+    public void WhenDeclaredDecimalColumnContainsMixedValues_ShouldPreserveComparisonResults()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: decimal," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 100";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)(byte)50;
+        item1.Value = 50m;
         item1.Name = "Byte50";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)150;
+        item2.Value = 150m;
         item2.Name = "Int150";
 
         dynamic item3 = new ExpandoObject();
-        item3.Value = (object)250L;
+        item3.Value = 250m;
         item3.Name = "Long250";
 
         dynamic item4 = new ExpandoObject();
-        item4.Value = (object)350.5;
+        item4.Value = 350.5m;
         item4.Name = "Double350";
 
         dynamic item5 = new ExpandoObject();
-        item5.Value = (object)450.75m;
+        item5.Value = 450.75m;
         item5.Name = "Decimal450";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3, item4, item5]);
@@ -167,7 +167,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
 
 
         Assert.AreEqual(4, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Int150");
         CollectionAssert.Contains(results, "Long250");
         CollectionAssert.Contains(results, "Double350");
@@ -175,10 +175,10 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     }
 
     [TestMethod]
-    public void WhenObjectContainsFloat_AndComparingToInt_ShouldWork()
+    public void WhenDeclaredColumnContainsFloat_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: float," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -200,16 +200,16 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Medium");
         CollectionAssert.Contains(results, "Large");
     }
 
     [TestMethod]
-    public void WhenObjectContainsShort_AndComparingToInt_ShouldWork()
+    public void WhenDeclaredColumnContainsShort_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: short," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -231,7 +231,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Medium", table[0].Values[0]);
+        Assert.AreEqual("Medium", table[0].ReadValues()[0]);
     }
 
 

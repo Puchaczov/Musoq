@@ -4,7 +4,7 @@ namespace Musoq.Plugins;
 ///     Typed reference value-count kernel used by runtime-v2 generated aggregate code.
 /// </summary>
 /// <typeparam name="T">Concrete reference type tested for a non-null value.</typeparam>
-public static class CountReferenceAggregateKernel<T>
+public static partial class CountReferenceAggregateKernel<T>
     where T : class
 {
     /// <summary>

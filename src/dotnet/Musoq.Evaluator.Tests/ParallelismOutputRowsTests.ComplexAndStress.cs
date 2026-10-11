@@ -45,8 +45,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelIds = tableParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
-        var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
+        var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds,
             "Result sets differ between parallel and non-parallel execution");
     }
@@ -69,7 +69,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
 
 
-        var resultIds = table.Select(row => (int)row[1]).ToList();
+        var resultIds = table.Select(row => (int)row.ReadValue(1)).ToList();
         var expectedIds = Enumerable.Range(0, rowCount).Reverse().ToList();
         CollectionAssert.AreEqual(expectedIds, resultIds, "Order is incorrect");
     }
@@ -101,8 +101,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelIds = tableParallel.Select(row => (int)row[1]).ToList();
-        var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).ToList();
+        var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).ToList();
+        var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds,
             "Result sets differ between parallel and non-parallel execution");
     }
@@ -162,8 +162,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelCities = tableParallel.Select(row => (string)row[0]).OrderBy(x => x).ToList();
-        var nonParallelCities = tableNonParallel.Select(row => (string)row[0]).OrderBy(x => x).ToList();
+        var parallelCities = tableParallel.Select(row => (string)row.ReadValue(0)).OrderBy(x => x).ToList();
+        var nonParallelCities = tableNonParallel.Select(row => (string)row.ReadValue(0)).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelCities, parallelCities,
             "Result sets differ between parallel and non-parallel execution");
     }

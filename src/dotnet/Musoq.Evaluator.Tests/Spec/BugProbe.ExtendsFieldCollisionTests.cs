@@ -65,9 +65,9 @@ public class BugProbeExtendsFieldCollisionTests
 
         Assert.AreEqual(1, table.Count);
         // Child should override parent's Version
-        Assert.AreEqual(2, table[0][0], "Child's Version should override parent's");
-        Assert.AreEqual((byte)0xAA, table[0][1]);
-        Assert.AreEqual(99, table[0][2]);
+        Assert.AreEqual(2, table[0].ReadValue(0), "Child's Version should override parent's");
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(1));
+        Assert.AreEqual(99, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -109,8 +109,8 @@ public class BugProbeExtendsFieldCollisionTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0], "Magic should be read correctly");
-        Assert.AreEqual((byte)0x02, table[0][1], "Flags should be read correctly");
-        Assert.AreEqual(100, table[0][2], "Length should be read correctly");
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0), "Magic should be read correctly");
+        Assert.AreEqual((byte)0x02, table[0].ReadValue(1), "Flags should be read correctly");
+        Assert.AreEqual(100, table[0].ReadValue(2), "Length should be read correctly");
     }
 }

@@ -51,6 +51,7 @@ public partial class QueryInspectionTests
         AssertGeneratedCSharpContains("CustomLengthTotalAggregate.Set(ref group.__agg1", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("var __agg0Input", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("var __agg2Input", result.GeneratedCSharpCode);
-        Assert.AreEqual(2, CountOccurrences(result.GeneratedCSharpCode, "GetValueOrDefault();"));
+        Assert.IsFalse(result.ExecutionPlanText.Contains("ParallelSingleKeyAggregateLoop", System.StringComparison.Ordinal));
+        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, "GetValueOrDefault();"));
     }
 }
