@@ -1,0 +1,2 @@
+WARN service=payments code=W01 message=queue busy
+ERROR service=payments code=E17 message=payment failed

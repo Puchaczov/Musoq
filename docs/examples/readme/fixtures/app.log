@@ -1,0 +1,3 @@
+INFO service=checkout code=I01 message=ready
+ERROR service=checkout code=E42 message=retry failed
+ERROR service=checkout code=E42 message=timeout
