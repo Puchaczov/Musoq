@@ -150,6 +150,15 @@ public sealed partial class ExecutionCSharpRenderer
         var value = SyntaxFactory.ParseExpression(
             $"{sourceValue}{separator}{generatedNested.PropertyPath}");
 
+        if (generatedNested.IsNullSafe)
+        {
+            value = SyntaxFactory.ParseExpression($"{sourceValue}?.{generatedNested.PropertyPath.Replace(".", "?.", StringComparison.Ordinal)}");
+            var returnType = fieldRead.ReturnType.RequireClrType();
+            if (returnType.IsValueType && Nullable.GetUnderlyingType(returnType) is null)
+                value = SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, value,
+                    SyntaxFactory.DefaultExpression(CreateTypeSyntax(fieldRead.ReturnType)));
+        }
+
         if (generatedNested.IsRowCarrier ||
             !string.IsNullOrWhiteSpace(generatedNested.ValueTypeName) ||
             !string.IsNullOrWhiteSpace(fieldRead.GeneratedTypeName) ||

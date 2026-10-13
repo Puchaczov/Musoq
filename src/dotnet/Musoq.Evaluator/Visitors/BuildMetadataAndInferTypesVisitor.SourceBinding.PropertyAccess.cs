@@ -80,13 +80,13 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var resolvedChain = new PropertyFromNode.PropertyNameAndTypePair[node.PropertiesChain.Length];
                 resolvedChain[0] = new PropertyFromNode.PropertyNameAndTypePair(
                     targetColumn.ColumnName, targetColumn.ColumnType, targetColumn.IntendedTypeName);
+                var currentIntendedName = targetColumn.IntendedTypeName;
                 for (var i = 1; i < node.PropertiesChain.Length; i++)
                 {
-                    var propType = i == node.PropertiesChain.Length - 1
-                        ? resolved.Value.ClrType
-                        : typeof(object);
+                    var member = ResolveSchemaFieldFromIntendedTypeName(currentIntendedName!, node.PropertiesChain[i].PropertyName)!.Value;
                     resolvedChain[i] = new PropertyFromNode.PropertyNameAndTypePair(
-                        node.PropertiesChain[i].PropertyName, propType);
+                        node.PropertiesChain[i].PropertyName, member.ClrType, member.IntendedTypeName);
+                    currentIntendedName = member.IntendedTypeName;
                 }
 
                 PushSemanticNode(

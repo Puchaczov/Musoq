@@ -117,6 +117,8 @@ public partial class SchemaParser
 
     private bool IsComputedFieldStart()
     {
+        if (Current.TokenType is TokenType.Case or TokenType.Not or TokenType.Null)
+            return true;
         if (IsTypeKeyword(Current.TokenType))
             return false;
 

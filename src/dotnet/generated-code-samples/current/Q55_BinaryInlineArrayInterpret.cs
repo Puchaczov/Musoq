@@ -440,7 +440,8 @@ namespace Musoq.Generated.Interpreters
             RecordParsedField("Count");
             SetCurrentField("Items");
             var __items_list = new System.Collections.Generic.List<Inline_Items>();
-            for (int __items_i = 0; __items_i < (int)_count; __items_i++)
+            var __items_count = ResolveExpressionSize<byte>(() => checked((byte?)(_count)), ParseErrorCode.InvalidSize);
+            for (int __items_i = 0; __items_i < __items_count; __items_i++)
             {
                 var ___items_list_elemInterpreter = new Inline_Items();
                 var ___items_list_elem = InterpretNested(___items_list_elemInterpreter, data, "Items");

@@ -22,7 +22,8 @@ internal sealed partial class PhysicalLoweringImplementation
         var propertyPath = string.Join(".", property.PropertiesChain.Select(item => item.PropertyName));
 
         var expression = ExecutionExpressionConverter.Convert(
-            new ColumnRef(property.SourceAlias, propertyPath, property.ResultType),
+            new ColumnRef(property.SourceAlias, propertyPath, property.ResultType)
+            { IsNullSafePath = property.PropertiesChain.Any(part => part.IntendedTypeName is not null) },
             sourceLookup);
 
         if (expression is ExecutionFieldRead fieldRead &&

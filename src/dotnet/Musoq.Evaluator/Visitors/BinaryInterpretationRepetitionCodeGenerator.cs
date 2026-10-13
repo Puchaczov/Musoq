@@ -135,6 +135,8 @@ public partial class InterpreterCodeGenerator
         string lastElemVar,
         string listVar)
     {
+        if (condition is DotNode dot && _parentContext?.ExpressionReferences.Contains(dot) == true)
+            return GenerateDotExpression(dot);
         return condition switch
         {
             EqualityNode eq =>

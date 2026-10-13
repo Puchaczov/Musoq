@@ -135,6 +135,7 @@ public sealed partial class ExpressionConverter
 
         return new ColumnRef(alias, name, RequireReturnType(node))
         {
+            IsNullSafePath = node.IsNullSafePath,
             Stability = ResolveColumnStability(alias, name),
             EnumType = ResolveNativeEnumType(node) ?? ResolveColumnEnumType(alias, name)
         };

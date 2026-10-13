@@ -21,6 +21,19 @@ public class SchemaRegistry
     ///     Gets the number of registered schemas.
     /// </summary>
     public int Count => _schemas.Count;
+    private Visitors.BinarySchemaParentBindings? _parentBindings;
+    internal Visitors.BinarySchemaParentBindings ParentBindings
+    {
+        get
+        {
+            if (_parentBindings is not null) return _parentBindings;
+            var bindings = new Visitors.BinarySchemaParentBindings(this);
+            _parentBindings = bindings;
+            try { bindings.BindAll(); }
+            catch { _parentBindings = null; throw; }
+            return bindings;
+        }
+    }
 
     /// <summary>
     ///     Registers a schema definition.
@@ -42,6 +55,7 @@ public class SchemaRegistry
         var registration = new SchemaRegistration(name, node);
         _schemas[name] = registration;
         _orderedSchemas.Add(registration);
+        _parentBindings = null;
     }
 
     /// <summary>
@@ -114,5 +128,6 @@ public class SchemaRegistry
     {
         _schemas.Clear();
         _orderedSchemas.Clear();
+        _parentBindings = null;
     }
 }

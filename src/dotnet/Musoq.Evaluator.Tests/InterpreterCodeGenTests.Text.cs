@@ -221,9 +221,8 @@ public partial class InterpreterCodeGenTests
         // Act
         var code = generator.GenerateAll();
 
-        // Assert - code generator now adds (int) casts for field references to handle nullable types
-        Assert.Contains("ReadBytes(data, ((int)_total - (int)_headerSize))",
-            code, $"Expected 'ReadBytes(data, ((int)_total - (int)_headerSize))' but generated code:\n{code}");
+        Assert.Contains("ReadBytes(data, ResolveExpressionSize<int>", code);
+        Assert.Contains("checked((int?)((_total - _headerSize)))", code);
     }
 
     [TestMethod]

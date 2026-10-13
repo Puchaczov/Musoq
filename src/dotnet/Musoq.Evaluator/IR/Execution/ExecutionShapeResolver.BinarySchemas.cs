@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -62,8 +63,9 @@ public sealed partial class ExecutionShapeResolver
     {
         var columns = new List<ColumnSchema>();
         var topLevelIndex = 0;
+        var schemaFields = fields.ToArray();
 
-        foreach (var field in fields)
+        foreach (var field in schemaFields)
         {
             if (field.Name.StartsWith('_'))
                 continue;
@@ -71,7 +73,7 @@ public sealed partial class ExecutionShapeResolver
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
                 continue;
 
-            var fieldType = ResolveBinaryFieldType(field, generatedType, context, columns);
+            var fieldType = ResolveBinaryFieldType(field, generatedType, context, schemaFields);
 
             if (field is FieldDefinitionNode { IsConditional: true } &&
                 fieldType.IsValueType &&

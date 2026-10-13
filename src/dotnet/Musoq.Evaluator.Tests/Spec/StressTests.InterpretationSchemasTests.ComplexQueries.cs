@@ -440,7 +440,7 @@ public partial class StressTestsInterpretationSchemasTests
         Assert.AreEqual((short)20, table[0].ReadValue(1));
         Assert.AreEqual((byte)3, table[0].ReadValue(2));
         // Volume = 10 * 20 * 3 = 600
-        Assert.AreEqual((short)600, table[0].ReadValue(3));
+        Assert.AreEqual(600, table[0].ReadValue(3));
         // IsLarge = 10 * 20 > 10000 = false (200 > 10000 is false)
         Assert.IsFalse((bool?)table[0].ReadValue(4));
     }

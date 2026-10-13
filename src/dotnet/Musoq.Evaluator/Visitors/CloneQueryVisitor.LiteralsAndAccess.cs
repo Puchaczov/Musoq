@@ -185,7 +185,7 @@ public partial class CloneQueryVisitor
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
 
-        Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType, node.IntendedTypeName));
+        Nodes.Push(InterpretationPropertyBinding.CopyBoundDot(root, exp, node, string.Empty));
     }
 
     public override void Visit(AccessCallChainNode node)

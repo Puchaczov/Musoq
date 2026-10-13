@@ -377,7 +377,7 @@ public sealed partial class RewriteQueryVisitor
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
 
-        Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, node.Name, exp.ReturnType, node.IntendedTypeName));
+        Nodes.Push(InterpretationPropertyBinding.CopyBoundDot(root, exp, node, node.Name));
     }
 
     public void Visit(AccessCallChainNode node)

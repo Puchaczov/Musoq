@@ -7,13 +7,13 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
-    private static string GenerateSchemaReferenceReadCode(string localVar, string fieldName,
+    private string GenerateSchemaReferenceReadCode(string localVar, string fieldName,
         SchemaReferenceTypeNode schemaRef)
     {
         var typeName = schemaRef.FullTypeName;
         var tempInterpreter = $"_{localVar}_interpreter";
         var builder = new StringBuilder();
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = new {typeName}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = {CreateNestedInterpreter(typeName)};");
         AppendGeneratedLine(builder, $"var {localVar} = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
         return builder.ToString();
     }
@@ -22,12 +22,14 @@ public partial class InterpreterCodeGenerator
     {
         var builder = new StringBuilder();
         var countExpr = GenerateSizeExpression(arrayType.SizeExpression);
+        var countVar = $"_{localVar}_count";
         var elementTypeName = GetArrayElementClrTypeName(fieldName, arrayType.ElementType);
         var loopVar = $"_{localVar}_i";
         var tempVar = $"_{localVar}_list";
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVar} = 0; {loopVar} < {countExpr}; {loopVar}++)");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {countVar} = {countExpr};");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVar} = 0; {loopVar} < {countVar}; {loopVar}++)");
         builder.AppendLine("{");
 
         if (arrayType.ElementType is PrimitiveTypeNode primitiveElement)
@@ -45,7 +47,7 @@ public partial class InterpreterCodeGenerator
         {
             var typeName = schemaRefElement.FullTypeName;
             var tempInterpreter = $"_{localVar}_elemInterpreter";
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {tempInterpreter} = new {typeName}();");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {tempInterpreter} = {CreateNestedInterpreter(typeName)};");
             AppendGeneratedLine(builder, $"    var _elem = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add(_elem);");
         }
@@ -86,7 +88,7 @@ public partial class InterpreterCodeGenerator
         var tempInterpreter = GetInlineArrayElementInterpreterVariable(localVar);
         var elemVar = GetInlineArrayElementVariable(localVar);
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{indent}var {tempInterpreter} = new {inlineClassName}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{indent}var {tempInterpreter} = {CreateNestedInterpreter(inlineClassName)};");
 
         var outerAssignments = GenerateOuterRefAssignments(tempInterpreter, inlineSchema);
         if (!string.IsNullOrEmpty(outerAssignments))

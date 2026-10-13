@@ -450,6 +450,12 @@ binary Outer {
 - Nested schemas are parsed inline at the current cursor position
 - The cursor advances by the total size of the nested schema
 - Nested schema fields are accessible via dot notation: `outer.Header.X`
+- A conditional leaf retains its nullable logical type through any number of
+  record members. If an intermediate record is absent, projection of a member
+  through that path yields `null`, rather than dereferencing the absent record.
+- Collection paths in APPLY have no fixed member-depth limit. A null path or an
+  empty collection produces zero CROSS APPLY rows and one null-extended OUTER
+  APPLY row, as defined in Appendix D.
 
 ### 4.4 Arrays
 
@@ -502,7 +508,10 @@ binary Message {
 
 **Semantics:**
 - Condition is evaluated using previously parsed field values
-- When condition is FALSE: field is NOT parsed, cursor does NOT advance, field value is `null`
+- Guards require a boolean expression and use core three-valued logic. Comparisons
+  with absent fields yield UNKNOWN, including through computed-field dependencies.
+- When condition is FALSE or UNKNOWN: field is NOT parsed, cursor does NOT advance,
+  field value is `null`, and its size, position and validations are not evaluated
 - When condition is TRUE: field is parsed normally
 - Conditions may only reference fields declared BEFORE the conditional field
 - Subsequent fields referencing a conditional field MUST handle potential `null`
@@ -686,6 +695,8 @@ binary ValidatedHeader {
 - Failed validation raises a parse error (ISE0002) with field name and constraint
 - Validation may reference the current field AND any previously declared field
 - Validation expressions must evaluate to boolean
+- A binary `check` succeeds only for TRUE; FALSE or UNKNOWN raises ISE0002.
+  A skipped conditional field does not evaluate its check.
 
 ### 4.9.1 Field Value Validations (`const`, `magic`, `oneOf`)
 
@@ -1409,9 +1420,19 @@ and computed fields. A check can reference its own field after it is read; other
 expressions may reference only earlier fields. A repeat condition may inspect
 the just-read collection element. CASE requires ELSE, as in core. A computed
 field uses `Name: expression` or `Name: = expression`; `:=` is not its syntax.
-Sizes and positions require representable non-negative integral values; invalid
-sizes report ISE0007, invalid positions ISE0008. A false guard skips all parsing,
-computed size evaluation and validation for that field.
+Sizes and positions require representable non-negative integral values. Dotted
+references, arithmetic, parentheses and CASE are valid in both locations.
+Null, fractional, non-finite, negative and overflowing values are invalid; null
+does not imply zero. Invalid sizes report ISE0007, invalid positions ISE0008.
+Evaluation occurs once when the field is reached, after its guard succeeds.
+A FALSE or UNKNOWN guard skips parsing, size and position evaluation, and checks.
+
+CASE selects only the first TRUE WHEN branch; FALSE and UNKNOWN select no branch.
+Only the selected result expression is evaluated, and ELSE is mandatory. Simple
+CASE uses ordinary core equality, including its null rules. Result branches use
+core compatible-type rules. NOT, AND and OR preserve core three-valued logic.
+Computed arithmetic uses the core numeric promotion rules: small integral
+operands produce `int`, lifted to `int?` when an operand can be absent.
 
 ### 6.4 Field Reference Scoping
 
@@ -1422,6 +1443,51 @@ Within a schema, expressions may reference:
 - Array elements via indexing: `Items[0]`, `Records[-1]` (last element)
 
 **Forward references MUST NOT occur.** Following field expressions see the earlier parsed or computed values.
+
+### 6.4.1 Explicit Enclosing Binary Record Context
+
+In a nested binary schema, `parent.Field` refers to a completed field of the
+immediately enclosing record instance. `parent.parent.Field` traverses two record
+levels; further `parent` segments follow the same rule. This is record nesting,
+not schema inheritance or a SQL alias. The extension applies to binary schemas.
+
+```sql
+binary Item { Value: byte };
+binary Body { Items: Item[parent.Count] };
+binary Record { Count: byte, Payload: Body };
+
+SELECT i.Value
+FROM input.records() f
+CROSS APPLY Interpret<Record>(f.Content) r
+CROSS APPLY r.Payload.Items i
+```
+
+Here `input.records()` is an informative source contract supplying byte arrays.
+The bytes `02 0A 14` yield the values 10 and 20.
+
+- Only fields completed before entering the nested record are visible through
+  its enclosing context. The record being constructed, later siblings, and
+  forward references are unavailable.
+- Parsed and computed enclosing values may be used in sizes, positions, guards,
+  checks and computed expressions, subject to their normal type and null rules.
+- A separately declared schema may express an enclosing-context requirement.
+  Binding MUST validate that requirement at every embedding site. Missing fields,
+  unavailable ancestors, forward references and incompatible types are schema
+  diagnostics; they MUST NOT become internal compiler errors. Compatible numeric
+  enclosing types may widen using core common-type rules.
+- A parent-dependent schema cannot be interpreted directly without its required
+  enclosing record. This is a binding error, reported as MQ2030.
+- Array and repeat elements use the containing record as their parent. A
+  substream wrapper does not add a record level; its embedded record does.
+  Inheritance does not add a record level.
+- Enclosing context is read-only and is not a parsed field, query column or
+  serialized member. Each interpretation receives its own context values.
+- `parent` is contextual, not a globally reserved identifier. An earlier local
+  field named `parent` retains ordinary member access. Otherwise, a dotted
+  expression rooted at `parent` denotes enclosing context. Bare identifiers in
+  named schemas do not acquire implicit enclosing lookup. Existing unqualified
+  enclosing references in anonymous schemas remain compatible; new declarations
+  SHOULD use explicit `parent` paths.
 
 ### 6.5 Built-in Functions for Schemas
 
@@ -1900,6 +1966,12 @@ ValidationMod
 
 SizeExpr
     ::= Expression
+
+EnclosingFieldReference
+    ::= 'parent' '.' ('parent' '.')* Identifier ('.' Identifier)*
+
+-- Schema Expression uses core precedence and includes searched/simple CASE,
+-- unary NOT, dotted member access and enclosing references. CASE requires ELSE.
 ```
 
 ### 10.2 Complete Text Schema Grammar
@@ -2265,8 +2337,8 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | ISE0004 | Literal | Expected literal not found at current position |
 | ISE0005 | Delimiter | Delimiter not found in remaining input |
 | ISE0006 | Delimiter | Expected opening delimiter not found |
-| ISE0007 | Expression | Invalid size expression value (negative or overflow) |
-| ISE0008 | Position | Invalid position value (negative) |
+| ISE0007 | Expression | Invalid size expression value (null, fractional, non-finite, negative or overflow) |
+| ISE0008 | Position | Invalid position value (null, fractional, non-finite, negative or overflow) |
 | ISE0009 | Control Flow | Maximum iteration count exceeded in repeat |
 | ISE0010 | Encoding | String encoding error |
 | ISE0011 | Whitespace | Expected whitespace not found |

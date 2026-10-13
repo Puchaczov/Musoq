@@ -4,6 +4,10 @@ namespace Musoq.Evaluator;
 
 internal static class InterpretationPropertyBinding
 {
+    internal static DotNode CopyBoundDot(Node root, Node expression, DotNode source, string name) =>
+        new(root, expression, source.IsTheMostInner, name, source.ReturnType ?? expression.ReturnType, source.IntendedTypeName)
+        { IsNullSafePath = source.IsNullSafePath };
+
     internal static string? GetIntendedTypeName(Node root) => root switch
     {
         AccessColumnNode column => column.IntendedTypeName,

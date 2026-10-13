@@ -49,14 +49,14 @@ public partial class InterpreterCodeGenerator
 
         if (target is SchemaReferenceTypeNode schemaRef)
         {
-            builder.AppendLine(culture, $"var {interpreterVar} = new {schemaRef.FullTypeName}();");
+            builder.AppendLine(culture, $"var {interpreterVar} = {CreateNestedInterpreter(schemaRef.FullTypeName)};");
             return builder.ToString();
         }
 
         if (target is InlineSchemaTypeNode inlineSchema)
         {
             var className = GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null);
-            builder.AppendLine(culture, $"var {interpreterVar} = new {className}();");
+            builder.AppendLine(culture, $"var {interpreterVar} = {CreateNestedInterpreter(className)};");
             builder.Append(GenerateOuterRefAssignments(interpreterVar, inlineSchema));
             return builder.ToString();
         }

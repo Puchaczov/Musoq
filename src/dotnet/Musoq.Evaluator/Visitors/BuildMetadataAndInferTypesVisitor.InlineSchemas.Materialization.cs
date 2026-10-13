@@ -18,6 +18,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         (Type ClrType, string? IntendedTypeName) resolvedType)
     {
         var typeAnnotation = field.TypeAnnotation;
+        resolvedType = (BinarySchemaExpressionTypes.Lift(resolvedType.ClrType, field.IsConditional), resolvedType.IntendedTypeName);
         if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
             typeAnnotation = substream.Target;
 
@@ -59,8 +60,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (nestedType == typeof(object) && inlineSchemaFields != null)
         {
             return new DynamicTable(CreateBinarySchemaColumns(
-                inlineSchemaFields,
-                ComputedFieldColumnTypeMode.InferFromColumns).ToArray());
+                inlineSchemaFields).ToArray());
         }
 
         if (nestedType == typeof(object) && !string.IsNullOrEmpty(intendedTypeName) && SchemaRegistry != null)
@@ -77,7 +77,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                     var typeParamMap = CreateTypeParameterMap(binaryNode, schemaReference.TypeArguments);
                     return new DynamicTable(CreateBinarySchemaColumns(
                         allFields,
-                        ComputedFieldColumnTypeMode.InferFromColumns,
                         typeParamMap).ToArray());
                 }
 

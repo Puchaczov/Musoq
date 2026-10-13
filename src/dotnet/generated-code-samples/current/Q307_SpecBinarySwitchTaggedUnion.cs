@@ -502,7 +502,7 @@ namespace Musoq.Generated.Interpreters
             }
             else
             {
-                var _payload_Raw_value = ReadBytes(data, (int)_length);
+                var _payload_Raw_value = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize));
                 _payload_Raw = _payload_Raw_value;
                 _payload_case = "Raw";
             }

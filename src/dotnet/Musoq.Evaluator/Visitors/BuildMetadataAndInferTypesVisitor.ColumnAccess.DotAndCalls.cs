@@ -173,7 +173,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
         }
 
-        PushSemanticNode(newNode);
+        PushSemanticNode(PreserveInterpretationPathNullability(newNode));
     }
 
     private static DotNode CreateUnknownPropertyRecoveryNode(Node root, string propertyName, DotNode node) =>

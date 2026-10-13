@@ -43,6 +43,7 @@ public partial class InterpreterCodeGenerator
     private string _currentSchemaName = "<unknown>";
     private string[] _currentTypeParameters = Array.Empty<string>();
     private int _discardCounter;
+    private IReadOnlyList<SchemaFieldNode> _expressionFields = Array.Empty<SchemaFieldNode>();
 
     /// <summary>
     ///     Creates a new interpreter code generator.

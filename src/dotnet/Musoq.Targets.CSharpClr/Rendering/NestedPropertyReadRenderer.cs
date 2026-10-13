@@ -17,10 +17,13 @@ internal static class NestedPropertyReadRenderer
             throw new InvalidOperationException("Nested CLR property field reads require a source alias.");
 
         var separator = nestedProperty.PropertyPath.StartsWith('[') ? string.Empty : ".";
+        var path = nestedProperty.IsNullSafe
+            ? nestedProperty.PropertyPath.Replace(".", "?.", StringComparison.Ordinal)
+            : nestedProperty.PropertyPath;
         return NativeEnumReadNormalizer.Normalize(
             fieldRead,
             SyntaxFactory.ParseExpression(
-                $"{EscapeIdentifier(fieldRead.Alias)}{separator}{nestedProperty.PropertyPath}"));
+                $"{EscapeIdentifier(fieldRead.Alias)}{separator}{path}"));
     }
 
 }

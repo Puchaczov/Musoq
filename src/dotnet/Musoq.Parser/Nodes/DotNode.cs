@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Nodes;
+namespace Musoq.Parser.Nodes;
 
 public class DotNode : UnaryNode
 {
@@ -42,6 +42,7 @@ public class DotNode : UnaryNode
     ///     This is used for code generation when the CLR ReturnType is object but we need to cast to a generated type.
     /// </summary>
     public string? IntendedTypeName { get; }
+    public bool IsNullSafePath { get; init; }
 
     public override string Id { get; }
 

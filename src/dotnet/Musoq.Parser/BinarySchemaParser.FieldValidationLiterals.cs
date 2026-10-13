@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
-using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Parser.Tokens;
@@ -30,55 +29,17 @@ public partial class SchemaParser
             return [];
         }
 
-        var contentToken = Current;
-        Consume(contentToken.TokenType);
-        Consume(TokenType.RightSquareBracket);
-
-        return LexLiteralList(contentToken.Value, fieldName, contentToken.Span);
-    }
-
-    private List<Node> LexLiteralList(string content, string fieldName, TextSpan span)
-    {
-        var lexer = new Lexer(content, true);
-        var contentOffset = span.Start + (content.Length - content.TrimStart().Length);
-        lexer.Next();
-
         var values = new List<Node>();
-        while (lexer.Current().TokenType != TokenType.EndOfFile)
+        while (true)
         {
-            var token = lexer.Current();
-            Node value;
-            if (token.TokenType == TokenType.Hyphen)
-            {
-                var signSpan = TranslateLiteralSpan(token.Span, contentOffset);
-                lexer.Next();
-                if (!IsLiteralToken(lexer.Current()))
-                    throw InvalidFieldValueValidation(
-                        $"Field '{fieldName}' value validation expects a literal after '-'.",
-                        signSpan);
-
-                var operand = ToLiteralNode(lexer.Current(), fieldName, contentOffset);
-                value = new HyphenNode(new IntegerNode(0, signSpan), operand)
-                    .WithSpan(signSpan.Through(operand.Span));
-            }
-            else
-            {
-                value = ToLiteralNode(token, fieldName, contentOffset);
-            }
-
-            values.Add(value);
-            lexer.Next();
-
-            if (lexer.Current().TokenType != TokenType.Comma)
+            values.Add(ComposeValidationScalar(fieldName));
+            if (Current.TokenType != TokenType.Comma)
                 break;
-
-            lexer.Next();
+            Consume(TokenType.Comma);
+            if (Current.TokenType == TokenType.RightSquareBracket)
+                break;
         }
-
-        if (lexer.Current().TokenType != TokenType.EndOfFile)
-            throw InvalidFieldValueValidation(
-                $"Field '{fieldName}' value validation expects a comma-separated list of literals.",
-                span);
+        Consume(TokenType.RightSquareBracket);
 
         return values;
     }

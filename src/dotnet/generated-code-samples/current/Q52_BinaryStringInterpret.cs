@@ -339,7 +339,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.Length = _length;
             RecordParsedField("Length");
             SetCurrentField("Text");
-            var _text = ReadString(data, (int)_length, System.Text.Encoding.ASCII).Trim();
+            var _text = ReadString(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize), System.Text.Encoding.ASCII).Trim();
             __parsedValue.Text = _text;
             RecordParsedField("Text");
             return __parsedValue;

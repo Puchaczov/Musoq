@@ -13,7 +13,7 @@ public partial class SchemaParser
 
     private Node ComposeSizeExpression()
     {
-        return ComposeAdditiveExpression();
+        return ComposeExpression();
     }
 
     private Node ComposeAdditiveExpression()
@@ -60,6 +60,10 @@ public partial class SchemaParser
     {
         switch (Current.TokenType)
         {
+            case TokenType.Case when !IsSchemaKeywordReference():
+                return ComposeSchemaCase();
+            case TokenType.Null:
+                return new NullNode(ConsumeAndGetToken(TokenType.Null).Span);
             case TokenType.Integer:
                 var intToken = ConsumeAndGetToken(TokenType.Integer);
                 return new IntegerNode(intToken.Value, "i", intToken.Span);

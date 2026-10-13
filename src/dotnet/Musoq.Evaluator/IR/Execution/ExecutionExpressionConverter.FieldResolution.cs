@@ -14,6 +14,15 @@ public static partial class ExecutionExpressionConverter
         if (resolvedField != null)
         {
             var (alias, field) = resolvedField.Value;
+            field = field with
+            {
+                AccessStrategy = field.AccessStrategy switch
+                {
+                    GeneratedRowNestedAccess generated => generated with { IsNullSafe = column.IsNullSafePath },
+                    NestedClrPropertyAccess nestedAccess => nestedAccess with { IsNullSafe = column.IsNullSafePath },
+                    _ => field.AccessStrategy
+                }
+            };
 
             var nested = NativeNestedFieldBinding.TryCreate(column, alias, field, sourceShapes);
             if (nested is not null)

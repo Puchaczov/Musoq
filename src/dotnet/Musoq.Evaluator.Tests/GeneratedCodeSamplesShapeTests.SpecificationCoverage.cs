@@ -85,7 +85,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         var rawSubstream = ReadSample("Q308_SpecBinaryRawSubstream.cs").Content;
         Assert.Contains("InterpretSource [Packet.Interpret", rawSubstream);
-        Assert.Contains("ReadBytes(data, (int)_length)", rawSubstream);
+        Assert.Contains("ReadBytes(data, ResolveExpressionSize<byte>", rawSubstream);
 
         var structuredSubstreams = ReadSample("Q309_SpecBinaryStructuredSubstreams.cs").Content;
         Assert.Contains("EnsureSubstreamFullyConsumed", structuredSubstreams);

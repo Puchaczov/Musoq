@@ -33,16 +33,18 @@ public partial class InterpreterCodeGenerator
                 break;
 
             case SchemaReferenceTypeNode schemaRef:
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = new {schemaRef.FullTypeName}();");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = {CreateNestedInterpreter(schemaRef.FullTypeName)};");
                 AppendGeneratedLine(builder, $"{localVar} = InterpretNested({localVar}_interpreter, data, \"{EscapeString(field.Name)}\");");
                 break;
 
             case ArrayTypeNode arrayType:
                 var arraySizeExpr = GenerateSizeExpression(arrayType.SizeExpression);
+                var countVar = $"_{localVar}_count";
                 var elementTypeName = GetArrayElementClrTypeName(field.Name, arrayType.ElementType);
                 var loopVarInner = $"_{localVar}_i";
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = new {elementTypeName}[{arraySizeExpr}];");
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVarInner} = 0; {loopVarInner} < {arraySizeExpr}; {loopVarInner}++)");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {countVar} = {arraySizeExpr};");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = new {elementTypeName}[{countVar}];");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVarInner} = 0; {loopVarInner} < {countVar}; {loopVarInner}++)");
                 builder.AppendLine("{");
 
                 if (arrayType.ElementType is PrimitiveTypeNode elemPrimitive)
@@ -56,7 +58,7 @@ public partial class InterpreterCodeGenerator
                 {
                     var elemSchemaName = elemSchemaRef.FullTypeName;
                     var elemInterpreterVar = $"_{localVar}_elem_interpreter";
-                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {elemInterpreterVar} = new {elemSchemaName}();");
+                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {elemInterpreterVar} = {CreateNestedInterpreter(elemSchemaName)};");
                     AppendGeneratedLine(builder, $"    {localVar}[{loopVarInner}] = InterpretNested({elemInterpreterVar}, data, \"{EscapeString(field.Name)}\");");
                 }
                 else if (arrayType.ElementType is InlineSchemaTypeNode elemInlineSchema)
@@ -92,7 +94,7 @@ public partial class InterpreterCodeGenerator
             case InlineSchemaTypeNode inlineSchema:
 
                 var inlineClassName = GetOrRegisterInlineSchemaClassName(field.Name, inlineSchema, null);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = new {inlineClassName}();");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = {CreateNestedInterpreter(inlineClassName)};");
                 builder.Append(GenerateOuterRefAssignments($"{localVar}_interpreter", inlineSchema));
                 AppendGeneratedLine(builder, $"{localVar} = InterpretNested({localVar}_interpreter, data, \"{EscapeString(field.Name)}\");");
                 break;
