@@ -4,6 +4,21 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.13-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.13-alpha.1](release-notes/v17.0.13-alpha.1.md).
+
+### Binary interpretation
+
+- Correct binary schema expression typing, nullability, nested and indexed access, repeated elements, and parent-scope references.
+- Preserve typed computed values and row scope through interpretation and generated query execution; handle byte and bit alignment, numeric conversions, and checked sizes and positions consistently.
+- Add upstream-derived Kaitai conformance coverage with independent expected-value assertions, covering 200 cases across 204 SQL queries and 47 fixture binaries.
+
+### Documentation and compatibility
+
+- Expand the README and its SQL examples with executable binary parsing and file-search workflows.
+- Keep the five Core packages version-aligned. No intentional datasource contract break was identified; `BytesInterpreterBase<TOut>` adds a protected helper for checked expression sizes and positions.
+
 ## 17.0.12-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.12-alpha.1](release-notes/v17.0.12-alpha.1.md).
