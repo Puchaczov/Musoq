@@ -1,0 +1,93 @@
+{
+  "fixture": "Upstream/src/process_rotate.bin",
+  "assertions": [
+    {
+      "actual": "cont.seq_sized.seq_f",
+      "expected": {
+        "kind": "integer",
+        "value": "9"
+      }
+    },
+    {
+      "actual": "cont.seq_sized.inst_invoked",
+      "expected": {
+        "kind": "integer",
+        "value": "172"
+      }
+    },
+    {
+      "actual": "cont.seq_sized.inst_unused_by_seq",
+      "expected": {
+        "kind": "bytes",
+        "value": "8d8d"
+      }
+    },
+    {
+      "actual": "cont.seq_in_stream.seq_f",
+      "expected": {
+        "kind": "integer",
+        "value": "237"
+      }
+    },
+    {
+      "actual": "cont.seq_in_stream.inst",
+      "expected": {
+        "kind": "bytes",
+        "value": "ba7b93"
+      }
+    },
+    {
+      "actual": "cont.inst_in_stream.seq_f",
+      "expected": {
+        "kind": "integer",
+        "value": "99"
+      }
+    },
+    {
+      "actual": "cont.inst_in_stream.inst",
+      "expected": {
+        "kind": "bytes",
+        "value": "23012a"
+      }
+    },
+    {
+      "actual": "cont.inst_sized.seq_f",
+      "expected": {
+        "kind": "integer",
+        "value": "52"
+      }
+    },
+    {
+      "actual": "cont.inst_sized.inst_invoked",
+      "expected": {
+        "kind": "integer",
+        "value": "178"
+      }
+    },
+    {
+      "actual": "cont.inst_sized.inst_unused_by_seq",
+      "expected": {
+        "kind": "bytes",
+        "value": "39b2"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ]
+}

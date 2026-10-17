@@ -1,0 +1,237 @@
+{
+  "fixture": "Upstream/src/integers_min_max.bin",
+  "assertions": [
+    {
+      "actual": "unsigned_min.u1",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_min.u2le",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_min.u4le",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_min.u8le",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_min.u2be",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_min.u4be",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_min.u8be",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "unsigned_max.u1",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      }
+    },
+    {
+      "actual": "unsigned_max.u2le",
+      "expected": {
+        "kind": "integer",
+        "value": "65535"
+      }
+    },
+    {
+      "actual": "unsigned_max.u4le",
+      "expected": {
+        "kind": "integer",
+        "value": "4294967295"
+      }
+    },
+    {
+      "actual": "unsigned_max.u8le",
+      "expected": {
+        "kind": "integer",
+        "value": "18446744073709551615"
+      }
+    },
+    {
+      "actual": "unsigned_max.u2be",
+      "expected": {
+        "kind": "integer",
+        "value": "65535"
+      }
+    },
+    {
+      "actual": "unsigned_max.u4be",
+      "expected": {
+        "kind": "integer",
+        "value": "4294967295"
+      }
+    },
+    {
+      "actual": "unsigned_max.u8be",
+      "expected": {
+        "kind": "integer",
+        "value": "18446744073709551615"
+      }
+    },
+    {
+      "actual": "signed_min.s1",
+      "expected": {
+        "kind": "integer",
+        "value": "-128"
+      }
+    },
+    {
+      "actual": "signed_min.s2le",
+      "expected": {
+        "kind": "integer",
+        "value": "-32768"
+      }
+    },
+    {
+      "actual": "signed_min.s4le",
+      "expected": {
+        "kind": "integer",
+        "value": "-2147483648"
+      }
+    },
+    {
+      "actual": "signed_min.s8le",
+      "expected": {
+        "kind": "integer",
+        "value": "-9223372036854775808"
+      }
+    },
+    {
+      "actual": "signed_min.s2be",
+      "expected": {
+        "kind": "integer",
+        "value": "-32768"
+      }
+    },
+    {
+      "actual": "signed_min.s4be",
+      "expected": {
+        "kind": "integer",
+        "value": "-2147483648"
+      }
+    },
+    {
+      "actual": "signed_min.s8be",
+      "expected": {
+        "kind": "integer",
+        "value": "-9223372036854775808"
+      }
+    },
+    {
+      "actual": "signed_max.s1",
+      "expected": {
+        "kind": "integer",
+        "value": "127"
+      }
+    },
+    {
+      "actual": "signed_max.s2le",
+      "expected": {
+        "kind": "integer",
+        "value": "32767"
+      }
+    },
+    {
+      "actual": "signed_max.s4le",
+      "expected": {
+        "kind": "integer",
+        "value": "2147483647"
+      }
+    },
+    {
+      "actual": "signed_max.s8le",
+      "expected": {
+        "kind": "integer",
+        "value": "9223372036854775807"
+      }
+    },
+    {
+      "actual": "signed_max.s2be",
+      "expected": {
+        "kind": "integer",
+        "value": "32767"
+      }
+    },
+    {
+      "actual": "signed_max.s4be",
+      "expected": {
+        "kind": "integer",
+        "value": "2147483647"
+      }
+    },
+    {
+      "actual": "signed_max.s8be",
+      "expected": {
+        "kind": "integer",
+        "value": "9223372036854775807"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ]
+    }
+  ]
+}

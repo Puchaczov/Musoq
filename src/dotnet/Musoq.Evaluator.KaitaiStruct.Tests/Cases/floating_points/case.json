@@ -1,0 +1,159 @@
+{
+  "fixture": "Upstream/src/floating_points.bin",
+  "assertions": [
+    {
+      "actual": "single_value",
+      "expected": {
+        "kind": "float",
+        "value": "0.5"
+      },
+      "places": 6
+    },
+    {
+      "actual": "single_value_be",
+      "expected": {
+        "kind": "float",
+        "value": "0.5"
+      },
+      "places": 6
+    },
+    {
+      "actual": "double_value",
+      "expected": {
+        "kind": "float",
+        "value": "0.25"
+      },
+      "places": 6
+    },
+    {
+      "actual": "double_value_be",
+      "expected": {
+        "kind": "float",
+        "value": "0.25"
+      },
+      "places": 6
+    },
+    {
+      "actual": "approximate_value",
+      "expected": {
+        "kind": "float",
+        "value": "1.2345"
+      },
+      "places": 6
+    },
+    {
+      "actual": "single_value_plus_int",
+      "expected": {
+        "kind": "float",
+        "value": "1.5"
+      },
+      "places": 6
+    },
+    {
+      "actual": "single_value_plus_float",
+      "expected": {
+        "kind": "float",
+        "value": "1.0"
+      },
+      "places": 6
+    },
+    {
+      "actual": "double_value_plus_float",
+      "expected": {
+        "kind": "float",
+        "value": "0.3"
+      },
+      "places": 6
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "name": "go_floats",
+      "path": "go_floats.sql",
+      "assertions": [
+        {
+          "actual": "single_value",
+          "expected": {
+            "kind": "float",
+            "value": "0.5"
+          },
+          "resultColumn": 0
+        },
+        {
+          "actual": "single_value_be",
+          "expected": {
+            "kind": "float",
+            "value": "0.5"
+          },
+          "resultColumn": 1
+        },
+        {
+          "actual": "double_value",
+          "expected": {
+            "kind": "float",
+            "value": "0.25"
+          },
+          "resultColumn": 2
+        },
+        {
+          "actual": "double_value_be",
+          "expected": {
+            "kind": "float",
+            "value": "0.25"
+          },
+          "resultColumn": 3
+        },
+        {
+          "actual": "approximate_value",
+          "expected": {
+            "kind": "float",
+            "value": "1.2345"
+          },
+          "delta": "1e-6",
+          "resultColumn": 4
+        },
+        {
+          "actual": "single_value_plus_int",
+          "expected": {
+            "kind": "float",
+            "value": "1.5"
+          },
+          "delta": "1e-6",
+          "resultColumn": 5
+        },
+        {
+          "actual": "single_value_plus_float",
+          "expected": {
+            "kind": "float",
+            "value": "1.0"
+          },
+          "delta": "1e-6",
+          "resultColumn": 6
+        },
+        {
+          "actual": "double_value_plus_float",
+          "expected": {
+            "kind": "float",
+            "value": "0.3"
+          },
+          "delta": "1e-6",
+          "resultColumn": 7
+        }
+      ]
+    }
+  ]
+}

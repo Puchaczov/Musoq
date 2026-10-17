@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/repeat_until_s4.bin",
+  "assertions": [
+    {
+      "actual": "one.width",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      }
+    },
+    {
+      "actual": "one.height",
+      "expected": {
+        "kind": "integer",
+        "value": "4919"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

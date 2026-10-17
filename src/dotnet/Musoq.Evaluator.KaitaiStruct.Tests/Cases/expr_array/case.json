@@ -1,0 +1,148 @@
+{
+  "fixture": "Upstream/src/expr_array.bin",
+  "assertions": [
+    {
+      "actual": "aint_size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "aint_first",
+      "expected": {
+        "kind": "integer",
+        "value": "7657765"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "aint_last",
+      "expected": {
+        "kind": "integer",
+        "value": "16272640"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "aint_min",
+      "expected": {
+        "kind": "integer",
+        "value": "49185"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "aint_max",
+      "expected": {
+        "kind": "integer",
+        "value": "1123362332"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "afloat_size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "afloat_first",
+      "expected": {
+        "kind": "float",
+        "value": "-2.6839530254859364e-121"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "afloat_last",
+      "expected": {
+        "kind": "float",
+        "value": "-1.1103359815095273e-175"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "afloat_min",
+      "expected": {
+        "kind": "float",
+        "value": "-8.754689149998834e+288"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "afloat_max",
+      "expected": {
+        "kind": "float",
+        "value": "-1.1103359815095273e-175"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "astr_size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "astr_first",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "astr_last",
+      "expected": {
+        "kind": "string",
+        "value": "baz"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "astr_min",
+      "expected": {
+        "kind": "string",
+        "value": "bar"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "astr_max",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      },
+      "resultColumn": 14
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    }
+  ]
+}

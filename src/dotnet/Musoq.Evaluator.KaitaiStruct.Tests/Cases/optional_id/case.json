@@ -1,0 +1,40 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "_unnamed0",
+      "expected": {
+        "kind": "integer",
+        "value": "80"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "_unnamed1",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "_unnamed2",
+      "expected": {
+        "kind": "bytes",
+        "value": "434b2d31ff"
+      },
+      "resultColumn": 2
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

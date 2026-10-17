@@ -1,0 +1,31 @@
+{
+  "fixture": "Upstream/src/enum_negative.bin",
+  "assertions": [
+    {
+      "actual": "bool_bit",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "bool_calc_bit",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 1
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

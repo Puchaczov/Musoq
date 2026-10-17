@@ -1,0 +1,22 @@
+{
+  "fixture": "Upstream/src/zlib_surrounded.bin",
+  "assertions": [
+    {
+      "actual": "zlib.num",
+      "expected": {
+        "kind": "integer",
+        "value": "-1"
+      },
+      "resultColumn": 0
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

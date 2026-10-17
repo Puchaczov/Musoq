@@ -1,0 +1,121 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "one",
+      "expected": {
+        "kind": "integer",
+        "value": "20"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "byte_1",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "two",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "three",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "byte_2",
+      "expected": {
+        "kind": "bytes",
+        "value": "4b"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "four",
+      "expected": {
+        "kind": "integer",
+        "value": "2892"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "byte_3.inner",
+      "expected": {
+        "kind": "integer",
+        "value": "524282"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "full_byte",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "byte_4",
+      "expected": {
+        "kind": "integer",
+        "value": "67"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "five",
+      "expected": {
+        "kind": "integer",
+        "value": "1231701"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "bytes_term",
+      "expected": {
+        "kind": "bytes",
+        "value": "2d4445"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "six",
+      "expected": {
+        "kind": "integer",
+        "value": "70"
+      },
+      "resultColumn": 11
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "fixture": "Upstream/src/str_pad_term_empty.bin",
+  "assertions": [
+    {
+      "actual": "str_pad",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "str_term",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "str_term_and_pad",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "str_term_include",
+      "expected": {
+        "kind": "string",
+        "value": "@"
+      },
+      "resultColumn": 3
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

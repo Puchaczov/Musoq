@@ -1,0 +1,40 @@
+{
+  "fixture": "Upstream/src/nav_parent_switch.bin",
+  "assertions": [
+    {
+      "actual": "category",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "content.as<nav_parent_switch::element_1>.foo",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "content.as<nav_parent_switch::element_1>.subelement.bar",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 2
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "one",
+      "expected": {
+        "kind": "integer",
+        "value": "80"
+      }
+    },
+    {
+      "actual": "two",
+      "expected": {
+        "kind": "string",
+        "value": "ACK"
+      }
+    },
+    {
+      "actual": "three",
+      "expected": {
+        "kind": "string",
+        "value": "@ACK"
+      }
+    },
+    {
+      "actual": "four",
+      "expected": {
+        "kind": "string",
+        "value": "_ACK_"
+      }
+    },
+    {
+      "actual": "is_str_eq",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "is_str_ne",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      }
+    },
+    {
+      "actual": "is_str_lt",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "is_str_gt",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      }
+    },
+    {
+      "actual": "is_str_le",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "is_str_ge",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      }
+    },
+    {
+      "actual": "is_str_lt2",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "test_not",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    }
+  ]
+}

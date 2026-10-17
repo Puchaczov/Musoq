@@ -1,0 +1,45 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "value_s2",
+      "expected": {
+        "kind": "integer",
+        "value": "16720"
+      }
+    },
+    {
+      "actual": "value_s8",
+      "expected": {
+        "kind": "integer",
+        "value": "4706543082108963651"
+      }
+    },
+    {
+      "actual": "unary_s2",
+      "expected": {
+        "kind": "integer",
+        "value": "-16720"
+      }
+    },
+    {
+      "actual": "unary_s8",
+      "expected": {
+        "kind": "integer",
+        "value": "-4706543082108963651"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

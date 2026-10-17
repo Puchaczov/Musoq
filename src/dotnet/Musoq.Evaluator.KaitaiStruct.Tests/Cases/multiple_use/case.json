@@ -1,0 +1,31 @@
+{
+  "fixture": "Upstream/src/position_abs.bin",
+  "assertions": [
+    {
+      "actual": "t1.first_use.value",
+      "expected": {
+        "kind": "integer",
+        "value": "32"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "t2.second_use.value",
+      "expected": {
+        "kind": "integer",
+        "value": "32"
+      },
+      "resultColumn": 1
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

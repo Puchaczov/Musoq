@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/repeat_n_struct.bin",
+  "assertions": [
+    {
+      "actual": "main_data.main_size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      }
+    },
+    {
+      "actual": "main_data.foo.data",
+      "expected": {
+        "kind": "bytes",
+        "value": "10000000"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

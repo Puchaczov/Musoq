@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29123.88
@@ -84,6 +84,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runner", "runner", "{36F067BE-B96A-6B7D-FFE8-6F60433669BE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Examples.DataSources.StructuredInputs.Runner", "examples\data-sources\structured-inputs\runner\Musoq.Examples.DataSources.StructuredInputs.Runner.csproj", "{DAF07016-C866-4197-9FC1-B94E91BE7040}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Evaluator.KaitaiStruct.Tests", "Musoq.Evaluator.KaitaiStruct.Tests\Musoq.Evaluator.KaitaiStruct.Tests.csproj", "{BE9D1747-416B-4826-BCFB-D2E72368CD85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -419,6 +421,18 @@ Global
 		{DAF07016-C866-4197-9FC1-B94E91BE7040}.Release|x64.Build.0 = Release|Any CPU
 		{DAF07016-C866-4197-9FC1-B94E91BE7040}.Release|x86.ActiveCfg = Release|Any CPU
 		{DAF07016-C866-4197-9FC1-B94E91BE7040}.Release|x86.Build.0 = Release|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Debug|x64.Build.0 = Debug|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Debug|x86.Build.0 = Debug|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Release|x64.ActiveCfg = Release|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Release|x64.Build.0 = Release|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Release|x86.ActiveCfg = Release|Any CPU
+		{BE9D1747-416B-4826-BCFB-D2E72368CD85}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

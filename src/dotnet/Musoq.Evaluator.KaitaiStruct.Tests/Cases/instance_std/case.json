@@ -1,0 +1,21 @@
+{
+  "fixture": "Upstream/src/str_encodings.bin",
+  "assertions": [
+    {
+      "actual": "header",
+      "expected": {
+        "kind": "string",
+        "value": "Some "
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

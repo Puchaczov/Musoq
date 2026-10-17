@@ -1,0 +1,93 @@
+{
+  "fixture": "Upstream/src/process_coerce_switch.bin",
+  "assertions": [
+    {
+      "actual": "seq_eq_lit",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "seq_eq_calc",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "seq_eq_calc_if",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "seq_eq_seq_if",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "calc_eq_lit",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "calc_eq_calc_if",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "calc_eq_seq_if",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "calc_if_eq_lit",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "calc_if_eq_seq_if",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "seq_if_eq_lit",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "fixture": "Upstream/src/nav.bin",
+  "assertions": [
+    {
+      "actual": "header.qty_entries",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      }
+    },
+    {
+      "actual": "header.filename_len",
+      "expected": {
+        "kind": "integer",
+        "value": "8"
+      }
+    },
+    {
+      "actual": "index.entries.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      }
+    },
+    {
+      "actual": "index.entries[0].filename",
+      "expected": {
+        "kind": "string",
+        "value": "FIRST___"
+      }
+    },
+    {
+      "actual": "index.entries[1].filename",
+      "expected": {
+        "kind": "string",
+        "value": "SECOND__"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

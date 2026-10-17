@@ -1,0 +1,45 @@
+{
+  "fixture": "Upstream/src/str_encodings.bin",
+  "assertions": [
+    {
+      "actual": "len_of_1",
+      "expected": {
+        "kind": "integer",
+        "value": "10"
+      }
+    },
+    {
+      "actual": "len_of_1_mod",
+      "expected": {
+        "kind": "integer",
+        "value": "8"
+      }
+    },
+    {
+      "actual": "str1",
+      "expected": {
+        "kind": "string",
+        "value": "Some ASC"
+      }
+    },
+    {
+      "actual": "str1_len",
+      "expected": {
+        "kind": "integer",
+        "value": "8"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

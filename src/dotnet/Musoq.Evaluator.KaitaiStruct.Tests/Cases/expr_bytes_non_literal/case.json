@@ -1,0 +1,40 @@
+{
+  "fixture": "Upstream/src/enum_negative.bin",
+  "assertions": [
+    {
+      "actual": "calc_bytes.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "calc_bytes[0]",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "calc_bytes[1]",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 2
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "fixture": "Upstream/src/switch_integers.bin",
+  "assertions": [
+    {
+      "actual": "opcodes.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "opcodes[0].code",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "opcodes[0].body",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "opcodes[1].code",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "opcodes[1].body",
+      "expected": {
+        "kind": "integer",
+        "value": "16448"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "opcodes[2].code",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "opcodes[2].body",
+      "expected": {
+        "kind": "integer",
+        "value": "4919"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "opcodes[3].code",
+      "expected": {
+        "kind": "integer",
+        "value": "8"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "opcodes[3].body",
+      "expected": {
+        "kind": "integer",
+        "value": "4919"
+      },
+      "resultColumn": 8
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
+}

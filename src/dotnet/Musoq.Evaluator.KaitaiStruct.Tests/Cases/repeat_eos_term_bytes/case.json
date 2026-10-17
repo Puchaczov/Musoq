@@ -1,0 +1,40 @@
+{
+  "fixture": "Upstream/src/process_rotate.bin",
+  "assertions": [
+    {
+      "actual": "records.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "records[0]",
+      "expected": {
+        "kind": "bytes",
+        "value": "09ac8d8dedba7b936323012a34b2"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "records[1]",
+      "expected": {
+        "kind": "bytes",
+        "value": "39b2"
+      },
+      "resultColumn": 2
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

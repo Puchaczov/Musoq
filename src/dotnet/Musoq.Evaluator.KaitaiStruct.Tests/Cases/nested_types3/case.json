@@ -1,0 +1,53 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "a_cc.value_cc",
+      "expected": {
+        "kind": "integer",
+        "value": "80"
+      }
+    },
+    {
+      "actual": "a_c_d.value_d",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      }
+    },
+    {
+      "actual": "b.value_b",
+      "expected": {
+        "kind": "integer",
+        "value": "67"
+      }
+    },
+    {
+      "actual": "b.a_cc.value_cc",
+      "expected": {
+        "kind": "integer",
+        "value": "75"
+      }
+    },
+    {
+      "actual": "b.a_c_d.value_d",
+      "expected": {
+        "kind": "integer",
+        "value": "45"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

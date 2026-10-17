@@ -1,0 +1,22 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [
+    {
+      "actual": "str(r)",
+      "expected": {
+        "kind": "string",
+        "value": "s1 = foo, s2 = bar"
+      },
+      "resultColumn": 0
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "fixture": "Upstream/src/position_in_seq.bin",
+  "assertions": [
+    {
+      "actual": "numbers",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "3"
+          }
+        ]
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/bits_shift_by_b64_le.bin",
+  "assertions": [
+    {
+      "actual": "a",
+      "expected": {
+        "kind": "integer",
+        "value": "18446744073709551615"
+      }
+    },
+    {
+      "actual": "b",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

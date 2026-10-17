@@ -1,0 +1,53 @@
+{
+  "fixture": "Upstream/src/repeat_eos_struct.bin",
+  "assertions": [
+    {
+      "actual": "numbers.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "numbers[0]",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "numbers[1]",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      }
+    },
+    {
+      "actual": "numbers[2]",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      }
+    },
+    {
+      "actual": "numbers[3]",
+      "expected": {
+        "kind": "integer",
+        "value": "2069"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

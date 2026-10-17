@@ -1,0 +1,21 @@
+{
+  "fixture": "Upstream/src/enum_0.bin",
+  "assertions": [
+    {
+      "actual": "one",
+      "expected": {
+        "kind": "integer",
+        "value": "117440512"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

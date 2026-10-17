@@ -1,0 +1,45 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "dollar1",
+      "expected": {
+        "kind": "string",
+        "value": "$foo"
+      }
+    },
+    {
+      "actual": "dollar2",
+      "expected": {
+        "kind": "string",
+        "value": "${foo}"
+      }
+    },
+    {
+      "actual": "hash",
+      "expected": {
+        "kind": "string",
+        "value": "#{foo}"
+      }
+    },
+    {
+      "actual": "at_sign",
+      "expected": {
+        "kind": "string",
+        "value": "@foo"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

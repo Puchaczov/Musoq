@@ -1,0 +1,53 @@
+{
+  "fixture": "Upstream/src/repeat_n_struct.bin",
+  "assertions": [
+    {
+      "actual": "chunks.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      }
+    },
+    {
+      "actual": "chunks[0].offset",
+      "expected": {
+        "kind": "integer",
+        "value": "16"
+      }
+    },
+    {
+      "actual": "chunks[0].len",
+      "expected": {
+        "kind": "integer",
+        "value": "8312"
+      }
+    },
+    {
+      "actual": "chunks[1].offset",
+      "expected": {
+        "kind": "integer",
+        "value": "8328"
+      }
+    },
+    {
+      "actual": "chunks[1].len",
+      "expected": {
+        "kind": "integer",
+        "value": "15"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

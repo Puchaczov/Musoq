@@ -1,0 +1,40 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [
+    {
+      "actual": "s1",
+      "expected": {
+        "kind": "bytes",
+        "value": "666f6f"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "s2",
+      "expected": {
+        "kind": "bytes",
+        "value": "626172"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "s3",
+      "expected": {
+        "kind": "bytes",
+        "value": "7c62617a40"
+      },
+      "resultColumn": 2
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

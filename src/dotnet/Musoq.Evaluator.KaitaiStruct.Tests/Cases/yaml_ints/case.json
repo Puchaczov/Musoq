@@ -1,0 +1,45 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "test_u4_dec",
+      "expected": {
+        "kind": "integer",
+        "value": "4294967295"
+      }
+    },
+    {
+      "actual": "test_u4_hex",
+      "expected": {
+        "kind": "integer",
+        "value": "4294967295"
+      }
+    },
+    {
+      "actual": "test_u8_dec",
+      "expected": {
+        "kind": "integer",
+        "value": "18446744073709551615"
+      }
+    },
+    {
+      "actual": "test_u8_hex",
+      "expected": {
+        "kind": "integer",
+        "value": "18446744073709551615"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

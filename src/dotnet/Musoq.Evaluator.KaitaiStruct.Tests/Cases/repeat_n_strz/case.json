@@ -1,0 +1,46 @@
+{
+  "fixture": "Upstream/src/repeat_n_strz.bin",
+  "assertions": [
+    {
+      "actual": "qty",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "lines",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "string",
+            "value": "foo"
+          },
+          {
+            "kind": "string",
+            "value": "bar"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 1,
+        "elements": [
+          2,
+          3
+        ]
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

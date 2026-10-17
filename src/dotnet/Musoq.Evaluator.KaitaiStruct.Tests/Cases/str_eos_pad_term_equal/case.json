@@ -1,0 +1,49 @@
+{
+  "fixture": "Upstream/src/str_pad_term.bin",
+  "assertions": [
+    {
+      "actual": "s1.value",
+      "expected": {
+        "kind": "string",
+        "value": "str1"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "s2.value",
+      "expected": {
+        "kind": "string",
+        "value": "str2foo@"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "s3.value",
+      "expected": {
+        "kind": "string",
+        "value": "str"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "s4.value",
+      "expected": {
+        "kind": "string",
+        "value": "str4baz@."
+      },
+      "resultColumn": 3
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

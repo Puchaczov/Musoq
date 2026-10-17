@@ -1,0 +1,58 @@
+{
+  "fixture": "Upstream/src/enum_negative.bin",
+  "assertions": [
+    {
+      "actual": "nibbles.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "nibbles[0]",
+      "expected": {
+        "kind": "integer",
+        "value": "15"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "nibbles[1]",
+      "expected": {
+        "kind": "integer",
+        "value": "15"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "nibbles[2]",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "nibbles[3]",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 4
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

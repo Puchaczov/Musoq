@@ -1,0 +1,175 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [
+    {
+      "actual": "one",
+      "expected": {
+        "kind": "string",
+        "value": "foo|b"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "one_len",
+      "expected": {
+        "kind": "integer",
+        "value": "5"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "one_rev",
+      "expected": {
+        "kind": "string",
+        "value": "b|oof"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "one_substr_0_to_3",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "one_substr_2_to_5",
+      "expected": {
+        "kind": "string",
+        "value": "o|b"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "one_substr_3_to_3",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "one_substr_0_to_0",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "two",
+      "expected": {
+        "kind": "string",
+        "value": "0123456789"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "two_len",
+      "expected": {
+        "kind": "integer",
+        "value": "10"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "two_rev",
+      "expected": {
+        "kind": "string",
+        "value": "9876543210"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "two_substr_0_to_7",
+      "expected": {
+        "kind": "string",
+        "value": "0123456"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "two_substr_4_to_10",
+      "expected": {
+        "kind": "string",
+        "value": "456789"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "two_substr_0_to_10",
+      "expected": {
+        "kind": "string",
+        "value": "0123456789"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "to_i_attr",
+      "expected": {
+        "kind": "integer",
+        "value": "9173"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "to_i_r10",
+      "expected": {
+        "kind": "integer",
+        "value": "-72"
+      },
+      "resultColumn": 14
+    },
+    {
+      "actual": "to_i_r2",
+      "expected": {
+        "kind": "integer",
+        "value": "86"
+      },
+      "resultColumn": 15
+    },
+    {
+      "actual": "to_i_r8",
+      "expected": {
+        "kind": "integer",
+        "value": "465"
+      },
+      "resultColumn": 16
+    },
+    {
+      "actual": "to_i_r16",
+      "expected": {
+        "kind": "integer",
+        "value": "18383"
+      },
+      "resultColumn": 17
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    }
+  ]
+}

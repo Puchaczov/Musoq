@@ -1,0 +1,49 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "main.one",
+      "expected": {
+        "kind": "integer",
+        "value": "336"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "main.two",
+      "expected": {
+        "kind": "integer",
+        "value": "8608"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "main.nest.two",
+      "expected": {
+        "kind": "integer",
+        "value": "11595"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "main.nest_be.two",
+      "expected": {
+        "kind": "integer",
+        "value": "12799"
+      },
+      "resultColumn": 3
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

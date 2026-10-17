@@ -1,0 +1,153 @@
+{
+  "fixture": "Upstream/src/switch_integers.bin",
+  "assertions": [
+    {
+      "actual": "v_false",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "v_int_zero",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "v_int_neg_zero",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "v_float_zero",
+      "expected": {
+        "kind": "float",
+        "value": "0.0"
+      },
+      "places": 6,
+      "resultColumn": 3
+    },
+    {
+      "actual": "v_float_neg_zero",
+      "expected": {
+        "kind": "float",
+        "value": "-0.0"
+      },
+      "places": 6,
+      "resultColumn": 4
+    },
+    {
+      "actual": "v_str_w_zero",
+      "expected": {
+        "kind": "string",
+        "value": "0"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "v_str_w_zero.length",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "ut.m",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "v_null_ut",
+      "expected": {
+        "kind": "null"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "v_str_empty",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "v_str_empty.length",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "int_array.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "v_int_array_empty.size",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 12
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "name": "cpp_zero",
+      "path": "cpp_zero.sql",
+      "assertions": [
+        {
+          "actual": "v_float_zero",
+          "expected": {
+            "kind": "float",
+            "value": "0.0"
+          },
+          "resultColumn": 0
+        },
+        {
+          "actual": "v_float_neg_zero",
+          "expected": {
+            "kind": "float",
+            "value": "-0.0"
+          },
+          "resultColumn": 1
+        }
+      ]
+    }
+  ]
+}

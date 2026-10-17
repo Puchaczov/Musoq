@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/position_abs.bin",
+  "assertions": [
+    {
+      "actual": "index_offset",
+      "expected": {
+        "kind": "integer",
+        "value": "32"
+      }
+    },
+    {
+      "actual": "index.entry",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "should_be_40000000",
+      "expected": {
+        "kind": "integer",
+        "value": "1073741824"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "should_be_a00000",
+      "expected": {
+        "kind": "integer",
+        "value": "10485760"
+      },
+      "resultColumn": 1
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

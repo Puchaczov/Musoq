@@ -1,0 +1,37 @@
+{
+  "fixture": "Upstream/src/process_xor_4.bin",
+  "assertions": [
+    {
+      "actual": "a",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "actual": "b",
+      "expected": {
+        "kind": "integer",
+        "value": "3648472617"
+      }
+    },
+    {
+      "actual": "c",
+      "expected": {
+        "kind": "integer",
+        "value": "10"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

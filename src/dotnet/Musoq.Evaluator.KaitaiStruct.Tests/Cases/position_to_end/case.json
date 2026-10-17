@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/position_to_end.bin",
+  "assertions": [
+    {
+      "actual": "index.foo",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      }
+    },
+    {
+      "actual": "index.bar",
+      "expected": {
+        "kind": "integer",
+        "value": "4660"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

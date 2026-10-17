@@ -1,0 +1,22 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "foo",
+      "expected": {
+        "kind": "integer",
+        "value": "80"
+      },
+      "resultColumn": 0
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

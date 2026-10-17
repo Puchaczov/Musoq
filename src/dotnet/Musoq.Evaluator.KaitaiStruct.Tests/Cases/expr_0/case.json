@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/str_encodings.bin",
+  "assertions": [
+    {
+      "actual": "must_be_f7",
+      "expected": {
+        "kind": "integer",
+        "value": "247"
+      }
+    },
+    {
+      "actual": "must_be_abc123",
+      "expected": {
+        "kind": "string",
+        "value": "abc123"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "fixture": "Upstream/src/bcd_user_type_le.bin",
+  "assertions": [
+    {
+      "actual": "ltr.as_int",
+      "expected": {
+        "kind": "integer",
+        "value": "12345678"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "ltr.as_str",
+      "expected": {
+        "kind": "string",
+        "value": "12345678"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "rtl.as_int",
+      "expected": {
+        "kind": "integer",
+        "value": "87654321"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "rtl.as_str",
+      "expected": {
+        "kind": "string",
+        "value": "87654321"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "leading_zero_ltr.as_int",
+      "expected": {
+        "kind": "integer",
+        "value": "123456"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "leading_zero_ltr.as_str",
+      "expected": {
+        "kind": "string",
+        "value": "00123456"
+      },
+      "resultColumn": 5
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ]
+}
