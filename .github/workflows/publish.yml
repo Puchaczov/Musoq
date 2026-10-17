@@ -205,6 +205,7 @@ jobs:
           name: release-packages
           path: artifacts/nupkgs/*
           if-no-files-found: error
+          retention-days: 1
 
   publish:
     name: Publish to NuGet

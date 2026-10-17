@@ -96,3 +96,4 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: src/dotnet/**/TestResults/*.trx
           if-no-files-found: error
+          retention-days: 1
