@@ -1,0 +1,37 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "one.typed_at_root.value_b",
+      "expected": {
+        "kind": "integer",
+        "value": "80"
+      }
+    },
+    {
+      "actual": "one.typed_here.value_c",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      }
+    },
+    {
+      "actual": "two.value_b",
+      "expected": {
+        "kind": "integer",
+        "value": "67"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

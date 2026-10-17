@@ -363,7 +363,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.NextByte = _nextByte;
             RecordParsedField("NextByte");
             SetCurrentField("Signature");
-            SeekTo((int)(0));
+            SeekTo(0);
             var _signature = ReadInt32Le(data);
             __parsedValue.Signature = _signature;
             RecordParsedField("Signature");

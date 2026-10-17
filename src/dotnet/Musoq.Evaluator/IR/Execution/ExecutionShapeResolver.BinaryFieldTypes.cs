@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -11,7 +9,7 @@ public sealed partial class ExecutionShapeResolver
     private static Type ResolveBinaryFieldType(
         SchemaFieldNode field,
         Type? generatedType,
-        BinaryColumnResolutionContext context, IReadOnlyList<ColumnSchema> columns)
+        BinaryColumnResolutionContext context, IReadOnlyList<SchemaFieldNode> fields)
     {
         var generatedFieldType = GeneratedInterpreterFieldType.Find(generatedType, field.Name);
         if (generatedFieldType is not null)
@@ -45,8 +43,7 @@ public sealed partial class ExecutionShapeResolver
         }
 
         if (field is ComputedFieldNode computed)
-            return BuildMetadataAndInferTypesVisitorUtilities.InferComputedFieldType(computed.Expression,
-                columns.Select(static column => column.ToSchemaColumn()).ToList());
+            return BinarySchemaExpressionTypes.Resolve(computed.Expression, fields, context.SchemaRegistry);
 
         var fieldType = field.ReturnType;
         return fieldType == null || fieldType == typeof(void) ? typeof(object) : fieldType;

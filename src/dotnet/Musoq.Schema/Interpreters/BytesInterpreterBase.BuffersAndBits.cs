@@ -16,7 +16,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative byte array size: {length}");
 
-        EnsureBytes(data, length);
+        PrepareByteRead(data, length);
         var result = data.Slice(ParsePosition, length).ToArray();
         ParsePosition += length;
         return result;
@@ -34,7 +34,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative substream size: {length}");
 
-        EnsureBytes(data, length);
+        PrepareByteRead(data, length);
         return data.Slice(ParsePosition, length);
     }
 
@@ -61,7 +61,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative string size: {byteLength}");
 
-        EnsureBytes(data, byteLength);
+        PrepareByteRead(data, byteLength);
         var startPosition = ParsePosition;
         var bytes = data.Slice(ParsePosition, byteLength);
         var result = DecodeString(bytes, encoding, startPosition);
@@ -80,7 +80,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative max string size: {maxBytes}");
 
-        EnsureBytes(data, maxBytes);
+        PrepareByteRead(data, maxBytes);
         var startPosition = ParsePosition;
         var bytes = data.Slice(ParsePosition, maxBytes);
 
@@ -192,6 +192,13 @@ public abstract partial class BytesInterpreterBase<TOut>
 
         ParsePosition = (int)(targetBit / 8);
         BitOffset = (int)(targetBit % 8);
+    }
+
+    private void PrepareByteRead(ReadOnlySpan<byte> data, int count)
+    {
+        if (count > 0 && BitOffset != 0)
+            AlignToBits(data, 8);
+        EnsureBytes(data, count);
     }
 
     /// <summary>

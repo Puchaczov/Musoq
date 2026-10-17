@@ -1,0 +1,69 @@
+{
+  "fixture": "Upstream/src/repeat_until_process.bin",
+  "assertions": [
+    {
+      "actual": "records.size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      }
+    },
+    {
+      "actual": "records[0].marker",
+      "expected": {
+        "kind": "integer",
+        "value": "232"
+      }
+    },
+    {
+      "actual": "records[0].body",
+      "expected": {
+        "kind": "integer",
+        "value": "2863311546"
+      }
+    },
+    {
+      "actual": "records[1].marker",
+      "expected": {
+        "kind": "integer",
+        "value": "250"
+      }
+    },
+    {
+      "actual": "records[1].body",
+      "expected": {
+        "kind": "integer",
+        "value": "2863315102"
+      }
+    },
+    {
+      "actual": "records[2].marker",
+      "expected": {
+        "kind": "integer",
+        "value": "170"
+      }
+    },
+    {
+      "actual": "records[2].body",
+      "expected": {
+        "kind": "integer",
+        "value": "1431655765"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ]
+}

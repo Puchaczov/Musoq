@@ -1,0 +1,243 @@
+{
+  "fixture": "Upstream/src/repeat_until_complex.bin",
+  "assertions": [
+    {
+      "actual": "first.size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      }
+    },
+    {
+      "actual": "first[0].count",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "first[0].values",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "3"
+          },
+          {
+            "kind": "integer",
+            "value": "4"
+          }
+        ]
+      }
+    },
+    {
+      "actual": "first[1].count",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      }
+    },
+    {
+      "actual": "first[1].values",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    {
+      "actual": "first[2].count",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "second.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "second[0].count",
+      "expected": {
+        "kind": "integer",
+        "value": "6"
+      }
+    },
+    {
+      "actual": "second[0].values",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "3"
+          },
+          {
+            "kind": "integer",
+            "value": "4"
+          },
+          {
+            "kind": "integer",
+            "value": "5"
+          },
+          {
+            "kind": "integer",
+            "value": "6"
+          }
+        ]
+      }
+    },
+    {
+      "actual": "second[1].count",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      }
+    },
+    {
+      "actual": "second[1].values",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "3"
+          }
+        ]
+      }
+    },
+    {
+      "actual": "second[2].count",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "second[2].values",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "3"
+          },
+          {
+            "kind": "integer",
+            "value": "4"
+          }
+        ]
+      }
+    },
+    {
+      "actual": "second[3].count",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "third",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "102"
+          },
+          {
+            "kind": "integer",
+            "value": "111"
+          },
+          {
+            "kind": "integer",
+            "value": "111"
+          },
+          {
+            "kind": "integer",
+            "value": "98"
+          },
+          {
+            "kind": "integer",
+            "value": "97"
+          },
+          {
+            "kind": "integer",
+            "value": "114"
+          },
+          {
+            "kind": "integer",
+            "value": "0"
+          }
+        ]
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    }
+  ]
+}

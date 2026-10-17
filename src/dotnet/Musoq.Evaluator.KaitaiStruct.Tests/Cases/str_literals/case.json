@@ -1,0 +1,218 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "self.str_to_arr(complex_str)",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "0"
+          },
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "7"
+          },
+          {
+            "kind": "integer",
+            "value": "8"
+          },
+          {
+            "kind": "integer",
+            "value": "10"
+          },
+          {
+            "kind": "integer",
+            "value": "13"
+          },
+          {
+            "kind": "integer",
+            "value": "9"
+          },
+          {
+            "kind": "integer",
+            "value": "11"
+          },
+          {
+            "kind": "integer",
+            "value": "12"
+          },
+          {
+            "kind": "integer",
+            "value": "27"
+          },
+          {
+            "kind": "integer",
+            "value": "61"
+          },
+          {
+            "kind": "integer",
+            "value": "7"
+          },
+          {
+            "kind": "integer",
+            "value": "10"
+          },
+          {
+            "kind": "integer",
+            "value": "36"
+          },
+          {
+            "kind": "integer",
+            "value": "9787"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 0,
+        "elements": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ]
+      }
+    },
+    {
+      "actual": "self.str_to_arr(double_quotes)",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "34"
+          },
+          {
+            "kind": "integer",
+            "value": "34"
+          },
+          {
+            "kind": "integer",
+            "value": "34"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 17,
+        "elements": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "actual": "self.str_to_arr(backslashes)",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "92"
+          },
+          {
+            "kind": "integer",
+            "value": "92"
+          },
+          {
+            "kind": "integer",
+            "value": "92"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 21,
+        "elements": [
+          22,
+          23,
+          24
+        ]
+      }
+    },
+    {
+      "actual": "self.str_to_arr(octal_eatup)",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "0"
+          },
+          {
+            "kind": "integer",
+            "value": "50"
+          },
+          {
+            "kind": "integer",
+            "value": "50"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 25,
+        "elements": [
+          26,
+          27,
+          28
+        ]
+      }
+    },
+    {
+      "actual": "self.str_to_arr(octal_eatup2)",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "2"
+          },
+          {
+            "kind": "integer",
+            "value": "50"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 29,
+        "elements": [
+          30,
+          31
+        ]
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

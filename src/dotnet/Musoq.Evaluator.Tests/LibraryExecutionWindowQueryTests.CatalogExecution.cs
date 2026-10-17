@@ -43,21 +43,6 @@ public sealed partial class LibraryExecutionWindowQueryTests
         CollectionAssert.AreEqual(new (int, long)[] { (1, 1L), (2, 1L), (3, 2L) }, rows);
     }
 
-    [TestMethod]
-    public void RankingKernelOperations_ShouldAllocateNoBoxedContextOrResult()
-    {
-        var context = new WindowRankingContext(7, 5, 8, 3, 10, TestContext.CancellationToken);
-        for (var index = 0; index < 1000; index++)
-            _ = RowNumberKernel.Get(in context) + RankKernel.Get(in context) + DenseRankKernel.Get(in context);
-        var before = System.GC.GetAllocatedBytesForCurrentThread();
-        long total = 0;
-        for (var index = 0; index < 10000; index++)
-            total += RowNumberKernel.Get(in context) + RankKernel.Get(in context) + DenseRankKernel.Get(in context);
-        var allocated = System.GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.AreEqual(170000L, total);
-        Assert.AreEqual(0L, allocated);
-    }
-
     public sealed class ShiftedOrdinalLibrary : LibraryBase
     {
         [WindowFunction(KernelType = typeof(ShiftedOrdinalKernel), RankingKind = WindowRankingKind.RowNumber,

@@ -178,7 +178,7 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
     }
 
     [TestMethod]
-    public void Interpret_BitsFollowedByPrimitive_ShouldAlignAutomatically()
+    public void Interpret_BitsFollowedByPrimitiveWithExplicitAlignment_ShouldReadAlignedValue()
     {
         var registry = new SchemaRegistry();
 
@@ -200,6 +200,90 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
 
         Assert.AreEqual((byte)0x0A, flag);
         Assert.AreEqual((short)0x1234, value);
+    }
+
+    [TestMethod]
+    public void Interpret_BitsFollowedByByte_ShouldAlignToNextByteAutomatically()
+    {
+        var interpreter = CreateAndCompileInterpreter(
+            "Mixed",
+            new FieldDefinitionNode("Flags", new BitsTypeNode(3)),
+            new FieldDefinitionNode(
+                "Value",
+                new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)));
+
+        var result = InvokeInterpret(interpreter, [0x05, 0x42]);
+
+        Assert.AreEqual((byte)5, GetPropertyValue<byte>(result, "Flags"));
+        Assert.AreEqual((byte)0x42, GetPropertyValue<byte>(result, "Value"));
+    }
+
+    [TestMethod]
+    public void Interpret_BitsFollowedByShort_ShouldAlignToNextByteAutomatically()
+    {
+        var interpreter = CreateAndCompileInterpreter(
+            "Mixed",
+            new FieldDefinitionNode("Flags", new BitsTypeNode(3)),
+            CreatePrimitiveField("Value", PrimitiveTypeName.Short, Endianness.LittleEndian));
+
+        var result = InvokeInterpret(interpreter, [0x05, 0x34, 0x12]);
+
+        Assert.AreEqual((byte)5, GetPropertyValue<byte>(result, "Flags"));
+        Assert.AreEqual((short)0x1234, GetPropertyValue<short>(result, "Value"));
+    }
+
+    [TestMethod]
+    public void Interpret_BitsFollowedByNestedSchema_ShouldAlignNestedSchemaAndResumeParentCursor()
+    {
+        var registry = new SchemaRegistry();
+        registry.Register(
+            "Child",
+            new BinarySchemaNode(
+                "Child",
+                [CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable)]));
+        registry.Register(
+            "Parent",
+            new BinarySchemaNode(
+                "Parent",
+                [
+                    new FieldDefinitionNode("Flags", new BitsTypeNode(3)),
+                    new FieldDefinitionNode("Nested", new SchemaReferenceTypeNode("Child")),
+                    CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable)
+                ]));
+
+        var interpreter = CompileInterpreter(registry, "Parent");
+        var result = InvokeInterpret(interpreter, [0x05, 0x42, 0xEE]);
+        var nested = GetPropertyValue<object>(result, "Nested");
+
+        Assert.AreEqual((byte)5, GetPropertyValue<byte>(result, "Flags"));
+        Assert.AreEqual((byte)0x42, GetPropertyValue<byte>(nested, "Value"));
+        Assert.AreEqual((byte)0xEE, GetPropertyValue<byte>(result, "Trailer"));
+    }
+
+    [TestMethod]
+    public void Interpret_NestedPartialBitsFollowedByByte_ShouldAlignParentToNextByte()
+    {
+        var registry = new SchemaRegistry();
+        registry.Register(
+            "Child",
+            new BinarySchemaNode(
+                "Child",
+                [new FieldDefinitionNode("Flags", new BitsTypeNode(3))]));
+        registry.Register(
+            "Parent",
+            new BinarySchemaNode(
+                "Parent",
+                [
+                    new FieldDefinitionNode("Nested", new SchemaReferenceTypeNode("Child")),
+                    CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable)
+                ]));
+
+        var interpreter = CompileInterpreter(registry, "Parent");
+        var result = InvokeInterpret(interpreter, [0x05, 0x42]);
+        var nested = GetPropertyValue<object>(result, "Nested");
+
+        Assert.AreEqual((byte)5, GetPropertyValue<byte>(nested, "Flags"));
+        Assert.AreEqual((byte)0x42, GetPropertyValue<byte>(result, "Trailer"));
     }
 
     [TestMethod]

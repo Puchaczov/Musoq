@@ -123,7 +123,7 @@ public class BugProbeSizeExpressionEdgeCaseTests
 
         var ex = Assert.Throws<ParseException>(() =>
             _ = vm.Run(CancellationToken.None).Count);
-        Assert.Contains("Negative string size", ex.Details);
+        Assert.AreEqual(ParseErrorCode.InvalidSize, ex.ErrorCode);
     }
 
     /// <summary>

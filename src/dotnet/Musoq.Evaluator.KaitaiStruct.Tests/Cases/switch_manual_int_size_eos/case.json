@@ -1,0 +1,159 @@
+{
+  "fixture": "Upstream/src/switch_tlv.bin",
+  "assertions": [
+    {
+      "actual": "chunks.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "chunks[0].code",
+      "expected": {
+        "kind": "integer",
+        "value": "17"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "chunks[0].body.body.as<switch_manual_int_size_eos::chunk::chunk_body::chunk_meta>.title",
+      "expected": {
+        "kind": "string",
+        "value": "Stuff"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "chunks[0].body.body.as<switch_manual_int_size_eos::chunk::chunk_body::chunk_meta>.author",
+      "expected": {
+        "kind": "string",
+        "value": "Me"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "chunks[1].code",
+      "expected": {
+        "kind": "integer",
+        "value": "34"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "chunks[1].body.body.as<switch_manual_int_size_eos::chunk::chunk_body::chunk_dir>.entries",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "string",
+            "value": "AAAA"
+          },
+          {
+            "kind": "string",
+            "value": "BBBB"
+          },
+          {
+            "kind": "string",
+            "value": "CCCC"
+          }
+        ]
+      },
+      "resultColumns": {
+        "length": 5,
+        "elements": [
+          6,
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "actual": "chunks[2].code",
+      "expected": {
+        "kind": "integer",
+        "value": "51"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "chunks[2].body.body.as<bytes>",
+      "expected": {
+        "kind": "bytes",
+        "value": "1020304050607080"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "chunks[3].code",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "chunks[3].body.body.as<bytes>",
+      "expected": {
+        "kind": "bytes",
+        "value": ""
+      },
+      "resultColumn": 12
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "name": "cpp_null_body",
+      "path": "cpp_null_body.sql",
+      "assertions": [
+        {
+          "actual": "chunks[2]._is_null_body()",
+          "expected": {
+            "kind": "boolean",
+            "value": true
+          },
+          "resultColumn": 0
+        },
+        {
+          "actual": "chunks[2].body()",
+          "expected": {
+            "kind": "null"
+          },
+          "resultColumn": 1
+        },
+        {
+          "actual": "chunks[3]._is_null_body()",
+          "expected": {
+            "kind": "boolean",
+            "value": true
+          },
+          "resultColumn": 2
+        },
+        {
+          "actual": "chunks[3].body()",
+          "expected": {
+            "kind": "null"
+          },
+          "resultColumn": 3
+        }
+      ]
+    }
+  ]
+}

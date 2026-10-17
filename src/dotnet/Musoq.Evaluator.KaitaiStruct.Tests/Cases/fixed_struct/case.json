@@ -1,0 +1,193 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "hdr.uint8",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "hdr.uint16",
+      "expected": {
+        "kind": "integer",
+        "value": "65535"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "hdr.uint32",
+      "expected": {
+        "kind": "integer",
+        "value": "4294967295"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "hdr.uint64",
+      "expected": {
+        "kind": "integer",
+        "value": "18446744073709551615"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "hdr.sint8",
+      "expected": {
+        "kind": "integer",
+        "value": "-1"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "hdr.sint16",
+      "expected": {
+        "kind": "integer",
+        "value": "-1"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "hdr.sint32",
+      "expected": {
+        "kind": "integer",
+        "value": "-1"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "hdr.sint64",
+      "expected": {
+        "kind": "integer",
+        "value": "-1"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "hdr.uint16le",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "hdr.uint32le",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "hdr.uint64le",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "hdr.sint16le",
+      "expected": {
+        "kind": "integer",
+        "value": "-66"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "hdr.sint32le",
+      "expected": {
+        "kind": "integer",
+        "value": "-66"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "hdr.sint64le",
+      "expected": {
+        "kind": "integer",
+        "value": "-66"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "hdr.uint16be",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 14
+    },
+    {
+      "actual": "hdr.uint32be",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 15
+    },
+    {
+      "actual": "hdr.uint64be",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 16
+    },
+    {
+      "actual": "hdr.sint16be",
+      "expected": {
+        "kind": "integer",
+        "value": "-66"
+      },
+      "resultColumn": 17
+    },
+    {
+      "actual": "hdr.sint32be",
+      "expected": {
+        "kind": "integer",
+        "value": "-66"
+      },
+      "resultColumn": 18
+    },
+    {
+      "actual": "hdr.sint64be",
+      "expected": {
+        "kind": "integer",
+        "value": "-66"
+      },
+      "resultColumn": 19
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    }
+  ]
+}

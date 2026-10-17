@@ -19,10 +19,11 @@ public partial class InterpreterCodeGenerator
         _inlineSchemas.Clear();
         _switchSchemas.Clear();
         _discardCounter = 0;
+        _factoryCounter = 0;
         _currentTypeParameters = schema.TypeParameters ?? Array.Empty<string>();
 
         var allFields = GetAllFieldsIncludingInherited(schema);
-        SetCurrentNullableFieldNames(allFields);
+        _expressionFields = allFields;
         var boundFields = new List<BoundBinaryField>(allFields.Count);
         foreach (var field in allFields)
             boundFields.Add(BindBinaryField(field, allFields));
@@ -45,7 +46,7 @@ public partial class InterpreterCodeGenerator
         var localVariableName = GetLocalVarName(field.Name);
         var isConditional = field.IsConditional ||
                             (field is ComputedFieldNode computed &&
-                             ReferencesConditionalField(computed.Expression, allFields));
+                             BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, _registry)));
 
         if (isDiscard || isAlignment)
             return new BoundBinaryField

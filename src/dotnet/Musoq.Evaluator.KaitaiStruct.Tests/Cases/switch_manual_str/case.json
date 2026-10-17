@@ -1,0 +1,94 @@
+{
+  "fixture": "Upstream/src/switch_opcodes.bin",
+  "assertions": [
+    {
+      "actual": "opcodes.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "opcodes[0].code",
+      "expected": {
+        "kind": "string",
+        "value": "S"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "opcodes[0].body.as<switch_manual_str::opcode::strval>.value",
+      "expected": {
+        "kind": "string",
+        "value": "foobar"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "opcodes[1].code",
+      "expected": {
+        "kind": "string",
+        "value": "I"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "opcodes[1].body.as<switch_manual_str::opcode::intval>.value",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "opcodes[2].code",
+      "expected": {
+        "kind": "string",
+        "value": "I"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "opcodes[2].body.as<switch_manual_str::opcode::intval>.value",
+      "expected": {
+        "kind": "integer",
+        "value": "55"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "opcodes[3].code",
+      "expected": {
+        "kind": "string",
+        "value": "S"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "opcodes[3].body.as<switch_manual_str::opcode::strval>.value",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 8
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
+}

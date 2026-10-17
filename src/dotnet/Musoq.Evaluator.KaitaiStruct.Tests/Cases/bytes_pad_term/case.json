@@ -1,0 +1,49 @@
+{
+  "fixture": "Upstream/src/str_pad_term.bin",
+  "assertions": [
+    {
+      "actual": "str_pad",
+      "expected": {
+        "kind": "bytes",
+        "value": "73747231"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "str_term",
+      "expected": {
+        "kind": "bytes",
+        "value": "73747232666f6f"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "str_term_and_pad",
+      "expected": {
+        "kind": "bytes",
+        "value": "7374722b2b2b336261722b2b2b"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "str_term_include",
+      "expected": {
+        "kind": "bytes",
+        "value": "7374723462617a40"
+      },
+      "resultColumn": 3
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "fixture": "Upstream/src/switch_opcodes.bin",
+  "assertions": [
+    {
+      "actual": "opcode",
+      "expected": {
+        "kind": "integer",
+        "value": "83"
+      }
+    },
+    {
+      "actual": "prim_byte",
+      "expected": {
+        "kind": "integer",
+        "value": "102"
+      }
+    },
+    {
+      "actual": "ut.value",
+      "expected": {
+        "kind": "bytes",
+        "value": "72004942"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

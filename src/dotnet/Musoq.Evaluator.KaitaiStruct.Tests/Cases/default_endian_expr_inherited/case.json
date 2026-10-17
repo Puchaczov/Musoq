@@ -1,0 +1,148 @@
+{
+  "fixture": "Upstream/src/endian_expr.bin",
+  "assertions": [
+    {
+      "actual": "docs[0].indicator",
+      "expected": {
+        "kind": "bytes",
+        "value": "4949"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "docs[0].main.insides.some_int",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "docs[0].main.insides.more.some_int1",
+      "expected": {
+        "kind": "integer",
+        "value": "16896"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "docs[0].main.insides.more.some_int2",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "docs[0].main.insides.more.some_inst",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "docs[1].indicator",
+      "expected": {
+        "kind": "bytes",
+        "value": "4d4d"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "docs[1].main.insides.some_int",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "docs[1].main.insides.more.some_int1",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "docs[1].main.insides.more.some_int2",
+      "expected": {
+        "kind": "integer",
+        "value": "16896"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "docs[1].main.insides.more.some_inst",
+      "expected": {
+        "kind": "integer",
+        "value": "1107296256"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "docs[2].indicator",
+      "expected": {
+        "kind": "bytes",
+        "value": "5858"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "docs[2].main.insides.some_int",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "docs[2].main.insides.more.some_int1",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "docs[2].main.insides.more.some_int2",
+      "expected": {
+        "kind": "integer",
+        "value": "16896"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "docs[2].main.insides.more.some_inst",
+      "expected": {
+        "kind": "integer",
+        "value": "1107296256"
+      },
+      "resultColumn": 14
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    }
+  ]
+}

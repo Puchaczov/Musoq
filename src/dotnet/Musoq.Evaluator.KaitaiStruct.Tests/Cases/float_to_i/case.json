@@ -1,0 +1,134 @@
+{
+  "fixture": "Upstream/src/floating_points.bin",
+  "assertions": [
+    {
+      "actual": "single_value",
+      "expected": {
+        "kind": "float",
+        "value": "0.5"
+      },
+      "places": 6,
+      "resultColumn": 0
+    },
+    {
+      "actual": "double_value",
+      "expected": {
+        "kind": "float",
+        "value": "0.25"
+      },
+      "places": 6,
+      "resultColumn": 1
+    },
+    {
+      "actual": "single_value_if",
+      "expected": {
+        "kind": "float",
+        "value": "0.5"
+      },
+      "places": 6,
+      "resultColumn": 2
+    },
+    {
+      "actual": "double_value_if",
+      "expected": {
+        "kind": "float",
+        "value": "0.25"
+      },
+      "places": 6,
+      "resultColumn": 3
+    },
+    {
+      "actual": "single_i",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "double_i",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "single_if_i",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "double_if_i",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "float1_i",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "float2_i",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "float3_i",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "float4_i",
+      "expected": {
+        "kind": "integer",
+        "value": "-2"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "calc_if_i",
+      "expected": {
+        "kind": "integer",
+        "value": "13"
+      },
+      "resultColumn": 12
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    }
+  ]
+}

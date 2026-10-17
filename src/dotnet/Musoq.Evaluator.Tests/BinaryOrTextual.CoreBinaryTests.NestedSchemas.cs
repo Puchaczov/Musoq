@@ -107,10 +107,10 @@ public partial class BinaryOrTextualCoreBinaryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("VertexCount", typeof(int)),
-            ("m.Vertices[0].X", typeof(float)),
-            ("m.Vertices[0].Y", typeof(float)),
-            ("m.Vertices[1].X", typeof(float)),
-            ("m.Vertices[1].Y", typeof(float)));
+            ("m.Vertices[0].X", typeof(float?)),
+            ("m.Vertices[0].Y", typeof(float?)),
+            ("m.Vertices[1].X", typeof(float?)),
+            ("m.Vertices[1].Y", typeof(float?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [2, 1.0f, 2.0f, 3.0f, 4.0f]);
     }
 

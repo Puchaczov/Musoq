@@ -110,6 +110,19 @@ internal static class ExecutionFieldAccessResolver
         if (accessStrategy == null)
             return null;
 
+        if (accessStrategy is GeneratedRowNestedAccess generatedAccess)
+        {
+            var nullableGeneratedSourcePath = sourceShape is SourceEntityShape sourceEntity &&
+                !sourceEntity.EntityType.ResolveClrType().IsValueType &&
+                Nullable.GetUnderlyingType(column.ReturnType) is not null;
+            accessStrategy = generatedAccess with
+            {
+                IsNullSafe = column.IsNullSafePath || nullableGeneratedSourcePath
+            };
+        }
+        if (accessStrategy is NestedClrPropertyAccess nestedAccess)
+            accessStrategy = nestedAccess with { IsNullSafe = column.IsNullSafePath };
+
         var field = new FieldBinding(
             fieldName,
             sourceShape is TableRowShape

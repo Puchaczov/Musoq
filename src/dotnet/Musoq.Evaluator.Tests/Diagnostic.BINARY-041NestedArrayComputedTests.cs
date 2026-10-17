@@ -100,7 +100,7 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
     }
 
     [TestMethod]
-    public void BinaryInterpretation_NullConditionalSize_ShouldProduceEmptyArrayAndKeepTailBoundary()
+    public void BinaryInterpretation_NullConditionalSize_ShouldReportInvalidSize()
     {
         const string query = @"
             binary NullSized {
@@ -125,11 +125,8 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
                 CompilationOptions)
             .Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0].ReadValue(0));
-        Assert.IsEmpty((byte[])table[0].ReadValue(1));
-        Assert.IsNull(table[0].ReadValue(2));
-        Assert.AreEqual((byte)0x7A, table[0].ReadValue(3));
+        var exception = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => _ = table.Count);
+        Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.InvalidSize, exception.ErrorCode);
     }
 
     [TestMethod]

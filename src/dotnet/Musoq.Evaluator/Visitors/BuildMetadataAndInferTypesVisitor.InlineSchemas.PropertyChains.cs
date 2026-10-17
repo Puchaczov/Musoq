@@ -14,9 +14,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (SchemaRegistry == null || remainingProperties.Length == 0)
             return null;
 
-        return ResolveSchemaFieldFromIntendedTypeName(
-            intendedTypeName,
-            remainingProperties[0].PropertyName);
+        (Type ClrType, string? IntendedTypeName)? resolved = null;
+        foreach (var property in remainingProperties)
+        {
+            resolved = ResolveSchemaFieldFromIntendedTypeName(intendedTypeName, property.PropertyName);
+            if (resolved is null)
+                return null;
+            intendedTypeName = resolved.Value.IntendedTypeName ?? string.Empty;
+        }
+        return resolved;
     }
 
     private (Type ClrType, string? IntendedTypeName)? ResolveSchemaFieldFromIntendedTypeName(
@@ -42,14 +48,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (schemaRegistration?.Node is BinarySchemaNode binaryNode)
         {
             var allFields = GetAllBinarySchemaFields(binaryNode);
+            if (allFields.OfType<ComputedFieldNode>().FirstOrDefault(f =>
+                    string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase)) is { } computed)
+            {
+                var alias = BinarySchemaRecordAliases.Resolve(computed.Expression, allFields);
+                var intended = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias).IntendedTypeName;
+                return (BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, SchemaRegistry), intended);
+            }
             var field = allFields.OfType<FieldDefinitionNode>().FirstOrDefault(f =>
                 string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
             if (field == null)
                 return null;
 
             var typeParamMap = CreateTypeParameterMap(binaryNode, reference.TypeArguments);
-            var resolved = ResolveTypeAnnotationWithSubstitution(field.TypeAnnotation, typeParamMap);
-            return ApplyBinaryFieldIntendedTypeName(field, resolved);
+            return ResolveBinaryFieldClrTypeWithIntendedName(field, typeParamMap);
         }
 
         if (schemaRegistration?.Node is TextSchemaNode textNode)
@@ -73,6 +85,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         var inlineFields = FindInlineSchemaFields(inlineFieldName);
         var field = inlineFields?.FirstOrDefault(f =>
             string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
+
+        if (field is ComputedFieldNode computed)
+        {
+            var alias = BinarySchemaRecordAliases.Resolve(computed.Expression, inlineFields!);
+            var intended = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias).IntendedTypeName;
+            return (BinarySchemaExpressionTypes.Resolve(computed.Expression, inlineFields!, SchemaRegistry), intended);
+        }
 
         return field is FieldDefinitionNode fieldDefinition
             ? ResolveBinaryFieldClrTypeWithIntendedName(fieldDefinition)

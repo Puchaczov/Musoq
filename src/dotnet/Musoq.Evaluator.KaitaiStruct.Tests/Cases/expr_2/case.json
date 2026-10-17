@@ -1,0 +1,166 @@
+{
+  "fixture": "Upstream/src/str_encodings.bin",
+  "assertions": [
+    {
+      "actual": "str1.len_orig",
+      "expected": {
+        "kind": "integer",
+        "value": "10"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "str1.len_mod",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "str1.str",
+      "expected": {
+        "kind": "string",
+        "value": "Some AS"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "str1_len",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "str1_len_mod",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "str1_byte1",
+      "expected": {
+        "kind": "integer",
+        "value": "73"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "str1_avg",
+      "expected": {
+        "kind": "integer",
+        "value": "73"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "str1_char5",
+      "expected": {
+        "kind": "string",
+        "value": "e"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "str1_tuple5.byte0",
+      "expected": {
+        "kind": "integer",
+        "value": "101"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "str1_tuple5.byte0",
+      "expected": {
+        "kind": "integer",
+        "value": "101"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "str1_tuple5.byte1",
+      "expected": {
+        "kind": "integer",
+        "value": "32"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "str1_tuple5.byte2",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "str1_tuple5.avg",
+      "expected": {
+        "kind": "integer",
+        "value": "48"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "str2_tuple5.byte0",
+      "expected": {
+        "kind": "integer",
+        "value": "101"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "str2_tuple5.byte1",
+      "expected": {
+        "kind": "integer",
+        "value": "32"
+      },
+      "resultColumn": 14
+    },
+    {
+      "actual": "str2_tuple5.byte2",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 15
+    },
+    {
+      "actual": "str2_tuple5.avg",
+      "expected": {
+        "kind": "integer",
+        "value": "48"
+      },
+      "resultColumn": 16
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ]
+    }
+  ]
+}

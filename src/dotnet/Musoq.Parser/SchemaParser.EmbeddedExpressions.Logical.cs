@@ -26,12 +26,12 @@ public partial class SchemaParser
 
     private Node ComposeLogicalAndExpression()
     {
-        var left = ComposeRelationalExpression();
+        var left = ComposeLogicalNotExpression();
 
         while (Current.TokenType == TokenType.And)
         {
             Consume(TokenType.And);
-            var right = ComposeRelationalExpression();
+            var right = ComposeLogicalNotExpression();
             left = new AndNode(left, right);
         }
 
@@ -65,6 +65,14 @@ public partial class SchemaParser
             default:
                 return left;
         }
+    }
+
+    private Node ComposeLogicalNotExpression()
+    {
+        if (Current.TokenType != TokenType.Not)
+            return ComposeRelationalExpression();
+        var token = ConsumeAndGetToken(TokenType.Not);
+        return new NotNode(ComposeLogicalNotExpression()).WithSpan(token.Span);
     }
 
     private Node ComposeBitwiseOrExpression()

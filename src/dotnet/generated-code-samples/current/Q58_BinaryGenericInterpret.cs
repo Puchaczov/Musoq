@@ -172,7 +172,7 @@ namespace GeneratedSample_Q58_BinaryGenericInterpret
                         }
 
                         Statement0Row0 fc = __storedTable0Rows[__storedTable0Index];
-                        var dRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.GenericItem>(fc.c_Items.Data);
+                        var dRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.GenericItem>(fc?.c_Items?.Data);
                         foreach (var dChunk in dRows)
                         {
                             for (int dIndex = 0, dIndexCount = dChunk.Count; dIndex < dIndexCount; ++dIndex)
@@ -419,6 +419,19 @@ namespace Musoq.Generated.Interpreters
     /// </summary>
     public sealed class LengthPrefixed<T> : BytesInterpreterBase<LengthPrefixed<T>>, global::Musoq.Plugins.IJsonPayload where T : IBytesInterpreter<T>, new()
     {
+        internal readonly record struct ParentContext();
+        private readonly ParentContext __parentContext;
+        private readonly System.Func<LengthPrefixed<T>, LengthPrefixed<T>.ParentContext, T>? __factory0;
+        public LengthPrefixed()
+        {
+        }
+
+        internal LengthPrefixed(ParentContext parentContext, System.Func<LengthPrefixed<T>, LengthPrefixed<T>.ParentContext, T>? __factory0 = null)
+        {
+            __parentContext = parentContext;
+            this.__factory0 = __factory0;
+        }
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(LengthPrefixed<T> value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -466,9 +479,10 @@ namespace Musoq.Generated.Interpreters
             RecordParsedField("Count");
             SetCurrentField("Data");
             var __data_list = new System.Collections.Generic.List<T>();
-            for (int __data_i = 0; __data_i < (int)_count; __data_i++)
+            var __data_count = ResolveExpressionSize<byte>(() => checked((byte?)(_count)), ParseErrorCode.InvalidSize);
+            for (int __data_i = 0; __data_i < __data_count; __data_i++)
             {
-                var __data_elemInterpreter = new T();
+                var __data_elemInterpreter = (__factory0 is null ? new T() : __factory0.Invoke(__parsedValue, __parentContext));
                 var _elem = InterpretNested(__data_elemInterpreter, data, "Data");
                 __data_list.Add(_elem);
             }
@@ -518,7 +532,7 @@ namespace Musoq.Generated.Interpreters
             var __parsedValue = new GenericContainer();
             RecordParsedValue(__parsedValue);
             SetCurrentField("Items");
-            var __items_interpreter = new LengthPrefixed<GenericItem>();
+            var __items_interpreter = new LengthPrefixed<GenericItem>(new LengthPrefixed<GenericItem>.ParentContext(), null);
             var _items = InterpretNested(__items_interpreter, data, "Items");
             __parsedValue.Items = _items;
             RecordParsedField("Items");

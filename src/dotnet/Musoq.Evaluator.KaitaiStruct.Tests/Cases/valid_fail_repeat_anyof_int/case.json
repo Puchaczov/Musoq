@@ -1,0 +1,15 @@
+{
+  "fixture": "Upstream/src/process_coerce_bytes.bin",
+  "assertions": [],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": []
+    }
+  ],
+  "expectedFailure": {
+    "code": "ValidationFailed",
+    "field": "foo.value"
+  }
+}

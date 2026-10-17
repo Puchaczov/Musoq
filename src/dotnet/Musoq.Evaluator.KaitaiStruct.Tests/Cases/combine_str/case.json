@@ -1,0 +1,148 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [
+    {
+      "actual": "str_term",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "str_limit",
+      "expected": {
+        "kind": "string",
+        "value": "bar|"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "str_eos",
+      "expected": {
+        "kind": "string",
+        "value": "baz@"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "str_calc",
+      "expected": {
+        "kind": "string",
+        "value": "bar"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "str_calc_bytes",
+      "expected": {
+        "kind": "string",
+        "value": "baz"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "term_or_limit",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "term_or_eos",
+      "expected": {
+        "kind": "string",
+        "value": "baz@"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "term_or_calc",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "term_or_calc_bytes",
+      "expected": {
+        "kind": "string",
+        "value": "baz"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "limit_or_eos",
+      "expected": {
+        "kind": "string",
+        "value": "bar|"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "limit_or_calc",
+      "expected": {
+        "kind": "string",
+        "value": "bar"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "limit_or_calc_bytes",
+      "expected": {
+        "kind": "string",
+        "value": "bar|"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "eos_or_calc",
+      "expected": {
+        "kind": "string",
+        "value": "bar"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "eos_or_calc_bytes",
+      "expected": {
+        "kind": "string",
+        "value": "baz@"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "calc_or_calc_bytes",
+      "expected": {
+        "kind": "string",
+        "value": "baz"
+      },
+      "resultColumn": 14
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    }
+  ]
+}

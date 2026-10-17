@@ -1,0 +1,31 @@
+{
+  "fixture": "Upstream/src/str_encodings.bin",
+  "assertions": [
+    {
+      "actual": "foo",
+      "expected": {
+        "kind": "bytes",
+        "value": "0a00536f6d652041534349490f00"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "bar",
+      "expected": {
+        "kind": "string",
+        "value": "\u3053\u3093\u306b"
+      },
+      "resultColumn": 1
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

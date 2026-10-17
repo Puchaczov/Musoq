@@ -1,0 +1,48 @@
+{
+  "fixture": "Upstream/src/repeat_until_s4.bin",
+  "assertions": [
+    {
+      "actual": "entries",
+      "expected": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "66"
+          },
+          {
+            "kind": "integer",
+            "value": "4919"
+          },
+          {
+            "kind": "integer",
+            "value": "-251658241"
+          },
+          {
+            "kind": "integer",
+            "value": "-1"
+          }
+        ]
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "afterall",
+      "expected": {
+        "kind": "string",
+        "value": "foobar"
+      },
+      "resultColumn": 1
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

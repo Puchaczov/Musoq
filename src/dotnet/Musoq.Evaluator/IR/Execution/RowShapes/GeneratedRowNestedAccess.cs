@@ -7,4 +7,7 @@ public sealed record GeneratedRowNestedAccess(
     string? ValueTypeName = null,
     int? FieldIndex = null,
     int? ContextIndex = null,
-    bool IsRowCarrier = false) : FieldAccessStrategy;
+    bool IsRowCarrier = false) : FieldAccessStrategy
+{
+    public bool IsNullSafe { get; init; }
+}

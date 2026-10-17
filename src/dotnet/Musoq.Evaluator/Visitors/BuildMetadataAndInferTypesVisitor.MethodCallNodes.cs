@@ -83,6 +83,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var offset = PopSemanticNode(VisitorOperationNames.VisitInterpretAtCallNodeOffset);
+        InterpretationOffsetBinding.RequireInt(offset);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretAtCallNodeDataSource);
 
 

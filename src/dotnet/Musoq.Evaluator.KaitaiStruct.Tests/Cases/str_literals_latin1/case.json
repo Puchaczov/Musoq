@@ -1,0 +1,21 @@
+{
+  "fixture": "Upstream/src/str_literals_latin1.bin",
+  "assertions": [
+    {
+      "actual": "parsed_eq_literal",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

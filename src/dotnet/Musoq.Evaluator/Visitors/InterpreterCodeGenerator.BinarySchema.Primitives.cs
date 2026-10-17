@@ -130,7 +130,7 @@ public partial class InterpreterCodeGenerator
             StringEncoding.Utf16Be => "System.Text.Encoding.BigEndianUnicode",
             StringEncoding.Ascii => "System.Text.Encoding.ASCII",
             StringEncoding.Latin1 => "System.Text.Encoding.Latin1",
-            StringEncoding.Ebcdic => "System.Text.Encoding.GetEncoding(37)",
+            StringEncoding.Ebcdic => "System.Text.CodePagesEncodingProvider.Instance.GetEncoding(37, System.Text.EncoderFallback.ExceptionFallback, System.Text.DecoderFallback.ExceptionFallback) ?? throw new System.NotSupportedException(\"IBM EBCDIC code page 037 is unavailable.\")",
             _ => "System.Text.Encoding.UTF8"
         };
     }

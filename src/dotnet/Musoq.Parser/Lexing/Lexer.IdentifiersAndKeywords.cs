@@ -43,7 +43,7 @@ public sealed partial class Lexer
             return AssignToken(new AliasedStarToken(Input[start..Position], new TextSpan(start, Position - start)));
         }
 
-        if (identifierEnd < Input.Length && Input[identifierEnd] == '[' &&
+        if (!IsSchemaContext && identifierEnd < Input.Length && Input[identifierEnd] == '[' &&
             TryScanAccessToken(start, identifierEnd, out var accessToken))
         {
             return AssignToken(accessToken);

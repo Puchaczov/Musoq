@@ -1,0 +1,61 @@
+{
+  "fixture": "Upstream/src/str_encodings_utf16.bin",
+  "assertions": [
+    {
+      "actual": "len_be",
+      "expected": {
+        "kind": "integer",
+        "value": "12"
+      }
+    },
+    {
+      "actual": "be_bom_removed.bom",
+      "expected": {
+        "kind": "integer",
+        "value": "65279"
+      }
+    },
+    {
+      "actual": "be_bom_removed.str",
+      "expected": {
+        "kind": "string",
+        "value": "\u3053\u3093\u306b\u3061\u306f"
+      }
+    },
+    {
+      "actual": "len_le",
+      "expected": {
+        "kind": "integer",
+        "value": "12"
+      }
+    },
+    {
+      "actual": "le_bom_removed.bom",
+      "expected": {
+        "kind": "integer",
+        "value": "65279"
+      }
+    },
+    {
+      "actual": "le_bom_removed.str",
+      "expected": {
+        "kind": "string",
+        "value": "\u3053\u3093\u306b\u3061\u306f"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ]
+}

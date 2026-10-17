@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -41,6 +43,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
             $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, global::Musoq.Plugins.IJsonPayload{genericConstraints}");
         builder.AppendLine("{");
+        builder.Append(GenerateParentContextMembers(fullClassName));
         builder.Append(PartialPayloadCodeEmitter.Members(fullClassName));
         builder.Append(PartialPayloadCodeEmitter.JsonMembers(plan.Fields.Where(static field => field.EmitsProperty)
             .Select(static field => (field.Name, field.PropertyName ?? throw new InvalidOperationException("An emitted payload field requires a property name.")))));
@@ -100,12 +103,15 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateFieldReadCodeWithModifiers(FieldDefinitionNode field)
     {
+        _activeSchemaFieldName = field.Name;
         var builder = new StringBuilder();
         var localVar = GetLocalVarName(field.Name);
         var clrTypeName = GetClrTypeNameForFieldDefinition(field);
 
         if (field.WhenCondition != null)
         {
+            if (BinarySchemaExpressionTypes.Unwrap(BinarySchemaExpressionTypes.Resolve(field.WhenCondition, _expressionFields, _registry)) != typeof(bool))
+                throw new Musoq.Evaluator.Exceptions.QuerySyntaxException($"Binary schema field '{field.Name}' when expression must evaluate to boolean.", field.WhenCondition.SpanOrEmpty(), Musoq.Parser.Diagnostics.DiagnosticCode.MQ4006_InvalidFieldConstraint);
             var condition = GenerateConditionExpression(field.WhenCondition);
             var isTypeParam = IsTypeParameter(clrTypeName);
             var isReferenceType = IsReferenceType(clrTypeName);
@@ -130,13 +136,13 @@ public partial class InterpreterCodeGenerator
             }
 
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{nullableTypeName} {localVar} = {defaultValue};");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if ({condition})");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if (({condition}) == true)");
             builder.AppendLine("{");
 
             if (field.AtOffset != null)
             {
-                var offsetExpr = GenerateConditionExpression(field.AtOffset);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    SeekTo((int)({offsetExpr}));");
+                var offsetExpr = GenerateSizeExpression(field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition);
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    SeekTo({offsetExpr});");
             }
 
             var innerReadCode = GenerateFieldReadCodeInner(field, localVar);
@@ -145,7 +151,7 @@ public partial class InterpreterCodeGenerator
             if (field.Constraint != null)
             {
                 var checkExpr = GenerateConditionExpression(field.Constraint.Expression);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    Validate({checkExpr}, \"{field.Name}\", \"Check constraint failed\");");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    Validate(({checkExpr}) == true, \"{field.Name}\", \"Check constraint failed\");");
             }
 
             var valueValidationStatement = GenerateFieldValueValidationStatement(field, localVar);
@@ -158,8 +164,8 @@ public partial class InterpreterCodeGenerator
         {
             if (field.AtOffset != null)
             {
-                var offsetExpr = GenerateConditionExpression(field.AtOffset);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"SeekTo((int)({offsetExpr}));");
+                var offsetExpr = GenerateSizeExpression(field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition);
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"SeekTo({offsetExpr});");
             }
 
             builder.AppendLine(GenerateFieldReadCode(field));
@@ -167,7 +173,7 @@ public partial class InterpreterCodeGenerator
             if (field.Constraint != null)
             {
                 var checkExpr = GenerateConditionExpression(field.Constraint.Expression);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Validate({checkExpr}, \"{field.Name}\", \"Check constraint failed\");");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Validate(({checkExpr}) == true, \"{field.Name}\", \"Check constraint failed\");");
             }
 
             var valueValidationStatement = GenerateFieldValueValidationStatement(field, localVar);

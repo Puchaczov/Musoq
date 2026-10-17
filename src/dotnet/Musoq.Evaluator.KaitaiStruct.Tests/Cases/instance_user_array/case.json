@@ -1,0 +1,93 @@
+{
+  "fixture": "Upstream/src/instance_std_array.bin",
+  "assertions": [
+    {
+      "actual": "ofs",
+      "expected": {
+        "kind": "integer",
+        "value": "16"
+      }
+    },
+    {
+      "actual": "qty_entries",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      }
+    },
+    {
+      "actual": "entry_size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "user_entries.size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      }
+    },
+    {
+      "actual": "user_entries[0].word1",
+      "expected": {
+        "kind": "integer",
+        "value": "4369"
+      }
+    },
+    {
+      "actual": "user_entries[0].word2",
+      "expected": {
+        "kind": "integer",
+        "value": "4369"
+      }
+    },
+    {
+      "actual": "user_entries[1].word1",
+      "expected": {
+        "kind": "integer",
+        "value": "8738"
+      }
+    },
+    {
+      "actual": "user_entries[1].word2",
+      "expected": {
+        "kind": "integer",
+        "value": "8738"
+      }
+    },
+    {
+      "actual": "user_entries[2].word1",
+      "expected": {
+        "kind": "integer",
+        "value": "13107"
+      }
+    },
+    {
+      "actual": "user_entries[2].word2",
+      "expected": {
+        "kind": "integer",
+        "value": "13107"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ]
+}

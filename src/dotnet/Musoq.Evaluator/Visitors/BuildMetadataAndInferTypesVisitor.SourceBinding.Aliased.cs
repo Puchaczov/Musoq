@@ -40,6 +40,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (node.TypeParameter is not { } schemaName)
                 throw new InvalidOperationException("Interpret function source must provide a type parameter in this branch.");
 
+            _binaryInterpretationAliases[_sourceBinding.QueryAlias] = schemaName;
+
             var isPartialInterpret = IsPartialResultInterpretFunction(node.Identifier);
             var interpretTable = isPartialInterpret
                 ? CreatePartialInterpretTable(schemaName)
@@ -74,6 +76,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     args.Span);
 
             var dataType = args.Args[0].ReturnType;
+            if (expectedArgumentCount == 2)
+                InterpretationOffsetBinding.RequireInt(args.Args[1]);
             var dataTypeIsCompatible = dataType == null || dataType == typeof(object) ||
                                         (isTextSchema ? dataType == typeof(string) : dataType == typeof(byte[]));
             if (!dataTypeIsCompatible)

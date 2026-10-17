@@ -1,0 +1,58 @@
+{
+  "fixture": "Upstream/src/switch_integers.bin",
+  "assertions": [
+    {
+      "actual": "code",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "len",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "ham",
+      "expected": {
+        "kind": "bytes",
+        "value": "02404004371300"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "padding",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "len_mod_str",
+      "expected": {
+        "kind": "string",
+        "value": "13"
+      },
+      "resultColumn": 4
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

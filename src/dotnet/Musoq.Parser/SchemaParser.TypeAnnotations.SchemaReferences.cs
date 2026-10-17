@@ -16,7 +16,7 @@ public partial class SchemaParser
 
         if (Current.TokenType != TokenType.RBracket)
         {
-            fields.Add(ComposeBinaryField());
+            fields.Add(ComposeBinaryFieldOrComputed(fields));
 
             while (Current.TokenType == TokenType.Comma)
             {
@@ -24,7 +24,7 @@ public partial class SchemaParser
 
                 if (Current.TokenType == TokenType.RBracket)
                     break;
-                fields.Add(ComposeBinaryField());
+                fields.Add(ComposeBinaryFieldOrComputed(fields));
             }
         }
 

@@ -21,6 +21,9 @@ public partial class InterpreterCodeGenerator
         builder.Append(PartialPayloadCodeEmitter.Members(className));
 
         var fields = inlineSchema.Fields;
+        _expressionFields = fields.Concat(outerRefs.Select(name => (SchemaFieldNode)new FieldDefinitionNode(name,
+            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)))).ToArray();
+        builder.Append(GenerateParentContextMembers(className));
         builder.Append(PartialPayloadCodeEmitter.JsonMembers(fields
             .Where(static field => field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
             .Select(field => (field.Name, EscapeCSharpIdentifier(field.Name)))));
@@ -33,7 +36,7 @@ public partial class InterpreterCodeGenerator
             var clrTypeName = GetClrTypeNameForFieldInline(field);
             var isConditional = field.IsConditional ||
                                 (field is ComputedFieldNode inlineComputed &&
-                                 ReferencesConditionalField(inlineComputed.Expression, fields));
+                                 BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(inlineComputed.Expression, fields, _registry)));
             var isTypeParam = IsTypeParameter(clrTypeName);
 
             var propertyTypeName = isConditional && !IsReferenceType(clrTypeName) && !isTypeParam
@@ -76,17 +79,19 @@ public partial class InterpreterCodeGenerator
 
         foreach (var field in fields)
         {
-            if (field is not FieldDefinitionNode parsedField) continue;
-
-            AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(parsedField.Name)}\");");
-
-            var readCode = GenerateFieldReadCodeWithModifiers(parsedField);
+            AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(field.Name)}\");");
+            var readCode = field switch
+            {
+                FieldDefinitionNode parsed => GenerateFieldReadCodeWithModifiers(parsed),
+                ComputedFieldNode computed => GenerateComputedFieldCode(computed, fields.ToList()),
+                _ => throw new InvalidOperationException("Unsupported inline binary field.")
+            };
             builder.Append(Indent(readCode, 2));
 
-            if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
+            if (field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
             {
-                AppendGeneratedLine(builder, $"        __parsedValue.{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)};");
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(parsedField.Name)}\");");
+                AppendGeneratedLine(builder, $"        __parsedValue.{EscapeCSharpIdentifier(field.Name)} = {GetLocalVarName(field.Name)};");
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(field.Name)}\");");
             }
         }
 
@@ -114,7 +119,7 @@ public partial class InterpreterCodeGenerator
                 }
             } parsedField => GetRepeatUntilClrTypeName(parsedField.Name, inlineSchema),
             FieldDefinitionNode parsedField => GetClrTypeName(parsedField.TypeAnnotation),
-            ComputedFieldNode computedField => InferComputedFieldTypeNameStatic(computedField.Expression),
+            ComputedFieldNode computedField => InferComputedFieldTypeName(computedField.Expression, _expressionFields.ToList()),
             _ => "object"
         };
     }
@@ -124,7 +129,7 @@ public partial class InterpreterCodeGenerator
         var inlineClassName = GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null);
         var tempInterpreter = $"_{localVar}_interpreter";
         var builder = new StringBuilder();
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = new {inlineClassName}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = {CreateNestedInterpreter(inlineClassName)};");
         builder.Append(GenerateOuterRefAssignments(tempInterpreter, inlineSchema));
         AppendGeneratedLine(builder, $"var {localVar} = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
         return builder.ToString();

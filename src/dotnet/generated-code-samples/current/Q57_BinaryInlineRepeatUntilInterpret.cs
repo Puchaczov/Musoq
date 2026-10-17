@@ -417,7 +417,7 @@ namespace Musoq.Generated.Interpreters
                 __items_lastElem = InterpretNested(__items_lastElem_interpreter, data, "Items");
                 __items_list.Add(__items_lastElem);
             }
-            while (!((__items_lastElem.Tag == 0)));
+            while (((__items_lastElem.Tag == 0)) != true);
             var _items = __items_list.ToArray();
             __parsedValue.Items = _items;
             RecordParsedField("Items");

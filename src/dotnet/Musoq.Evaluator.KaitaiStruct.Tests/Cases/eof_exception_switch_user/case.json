@@ -1,0 +1,15 @@
+{
+  "fixture": "Upstream/src/enum_negative.bin",
+  "assertions": [],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": []
+    }
+  ],
+  "expectedFailure": {
+    "code": "InsufficientData",
+    "field": "data_one.val"
+  }
+}

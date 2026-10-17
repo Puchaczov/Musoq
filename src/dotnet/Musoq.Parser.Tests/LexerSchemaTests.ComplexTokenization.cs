@@ -132,7 +132,7 @@ public partial class LexerSchemaTests
         Assert.AreEqual(TokenType.LeftSquareBracket, lexer.Current().TokenType);
 
         lexer.Next();
-        Assert.AreEqual(TokenType.Word, lexer.Current().TokenType);
+        Assert.AreEqual(TokenType.Identifier, lexer.Current().TokenType);
         Assert.AreEqual("Length", lexer.Current().Value);
 
         lexer.Next();

@@ -1,0 +1,31 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "integers.uint8",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "std",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      },
+      "resultColumn": 1
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

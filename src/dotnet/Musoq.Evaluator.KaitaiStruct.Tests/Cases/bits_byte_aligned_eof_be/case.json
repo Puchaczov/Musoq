@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/bcd_user_type_be.bin",
+  "assertions": [
+    {
+      "actual": "prebuf",
+      "expected": {
+        "kind": "bytes",
+        "value": "1234567812345678"
+      }
+    },
+    {
+      "actual": "bits",
+      "expected": {
+        "kind": "integer",
+        "value": "596523"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

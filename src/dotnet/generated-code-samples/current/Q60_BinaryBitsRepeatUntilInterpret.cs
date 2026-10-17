@@ -443,7 +443,7 @@ namespace Musoq.Generated.Interpreters
                 __flags_lastElem = (byte)ReadBits(data, 1);
                 __flags_list.Add(__flags_lastElem);
             }
-            while (!((__flags_lastElem == 0)));
+            while (((__flags_lastElem == 0)) != true);
             var _flags = __flags_list.ToArray();
             __parsedValue.Flags = _flags;
             RecordParsedField("Flags");

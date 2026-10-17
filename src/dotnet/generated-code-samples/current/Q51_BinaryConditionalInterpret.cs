@@ -340,7 +340,7 @@ namespace Musoq.Generated.Interpreters
             RecordParsedField("HasValue");
             SetCurrentField("Value");
             int? _value = null;
-            if ((_hasValue == 1))
+            if (((((int)(_hasValue)) == ((int)(1)))) == true)
             {
                 _value = ReadInt32Le(data);
             }

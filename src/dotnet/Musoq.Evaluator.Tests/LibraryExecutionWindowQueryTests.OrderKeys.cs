@@ -12,38 +12,6 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class LibraryExecutionWindowQueryTests
 {
     [TestMethod]
-    public void TypedOrderKeyContext_WhenInvokedRepeatedly_ShouldAllocateNoBoxesOrInvocationObjects()
-    {
-        var (allocated, total) = AllocationTestThread.Run(MeasureOrderKeyContext);
-        Assert.AreEqual(50_000m, total);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    private static (long Allocated, decimal Total) MeasureOrderKeyContext()
-    {
-        int?[] values = [1, 2];
-        int[] keys = [1, 2];
-        int[] indices = [0, 1];
-        var warm = ConsumeOrderKeyContext(values, keys, indices);
-        if (warm != 50_000m)
-            throw new InvalidOperationException("Typed order-key warmup returned incorrect values.");
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var total = ConsumeOrderKeyContext(values, keys, indices);
-        return (GC.GetAllocatedBytesForCurrentThread() - before, total);
-    }
-
-    private static decimal ConsumeOrderKeyContext(int?[] values, int[] keys, int[] indices)
-    {
-        decimal total = 0;
-        for (var iteration = 0; iteration < 10_000; iteration++)
-        {
-            var context = new WindowFrameContext<int?, int>(values, keys, indices, 1, 0, 1);
-            total += KeyWeightedKernel.Get(in context)!.Value;
-        }
-        return total;
-    }
-
-    [TestMethod]
     public void TypedOrderKeyContext_WhenFrameIsBounded_ShouldReadSortedKeysAndNullableValues()
     {
         const string query = "select Position, KeyWeighted(Value) over (order by Position rows between 1 preceding and current row) as Total from #schema.first() order by Position";

@@ -115,7 +115,7 @@ public partial class InterpreterCodeGenerator
 
             case SchemaReferenceTypeNode schemaRef:
                 var interpreterVar = $"{branchVar}_interpreter";
-                builder.AppendLine(CultureInfo.InvariantCulture, $"var {interpreterVar} = new {schemaRef.FullTypeName}();");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"var {interpreterVar} = {CreateNestedInterpreter(schemaRef.FullTypeName)};");
                 AppendGeneratedLine(builder, $"var {branchVar} = InterpretNested({interpreterVar}, data, \"{EscapeString(fieldName)}\");");
                 break;
 

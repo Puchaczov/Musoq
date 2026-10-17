@@ -509,7 +509,12 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             ValidateExpressionReferences(field.Name, field.AtOffset, schemaName, declaredFields);
 
         if (field.WhenCondition != null)
+        {
             ValidateExpressionReferences(field.Name, field.WhenCondition, schemaName, declaredFields);
+            if (!HasDeferredParentReference(field.WhenCondition, declaredFields) && !IsBooleanExpression(field.WhenCondition, declaredFieldTypes))
+                throw new QuerySyntaxException($"Binary schema field '{field.Name}' when expression must evaluate to boolean.",
+                    field.WhenCondition.SpanOrEmpty(), DiagnosticCode.MQ4006_InvalidFieldConstraint);
+        }
 
         if (field.Constraint != null)
         {
@@ -523,7 +528,8 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             };
 
             ValidateExpressionReferences(field.Name, field.Constraint.Expression, schemaName, constraintFields);
-            ValidateBooleanConstraint(field, constraintTypes);
+            if (!HasDeferredParentReference(field.Constraint.Expression, constraintFields))
+                ValidateBooleanConstraint(field, constraintTypes);
         }
     }
 
@@ -579,7 +585,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                     };
 
                     ValidateExpressionReferences(fieldName, repeatUntil.Condition, schemaName, repeatFields);
-                    ValidateBooleanRepeatCondition(fieldName, repeatUntil.Condition, repeatFieldTypes);
+                    ValidateBooleanRepeatCondition(fieldName, repeatUntil.Condition, repeatFieldTypes, repeatUntil.ElementType);
                 }
                 break;
 
@@ -769,7 +775,9 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 ValidateExpressionReferences(fieldName, computedField.Expression, schemaName, declaredFields);
 
             declaredFields.Add(field.Name);
-            declaredFieldTypes[field.Name] = field.ReturnType;
+            declaredFieldTypes[field.Name] = field is ComputedFieldNode computed
+                ? ResolveExpressionType(computed.Expression, declaredFieldTypes)
+                : field.ReturnType;
         }
     }
 
@@ -786,12 +794,14 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             DiagnosticCode.MQ4006_InvalidFieldConstraint);
     }
 
-    private static void ValidateBooleanRepeatCondition(
+    private void ValidateBooleanRepeatCondition(
         string fieldName,
         Node condition,
-        IReadOnlyDictionary<string, Type?> fieldTypes)
+        IReadOnlyDictionary<string, Type?> fieldTypes,
+        TypeAnnotationNode elementType)
     {
-        if (IsBooleanExpression(condition, fieldTypes))
+        var conditionTypes = new BinaryRepeatConditionTypes(fieldName, elementType, Registry);
+        if (conditionTypes.IsBoolean(condition, expression => IsBooleanExpression(expression, fieldTypes)))
             return;
 
         throw new QuerySyntaxException(
@@ -804,6 +814,11 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
     {
         switch (expression)
         {
+            case WhenNode or ThenNode or ElseNode:
+                return IsBooleanExpression(((UnaryNode)expression).Expression, fieldTypes);
+            case CaseNode choice:
+                return choice.WhenThenPairs.All(pair => IsBooleanExpression(pair.When, fieldTypes) &&
+                    IsBooleanExpression(pair.Then, fieldTypes)) && IsBooleanExpression(choice.Else, fieldTypes);
             case EqualityNode:
             case DiffNode:
             case GreaterNode:
@@ -824,9 +839,12 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             case NotNode not:
                 return IsBooleanExpression(not.Expression, fieldTypes);
 
+            case CastNode cast:
+                return BinarySchemaExpressionTypes.Unwrap(BinarySchemaStrictCasts.Resolve(cast).ReturnType) == typeof(bool);
+
             case IdentifierNode identifier:
                 return fieldTypes.TryGetValue(identifier.Name, out var identifierType) &&
-                       identifierType == typeof(bool);
+                       BinarySchemaExpressionTypes.Unwrap(identifierType ?? typeof(object)) == typeof(bool);
 
             case AccessMethodNode method:
                 return method.Method == null || method.ReturnType == typeof(bool);
@@ -846,6 +864,13 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (expression is IdentifierNode identifier && fieldTypes.TryGetValue(identifier.Name, out var identifierType))
             return identifierType;
 
+        if (expression is CaseNode choice)
+            return ResolveExpressionType(choice.WhenThenPairs[0].Then is UnaryNode then ? then.Expression : choice.WhenThenPairs[0].Then, fieldTypes);
+        if (expression is NotNode)
+            return typeof(bool);
+        if (expression is CastNode cast)
+            return BinarySchemaStrictCasts.Resolve(cast).ReturnType;
+
         return expression.ReturnType;
     }
 
@@ -862,7 +887,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
         new IdentifierCollectorTraverse(identifiers).Traverse(expression);
 
         foreach (var reference in identifiers.References)
-            if (!declaredFields.Contains(reference.Name))
+            if (!declaredFields.Contains(reference.Name) && !reference.Name.Equals("parent", StringComparison.OrdinalIgnoreCase))
                 throw new QuerySyntaxException(
                     $"Binary schema '{schemaName}' field '{fieldName}' references field '{reference.Name}' before it is declared.",
                     reference.Node.SpanOrEmpty());
@@ -911,6 +936,13 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             fields.Add(field.Name);
             fieldTypes[field.Name] = ResolveExpressionType(field is ComputedFieldNode computed ? computed.Expression : field, fieldTypes);
         }
+    }
+
+    private static bool HasDeferredParentReference(Node expression, HashSet<string> declaredFields)
+    {
+        var collector = new IdentifierCollector();
+        new IdentifierCollectorTraverse(collector).Traverse(expression);
+        return !declaredFields.Contains("parent") && collector.Names.Contains("parent");
     }
 
     private TextSpan GetInheritanceSpan(string childSchemaName, string parentName)

@@ -1,0 +1,157 @@
+{
+  "fixture": "Upstream/src/nav_parent_switch.bin",
+  "assertions": [
+    {
+      "actual": "one_size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "one_first",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "one_mid",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "one_last",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "one_last.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "255"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "one_min",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "one_max",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "one_max.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "255"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "two_size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "two_first",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "two_mid",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "two_mid.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "255"
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "two_last",
+      "expected": {
+        "kind": "integer",
+        "value": "75"
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "two_min",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "two_max",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      },
+      "resultColumn": 14
+    },
+    {
+      "actual": "two_max.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "255"
+      },
+      "resultColumn": 15
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  ]
+}

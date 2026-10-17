@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -62,8 +63,9 @@ public sealed partial class ExecutionShapeResolver
     {
         var columns = new List<ColumnSchema>();
         var topLevelIndex = 0;
+        var schemaFields = fields.ToArray();
 
-        foreach (var field in fields)
+        foreach (var field in schemaFields)
         {
             if (field.Name.StartsWith('_'))
                 continue;
@@ -71,7 +73,7 @@ public sealed partial class ExecutionShapeResolver
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
                 continue;
 
-            var fieldType = ResolveBinaryFieldType(field, generatedType, context, columns);
+            var fieldType = ResolveBinaryFieldType(field, generatedType, context, schemaFields);
 
             if (field is FieldDefinitionNode { IsConditional: true } &&
                 fieldType.IsValueType &&
@@ -80,13 +82,15 @@ public sealed partial class ExecutionShapeResolver
                 fieldType = typeof(Nullable<>).MakeGenericType(fieldType);
             }
 
+            var shapeField = field is ComputedFieldNode computed
+                ? (SchemaFieldNode?)Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, schemaFields) ?? field : field;
             var intendedTypeName = InterpretationPropertyTypeNameResolver.ResolveFieldTypeName(
-                field,
+                shapeField,
                 context.GenericBindings,
                 context.SchemaRegistry);
             var column = new ColumnSchema(field.Name, fieldType, topLevelIndex, intendedTypeName);
             columns.Add(column);
-            AddNestedBinaryColumns(field, columns, column, context);
+            AddNestedBinaryColumns(shapeField, columns, column, context);
             topLevelIndex++;
         }
 

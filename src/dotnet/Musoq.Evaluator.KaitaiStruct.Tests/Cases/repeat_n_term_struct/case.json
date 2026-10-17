@@ -1,0 +1,94 @@
+{
+  "fixture": "Upstream/src/repeat_until_process.bin",
+  "assertions": [
+    {
+      "actual": "records1.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "records1[0].value",
+      "expected": {
+        "kind": "bytes",
+        "value": "e8ba"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "records1[1].value",
+      "expected": {
+        "kind": "bytes",
+        "value": ""
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "records2.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "records2[0].value",
+      "expected": {
+        "kind": "bytes",
+        "value": "aa"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "records2[1].value",
+      "expected": {
+        "kind": "bytes",
+        "value": "fa9eb8aa"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "records3.size",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "records3[0].value",
+      "expected": {
+        "kind": "bytes",
+        "value": "aaaa"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "records3[1].value",
+      "expected": {
+        "kind": "bytes",
+        "value": ""
+      },
+      "resultColumn": 8
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
+}

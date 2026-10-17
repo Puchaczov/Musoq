@@ -69,8 +69,7 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
     /// </summary>
     protected byte ReadByte(ReadOnlySpan<byte> data)
     {
-        if (ParsePosition >= data.Length)
-            ThrowInsufficientData(1, data.Length);
+        PrepareByteRead(data, 1);
         return data[ParsePosition++];
     }
 
@@ -79,8 +78,7 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
     /// </summary>
     protected sbyte ReadSByte(ReadOnlySpan<byte> data)
     {
-        if (ParsePosition >= data.Length)
-            ThrowInsufficientData(1, data.Length);
+        PrepareByteRead(data, 1);
         return (sbyte)data[ParsePosition++];
     }
 

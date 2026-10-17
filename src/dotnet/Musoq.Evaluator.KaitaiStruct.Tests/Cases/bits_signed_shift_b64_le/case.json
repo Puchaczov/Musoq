@@ -1,0 +1,29 @@
+{
+  "fixture": "Upstream/src/bits_signed_shift_b64_le.bin",
+  "assertions": [
+    {
+      "actual": "a",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      }
+    },
+    {
+      "actual": "b",
+      "expected": {
+        "kind": "integer",
+        "value": "255"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

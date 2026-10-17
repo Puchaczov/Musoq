@@ -1,0 +1,77 @@
+{
+  "fixture": "Upstream/src/integers_double_overflow.bin",
+  "assertions": [
+    {
+      "actual": "signed_safe_min_be",
+      "expected": {
+        "kind": "integer",
+        "value": "-9007199254740991"
+      }
+    },
+    {
+      "actual": "signed_safe_min_le",
+      "expected": {
+        "kind": "integer",
+        "value": "-9007199254740991"
+      }
+    },
+    {
+      "actual": "signed_safe_max_be",
+      "expected": {
+        "kind": "integer",
+        "value": "9007199254740991"
+      }
+    },
+    {
+      "actual": "signed_safe_max_le",
+      "expected": {
+        "kind": "integer",
+        "value": "9007199254740991"
+      }
+    },
+    {
+      "actual": "signed_unsafe_neg_be.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "-9007199254740993"
+      }
+    },
+    {
+      "actual": "signed_unsafe_neg_le.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "-9007199254740993"
+      }
+    },
+    {
+      "actual": "signed_unsafe_pos_be.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "9007199254740993"
+      }
+    },
+    {
+      "actual": "signed_unsafe_pos_be.to_s",
+      "expected": {
+        "kind": "string",
+        "value": "9007199254740993"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  ]
+}

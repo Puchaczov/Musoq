@@ -1,0 +1,37 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "two",
+      "expected": {
+        "kind": "integer",
+        "value": "80"
+      }
+    },
+    {
+      "actual": "hw.one",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      }
+    },
+    {
+      "actual": "hw_one",
+      "expected": {
+        "kind": "integer",
+        "value": "65"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

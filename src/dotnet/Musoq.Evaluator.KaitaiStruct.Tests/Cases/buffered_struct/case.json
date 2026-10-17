@@ -1,0 +1,69 @@
+{
+  "fixture": "Upstream/src/buffered_struct.bin",
+  "assertions": [
+    {
+      "actual": "len1",
+      "expected": {
+        "kind": "integer",
+        "value": "16"
+      }
+    },
+    {
+      "actual": "block1.number1",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      }
+    },
+    {
+      "actual": "block1.number2",
+      "expected": {
+        "kind": "integer",
+        "value": "67"
+      }
+    },
+    {
+      "actual": "len2",
+      "expected": {
+        "kind": "integer",
+        "value": "8"
+      }
+    },
+    {
+      "actual": "block2.number1",
+      "expected": {
+        "kind": "integer",
+        "value": "68"
+      }
+    },
+    {
+      "actual": "block2.number2",
+      "expected": {
+        "kind": "integer",
+        "value": "69"
+      }
+    },
+    {
+      "actual": "finisher",
+      "expected": {
+        "kind": "integer",
+        "value": "238"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ]
+}

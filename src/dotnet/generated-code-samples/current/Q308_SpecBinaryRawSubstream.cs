@@ -373,7 +373,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.Length = _length;
             RecordParsedField("Length");
             SetCurrentField("Payload");
-            var _payload = ReadBytes(data, (int)_length);
+            var _payload = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize));
             __parsedValue.Payload = _payload;
             RecordParsedField("Payload");
             SetCurrentField("Checksum");

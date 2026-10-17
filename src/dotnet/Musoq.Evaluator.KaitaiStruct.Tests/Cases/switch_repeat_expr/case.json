@@ -1,0 +1,76 @@
+{
+  "fixture": "Upstream/src/switch_integers.bin",
+  "assertions": [
+    {
+      "actual": "codes.size",
+      "expected": {
+        "kind": "integer",
+        "value": "3"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "codes[0]",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "codes[1]",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "codes[2]",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "body[0].as<switch_repeat_expr::one>.first",
+      "expected": {
+        "kind": "bytes",
+        "value": "40400437"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "body[1].as<switch_repeat_expr::two>.second",
+      "expected": {
+        "kind": "bytes",
+        "value": "13000008"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "body[2].as<switch_repeat_expr::one>.first",
+      "expected": {
+        "kind": "bytes",
+        "value": "37130000"
+      },
+      "resultColumn": 6
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ]
+}

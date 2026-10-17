@@ -48,6 +48,15 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var parentNode = TraversalFrame.NodeCount > 0 ? PeekSemanticNode("Visit(AccessObjectArrayNode).Parent") : null;
         var parentNodeType = parentNode?.ReturnType;
+        var intendedName = InterpretationPropertyBinding.GetIntendedTypeName(parentNode);
+        if (intendedName is not null &&
+            ResolveSchemaFieldFromIntendedTypeName(intendedName, node.Name) is { } schemaProperty &&
+            schemaProperty.ClrType.IsArray)
+        {
+            PushSemanticNode(new AccessObjectArrayNode(node.Token,
+                new ExpandoObjectPropertyInfo(node.Name, schemaProperty.ClrType)));
+            return;
+        }
 
         if (!_columnPropertyBindingService.HasTypedParentForArrayAccess(parentNode))
         {

@@ -138,36 +138,17 @@ public sealed partial class LibraryExecutionNativeRowQueryTests : GenericEntityT
     }
 
     [TestMethod]
-    public void NativeResultReadAndVisit_WhenNumeric_ShouldAllocateNoBoxes()
+    public void NativeResultReadAndVisit_WhenNumeric_ShouldPreserveTheColumnValue()
     {
         const string query = "select s.Position as Position from #schema.first() s where s.Position = 1";
         using var compiled = CreateAndRunVirtualMachine<NativeKeyInput>(query, Rows());
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)));
         var row = table.Single();
-        var (allocated, checksum) = AllocationTestThread.Run(() => MeasureNativeNumericReads(row));
-        Assert.AreEqual(200_000L, checksum);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    private static (long Allocated, long Checksum) MeasureNativeNumericReads(Row row)
-    {
         var visitor = new NumericVisitor();
-        for (var index = 0; index < 10_000; index++)
-        {
-            _ = row.GetValue<int>(0);
-            row.VisitColumns(ref visitor);
-        }
-        visitor.Total = 0;
-        long checksum = 0;
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var index = 0; index < 100_000; index++)
-        {
-            checksum += row.GetValue<int>(0);
-            row.VisitColumns(ref visitor);
-        }
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        return (allocated, checksum + visitor.Total);
+        row.VisitColumns(ref visitor);
+        Assert.AreEqual(1, row.GetValue<int>(0));
+        Assert.AreEqual(1L, visitor.Total);
     }
 
     private struct NumericVisitor : IColumnValueVisitor

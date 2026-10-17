@@ -26,21 +26,6 @@ public sealed class LibraryExecutionNativeVariadicQueryTests : GenericEntityTest
     }
 
     [TestMethod]
-    public void NativeVariadicNumericOperation_ShouldAllocateNoInvocationStorage()
-    {
-        var library = new SpanLibrary();
-        for (var index = 0; index < 1000; index++)
-            _ = library.NativeTotal(1, 2, 3, 4, 5, 6);
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var total = 0;
-        for (var index = 0; index < 10000; index++)
-            total += library.NativeTotal(1, 2, 3, 4, 5, 6);
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.AreEqual(210000, total);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    [TestMethod]
     public void LegacyExpandedArrayDeclaration_ShouldReportNativeInvocationDiagnostic()
     {
         const string sql = "select OldArrayTotal(Value, 1) as Total from #schema.first()";

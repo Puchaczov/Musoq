@@ -19,7 +19,46 @@ internal static class NativeNestedFieldBinding
                 return null;
             var generatedReceiver = new ExecutionFieldRead(alias, root.Name, root.Type, root.AccessStrategy, root.GeneratedTypeName)
             { Stability = root.Stability, SourceReadType = root.SourceReadType, EnumType = root.EnumType };
-            return CreateMembers(column, generatedReceiver, rootType, generatedPath.PropertyPath.Split('.'));
+            var generatedIndexed = NativeIndexedFieldBinding.TryCreateFromReceiver(
+                generatedReceiver,
+                rootType,
+                field,
+                generatedPath.PropertyPath);
+            if (generatedIndexed is not null)
+                return generatedIndexed;
+            return generatedPath.PropertyPath.IndexOf('[') >= 0
+                ? null
+                : CreateMembers(column, generatedReceiver, rootType, generatedPath.PropertyPath.Split('.'));
+        }
+        if (field.AccessStrategy is GeneratedRowNestedAccess generatedSourcePath &&
+            shapes.TryGetValue(alias, out var generatedSourceShape) &&
+            generatedSourceShape is SourceEntityShape sourceWithGeneratedNested)
+        {
+            var root = sourceWithGeneratedNested.Fields.FirstOrDefault(candidate =>
+                candidate.Name.Equals(generatedSourcePath.FieldName, System.StringComparison.Ordinal) ||
+                candidate.AccessStrategy is GeneratedFieldAccess access &&
+                access.FieldName.Equals(generatedSourcePath.FieldName, System.StringComparison.Ordinal));
+            if (root is not null && root.Type.ResolveClrType() is { } rootType)
+            {
+                var generatedReceiver = new ExecutionFieldRead(
+                    alias,
+                    root.Name,
+                    root.Type,
+                    root.AccessStrategy,
+                    root.GeneratedTypeName)
+                {
+                    Stability = root.Stability,
+                    SourceReadType = root.SourceReadType,
+                    EnumType = root.EnumType
+                };
+                var generatedIndexed = NativeIndexedFieldBinding.TryCreateFromReceiver(
+                    generatedReceiver,
+                    rootType,
+                    field,
+                    generatedSourcePath.PropertyPath);
+                if (generatedIndexed is not null)
+                    return generatedIndexed;
+            }
         }
         if (field.AccessStrategy is not NestedClrPropertyAccess path ||
             !shapes.TryGetValue(alias, out var shape) || shape is not SourceEntityShape source)

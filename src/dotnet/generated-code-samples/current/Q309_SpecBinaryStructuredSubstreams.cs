@@ -484,7 +484,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.ExactLength = _exactLength;
             RecordParsedField("ExactLength");
             SetCurrentField("Exact");
-            var __exact_substreamLength = (int)_exactLength;
+            var __exact_substreamLength = ResolveExpressionSize<byte>(() => checked((byte?)(_exactLength)), ParseErrorCode.InvalidSize);
             var __exact_substreamSlice = ReadSubstreamSlice(data, __exact_substreamLength);
             var __exact_substreamInterpreter = new Body();
             var _exact = InterpretNestedAt(__exact_substreamInterpreter, __exact_substreamSlice, 0, "Exact");
@@ -497,7 +497,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.LaxLength = _laxLength;
             RecordParsedField("LaxLength");
             SetCurrentField("Lax");
-            var __lax_substreamLength = (int)_laxLength;
+            var __lax_substreamLength = ResolveExpressionSize<byte>(() => checked((byte?)(_laxLength)), ParseErrorCode.InvalidSize);
             var __lax_substreamSlice = ReadSubstreamSlice(data, __lax_substreamLength);
             var __lax_substreamInterpreter = new Body();
             var _lax = InterpretNestedAt(__lax_substreamInterpreter, __lax_substreamSlice, 0, "Lax");
@@ -509,7 +509,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.InlineLength = _inlineLength;
             RecordParsedField("InlineLength");
             SetCurrentField("Inline");
-            var __inline_substreamLength = (int)_inlineLength;
+            var __inline_substreamLength = ResolveExpressionSize<byte>(() => checked((byte?)(_inlineLength)), ParseErrorCode.InvalidSize);
             var __inline_substreamSlice = ReadSubstreamSlice(data, __inline_substreamLength);
             var __inline_substreamInterpreter = new Inline_Inline();
             var _inline = InterpretNestedAt(__inline_substreamInterpreter, __inline_substreamSlice, 0, "Inline");

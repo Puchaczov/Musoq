@@ -1,0 +1,15 @@
+{
+  "fixture": "Upstream/src/endian_expr.bin",
+  "assertions": [],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": []
+    }
+  ],
+  "expectedFailure": {
+    "code": "ValidationFailed",
+    "field": "docs.indicator"
+  }
+}

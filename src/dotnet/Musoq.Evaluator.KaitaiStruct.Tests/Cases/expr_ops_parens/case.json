@@ -1,0 +1,94 @@
+{
+  "fixture": "Upstream/src/enum_negative.bin",
+  "assertions": [
+    {
+      "actual": "i_sum_to_str",
+      "expected": {
+        "kind": "string",
+        "value": "29"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "f_sum_to_int",
+      "expected": {
+        "kind": "integer",
+        "value": "9"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "str_concat_len",
+      "expected": {
+        "kind": "integer",
+        "value": "10"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "str_concat_rev",
+      "expected": {
+        "kind": "string",
+        "value": "9876543210"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "str_concat_substr_2_to_7",
+      "expected": {
+        "kind": "string",
+        "value": "23456"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "str_concat_to_i",
+      "expected": {
+        "kind": "integer",
+        "value": "123456789"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "bool_eq",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "bool_and",
+      "expected": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "bool_or",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      },
+      "resultColumn": 8
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
+}

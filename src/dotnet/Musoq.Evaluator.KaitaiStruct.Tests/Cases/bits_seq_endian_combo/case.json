@@ -1,0 +1,77 @@
+{
+  "fixture": "Upstream/src/process_xor_4.bin",
+  "assertions": [
+    {
+      "actual": "be1",
+      "expected": {
+        "kind": "integer",
+        "value": "59"
+      }
+    },
+    {
+      "actual": "be2",
+      "expected": {
+        "kind": "integer",
+        "value": "187"
+      }
+    },
+    {
+      "actual": "le3",
+      "expected": {
+        "kind": "integer",
+        "value": "163"
+      }
+    },
+    {
+      "actual": "be4",
+      "expected": {
+        "kind": "integer",
+        "value": "20"
+      }
+    },
+    {
+      "actual": "le5",
+      "expected": {
+        "kind": "integer",
+        "value": "10"
+      }
+    },
+    {
+      "actual": "le6",
+      "expected": {
+        "kind": "integer",
+        "value": "36"
+      }
+    },
+    {
+      "actual": "le7",
+      "expected": {
+        "kind": "integer",
+        "value": "26"
+      }
+    },
+    {
+      "actual": "be8",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  ]
+}

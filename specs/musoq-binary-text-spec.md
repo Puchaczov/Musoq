@@ -450,6 +450,18 @@ binary Outer {
 - Nested schemas are parsed inline at the current cursor position
 - The cursor advances by the total size of the nested schema
 - Nested schema fields are accessible via dot notation: `outer.Header.X`
+- Indexing a collection through a record, such as `outer.Body.Items[1].Value`,
+  consumes one collection dimension. Subsequent member binding uses the element
+  record shape; indexing a primitive array yields its primitive element type.
+  Each index is retained when several appear in one path, for example
+  `outer.Items[1].Body.Values[0]`. Conditional records inside those indexed
+  elements preserve the same NULL propagation as non-indexed records.
+- A conditional leaf retains its nullable logical type through any number of
+  record members. If an intermediate record is absent, projection of a member
+  through that path yields `null`, rather than dereferencing the absent record.
+- Collection paths in APPLY have no fixed member-depth limit. A null path or an
+  empty collection produces zero CROSS APPLY rows and one null-extended OUTER
+  APPLY row, as defined in Appendix D.
 
 ### 4.4 Arrays
 
@@ -473,6 +485,10 @@ binary Example {
 - Each element advances the cursor by its size
 - Empty arrays (Count = 0) are valid and produce an empty collection
 - Arrays are ordered collections for CROSS APPLY iteration
+- For `byte[width][count]`, the first size is each byte-array element's width and
+  the second is the element count. Elements occupy consecutive ranges; zero count
+  consumes no bytes. Projecting a nested primitive array preserves its element
+  type rather than the containing record type.
 
 ### 4.5 Conditional Fields
 
@@ -502,7 +518,10 @@ binary Message {
 
 **Semantics:**
 - Condition is evaluated using previously parsed field values
-- When condition is FALSE: field is NOT parsed, cursor does NOT advance, field value is `null`
+- Guards require a boolean expression and use core three-valued logic. Comparisons
+  with absent fields yield UNKNOWN, including through computed-field dependencies.
+- When condition is FALSE or UNKNOWN: field is NOT parsed, cursor does NOT advance,
+  field value is `null`, and its size, position and validations are not evaluated
 - When condition is TRUE: field is parsed normally
 - Conditions may only reference fields declared BEFORE the conditional field
 - Subsequent fields referencing a conditional field MUST handle potential `null`
@@ -559,6 +578,21 @@ binary Packet {
 | Expression with operators | Computed field | `(Flags & 1) <> 0` |
 | Function call | Computed field | `Crc32(Data)` |
 | Parenthesized expression | Computed field | `(Count)` |
+
+Computed aliases of a parsed record retain its schema type. A CASE whose non-NULL
+branches reference the same record type retains that type as well; a NULL branch
+permits an absent record without erasing its members. Indexing a primitive array
+in a schema expression retains its element type, including when the value feeds
+a subsequent field size.
+Member lookup follows the receiver's type. A scalar or array member such as
+`Raw.Length` cannot resolve to a sibling schema field named `Length`.
+Nullability inference obeys the same declaration-order and receiver rules as
+value binding. Repeated primitive elements retain their primitive type for
+arithmetic and bitwise expressions after indexing.
+The same member-type rules apply through a parsed substream record. A possibly
+absent computed string lifts member values such as Length to nullable types.
+Substring accepts those values at runtime and reports ISE0014 for a NULL index
+or length; a guarded CASE does not evaluate the unselected call.
 
 **Semantics:**
 - Computed fields do NOT advance the cursor
@@ -686,6 +720,8 @@ binary ValidatedHeader {
 - Failed validation raises a parse error (ISE0002) with field name and constraint
 - Validation may reference the current field AND any previously declared field
 - Validation expressions must evaluate to boolean
+- A binary `check` succeeds only for TRUE; FALSE or UNKNOWN raises ISE0002.
+  A skipped conditional field does not evaluate its check.
 
 ### 4.9.1 Field Value Validations (`const`, `magic`, `oneOf`)
 
@@ -773,6 +809,8 @@ binary TlvStream {
 **Semantics (`repeat until` Expression):**
 - Parses elements repeatedly until condition becomes TRUE
 - `Records[-1]` refers to the most recently parsed element
+- A computed Boolean member of that record may be the stop condition directly,
+  for example `Records[-1].Stop`. Numeric members remain invalid conditions.
 - Condition is evaluated AFTER each element is parsed
 - At least one element is always attempted (do-while)
 - Maximum iteration count is a host-selected safety limit (default: 10,000); exceeding it reports ISE0009
@@ -800,6 +838,11 @@ binary Frame {
 - `eof` is recognized only after `repeat until`; it is not a general keyword
 - Each element must consume at least one bit of input; a zero-progress element raises a parse error (ISE0009)
 - Composes with substreams: inside a `substream`, `eof` is bounded by the substream slice, so the repeat stops at the end of the bounded payload and parsing of the parent resumes at the field that follows the substream
+
+A repeated substream applies its byte bound independently to every element.
+Each successful element advances the containing cursor by its declared length,
+including bytes skipped in lax mode. The repeat condition sees that element's
+parsed value, and following fields resume after the final bounded slice.
 
 ### 4.11 Discard Fields
 
@@ -1409,9 +1452,37 @@ and computed fields. A check can reference its own field after it is read; other
 expressions may reference only earlier fields. A repeat condition may inspect
 the just-read collection element. CASE requires ELSE, as in core. A computed
 field uses `Name: expression` or `Name: = expression`; `:=` is not its syntax.
-Sizes and positions require representable non-negative integral values; invalid
-sizes report ISE0007, invalid positions ISE0008. A false guard skips all parsing,
-computed size evaluation and validation for that field.
+Both computed-field forms accept core scalar literals, including ordinary and raw
+strings and decimal, hexadecimal, binary and octal integer forms. A leading
+literal must not be interpreted as a parsed-field type annotation.
+Sizes and positions require representable non-negative integral values. Dotted
+references, arithmetic, parentheses and CASE are valid in both locations.
+Null, fractional, non-finite, negative and overflowing values are invalid; null
+does not imply zero. Invalid sizes report ISE0007, invalid positions ISE0008.
+Evaluation occurs once when the field is reached, after its guard succeeds.
+A FALSE or UNKNOWN guard skips parsing, size and position evaluation, and checks.
+
+CASE selects only the first TRUE WHEN branch; FALSE and UNKNOWN select no branch.
+Only the selected result expression is evaluated, and ELSE is mandatory. Simple
+CASE uses ordinary core equality, including its null rules. Result branches use
+core compatible-type rules. NOT, AND and OR preserve core three-valued logic.
+Computed arithmetic uses the core numeric promotion rules: small integral
+operands produce `int`, lifted to `int?` when an operand can be absent.
+Integer literals in schema expressions preserve the explicit core type suffixes
+(`b`, `ub`, `s`, `us`, `i`, `ui`, `l`, `ul`); an unsuffixed integer remains `int`.
+Decimal literals have core type `decimal`. Mixed numeric arithmetic converts
+both operands to the core common numeric type before applying the operator;
+decimal mixed with `float` or `double` requires an explicit conversion. For
+example, `F::Decimal + 0.5` produces `decimal?` when F is a parsed `float`, while
+`F + 0.5` is a binding error. Strict postfix casts follow core §3.7, including
+nullable scalar metadata and null propagation.
+Numeric comparisons follow core comparison conversion rather than the arithmetic
+compatibility table: a decimal compared with float or double converts both operands
+to decimal without requiring an explicit cast. Comparisons preserve UNKNOWN for
+absent operands. String ordering uses ordinal comparison, not host-language string
+relational operators. String and array `Length` members have logical type `int`,
+lifted to `int?` when their containing value can be absent. Intrinsic function
+results retain the logical signatures in §6.5 for binding and later expressions.
 
 ### 6.4 Field Reference Scoping
 
@@ -1422,6 +1493,51 @@ Within a schema, expressions may reference:
 - Array elements via indexing: `Items[0]`, `Records[-1]` (last element)
 
 **Forward references MUST NOT occur.** Following field expressions see the earlier parsed or computed values.
+
+### 6.4.1 Explicit Enclosing Binary Record Context
+
+In a nested binary schema, `parent.Field` refers to a completed field of the
+immediately enclosing record instance. `parent.parent.Field` traverses two record
+levels; further `parent` segments follow the same rule. This is record nesting,
+not schema inheritance or a SQL alias. The extension applies to binary schemas.
+
+```sql
+binary Item { Value: byte };
+binary Body { Items: Item[parent.Count] };
+binary Record { Count: byte, Payload: Body };
+
+SELECT i.Value
+FROM input.records() f
+CROSS APPLY Interpret<Record>(f.Content) r
+CROSS APPLY r.Payload.Items i
+```
+
+Here `input.records()` is an informative source contract supplying byte arrays.
+The bytes `02 0A 14` yield the values 10 and 20.
+
+- Only fields completed before entering the nested record are visible through
+  its enclosing context. The record being constructed, later siblings, and
+  forward references are unavailable.
+- Parsed and computed enclosing values may be used in sizes, positions, guards,
+  checks and computed expressions, subject to their normal type and null rules.
+- A separately declared schema may express an enclosing-context requirement.
+  Binding MUST validate that requirement at every embedding site. Missing fields,
+  unavailable ancestors, forward references and incompatible types are schema
+  diagnostics; they MUST NOT become internal compiler errors. Compatible numeric
+  enclosing types may widen using core common-type rules.
+- A parent-dependent schema cannot be interpreted directly without its required
+  enclosing record. This is a binding error, reported as MQ2030.
+- Array and repeat elements use the containing record as their parent. A
+  substream wrapper does not add a record level; its embedded record does.
+  Inheritance does not add a record level.
+- Enclosing context is read-only and is not a parsed field, query column or
+  serialized member. Each interpretation receives its own context values.
+- `parent` is contextual, not a globally reserved identifier. An earlier local
+  field named `parent` retains ordinary member access. Otherwise, a dotted
+  expression rooted at `parent` denotes enclosing context. Bare identifiers in
+  named schemas do not acquire implicit enclosing lookup. Existing unqualified
+  enclosing references in anonymous schemas remain compatible; new declarations
+  SHOULD use explicit `parent` paths.
 
 ### 6.5 Built-in Functions for Schemas
 
@@ -1454,6 +1570,9 @@ the first zero-based byte-pattern position or -1. Substring counts UTF-16 units
 and requires nonnegative start/length within the input bounds. ToText uses the
 strict decoding rules in §4.2.4 and the encoding names defined there. No native
 method library or discovery API is required to implement these operations.
+Malformed encoded input to `ToText` reports ISE0010. Invalid intrinsic arguments,
+including malformed hex and invalid substring bounds, report ISE0014 during
+expression evaluation; they must not become internal compiler failures.
 
 ---
 
@@ -1543,6 +1662,13 @@ InterpretAt<SchemaType>(data, offset)
 ```
 
 Begin parsing at specified byte offset:
+
+The query-level offset argument MUST have non-nullable `int` type or an integral
+type that widens to it without loss: `byte`, `sbyte`, `short`, or `ushort`. Wider numeric
+types require an explicit conversion; a nullable conversion requires an explicit
+NULL default, for example `ToInt32(h.DataOffset) ?? 0`. An incompatible offset
+type reports MQ3005 during binding. This differs from schema-field `at`
+expressions, whose numeric values are checked against the schema cursor domain.
 
 ```sql
 SELECT
@@ -1745,7 +1871,7 @@ ISE0002: Validation failed for field 'Magic' at offset 0
 | Encoding errors | ISE0010 | Invalid character encoding |
 | Expression errors | ISE0007-ISE0008, ISE0014 | Invalid size, position, or field reference expression |
 | Schema errors | ISE0013 | Circular or undefined schema reference |
-| General errors | ISE0009, ISE0015 | Repeat limit exceeded or general parsing failure |
+| General errors | ISE0009, ISE0015 | Repeat limit exceeded, repeat-until-eof element made no progress, or general parsing failure |
 
 ### 9.3 Error Behavior
 
@@ -1900,6 +2026,12 @@ ValidationMod
 
 SizeExpr
     ::= Expression
+
+EnclosingFieldReference
+    ::= 'parent' '.' ('parent' '.')* Identifier ('.' Identifier)*
+
+-- Schema Expression uses core precedence and includes searched/simple CASE,
+-- unary NOT, dotted member access and enclosing references. CASE requires ELSE.
 ```
 
 ### 10.2 Complete Text Schema Grammar
@@ -2265,9 +2397,9 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | ISE0004 | Literal | Expected literal not found at current position |
 | ISE0005 | Delimiter | Delimiter not found in remaining input |
 | ISE0006 | Delimiter | Expected opening delimiter not found |
-| ISE0007 | Expression | Invalid size expression value (negative or overflow) |
-| ISE0008 | Position | Invalid position value (negative) |
-| ISE0009 | Control Flow | Maximum iteration count exceeded in repeat |
+| ISE0007 | Expression | Invalid size expression value (null, fractional, non-finite, negative or overflow) |
+| ISE0008 | Position | Invalid position value (null, fractional, non-finite, negative or overflow) |
+| ISE0009 | Control Flow | Maximum repeat iteration count exceeded or a `repeat until eof` element made no progress |
 | ISE0010 | Encoding | String encoding error |
 | ISE0011 | Whitespace | Expected whitespace not found |
 | ISE0012 | Alternative | Switch/alternative exhausted without match |

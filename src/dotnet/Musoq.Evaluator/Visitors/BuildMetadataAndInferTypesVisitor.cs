@@ -14,12 +14,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
-    private enum ComputedFieldColumnTypeMode
-    {
-        PreferExpressionReturnType,
-        InferFromColumns
-    }
-
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
 

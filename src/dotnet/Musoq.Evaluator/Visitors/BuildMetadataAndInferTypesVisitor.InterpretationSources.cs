@@ -38,6 +38,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 TextSpan.Empty);
 
         var schema = registration;
+        if (schema.Node is BinarySchemaNode)
+            SchemaRegistry.ParentBindings.RequireRoot(schemaName, TextSpan.Empty);
         var columns = new List<ISchemaColumn>();
 
         switch (schema.Node)
@@ -46,8 +48,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             {
                 var allFields = GetAllBinarySchemaFields(binaryNode);
                 columns.AddRange(CreateBinarySchemaColumns(
-                    allFields,
-                    ComputedFieldColumnTypeMode.PreferExpressionReturnType));
+                    allFields));
                 break;
             }
             case TextSchemaNode textSchemaNode:
@@ -147,18 +148,15 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private List<ISchemaColumn> CreateBinarySchemaColumns(
-        IReadOnlyList<SchemaFieldNode> fields,
-        ComputedFieldColumnTypeMode computedFieldColumnTypeMode)
+        IReadOnlyList<SchemaFieldNode> fields)
     {
         return CreateBinarySchemaColumns(
             fields,
-            computedFieldColumnTypeMode,
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
     }
 
     private List<ISchemaColumn> CreateBinarySchemaColumns(
         IReadOnlyList<SchemaFieldNode> fields,
-        ComputedFieldColumnTypeMode computedFieldColumnTypeMode,
         IReadOnlyDictionary<string, string> typeParamMap)
     {
         var columns = new List<ISchemaColumn>();
@@ -191,19 +189,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (field is ComputedFieldNode computedField)
             {
-                var columnType = ResolveComputedBinaryColumnType(
-                    computedField,
-                    columns,
-                    computedFieldColumnTypeMode);
-
-                if (ReferencesConditionalField(computedField.Expression, fields) &&
-                    columnType.IsValueType &&
-                    Nullable.GetUnderlyingType(columnType) == null)
-                {
-                    columnType = typeof(Nullable<>).MakeGenericType(columnType);
-                }
-
-                columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType));
+                var columnType = BinarySchemaExpressionTypes.Resolve(computedField.Expression, fields, SchemaRegistry);
+                var alias = BinarySchemaRecordAliases.Resolve(computedField.Expression, fields);
+                var intendedTypeName = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias, typeParamMap).IntendedTypeName;
+                columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName));
                 continue;
             }
 
@@ -211,20 +200,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         return columns;
-    }
-
-    private static Type ResolveComputedBinaryColumnType(
-        ComputedFieldNode computedField,
-        List<ISchemaColumn> columns,
-        ComputedFieldColumnTypeMode computedFieldColumnTypeMode)
-    {
-        if (computedFieldColumnTypeMode == ComputedFieldColumnTypeMode.InferFromColumns)
-            return InferComputedFieldType(computedField.Expression, columns);
-
-        var expressionType = computedField.Expression.ReturnType;
-        return expressionType == null || expressionType == typeof(void) || expressionType == typeof(object)
-            ? InferComputedFieldType(computedField.Expression, columns)
-            : expressionType;
     }
 
     private List<TextFieldDefinitionNode> GetAllTextSchemaFields(TextSchemaNode textNode)

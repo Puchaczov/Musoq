@@ -1,0 +1,166 @@
+{
+  "fixture": "Upstream/src/enum_negative.bin",
+  "assertions": [
+    {
+      "actual": "bits.size",
+      "expected": {
+        "kind": "integer",
+        "value": "16"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "bits[0]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "bits[1]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "bits[2]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "bits[3]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "bits[4]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "bits[5]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "bits[6]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "bits[7]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "bits[8]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 9
+    },
+    {
+      "actual": "bits[9]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 10
+    },
+    {
+      "actual": "bits[10]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 11
+    },
+    {
+      "actual": "bits[11]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 12
+    },
+    {
+      "actual": "bits[12]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 13
+    },
+    {
+      "actual": "bits[13]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 14
+    },
+    {
+      "actual": "bits[14]",
+      "expected": {
+        "kind": "boolean",
+        "value": false
+      },
+      "resultColumn": 15
+    },
+    {
+      "actual": "bits[15]",
+      "expected": {
+        "kind": "boolean",
+        "value": true
+      },
+      "resultColumn": 16
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ]
+    }
+  ]
+}

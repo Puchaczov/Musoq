@@ -22,6 +22,8 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
         "Microsoft.CSharp.dll",
         "System.Text.RegularExpressions.dll",
         "System.Text.Json.dll",
+        "System.Security.Cryptography.dll",
+        "System.Text.Encoding.CodePages.dll",
         "System.Memory.dll",
         "System.ObjectModel.dll",
         "System.Dynamic.Runtime.dll",

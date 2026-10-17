@@ -1,0 +1,61 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [
+    {
+      "actual": "int_u",
+      "expected": {
+        "kind": "integer",
+        "value": "1262698832"
+      }
+    },
+    {
+      "actual": "int_s",
+      "expected": {
+        "kind": "integer",
+        "value": "-52947"
+      }
+    },
+    {
+      "actual": "div_pos_const",
+      "expected": {
+        "kind": "integer",
+        "value": "756"
+      }
+    },
+    {
+      "actual": "div_neg_const",
+      "expected": {
+        "kind": "integer",
+        "value": "-757"
+      }
+    },
+    {
+      "actual": "div_pos_seq",
+      "expected": {
+        "kind": "integer",
+        "value": "97130679"
+      }
+    },
+    {
+      "actual": "div_neg_seq",
+      "expected": {
+        "kind": "integer",
+        "value": "-4073"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ]
+}

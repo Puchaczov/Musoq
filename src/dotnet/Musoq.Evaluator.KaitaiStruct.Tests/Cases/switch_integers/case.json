@@ -1,0 +1,85 @@
+{
+  "fixture": "Upstream/src/switch_integers.bin",
+  "assertions": [
+    {
+      "actual": "opcodes.size",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "opcodes[0].code",
+      "expected": {
+        "kind": "integer",
+        "value": "1"
+      }
+    },
+    {
+      "actual": "opcodes[0].body",
+      "expected": {
+        "kind": "integer",
+        "value": "7"
+      }
+    },
+    {
+      "actual": "opcodes[1].code",
+      "expected": {
+        "kind": "integer",
+        "value": "2"
+      }
+    },
+    {
+      "actual": "opcodes[1].body",
+      "expected": {
+        "kind": "integer",
+        "value": "16448"
+      }
+    },
+    {
+      "actual": "opcodes[2].code",
+      "expected": {
+        "kind": "integer",
+        "value": "4"
+      }
+    },
+    {
+      "actual": "opcodes[2].body",
+      "expected": {
+        "kind": "integer",
+        "value": "4919"
+      }
+    },
+    {
+      "actual": "opcodes[3].code",
+      "expected": {
+        "kind": "integer",
+        "value": "8"
+      }
+    },
+    {
+      "actual": "opcodes[3].body",
+      "expected": {
+        "kind": "integer",
+        "value": "4919"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
+}

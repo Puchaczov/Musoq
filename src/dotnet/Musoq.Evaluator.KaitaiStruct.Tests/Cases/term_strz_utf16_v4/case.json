@@ -1,0 +1,40 @@
+{
+  "fixture": "Upstream/src/term_strz_utf16.bin",
+  "assertions": [
+    {
+      "actual": "s1.value",
+      "expected": {
+        "kind": "string",
+        "value": "a\u0200b"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "s2.value",
+      "expected": {
+        "kind": "string",
+        "value": "c\u0200d"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "s3.value",
+      "expected": {
+        "kind": "string",
+        "value": "e\u0200f"
+      },
+      "resultColumn": 2
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

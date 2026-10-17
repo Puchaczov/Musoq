@@ -1,0 +1,94 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [
+    {
+      "actual": "seq_str",
+      "expected": {
+        "kind": "string",
+        "value": "foo|b"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "seq_int",
+      "expected": {
+        "kind": "integer",
+        "value": "97"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "empty",
+      "expected": {
+        "kind": "string",
+        "value": ""
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "literal",
+      "expected": {
+        "kind": "string",
+        "value": "abc"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "literal_with_escapes",
+      "expected": {
+        "kind": "string",
+        "value": "abc\n\tt"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "head_and_int_literal",
+      "expected": {
+        "kind": "string",
+        "value": "abc=123"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "head_and_str_literal",
+      "expected": {
+        "kind": "string",
+        "value": "abc=foo"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "head_and_int",
+      "expected": {
+        "kind": "string",
+        "value": "abc=97"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "head_and_str",
+      "expected": {
+        "kind": "string",
+        "value": "abc=foo|b"
+      },
+      "resultColumn": 8
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    }
+  ]
+}

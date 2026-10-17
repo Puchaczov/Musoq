@@ -453,7 +453,7 @@ namespace Musoq.Generated.Interpreters
             __parsedValue.Length = _length;
             RecordParsedField("Length");
             SetCurrentField("DynamicBytes");
-            var _dynamicBytes = ReadBytes(data, (int)_length);
+            var _dynamicBytes = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize));
             __parsedValue.DynamicBytes = _dynamicBytes;
             RecordParsedField("DynamicBytes");
             SetCurrentField("AsciiValue");

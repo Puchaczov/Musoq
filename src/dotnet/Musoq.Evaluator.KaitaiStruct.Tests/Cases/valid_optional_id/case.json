@@ -1,0 +1,11 @@
+{
+  "fixture": "Upstream/src/fixed_struct.bin",
+  "assertions": [],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": []
+    }
+  ]
+}

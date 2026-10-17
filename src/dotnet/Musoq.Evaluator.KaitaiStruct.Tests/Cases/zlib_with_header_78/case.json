@@ -1,0 +1,22 @@
+{
+  "fixture": "Upstream/src/zlib_with_header_78.bin",
+  "assertions": [
+    {
+      "actual": "data",
+      "expected": {
+        "kind": "bytes",
+        "value": "6120717569636b2062726f776e20666f78206a756d7073206f766572"
+      },
+      "resultColumn": 0
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0
+      ]
+    }
+  ]
+}

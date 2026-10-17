@@ -59,7 +59,7 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x04, 0x2A, 0x00, 0x00, 0x00 };
         var table = RunQuery(query, data);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Payload.Login.UserId", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Payload.Login.UserId", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [42]);
     }
 
@@ -142,7 +142,7 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("p.Payload.Case", typeof(string)),
-            ("p.Payload.Data.Size", typeof(short)));
+            ("p.Payload.Data.Size", typeof(short?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Data", (short)5]);
     }
 

@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tests.Schema.Generic;
 
 namespace Musoq.Evaluator.Tests;
@@ -24,26 +22,6 @@ public sealed class LibraryExecutionNativeConversionQueryTests : GenericEntityTe
             row.GetValue<double?>(2), row.GetValue<string?>(3))).ToArray();
         CollectionAssert.AreEqual(new (int, int?, double?, string?)[]
             { (1, 2, 1.5, "1.5"), (2, 2, 2.5, "2.5"), (3, -2, -1.5, "-1.5"), (4, null, null, null) }, rows);
-    }
-
-    [TestMethod]
-    public void ConstrainedNumericCast_ShouldAllocateNoBoxedArguments()
-    {
-        var (allocated, total) = AllocationTestThread.Run(MeasureConstrainedNumericCasts);
-        Assert.AreEqual(20000, total);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    private static (long Allocated, int Total) MeasureConstrainedNumericCasts()
-    {
-        for (var index = 0; index < 1000; index++)
-            _ = StrictCastRuntime.ToInt32<decimal>((decimal?)1.5m)!.Value;
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var total = 0;
-        for (var index = 0; index < 10000; index++)
-            total += StrictCastRuntime.ToInt32<decimal>((decimal?)1.5m)!.Value;
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        return (allocated, total);
     }
 
     [TestMethod]

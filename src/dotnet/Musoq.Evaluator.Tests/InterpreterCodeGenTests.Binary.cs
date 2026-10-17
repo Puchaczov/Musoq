@@ -362,7 +362,7 @@ public partial class InterpreterCodeGenTests
             code, $"Expected List<byte> but got:\n{code}");
         Assert.Contains("do",
             code, $"Expected do-while loop but got:\n{code}");
-        Assert.Contains("while (!",
+        Assert.Contains("!= true)",
             code, $"Expected while condition but got:\n{code}");
         Assert.Contains("ToArray()",
             code, $"Expected ToArray() but got:\n{code}");

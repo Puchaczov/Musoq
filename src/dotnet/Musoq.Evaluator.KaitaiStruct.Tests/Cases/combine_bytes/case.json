@@ -1,0 +1,103 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [
+    {
+      "actual": "bytes_term",
+      "expected": {
+        "kind": "bytes",
+        "value": "666f6f"
+      },
+      "resultColumn": 0
+    },
+    {
+      "actual": "bytes_limit",
+      "expected": {
+        "kind": "bytes",
+        "value": "6261727c"
+      },
+      "resultColumn": 1
+    },
+    {
+      "actual": "bytes_eos",
+      "expected": {
+        "kind": "bytes",
+        "value": "62617a40"
+      },
+      "resultColumn": 2
+    },
+    {
+      "actual": "bytes_calc",
+      "expected": {
+        "kind": "bytes",
+        "value": "526e44"
+      },
+      "resultColumn": 3
+    },
+    {
+      "actual": "term_or_limit",
+      "expected": {
+        "kind": "bytes",
+        "value": "666f6f"
+      },
+      "resultColumn": 4
+    },
+    {
+      "actual": "term_or_eos",
+      "expected": {
+        "kind": "bytes",
+        "value": "62617a40"
+      },
+      "resultColumn": 5
+    },
+    {
+      "actual": "term_or_calc",
+      "expected": {
+        "kind": "bytes",
+        "value": "666f6f"
+      },
+      "resultColumn": 6
+    },
+    {
+      "actual": "limit_or_eos",
+      "expected": {
+        "kind": "bytes",
+        "value": "6261727c"
+      },
+      "resultColumn": 7
+    },
+    {
+      "actual": "limit_or_calc",
+      "expected": {
+        "kind": "bytes",
+        "value": "526e44"
+      },
+      "resultColumn": 8
+    },
+    {
+      "actual": "eos_or_calc",
+      "expected": {
+        "kind": "bytes",
+        "value": "62617a40"
+      },
+      "resultColumn": 9
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ]
+}

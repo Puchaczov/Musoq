@@ -231,6 +231,11 @@ public sealed partial class Lexer
     private Token ScanSquareBracket()
     {
         var start = Position;
+        if (IsSchemaContext)
+        {
+            Position++;
+            return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
+        }
         var previous = _currentToken.TokenType == TokenType.WhiteSpace ? _lastToken : _currentToken;
         if (previous.TokenType is TokenType.ParameterReference or TokenType.RightSquareBracket)
         {
@@ -249,18 +254,6 @@ public sealed partial class Lexer
         {
             Position = end + 1;
             var text = Input[start..Position];
-
-
-            if (IsSchemaContext)
-            {
-                var innerValue = text[1..^1];
-                _pendingSchemaTokens.Enqueue(
-                    int.TryParse(innerValue, out _)
-                        ? new IntegerToken(innerValue, new TextSpan(start + 1, innerValue.Length), "i")
-                        : new WordToken(innerValue, new TextSpan(start + 1, innerValue.Length)));
-                _pendingSchemaTokens.Enqueue(new RightSquareBracketToken(new TextSpan(Position - 1, 1)));
-                return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
-            }
 
 
             var columnName = text[1..^1];

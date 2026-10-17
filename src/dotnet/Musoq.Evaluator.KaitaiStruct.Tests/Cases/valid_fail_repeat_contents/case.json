@@ -1,0 +1,15 @@
+{
+  "fixture": "Upstream/src/bcd_user_type_be.bin",
+  "assertions": [],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": []
+    }
+  ],
+  "expectedFailure": {
+    "code": "ValidationFailed",
+    "field": "foo.value"
+  }
+}

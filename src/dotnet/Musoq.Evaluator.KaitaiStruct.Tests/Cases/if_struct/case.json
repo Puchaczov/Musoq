@@ -1,0 +1,90 @@
+{
+  "fixture": "Upstream/src/if_struct.bin",
+  "assertions": [
+    {
+      "actual": "op1.opcode",
+      "expected": {
+        "kind": "integer",
+        "value": "83"
+      }
+    },
+    {
+      "actual": "op1.arg_tuple",
+      "expected": {
+        "kind": "null"
+      }
+    },
+    {
+      "actual": "op1.arg_str.str",
+      "expected": {
+        "kind": "string",
+        "value": "foo"
+      }
+    },
+    {
+      "actual": "op2.opcode",
+      "expected": {
+        "kind": "integer",
+        "value": "84"
+      }
+    },
+    {
+      "actual": "op2.arg_tuple.num1",
+      "expected": {
+        "kind": "integer",
+        "value": "66"
+      }
+    },
+    {
+      "actual": "op2.arg_tuple.num2",
+      "expected": {
+        "kind": "integer",
+        "value": "67"
+      }
+    },
+    {
+      "actual": "op2.arg_str",
+      "expected": {
+        "kind": "null"
+      }
+    },
+    {
+      "actual": "op3.opcode",
+      "expected": {
+        "kind": "integer",
+        "value": "83"
+      }
+    },
+    {
+      "actual": "op3.arg_tuple",
+      "expected": {
+        "kind": "null"
+      }
+    },
+    {
+      "actual": "op3.arg_str.str",
+      "expected": {
+        "kind": "string",
+        "value": "bar"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ]
+}

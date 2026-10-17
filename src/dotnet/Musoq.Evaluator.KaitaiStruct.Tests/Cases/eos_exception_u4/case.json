@@ -1,0 +1,15 @@
+{
+  "fixture": "Upstream/src/term_strz.bin",
+  "assertions": [],
+  "queries": [
+    {
+      "name": "main",
+      "path": "query.sql",
+      "assertionIndices": []
+    }
+  ],
+  "expectedFailure": {
+    "code": "InsufficientData",
+    "field": "envelope.fail_int"
+  }
+}

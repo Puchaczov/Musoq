@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <ProjectReference Include="../Musoq.Converter/Musoq.Converter.csproj" />
+    <ProjectReference Include="../Musoq.Tests.Common/Musoq.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Cases/**/*" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Upstream/src/*.bin" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

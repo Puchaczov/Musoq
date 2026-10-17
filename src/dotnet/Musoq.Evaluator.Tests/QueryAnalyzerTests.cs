@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -23,33 +22,6 @@ public class QueryAnalyzerTests : BasicEntityTestBase
             { "#A", [] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
-    }
-
-    #endregion
-
-    #region Performance Tests (Quick validation)
-
-    [TestMethod]
-    public void ValidateSyntax_IsFasterThanFullAnalysis()
-    {
-        // Arrange
-        var schemaProvider = CreateSchemaProvider();
-        var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = "SELECT Name, City, Country FROM #A.Entities() WHERE Name = 'test'";
-
-        // Act - Run multiple times to get average
-        var syntaxWatch = Stopwatch.StartNew();
-        for (var i = 0; i < 10; i++) analyzer.ValidateSyntax(query);
-        syntaxWatch.Stop();
-
-        var fullWatch = Stopwatch.StartNew();
-        for (var i = 0; i < 10; i++) analyzer.Analyze(query);
-        fullWatch.Stop();
-
-        // Assert - Syntax validation should generally be faster
-        // (but we don't fail the test, just log the comparison)
-        Console.WriteLine($"Syntax validation: {syntaxWatch.ElapsedMilliseconds}ms");
-        Console.WriteLine($"Full analysis: {fullWatch.ElapsedMilliseconds}ms");
     }
 
     #endregion
