@@ -23,7 +23,7 @@ public sealed partial class ExecutionShapeResolver
                          context))
             {
                 columns.Add(new ColumnSchema(
-                    $"{field.Name}.{nestedColumn.Name}",
+                    $"{parentColumn.Name}.{nestedColumn.Name}",
                     nestedColumn.Type,
                     parentColumn.Index,
                     nestedColumn.IntendedTypeName));
@@ -52,7 +52,7 @@ public sealed partial class ExecutionShapeResolver
                      context with { GenericBindings = nestedBindings }))
         {
             columns.Add(new ColumnSchema(
-                $"{field.Name}.{nestedColumn.Name}",
+                $"{parentColumn.Name}.{nestedColumn.Name}",
                 nestedColumn.Type,
                 parentColumn.Index,
                 nestedColumn.IntendedTypeName));

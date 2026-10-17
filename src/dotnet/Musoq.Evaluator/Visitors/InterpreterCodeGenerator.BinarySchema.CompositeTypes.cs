@@ -62,6 +62,12 @@ public partial class InterpreterCodeGenerator
             var elemVar = GetInlineArrayElementVariable(tempVar);
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elemVar});");
         }
+        else if (arrayType.ElementType is ByteArrayTypeNode or SubstreamTypeNode)
+        {
+            var elementVar = $"_{localVar}_elem";
+            builder.Append(Indent(GenerateCollectionPayloadRead(elementVar, fieldName, arrayType.ElementType), 1));
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elementVar});");
+        }
         else
         {
             throw CreateUnsupportedCodeGenerationException(

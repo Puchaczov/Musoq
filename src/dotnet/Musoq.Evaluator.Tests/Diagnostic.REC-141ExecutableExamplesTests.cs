@@ -741,7 +741,7 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
                 provider,
                 LoggerResolver,
                 TestCompilationOptions));
-        StringAssert.Contains(offsetException.Message, "MQ9001");
+        Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, offsetException.PrimaryEnvelope.Code);
 
         var compiled = CompileGeneratedQuery(
             StorageCorrectedQuery,

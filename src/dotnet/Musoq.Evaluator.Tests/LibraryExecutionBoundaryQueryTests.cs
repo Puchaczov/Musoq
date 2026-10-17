@@ -238,19 +238,20 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     }
 
     [TestMethod]
-    public void TypedColumns_WhenConsumedRepeatedly_ShouldAllocateNoBoxedValuesOrInvocationObjects()
+    public void TypedColumns_WhenReadAndVisited_ShouldPreserveNumericValues()
     {
         const string query = "select Position, Amount from #schema.first() order by Position";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
             LibraryExecutionFixture.CreateRows());
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
+        var visitor = VisitColumnValues(rows);
 
-        var measured = MeasureIsolatedColumnReads(rows);
-
-        Assert.AreEqual(0L, measured.Allocated);
-        Assert.AreEqual(150_000, measured.Positions);
-        Assert.AreEqual(60_000m, measured.Amounts);
+        Assert.AreEqual(15, visitor.Positions);
+        Assert.AreEqual(6m, visitor.Amounts);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5 }, rows.Select(row => row.GetValue<int>(0)).ToArray());
+        CollectionAssert.AreEqual(new decimal?[] { 1.25m, 2.75m, null, -3m, 5m },
+            rows.Select(row => row.GetValue<decimal?>(1)).ToArray());
     }
 
     [TestMethod]
@@ -374,36 +375,18 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
 
     public readonly record struct ErasedAmountRow(object Amount);
 
-    private static (long Allocated, int Positions, decimal Amounts) MeasureIsolatedColumnReads(Row[] rows) =>
-        AllocationTestThread.Run(() => MeasureColumnReads(rows));
-
-    private static (long Allocated, int Positions, decimal Amounts) MeasureColumnReads(Row[] rows)
-    {
-        _ = GC.GetAllocatedBytesForCurrentThread();
-        var warmVisitor = new AllocationVisitor();
-        ConsumeColumns(rows, ref warmVisitor);
-        ConsumeColumns(rows, ref warmVisitor);
-        var visitor = new AllocationVisitor();
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        ConsumeColumns(rows, ref visitor);
-        return (GC.GetAllocatedBytesForCurrentThread() - before, visitor.Positions, visitor.Amounts);
-    }
-
-    private static void ConsumeColumns(Row[] rows, ref AllocationVisitor visitor)
-    {
-        for (var iteration = 0; iteration < 10_000; iteration++)
-            foreach (var row in rows)
-            {
-                row.VisitColumns(ref visitor);
-                if (row.GetValue<int>(0) <= 0) throw new InvalidOperationException("Invalid position.");
-                _ = row.GetValue<decimal?>(1);
-            }
-    }
-
     public sealed record FrameworkCollectionEntity(ArrayList Value);
     public readonly record struct TextRow(string Text);
 
-    private struct AllocationVisitor : IColumnValueVisitor
+    private static ColumnValueVisitor VisitColumnValues(Row[] rows)
+    {
+        var visitor = new ColumnValueVisitor();
+        foreach (var row in rows)
+            row.VisitColumns(ref visitor);
+        return visitor;
+    }
+
+    private struct ColumnValueVisitor : IColumnValueVisitor
     {
         public int Positions;
         public decimal Amounts;

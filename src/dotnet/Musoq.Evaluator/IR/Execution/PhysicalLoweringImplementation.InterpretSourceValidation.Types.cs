@@ -117,8 +117,11 @@ internal sealed partial class PhysicalLoweringImplementation
         ISet<string> validatedSchemas,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
     {
-        if (arrayType.ElementType is PrimitiveTypeNode or StringTypeNode)
+        if (arrayType.ElementType is PrimitiveTypeNode or StringTypeNode or ByteArrayTypeNode)
             return InterpretSourceValidationResult.Success();
+
+        if (arrayType.ElementType is SubstreamTypeNode arraySubstream)
+            return ValidateSubstreamType(arraySubstream, fieldName, validatedSchemas, genericBindings);
 
         if (arrayType.ElementType is SchemaReferenceTypeNode reference)
             return ValidateSchemaReferenceType(reference, fieldName, validatedSchemas, genericBindings);
@@ -141,6 +144,9 @@ internal sealed partial class PhysicalLoweringImplementation
 
         if (repeatUntilType.ElementType is ArrayTypeNode arrayType)
             return ValidateArrayType(arrayType, fieldName, validatedSchemas, genericBindings);
+
+        if (repeatUntilType.ElementType is SubstreamTypeNode repeatSubstream)
+            return ValidateSubstreamType(repeatSubstream, fieldName, validatedSchemas, genericBindings);
 
         if (repeatUntilType.ElementType is SchemaReferenceTypeNode reference)
             return ValidateSchemaReferenceType(reference, fieldName, validatedSchemas, genericBindings);

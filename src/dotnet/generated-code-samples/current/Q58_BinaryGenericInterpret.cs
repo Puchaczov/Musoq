@@ -172,7 +172,7 @@ namespace GeneratedSample_Q58_BinaryGenericInterpret
                         }
 
                         Statement0Row0 fc = __storedTable0Rows[__storedTable0Index];
-                        var dRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.GenericItem>(fc.c_Items?.Data);
+                        var dRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.GenericItem>(fc?.c_Items?.Data);
                         foreach (var dChunk in dRows)
                         {
                             for (int dIndex = 0, dIndexCount = dChunk.Count; dIndex < dIndexCount; ++dIndex)

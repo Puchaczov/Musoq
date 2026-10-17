@@ -82,13 +82,15 @@ public sealed partial class ExecutionShapeResolver
                 fieldType = typeof(Nullable<>).MakeGenericType(fieldType);
             }
 
+            var shapeField = field is ComputedFieldNode computed
+                ? (SchemaFieldNode?)Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, schemaFields) ?? field : field;
             var intendedTypeName = InterpretationPropertyTypeNameResolver.ResolveFieldTypeName(
-                field,
+                shapeField,
                 context.GenericBindings,
                 context.SchemaRegistry);
             var column = new ColumnSchema(field.Name, fieldType, topLevelIndex, intendedTypeName);
             columns.Add(column);
-            AddNestedBinaryColumns(field, columns, column, context);
+            AddNestedBinaryColumns(shapeField, columns, column, context);
             topLevelIndex++;
         }
 

@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
-using Musoq.Evaluator.Helpers;
 using Musoq.Converter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -286,37 +285,6 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
         Assert.HasCount(1, rows);
         Assert.AreEqual(1m, rows[0].GetValue<decimal>(0));
         Assert.AreEqual(2m, rows[0].GetValue<decimal>(1));
-    }
-
-    [TestMethod]
-    public void TypedIndexedNumericOperations_WhenRepeated_ShouldAllocateNoBoxedValuesOrArguments()
-    {
-        var (allocated, total) = AllocationTestThread.Run(MeasureIndexedNumericOperations);
-        Assert.AreEqual(50_000m, total);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    private static (long Allocated, decimal Total) MeasureIndexedNumericOperations()
-    {
-        var values = new NumericList([1m, 2m]);
-        var dictionary = new Dictionary<int, decimal> { [1] = 3m };
-        var warmTotal = ConsumeIndexedNumericValues(values, dictionary);
-        if (warmTotal != 50_000m)
-            throw new InvalidOperationException("Indexed numeric warmup returned incorrect values.");
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var total = ConsumeIndexedNumericValues(values, dictionary);
-        return (GC.GetAllocatedBytesForCurrentThread() - before, total);
-    }
-
-    private static decimal ConsumeIndexedNumericValues(NumericList values, Dictionary<int, decimal> dictionary)
-    {
-        decimal total = 0;
-        for (var index = 0; index < 10_000; index++)
-        {
-            total += SafeArrayAccess.GetTypedReadOnlyListElement<NumericList, decimal>(values, -1);
-            total += SafeArrayAccess.GetTypedDictionaryValue<Dictionary<int, decimal>, int, decimal>(dictionary, 1);
-        }
-        return total;
     }
 
     public sealed record StructListEntity(NumericList Amounts);

@@ -278,12 +278,12 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("VertexCount", typeof(int)),
-            ("m.Vertices[0].Position.X", typeof(float)),
-            ("m.Vertices[0].Position.Y", typeof(float)),
-            ("m.Vertices[0].Color", typeof(byte)),
-            ("m.Vertices[1].Position.X", typeof(float)),
-            ("m.Vertices[1].Position.Y", typeof(float)),
-            ("m.Vertices[1].Color", typeof(byte)));
+            ("m.Vertices[0].Position.X", typeof(float?)),
+            ("m.Vertices[0].Position.Y", typeof(float?)),
+            ("m.Vertices[0].Color", typeof(byte?)),
+            ("m.Vertices[1].Position.X", typeof(float?)),
+            ("m.Vertices[1].Position.Y", typeof(float?)),
+            ("m.Vertices[1].Color", typeof(byte?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [2, 1.0f, 2.0f, (byte)255, 3.0f, 4.0f, (byte)128]);

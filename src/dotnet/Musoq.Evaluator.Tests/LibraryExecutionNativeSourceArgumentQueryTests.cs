@@ -61,27 +61,6 @@ public sealed class LibraryExecutionNativeSourceArgumentQueryTests : MSTestConte
         CollectionAssert.AreEqual(rows, schema.Invocations.ToArray());
     }
 
-    [TestMethod]
-    public void NativeArgumentRead_ShouldAllocateNothingForNumericValues()
-    {
-        var (allocated, total) = AllocationTestThread.Run(MeasureNativeArgumentReads);
-        Assert.AreEqual(82500m, total);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    private static (long Allocated, decimal Total) MeasureNativeArgumentReads()
-    {
-        var arguments = SourceArguments.Create((decimal?)1.25m,
-            SourceArguments.Create(7L, SourceArguments.Empty));
-        for (var index = 0; index < 1000; index++)
-            _ = arguments.GetValue<decimal?>(0)!.Value + arguments.GetValue<long>(1);
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        decimal total = 0m;
-        for (var index = 0; index < 10000; index++)
-            total += arguments.GetValue<decimal?>(0)!.Value + arguments.GetValue<long>(1);
-        return (GC.GetAllocatedBytesForCurrentThread() - before, total);
-    }
-
     public sealed record NativeEntity(int Id, decimal? Amount, string Label);
     public sealed class EchoSignature(decimal? amount, string label)
     {

@@ -65,20 +65,27 @@ public abstract partial class BytesInterpreterBase<TOut>
         string fieldName)
     {
         ArgumentNullException.ThrowIfNull(interpreter);
+        AlignToBits(data, 8);
 
         try
         {
             var result = interpreter.InterpretAt(data, ParsePosition);
-            ParsePosition = interpreter.BytesConsumed;
+            ResumeAfterNested(interpreter);
             return result;
         }
         catch (ParseException ex)
         {
             if (interpreter.BytesConsumed >= ParsePosition)
-                ParsePosition = interpreter.BytesConsumed;
+                ResumeAfterNested(interpreter);
 
             throw AddNestedFieldContext(ex, fieldName);
         }
+    }
+
+    private void ResumeAfterNested<TChild>(IBytesInterpreter<TChild> interpreter)
+    {
+        ParsePosition = interpreter.BytesConsumed;
+        BitOffset = interpreter is BytesInterpreterBase<TChild> nested ? nested.BitOffset : 0;
     }
 
     /// <summary>

@@ -585,7 +585,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                     };
 
                     ValidateExpressionReferences(fieldName, repeatUntil.Condition, schemaName, repeatFields);
-                    ValidateBooleanRepeatCondition(fieldName, repeatUntil.Condition, repeatFieldTypes);
+                    ValidateBooleanRepeatCondition(fieldName, repeatUntil.Condition, repeatFieldTypes, repeatUntil.ElementType);
                 }
                 break;
 
@@ -794,12 +794,14 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             DiagnosticCode.MQ4006_InvalidFieldConstraint);
     }
 
-    private static void ValidateBooleanRepeatCondition(
+    private void ValidateBooleanRepeatCondition(
         string fieldName,
         Node condition,
-        IReadOnlyDictionary<string, Type?> fieldTypes)
+        IReadOnlyDictionary<string, Type?> fieldTypes,
+        TypeAnnotationNode elementType)
     {
-        if (IsBooleanExpression(condition, fieldTypes))
+        var conditionTypes = new BinaryRepeatConditionTypes(fieldName, elementType, Registry);
+        if (conditionTypes.IsBoolean(condition, expression => IsBooleanExpression(expression, fieldTypes)))
             return;
 
         throw new QuerySyntaxException(
@@ -837,9 +839,12 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             case NotNode not:
                 return IsBooleanExpression(not.Expression, fieldTypes);
 
+            case CastNode cast:
+                return BinarySchemaExpressionTypes.Unwrap(BinarySchemaStrictCasts.Resolve(cast).ReturnType) == typeof(bool);
+
             case IdentifierNode identifier:
                 return fieldTypes.TryGetValue(identifier.Name, out var identifierType) &&
-                       identifierType == typeof(bool);
+                       BinarySchemaExpressionTypes.Unwrap(identifierType ?? typeof(object)) == typeof(bool);
 
             case AccessMethodNode method:
                 return method.Method == null || method.ReturnType == typeof(bool);
@@ -863,6 +868,8 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             return ResolveExpressionType(choice.WhenThenPairs[0].Then is UnaryNode then ? then.Expression : choice.WhenThenPairs[0].Then, fieldTypes);
         if (expression is NotNode)
             return typeof(bool);
+        if (expression is CastNode cast)
+            return BinarySchemaStrictCasts.Resolve(cast).ReturnType;
 
         return expression.ReturnType;
     }

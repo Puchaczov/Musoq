@@ -190,8 +190,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (field is ComputedFieldNode computedField)
             {
                 var columnType = BinarySchemaExpressionTypes.Resolve(computedField.Expression, fields, SchemaRegistry);
-
-                columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType));
+                var alias = BinarySchemaRecordAliases.Resolve(computedField.Expression, fields);
+                var intendedTypeName = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias, typeParamMap).IntendedTypeName;
+                columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName));
                 continue;
             }
 

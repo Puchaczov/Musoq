@@ -43,7 +43,7 @@ public partial class InterpreterCodeGenerator
                 var elementTypeName = GetArrayElementClrTypeName(field.Name, arrayType.ElementType);
                 var loopVarInner = $"_{localVar}_i";
                 builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {countVar} = {arraySizeExpr};");
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = new {elementTypeName}[{countVar}];");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = {GenerateArrayAllocation(elementTypeName, countVar)};");
                 builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVarInner} = 0; {loopVarInner} < {countVar}; {loopVarInner}++)");
                 builder.AppendLine("{");
 
@@ -71,6 +71,12 @@ public partial class InterpreterCodeGenerator
                         1);
                     var elemVar = GetInlineArrayElementVariable(localVar);
                     builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {localVar}[{loopVarInner}] = {elemVar};");
+                }
+                else if (arrayType.ElementType is ByteArrayTypeNode or SubstreamTypeNode)
+                {
+                    var elementVar = $"_{localVar}_elem";
+                    builder.Append(Indent(GenerateCollectionPayloadRead(elementVar, field.Name, arrayType.ElementType), 1));
+                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {localVar}[{loopVarInner}] = {elementVar};");
                 }
                 else
                 {

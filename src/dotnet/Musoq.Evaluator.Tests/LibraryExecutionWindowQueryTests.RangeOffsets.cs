@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
 using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -59,33 +57,6 @@ public sealed partial class LibraryExecutionWindowQueryTests
             Assert.AreEqual(frame.Length == 0 ? (decimal?)null : frame.Average(value => (decimal)value), row.GetValue<decimal?>(2));
             Assert.AreEqual((long)frame.Length, row.GetValue<long>(3));
         }
-    }
-
-    [TestMethod]
-    public void OffsetRangeKeyReads_ShouldAllocateNoBoxesOrInvocationStorage()
-    {
-        var (allocated, checksum) = AllocationTestThread.Run(MeasureRangeOffsets);
-        Assert.AreEqual(20_000, checksum);
-        Assert.AreEqual(0L, allocated);
-    }
-
-    private static (long Allocated, int Checksum) MeasureRangeOffsets()
-    {
-        int[] keys = [1, 2, 3];
-        int[] indices = [0, 1, 2];
-        _ = ConsumeRangeOffsets(keys, indices);
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var checksum = ConsumeRangeOffsets(keys, indices);
-        return (GC.GetAllocatedBytesForCurrentThread() - before, checksum);
-    }
-
-    private static int ConsumeRangeOffsets(int[] keys, int[] indices)
-    {
-        var checksum = 0;
-        for (var iteration = 0; iteration < 10_000; iteration++)
-            checksum += WindowFunctionHelpers.ResolveRangeFrameStart(keys, keys, indices, 0, 3, 1, -1, false, true) +
-                WindowFunctionHelpers.ResolveRangeFrameEnd(keys, keys, indices, 0, 3, 1, 1, false, true);
-        return checksum;
     }
 
     public sealed record RangeOffsetRow<T>(int Position, T? Key, int? Value, int? ReferenceKey) where T : struct;

@@ -30,11 +30,11 @@ public partial class SchemaParser
 
             Consume(TokenType.RightParenthesis);
             var funcToken = new FunctionToken(name, token.Span);
-            return ComposePostfixAccess(new AccessMethodNode(funcToken, new ArgsListNode([..args]), null, false));
+            return new AccessMethodNode(funcToken, new ArgsListNode([..args]), null, false);
         }
 
         Node result = new IdentifierNode(name, null, token.Span);
-        return ComposePostfixAccess(result);
+        return result;
     }
 
     private Node ComposePostfixAccess(Node node)
@@ -66,7 +66,12 @@ public partial class SchemaParser
                 Consume(TokenType.LeftSquareBracket);
                 var indexExpr = ComposeExpression();
                 Consume(TokenType.RightSquareBracket);
-                node = new ArrayIndexNode(node, indexExpr);
+                var elementType = node.ReturnType?.IsArray == true ? node.ReturnType.GetElementType() : typeof(void);
+                node = new ArrayIndexNode(node, indexExpr, elementType);
+            }
+            else if (Current.TokenType == TokenType.DoubleColon)
+            {
+                node = ComposeSchemaPostfixCast(node);
             }
             else
             {

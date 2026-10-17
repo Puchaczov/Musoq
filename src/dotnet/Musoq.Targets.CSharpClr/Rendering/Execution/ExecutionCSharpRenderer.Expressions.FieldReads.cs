@@ -94,6 +94,9 @@ public sealed partial class ExecutionCSharpRenderer
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Generated row nested field reads require a source alias.");
 
+        var returnType = fieldRead.ReturnType.RequireClrType();
+        var isNullSafe = generatedNested.IsNullSafe;
+
         ExpressionSyntax typedRow;
         if (generatedNested.ContextIndex is { } contextIndex)
         {
@@ -131,6 +134,11 @@ public sealed partial class ExecutionCSharpRenderer
                 throw new InvalidOperationException("Indexed nested rows require a concrete root type.");
             sourceValue = CreateNativeRowValueRead(typedRow, fieldIndex, SyntaxFactory.ParseTypeName(rootTypeName));
         }
+        else if (isNullSafe)
+        {
+            var nullSafePath = generatedNested.FieldName.Replace(".", "?.", StringComparison.Ordinal);
+            sourceValue = SyntaxFactory.ParseExpression($"({typedRow})?.{nullSafePath}");
+        }
         else
             sourceValue = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                 typedRow, CreateIdentifierName(generatedNested.FieldName));
@@ -150,10 +158,21 @@ public sealed partial class ExecutionCSharpRenderer
         var value = SyntaxFactory.ParseExpression(
             $"{sourceValue}{separator}{generatedNested.PropertyPath}");
 
-        if (generatedNested.IsNullSafe)
+        if (generatedNested.PropertyPath.IndexOf('[') >= 0)
+        {
+            value = NullSafeIndexedPathSyntax.Render(
+                sourceValue,
+                generatedNested.PropertyPath,
+                isNullSafe);
+        }
+        else if (isNullSafe)
         {
             value = SyntaxFactory.ParseExpression($"{sourceValue}?.{generatedNested.PropertyPath.Replace(".", "?.", StringComparison.Ordinal)}");
-            var returnType = fieldRead.ReturnType.RequireClrType();
+        }
+
+        if (isNullSafe ||
+            generatedNested.PropertyPath.IndexOf('[') >= 0 && generatedNested.PropertyPath.IndexOf('.') >= 0)
+        {
             if (returnType.IsValueType && Nullable.GetUnderlyingType(returnType) is null)
                 value = SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, value,
                     SyntaxFactory.DefaultExpression(CreateTypeSyntax(fieldRead.ReturnType)));

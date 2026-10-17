@@ -5,6 +5,24 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
+    private static string GenerateArrayAllocation(string elementType, string count)
+    {
+        var suffix = string.Empty;
+        while (elementType.EndsWith("[]", StringComparison.Ordinal))
+        {
+            elementType = elementType[..^2];
+            suffix += "[]";
+        }
+        return $"new {elementType}[{count}]{suffix}";
+    }
+
+    private string GenerateCollectionPayloadRead(string localVar, string fieldName, TypeAnnotationNode type) => type switch
+    {
+        ByteArrayTypeNode bytes => GenerateByteArrayReadCode(localVar, bytes),
+        SubstreamTypeNode substream => GenerateSubstreamReadCode(localVar, fieldName, substream),
+        _ => throw CreateUnsupportedCodeGenerationException(fieldName, type, "collection payload")
+    };
+
     private static void AppendGeneratedLine(StringBuilder builder, string line)
     {
         builder.AppendLine(line);

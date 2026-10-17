@@ -23,7 +23,7 @@ public sealed partial class LogicalPlanBuilder
             (node as Parser.JoinInMemoryWithSourceTableFromNode)?.InMemoryTableVariableName);
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind)));
+        _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind))));
     }
 
     public void Visit(ApplyInMemoryWithSourceTableFromNode node)
@@ -67,7 +67,7 @@ public sealed partial class LogicalPlanBuilder
         var left = _nodeStack.Pop();
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind)));
+        _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind))));
     }
 
     public void Visit(ApplySourcesTableFromNode node)
@@ -109,7 +109,7 @@ public sealed partial class LogicalPlanBuilder
         var left = _nodeStack.Pop();
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind), node.WithOrdinality));
+        _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind), node.WithOrdinality)));
     }
 
     public void Visit(ApplyFromNode node)

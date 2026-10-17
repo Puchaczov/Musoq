@@ -86,13 +86,13 @@ internal sealed partial class PhysicalLoweringImplementation
             !sourceLookup.TryGetValue(alias, out var sourceShape))
         {
             return expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } generatedTypeName } &&
-                   IsCompatibleGeneratedTypeName(returnType, generatedTypeName)
+                   CanUseGeneratedTypeName(returnType)
                 ? generatedTypeName
                 : null;
         }
 
         if (expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } expressionGeneratedTypeName })
-            return IsCompatibleGeneratedTypeName(returnType, expressionGeneratedTypeName)
+            return CanUseGeneratedTypeName(returnType)
                 ? expressionGeneratedTypeName
                 : null;
 
@@ -107,14 +107,13 @@ internal sealed partial class PhysicalLoweringImplementation
                 string.Equals(field.QualifiedName, $"{alias}.{sourceRelativeName}", StringComparison.OrdinalIgnoreCase))
             ?.GeneratedTypeName;
 
-        return resolvedGeneratedTypeName is not null && IsCompatibleGeneratedTypeName(returnType, resolvedGeneratedTypeName)
+        return resolvedGeneratedTypeName is not null && CanUseGeneratedTypeName(returnType)
             ? resolvedGeneratedTypeName
             : null;
     }
 
-    private static bool IsCompatibleGeneratedTypeName(Type returnType, string generatedTypeName) =>
-        GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType) || returnType == DynamicEntityBoundary.ExpandoType ||
-        (returnType.IsArray && generatedTypeName.EndsWith("[]", StringComparison.Ordinal));
+    private static bool CanUseGeneratedTypeName(Type returnType) =>
+        GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType) || returnType == DynamicEntityBoundary.ExpandoType;
 
     private static Type ResolveProjectedFieldType(ExecutionExpression expression)
     {

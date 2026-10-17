@@ -54,6 +54,24 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
     }
 
     [TestMethod]
+    public void Interpret_String_EbcdicCp037_ShouldDecodeWithoutGlobalProviderRegistration()
+    {
+        var registry = new SchemaRegistry();
+        registry.Register(
+            "Record",
+            new BinarySchemaNode(
+                "Record",
+                [new FieldDefinitionNode(
+                    "Text",
+                    new StringTypeNode(new IntegerNode(1), StringEncoding.Ebcdic))]));
+
+        var interpreter = CompileInterpreter(registry, "Record");
+        var result = InvokeInterpret(interpreter, [0xC1]);
+
+        Assert.AreEqual("A", GetPropertyValue<string>(result, "Text"));
+    }
+
+    [TestMethod]
     public void Interpret_String_WithTrimModifier_ShouldTrimWhitespace()
     {
         var registry = new SchemaRegistry();

@@ -143,6 +143,8 @@ internal static class InterpretationPropertyTypeNameResolver
 
         var bindings = CreateBindings(binary, reference);
         var field = FindBinaryField(binary, fieldName, schemaRegistry);
+        if (field is ComputedFieldNode computed)
+            field = Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, binary.Fields);
         return field == null
             ? null
             : ResolveFieldTypeName(field, bindings, schemaRegistry);
@@ -235,6 +237,10 @@ internal static class InterpretationPropertyTypeNameResolver
             ArrayTypeNode { ElementType: SchemaReferenceTypeNode reference } =>
                 $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
             RepeatUntilTypeNode { ElementType: SchemaReferenceTypeNode reference } =>
+                $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
+            ArrayTypeNode { ElementType: SubstreamTypeNode { Target: SchemaReferenceTypeNode reference } } =>
+                $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
+            RepeatUntilTypeNode { ElementType: SubstreamTypeNode { Target: SchemaReferenceTypeNode reference } } =>
                 $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
             InlineSchemaTypeNode => CreateInlineTypeName(field.Name),
             ArrayTypeNode { ElementType: InlineSchemaTypeNode } => $"{CreateInlineTypeName(field.Name)}[]",

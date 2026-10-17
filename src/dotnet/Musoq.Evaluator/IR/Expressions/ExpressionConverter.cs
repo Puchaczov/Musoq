@@ -123,6 +123,7 @@ public sealed partial class ExpressionConverter
 
             return new ColumnRef(indexerAlias, indexerName, RequireReturnType(node))
             {
+                IsNullSafePath = node.IsNullSafePath,
                 Stability = ResolveColumnStability(indexerAlias, indexerName),
                 EnumType = ResolveNativeEnumType(node) ?? ResolveColumnEnumType(indexerAlias, indexerName)
             };
@@ -141,18 +142,24 @@ public sealed partial class ExpressionConverter
         };
     }
 
-    private ArrayAccess BuildIndexedAccess(DotNode node, Type indexableType, Literal indexExpr)
+    private IrExpression BuildIndexedAccess(DotNode node, Type indexableType, Literal indexExpr)
     {
-        var (alias, name) = ExtractPath(node);
+        var (alias, name) = MergePath(ExtractPathWithIndexers(node.Root),
+            ComposePathSegment(ExtractPath(node.Expression)));
         if (string.IsNullOrWhiteSpace(alias))
             (alias, name) = SplitLeadingAlias(name, alias);
 
         var arrayExpr = new ColumnRef(alias, name, indexableType)
         {
+            IsNullSafePath = node.IsNullSafePath,
             Stability = ResolveColumnStability(alias, name)
         };
         var returnType = RequireReturnType(node);
-        return new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
+        var access = new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
+        if (!node.IsNullSafePath || Nullable.GetUnderlyingType(returnType) is null)
+            return access;
+        return new CaseWhen([new CaseWhenBranch(new IsNullCheck(arrayExpr, false, typeof(bool)),
+            new Literal(null, returnType))], access, returnType);
     }
 
     private BinaryOp ConvertBinaryOp(BinaryNode node, BinaryOpKind kind)

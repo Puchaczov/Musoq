@@ -7,7 +7,7 @@ namespace Musoq.Parser;
 
 public partial class SchemaParser
 {
-    private ByteArrayTypeNode ComposeByteArrayType()
+    private TypeAnnotationNode ComposeByteArrayType()
     {
         Consume(Current.TokenType);
         Consume(TokenType.LeftSquareBracket);
@@ -20,7 +20,8 @@ public partial class SchemaParser
         if (Current.TokenType is TokenType.LittleEndian or TokenType.BigEndian)
             throw InvalidBinarySchemaEndianness("byte[] does not accept an endianness specifier", Current.Span);
 
-        return new ByteArrayTypeNode(sizeExpr);
+        var byteArray = new ByteArrayTypeNode(sizeExpr);
+        return Current.TokenType == TokenType.LeftSquareBracket ? ComposeArrayOfType(byteArray) : byteArray;
     }
 
     private BitsTypeNode ComposeBitsType()

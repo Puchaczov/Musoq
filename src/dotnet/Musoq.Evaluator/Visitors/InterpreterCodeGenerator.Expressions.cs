@@ -27,6 +27,7 @@ public partial class InterpreterCodeGenerator
     {
         var builder = new StringBuilder();
         var localVar = GetLocalVarName(field.Name);
+        _activeSchemaFieldName = field.Name;
         var expression = GenerateConditionExpression(field.Expression);
         var typeName = InferComputedFieldTypeName(field.Expression, contextFields);
 
@@ -48,16 +49,15 @@ public partial class InterpreterCodeGenerator
         {
             WhenNode or ThenNode or ElseNode => GenerateConditionExpression(((UnaryNode)condition).Expression),
             CaseNode choice => GenerateCaseExpression(choice),
+            CastNode cast => GenerateStrictCastExpression(cast),
             NullNode => "null",
             NotNode not => $"(!({GenerateConditionExpression(not.Expression)}))",
-            EqualityNode eq => $"({GenerateConditionExpression(eq.Left)} == {GenerateConditionExpression(eq.Right)})",
-            DiffNode diff => $"({GenerateConditionExpression(diff.Left)} != {GenerateConditionExpression(diff.Right)})",
-            GreaterNode gt => $"({GenerateConditionExpression(gt.Left)} > {GenerateConditionExpression(gt.Right)})",
-            GreaterOrEqualNode gte =>
-                $"({GenerateConditionExpression(gte.Left)} >= {GenerateConditionExpression(gte.Right)})",
-            LessNode lt => $"({GenerateConditionExpression(lt.Left)} < {GenerateConditionExpression(lt.Right)})",
-            LessOrEqualNode lte =>
-                $"({GenerateConditionExpression(lte.Left)} <= {GenerateConditionExpression(lte.Right)})",
+            EqualityNode eq => GenerateComparisonExpression(eq, "=="),
+            DiffNode diff => GenerateComparisonExpression(diff, "!="),
+            GreaterNode gt => GenerateComparisonExpression(gt, ">"),
+            GreaterOrEqualNode gte => GenerateComparisonExpression(gte, ">="),
+            LessNode lt => GenerateComparisonExpression(lt, "<"),
+            LessOrEqualNode lte => GenerateComparisonExpression(lte, "<="),
             AndNode andNode =>
                 $"({GenerateConditionExpression(andNode.Left)} {(BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(andNode, _expressionFields, _registry)) ? "&" : "&&")} {GenerateConditionExpression(andNode.Right)})",
             OrNode orNode =>
@@ -75,12 +75,11 @@ public partial class InterpreterCodeGenerator
             AccessColumnNode acNode => GetLocalVarName(acNode.Name),
             IdentifierNode idNode => GetLocalVarName(idNode.Name),
             AccessMethodNode methodNode => GenerateMethodCallExpression(methodNode),
-            AddNode add => $"({GenerateConditionExpression(add.Left)} + {GenerateConditionExpression(add.Right)})",
-            HyphenNode hyp => $"({GenerateConditionExpression(hyp.Left)} - {GenerateConditionExpression(hyp.Right)})",
-            StarNode star => $"({GenerateConditionExpression(star.Left)} * {GenerateConditionExpression(star.Right)})",
-            FSlashNode slash =>
-                $"({GenerateConditionExpression(slash.Left)} / {GenerateConditionExpression(slash.Right)})",
-            ModuloNode mod => $"({GenerateConditionExpression(mod.Left)} % {GenerateConditionExpression(mod.Right)})",
+            AddNode add => GenerateArithmeticExpression(add, "+"),
+            HyphenNode hyp => GenerateArithmeticExpression(hyp, "-"),
+            StarNode star => GenerateArithmeticExpression(star, "*"),
+            FSlashNode slash => GenerateArithmeticExpression(slash, "/"),
+            ModuloNode mod => GenerateArithmeticExpression(mod, "%"),
             HexIntegerNode hexNode => FormatHexLiteral(hexNode),
 
             BitwiseAndNode bitwiseAnd =>
@@ -97,10 +96,32 @@ public partial class InterpreterCodeGenerator
         };
     }
 
+    private string GenerateArithmeticExpression(BinaryNode node, string operation)
+    {
+        var leftType = BinarySchemaExpressionTypes.Resolve(node.Left, _expressionFields, _registry);
+        var rightType = BinarySchemaExpressionTypes.Resolve(node.Right, _expressionFields, _registry);
+        var resultType = BinarySchemaExpressionTypes.Resolve(node, _expressionFields, _registry);
+        return BinarySchemaArithmeticEmitter.Emit(new(leftType, rightType, resultType,
+            GenerateConditionExpression(node.Left), GenerateConditionExpression(node.Right), operation));
+    }
+
     private string GenerateNullableComparison(BinaryNode node)
     {
         var operation = node switch { EqualityNode => "==", DiffNode => "!=", GreaterNode => ">", GreaterOrEqualNode => ">=", LessNode => "<", LessOrEqualNode => "<=", _ => throw new InvalidOperationException("Expected comparison.") };
-        return $"global::Musoq.Evaluator.Operators.SqlCompare({ComparisonOperand(node.Left, node.Right)}, {ComparisonOperand(node.Right, node.Left)}, static (__left, __right) => __left {operation} __right)";
+        var comparison = GenerateComparisonCode(node, "__left", "__right", operation);
+        return $"global::Musoq.Evaluator.Operators.SqlCompare({ComparisonOperand(node.Left, node.Right)}, {ComparisonOperand(node.Right, node.Left)}, static (__left, __right) => {comparison[1..^1]})";
+    }
+
+    private string GenerateComparisonExpression(BinaryNode node, string operation) =>
+        GenerateComparisonCode(node, GenerateConditionExpression(node.Left), GenerateConditionExpression(node.Right), operation);
+
+    private string GenerateComparisonCode(BinaryNode node, string left, string right, string operation)
+    {
+        var leftType = BinarySchemaExpressionTypes.Unwrap(BinarySchemaExpressionTypes.Resolve(node.Left, _expressionFields, _registry));
+        var rightType = BinarySchemaExpressionTypes.Unwrap(BinarySchemaExpressionTypes.Resolve(node.Right, _expressionFields, _registry));
+        var nullable = BinarySchemaExpressionTypes.MayBeNull(node.Left, _expressionFields, _registry) ||
+            BinarySchemaExpressionTypes.MayBeNull(node.Right, _expressionFields, _registry);
+        return BinarySchemaComparisonEmitter.Emit(new(leftType, rightType, left, right, operation, nullable));
     }
 
     private string ComparisonOperand(Node expression, Node other)
@@ -133,6 +154,16 @@ public partial class InterpreterCodeGenerator
 
         if (string.Equals(methodName, "ToString", StringComparison.OrdinalIgnoreCase) && argExpressions.Count == 0)
             return ".ToString()";
+
+        var intrinsic = SchemaIntrinsicCodeEmitter.ResolveName(methodName);
+        if (intrinsic is not null)
+        {
+            _intrinsicCallCount++;
+            var operation = $"{_intrinsicTypeName}.{intrinsic}({string.Join(", ", argExpressions)})";
+            var factory = _registry.TryGetSchema(_currentSchemaName, out var registration) && registration?.Node is TextSchemaNode
+                ? "ForText" : "ForBytes";
+            return $"{_intrinsicTypeName}.Invoke(() => {operation}, (__code, __error) => ParseException.{factory}(__code, SchemaName, \"{EscapeString(_activeSchemaFieldName)}\", ParsePosition, __error.Message, __error))";
+        }
 
         return $"{methodName}({string.Join(", ", argExpressions)})";
     }

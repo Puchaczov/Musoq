@@ -76,6 +76,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     args.Span);
 
             var dataType = args.Args[0].ReturnType;
+            if (expectedArgumentCount == 2)
+                InterpretationOffsetBinding.RequireInt(args.Args[1]);
             var dataTypeIsCompatible = dataType == null || dataType == typeof(object) ||
                                         (isTextSchema ? dataType == typeof(string) : dataType == typeof(byte[]));
             if (!dataTypeIsCompatible)

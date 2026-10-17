@@ -50,15 +50,18 @@ public partial class BuildMetadataAndInferTypesVisitor
             var allFields = GetAllBinarySchemaFields(binaryNode);
             if (allFields.OfType<ComputedFieldNode>().FirstOrDefault(f =>
                     string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase)) is { } computed)
-                return (BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, SchemaRegistry), null);
+            {
+                var alias = BinarySchemaRecordAliases.Resolve(computed.Expression, allFields);
+                var intended = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias).IntendedTypeName;
+                return (BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, SchemaRegistry), intended);
+            }
             var field = allFields.OfType<FieldDefinitionNode>().FirstOrDefault(f =>
                 string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
             if (field == null)
                 return null;
 
             var typeParamMap = CreateTypeParameterMap(binaryNode, reference.TypeArguments);
-            var resolved = ResolveTypeAnnotationWithSubstitution(field.TypeAnnotation, typeParamMap);
-            return ApplyBinaryFieldIntendedTypeName(field, resolved);
+            return ResolveBinaryFieldClrTypeWithIntendedName(field, typeParamMap);
         }
 
         if (schemaRegistration?.Node is TextSchemaNode textNode)
@@ -84,7 +87,11 @@ public partial class BuildMetadataAndInferTypesVisitor
             string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
 
         if (field is ComputedFieldNode computed)
-            return (BinarySchemaExpressionTypes.Resolve(computed.Expression, inlineFields!, SchemaRegistry), null);
+        {
+            var alias = BinarySchemaRecordAliases.Resolve(computed.Expression, inlineFields!);
+            var intended = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias).IntendedTypeName;
+            return (BinarySchemaExpressionTypes.Resolve(computed.Expression, inlineFields!, SchemaRegistry), intended);
+        }
 
         return field is FieldDefinitionNode fieldDefinition
             ? ResolveBinaryFieldClrTypeWithIntendedName(fieldDefinition)

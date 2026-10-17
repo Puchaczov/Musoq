@@ -8,7 +8,7 @@ internal static class InterpretationPropertyBinding
         new(root, expression, source.IsTheMostInner, name, source.ReturnType ?? expression.ReturnType, source.IntendedTypeName)
         { IsNullSafePath = source.IsNullSafePath };
 
-    internal static string? GetIntendedTypeName(Node root) => root switch
+    internal static string? GetIntendedTypeName(Node? root) => root switch
     {
         AccessColumnNode column => column.IntendedTypeName,
         AccessObjectArrayNode array => array.IntendedTypeName,
@@ -27,9 +27,14 @@ internal static class InterpretationPropertyBinding
         if (!resolved.HasValue)
             return new DotNode(root, expression, node.IsTheMostInner, string.Empty, expression.ReturnType);
 
-        var boundProperty = new PropertyValueNode(property.Name,
-            new ExpandoObjectPropertyInfo(property.Name, resolved.Value.ClrType));
+        var propertyInfo = new ExpandoObjectPropertyInfo(property.Name, resolved.Value.ClrType);
+        Node boundProperty = property is AccessObjectArrayNode indexed
+            ? new AccessObjectArrayNode(indexed.Token, propertyInfo)
+            : new PropertyValueNode(property.Name, propertyInfo);
+        var childName = resolved.Value.IntendedTypeName;
+        if (property is AccessObjectArrayNode && childName?.EndsWith("[]", StringComparison.Ordinal) == true)
+            childName = childName[..^2];
         return new DotNode(root, boundProperty, node.IsTheMostInner, string.Empty, boundProperty.ReturnType,
-            resolved.Value.IntendedTypeName);
+            childName);
     }
 }

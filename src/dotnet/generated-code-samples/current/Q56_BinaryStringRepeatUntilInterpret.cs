@@ -443,7 +443,7 @@ namespace Musoq.Generated.Interpreters
                 __names_lastElem = ReadString(data, 3, System.Text.Encoding.ASCII);
                 __names_list.Add(__names_lastElem);
             }
-            while (!((__names_lastElem == "END")));
+            while (((__names_lastElem == "END")) != true);
             var _names = __names_list.ToArray();
             __parsedValue.Names = _names;
             RecordParsedField("Names");

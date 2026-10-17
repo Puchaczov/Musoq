@@ -53,7 +53,7 @@ public partial class InterpreterCodeGenerator
             fieldName,
             lastElemVar,
             tempVar);
-        builder.AppendLine(CultureInfo.InvariantCulture, $"}} while (!({conditionExpr}));");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"}} while (({conditionExpr}) != true);");
 
         AppendRepeatResultAssignment(builder, localVar, tempVar, declareLocal);
         return builder.ToString();
@@ -126,6 +126,7 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateRepeatUntilCondition(Node condition, string fieldName, string lastElemVar, string listVar)
     {
+        BinarySchemaExpressionTypes.Resolve(condition, _expressionFields, _registry);
         return GenerateRepeatUntilConditionInner(condition, fieldName, lastElemVar, listVar);
     }
 
@@ -139,6 +140,8 @@ public partial class InterpreterCodeGenerator
             return GenerateDotExpression(dot);
         return condition switch
         {
+            CastNode cast => GenerateStrictCastExpression(cast,
+                GenerateRepeatUntilConditionInner(cast.Expression, fieldName, lastElemVar, listVar)),
             EqualityNode eq =>
                 $"({GenerateRepeatUntilConditionInner(eq.Left, fieldName, lastElemVar, listVar)} == {GenerateRepeatUntilConditionInner(eq.Right, fieldName, lastElemVar, listVar)})",
             DiffNode diff =>
@@ -162,7 +165,7 @@ public partial class InterpreterCodeGenerator
             HexIntegerNode hexNode => FormatHexLiteral(hexNode),
             BinaryIntegerNode binaryNode => FormatRepeatIntegerLiteral(binaryNode.ObjValue),
             OctalIntegerNode octalNode => FormatRepeatIntegerLiteral(octalNode.ObjValue),
-            DecimalNode decimalNode => decimalNode.ToString(),
+            DecimalNode decimalNode => decimalNode.Value.ToString(CultureInfo.InvariantCulture) + "m",
             WordNode wordNode => $"\"{EscapeString(wordNode.Value)}\"",
 
             AccessColumnNode accessColumn when IsRepeatField(accessColumn.Name, fieldName) => lastElemVar,

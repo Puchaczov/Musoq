@@ -86,38 +86,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                                         !string.IsNullOrEmpty(dotRootCheck.IntendedTypeName)));
 
 
-        var rootIntendedTypeName = InterpretationPropertyBinding.GetIntendedTypeName(root);
-
-
-        if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+        if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) || isNestedSchemaReference)
         {
             newNode = InterpretationPropertyBinding.BindDynamicDotNode(root, exp, node, ResolveSchemaFieldFromIntendedTypeName);
-        }
-
-        else if (isNestedSchemaReference)
-        {
-            var expressionNode = exp;
-            string? childIntendedTypeName = null;
-
-            if (exp is IdentifierNode identNode)
-            {
-                var propertyType = typeof(object);
-
-
-                if (SchemaRegistry != null && !string.IsNullOrEmpty(rootIntendedTypeName))
-                {
-                    var resolvedProperty = ResolveSchemaFieldFromIntendedTypeName(rootIntendedTypeName, identNode.Name);
-                    if (resolvedProperty != null)
-                        (propertyType, childIntendedTypeName) = resolvedProperty.Value;
-                }
-
-                expressionNode = new PropertyValueNode(identNode.Name,
-                    new ExpandoObjectPropertyInfo(identNode.Name, propertyType));
-            }
-
-
-            newNode = new DotNode(root, expressionNode, node.IsTheMostInner, string.Empty, expressionNode.ReturnType,
-                childIntendedTypeName);
         }
 
         else if (root.ReturnType == typeof(object))

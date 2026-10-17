@@ -103,6 +103,7 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateFieldReadCodeWithModifiers(FieldDefinitionNode field)
     {
+        _activeSchemaFieldName = field.Name;
         var builder = new StringBuilder();
         var localVar = GetLocalVarName(field.Name);
         var clrTypeName = GetClrTypeNameForFieldDefinition(field);

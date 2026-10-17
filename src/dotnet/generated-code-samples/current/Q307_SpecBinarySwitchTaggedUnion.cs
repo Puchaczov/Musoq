@@ -51,8 +51,8 @@ ExecutionPlan [compiled]
     Generated [ResultRow0]
       Type: byte <- field Type
       p.Payload.Case: string <- field p_Payload_Case
-      p.Payload.Login.UserId: int <- field p_Payload_Login_UserId
-      p.Payload.Data.Size: short <- field p_Payload_Data_Size
+      p.Payload.Login.UserId: int? <- field p_Payload_Login_UserId
+      p.Payload.Data.Size: short? <- field p_Payload_Data_Size
       p.Payload.Raw: byte[] <- field p_Payload_Raw
 
   Body
@@ -95,8 +95,8 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
         {
             new Column("Type", typeof(byte), 0),
             new Column("p.Payload.Case", typeof(string), 1),
-            new Column("p.Payload.Login.UserId", typeof(int), 2),
-            new Column("p.Payload.Data.Size", typeof(short), 3),
+            new Column("p.Payload.Login.UserId", typeof(int?), 2),
+            new Column("p.Payload.Data.Size", typeof(short?), 3),
             new Column("p.Payload.Raw", typeof(byte[]), 4)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
@@ -166,7 +166,7 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var p = pRows;
-                                        yield return new ResultRow0(p.Type, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Case, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Login.UserId, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Data.Size, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Raw);
+                                        yield return new ResultRow0(p.Type, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Case, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Login?.UserId, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Data?.Size, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Raw);
                                     }
                                 }
 
@@ -190,7 +190,7 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var p = pRows;
-                                        yield return new ResultRow0(p.Type, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Case, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Login.UserId, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Data.Size, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Raw);
+                                        yield return new ResultRow0(p.Type, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Case, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Login?.UserId, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Data?.Size, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Raw);
                                     }
                                 }
 
@@ -212,7 +212,7 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = pRows;
-                                yield return new ResultRow0(p.Type, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Case, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Login.UserId, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Data.Size, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Raw);
+                                yield return new ResultRow0(p.Type, ((Musoq.Generated.Interpreters.Switch_Payload)p.Payload).Case, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Login?.UserId, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Data?.Size, ((Musoq.Generated.Interpreters.Switch_Payload)p?.Payload)?.Raw);
                             }
                         }
                     }
@@ -249,7 +249,7 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
 
         private sealed class ResultRow0 : Row
         {
-            public ResultRow0(byte __value0, string __value1, int __value2, short __value3, byte[] __value4)
+            public ResultRow0(byte __value0, string __value1, int? __value2, short? __value3, byte[] __value4)
             {
                 Type = __value0;
                 p_Payload_Case = __value1;
@@ -261,8 +261,8 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
             public override int Count => 5;
             public byte Type { get; private set; }
             public string p_Payload_Case { get; private set; }
-            public short p_Payload_Data_Size { get; private set; }
-            public int p_Payload_Login_UserId { get; private set; }
+            public short? p_Payload_Data_Size { get; private set; }
+            public int? p_Payload_Login_UserId { get; private set; }
             public byte[] p_Payload_Raw { get; private set; }
 
             public override void AssignValue<T>(int columnNumber, T value)
@@ -271,8 +271,8 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
                 {
                     0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, byte>(this.Type = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<byte, T>(value)),
                     1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.p_Payload_Case = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
-                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.p_Payload_Login_UserId = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
-                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, short>(this.p_Payload_Data_Size = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<short, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.p_Payload_Login_UserId = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, short?>(this.p_Payload_Data_Size = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<short?, T>(value)),
                     4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, byte[]>(this.p_Payload_Raw = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<byte[], T>(value)),
                     _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
             }
@@ -281,8 +281,8 @@ namespace GeneratedSample_Q307_SpecBinarySwitchTaggedUnion
             {
                 0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, byte>(this.Type),
                 1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.p_Payload_Case),
-                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.p_Payload_Login_UserId),
-                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, short>(this.p_Payload_Data_Size),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.p_Payload_Login_UserId),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, short?>(this.p_Payload_Data_Size),
                 4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, byte[]>(this.p_Payload_Raw),
                 _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
             public override bool HasColumn(string name) => name switch

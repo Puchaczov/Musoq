@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -64,7 +65,7 @@ public partial class SchemaParser
 
         while (Current.TokenType != TokenType.RBracket && Current.TokenType != TokenType.EndOfFile)
         {
-            fields.Add(ComposeBinaryFieldOrComputed());
+            fields.Add(ComposeBinaryFieldOrComputed(fields));
 
             if (Current.TokenType == TokenType.Comma)
                 Consume(TokenType.Comma);
@@ -77,7 +78,7 @@ public partial class SchemaParser
         return fields.ToArray();
     }
 
-    private SchemaFieldNode ComposeBinaryFieldOrComputed()
+    private SchemaFieldNode ComposeBinaryFieldOrComputed(IReadOnlyList<SchemaFieldNode> precedingFields)
     {
         var nameToken = Current;
         var name = ComposeIdentifierOrWord();
@@ -90,7 +91,9 @@ public partial class SchemaParser
             return (ComputedFieldNode)new ComputedFieldNode(name, expression).WithSpan(nameToken.Span);
         }
 
-        if (IsComputedFieldStart())
+        var startsWithCompletedField = !IsTypeKeyword(Current.TokenType) &&
+            precedingFields.Any(field => field.Name.Equals(Current.Value, StringComparison.OrdinalIgnoreCase));
+        if (startsWithCompletedField || IsComputedFieldStart())
         {
             var expression = ComposeExpression();
             return (ComputedFieldNode)new ComputedFieldNode(name, expression).WithSpan(nameToken.Span);
@@ -117,7 +120,7 @@ public partial class SchemaParser
 
     private bool IsComputedFieldStart()
     {
-        if (Current.TokenType is TokenType.Case or TokenType.Not or TokenType.Null)
+        if (Current.TokenType is TokenType.Case or TokenType.Not or TokenType.Null or TokenType.Function)
             return true;
         if (IsTypeKeyword(Current.TokenType))
             return false;
@@ -148,7 +151,8 @@ public partial class SchemaParser
         }
 
         if (Current.TokenType is TokenType.Integer or TokenType.Decimal or TokenType.LeftParenthesis
-            or TokenType.Hyphen or TokenType.True or TokenType.False)
+            or TokenType.Hyphen or TokenType.True or TokenType.False or TokenType.StringLiteral
+            or TokenType.HexadecimalInteger or TokenType.BinaryInteger or TokenType.OctalInteger)
             return true;
 
         if (AllowedKeywordTokenTypes.Contains(Current.TokenType))

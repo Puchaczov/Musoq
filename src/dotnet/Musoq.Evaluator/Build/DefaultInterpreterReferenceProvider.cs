@@ -13,6 +13,8 @@ internal sealed class DefaultInterpreterReferenceProvider : IInterpreterReferenc
         "System.Memory.dll",
         "System.Buffers.dll",
         "System.Text.RegularExpressions.dll",
+        "System.Security.Cryptography.dll",
+        "System.Text.Encoding.CodePages.dll",
         "System.Dynamic.Runtime.dll",
         "System.Linq.Expressions.dll",
         "System.ObjectModel.dll",
