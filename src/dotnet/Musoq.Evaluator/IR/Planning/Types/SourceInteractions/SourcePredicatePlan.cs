@@ -9,4 +9,7 @@ internal sealed record SourcePredicatePlan(
     WhereNode PushedWhereNode,
     IrExpression[] PushedPredicates,
     string Reason,
-    PlanningConfidence Confidence);
+    PlanningConfidence Confidence)
+{
+    public TimeSpan RegexMatchTimeout { get; init; } = Runtime.RuntimeCacheOptions.DefaultRegexTimeout;
+}

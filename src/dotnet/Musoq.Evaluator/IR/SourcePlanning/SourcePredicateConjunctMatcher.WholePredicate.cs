@@ -14,7 +14,7 @@ internal static partial class SourcePredicateConjunctMatcher
             if (!SourcePredicateExpressionConverter.TryConvertPredicate(
                     pushedPredicate,
                     sourcePredicatePlan.Alias,
-                    out var sourcePredicate))
+                    out var sourcePredicate, sourcePredicatePlan.RegexMatchTimeout))
             {
                 continue;
             }

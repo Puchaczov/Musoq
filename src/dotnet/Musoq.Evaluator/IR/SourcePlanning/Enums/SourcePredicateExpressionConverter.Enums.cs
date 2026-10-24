@@ -11,6 +11,7 @@ internal static partial class SourcePredicateExpressionConverter
         IrExpression expression,
         string sourceAlias,
         EnumTypeDescriptor? enumType,
+        TimeSpan regexMatchTimeout,
         [NotNullWhen(true)] out SourcePredicateExpression? predicate)
     {
         if (enumType != null && expression is Literal literal && literal.Value != null)
@@ -25,19 +26,20 @@ internal static partial class SourcePredicateExpressionConverter
             return true;
         }
 
-        return TryConvertPredicate(expression, sourceAlias, out predicate);
+        return TryConvertPredicate(expression, sourceAlias, out predicate, regexMatchTimeout);
     }
 
     private static bool TryConvertEnumFlagsPredicate(
         MethodCall methodCall,
         string sourceAlias,
+        TimeSpan regexMatchTimeout,
         [NotNullWhen(true)] out SourcePredicateExpression? predicate)
     {
         if (methodCall.EnumIntrinsic is not (EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags) ||
             methodCall.OperandEnumType is not { IsFlags: true } descriptor ||
             methodCall.EnumMask is not { } mask ||
             methodCall.Arguments.Count == 0 ||
-            !TryConvertPredicate(methodCall.Arguments[0], sourceAlias, out var expression) ||
+            !TryConvertPredicate(methodCall.Arguments[0], sourceAlias, out var expression, regexMatchTimeout) ||
             expression is not SourcePredicateColumn)
         {
             predicate = null;

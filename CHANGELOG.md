@@ -4,6 +4,15 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.14-alpha.2
+
+See the curated full-train release notes for [Musoq 17.0.14-alpha.2](release-notes/v17.0.14-alpha.2.md).
+
+- Fix residual `NOT LIKE '%'` compilation while preserving null and missing-value behavior.
+- Carry each compiled query's configured regex timeout into negotiated provider predicates and recognize public provider regex timeouts as MQ7017.
+- Fix inferred source columns and duplicate generated row declarations for query-scoped source self-correlation.
+- Preserve the alpha.1 provider contracts and existing LIKE/RLIKE transfer boundaries; upgrade all five Core packages together.
+
 ## 17.0.14-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.14-alpha.1](release-notes/v17.0.14-alpha.1.md).

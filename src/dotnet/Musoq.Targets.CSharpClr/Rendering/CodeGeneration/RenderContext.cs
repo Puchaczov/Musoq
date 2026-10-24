@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Musoq.Evaluator.Utils;
 
@@ -8,6 +10,7 @@ namespace Musoq.Targets.CSharpClr;
 public sealed class RenderContext
 {
     private readonly List<SyntaxNode> _classMembers = [];
+    private readonly Dictionary<string, SyntaxNode> _queryRowMembers = new(StringComparer.Ordinal);
 
     public SyntaxGenerator Generator { get; }
 
@@ -59,6 +62,26 @@ public sealed class RenderContext
     public void AddClassMember(SyntaxNode member)
     {
         ArgumentNullException.ThrowIfNull(member);
+        var sharedName = member switch
+        {
+            TypeDeclarationSyntax type when type.Identifier.ValueText.StartsWith("QueryRow_", StringComparison.Ordinal) ||
+                                            type.Identifier.ValueText.StartsWith("QueryRowMaterializer_", StringComparison.Ordinal)
+                => type.Identifier.ValueText,
+            FieldDeclarationSyntax { Declaration.Variables.Count: 1 } field when
+                field.Declaration.Variables[0].Identifier.ValueText.StartsWith("__queryRowShape_", StringComparison.Ordinal)
+                => field.Declaration.Variables[0].Identifier.ValueText,
+            _ => null
+        };
+        if (sharedName != null)
+        {
+            if (_queryRowMembers.TryGetValue(sharedName, out var existing))
+            {
+                if (!SyntaxFactory.AreEquivalent(existing, member))
+                    throw new InvalidOperationException($"Conflicting query-row declaration '{sharedName}'.");
+                return;
+            }
+            _queryRowMembers.Add(sharedName, member);
+        }
         _classMembers.Add(member);
     }
 
