@@ -57,6 +57,13 @@ internal static partial class PlanningPropertyDeriver
             sources,
             predicateMovementPlanningResult.Plans);
         context.CancellationToken.ThrowIfCancellationRequested();
+        sourcePredicatePlanningResult = sourcePredicatePlanningResult with
+        {
+            PlansBySourceId = sourcePredicatePlanningResult.PlansBySourceId.ToDictionary(
+                static entry => entry.Key,
+                entry => entry.Value with { RegexMatchTimeout = context.CompilationOptions.RegexMatchTimeout },
+                StringComparer.Ordinal)
+        };
         decisions.AddRange(sourcePredicatePlanningResult.Decisions);
         pushedPredicates = sourcePredicatePlanningResult.PushedPredicatesBySourceId;
         sources = CreateSourceProperties(context, scans, requiredColumnsByAlias, pushedPredicates, decisions);

@@ -124,7 +124,8 @@ public class QueryExecutionException : InvalidOperationException
                 innerException);
         }
 
-        var regexTimeout = FindCause<RegexExecutionTimeoutException>(innerException);
+        Exception? regexTimeout = FindCause<RegexExecutionTimeoutException>(innerException);
+        regexTimeout ??= FindCause<System.Text.RegularExpressions.RegexMatchTimeoutException>(innerException);
         var diagnostic = innerException.ToDiagnostic();
         if (regexTimeout != null)
             diagnostic = RuntimeExpressionFailureDiagnostic.Create(regexTimeout)!;

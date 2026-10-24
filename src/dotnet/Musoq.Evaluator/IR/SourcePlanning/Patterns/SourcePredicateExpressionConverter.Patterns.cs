@@ -9,6 +9,7 @@ internal static partial class SourcePredicateExpressionConverter
     private static bool TryConvertPatternMatch(
         PatternMatch patternMatch,
         string sourceAlias,
+        TimeSpan regexMatchTimeout,
         bool isNegated,
         [NotNullWhen(true)] out SourcePredicateExpression? predicate)
     {
@@ -25,7 +26,7 @@ internal static partial class SourcePredicateExpressionConverter
         {
             predicate = new SourcePredicateRegexMatch(
                 new SourceColumnRef(column.ColumnName), pattern,
-                Runtime.RuntimeCacheOptions.DefaultRegexTimeout, isNegated: isNegated);
+                regexMatchTimeout, isNegated: isNegated);
             return true;
         }
 

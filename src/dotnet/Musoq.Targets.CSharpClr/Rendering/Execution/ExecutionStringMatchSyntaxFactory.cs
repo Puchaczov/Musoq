@@ -19,10 +19,10 @@ internal static class ExecutionStringMatchSyntaxFactory
 
         if (match.Kind == ExecutionStringMatchKind.Contains && match.Needle.Length == 0)
         {
-            return SyntaxFactory.IsPatternExpression(
+            return Parenthesize(SyntaxFactory.IsPatternExpression(
                 Parenthesize(input),
                 SyntaxFactory.TypePattern(
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)))));
         }
 
         var variableName = $"__musoqStringMatch{++session.StringMatchPatternCount}";

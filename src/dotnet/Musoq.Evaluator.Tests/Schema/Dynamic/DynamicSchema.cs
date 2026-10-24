@@ -42,7 +42,7 @@ public class DynamicSchema(
     public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
         => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+    public virtual RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name, QueryScopedRowSourceRequest request, TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, ISourceArguments

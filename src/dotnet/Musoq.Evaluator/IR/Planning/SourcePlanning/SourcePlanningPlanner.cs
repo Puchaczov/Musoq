@@ -196,7 +196,7 @@ internal static partial class SourcePlanningPlanner
         foreach (var predicate in plan.PushedPredicates)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (SourcePredicateExpressionConverter.TryConvertPredicate(predicate, scan.Alias, out var sourcePredicate))
+            if (SourcePredicateExpressionConverter.TryConvertPredicate(predicate, scan.Alias, out var sourcePredicate, plan.RegexMatchTimeout))
                 predicates.Add(sourcePredicate);
         }
 

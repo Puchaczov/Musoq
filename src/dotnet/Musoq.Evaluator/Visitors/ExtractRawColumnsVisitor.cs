@@ -109,6 +109,16 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
         RegisterSource(alias, _queryAlias);
     }
 
+    public override void Visit(InMemoryTableFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        var alias = string.IsNullOrEmpty(node.Alias) ? node.VariableName : node.Alias;
+        var columnKey = alias + _schemaFromKey;
+        _columns.TryAdd(columnKey, []);
+        _queryAlias = columnKey;
+        RegisterSource(alias, columnKey);
+    }
+
     private string ResolveColumnKey(string? alias)
     {
         if (!string.IsNullOrEmpty(alias) && TryResolveColumnKey(alias, out var columnKey))
