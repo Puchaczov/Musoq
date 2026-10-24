@@ -92,6 +92,10 @@ public sealed partial class Lexer
                 Position++;
                 return AssignToken(new AmpersandToken(new TextSpan(start, 1)));
 
+            case '|' when next == '|':
+                Position += 2;
+                return AssignToken(new StringConcatenationToken(new TextSpan(start, 2)));
+
             case '|':
                 Position++;
                 return AssignToken(new PipeToken(new TextSpan(start, 1)));

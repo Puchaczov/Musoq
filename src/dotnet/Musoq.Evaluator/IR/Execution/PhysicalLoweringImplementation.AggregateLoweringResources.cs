@@ -2,10 +2,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static LoweringAttempt<AggregateLoweringResources> CreateAggregateLoweringResources(AggregateLoweringResourceRequest request)
+    private LoweringAttempt<AggregateLoweringResources> CreateAggregateLoweringResources(AggregateLoweringResourceRequest request)
     {
         if (!TryCreateAggregateGroupLowering(
-            request.ResultTableName,
+            _facts.GeneratedTypePrefix + request.ResultTableName,
             request.FinalizationGroupKeys,
             request.Bindings,
             request.OutputFields,

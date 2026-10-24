@@ -10,8 +10,10 @@ internal static partial class ExecutionExpressionFingerprint
         expression switch
         {
             ExecutionFieldRead fieldRead => $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}:stability={fieldRead.Stability}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
+            ExecutionUnionMemberRead union => $"union-member:{union.MemberName}:{string.Join(",", union.Cases.Select(arm => arm.TypeName + "." + arm.MemberName))}:{ForHoist(union.Receiver)}:{union.ReturnType.StableId}",
             ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:null-safe={memberRead.IsNullSafe}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}:stable={Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(memberRead)}",
             ExecutionLiteral literal => $"literal:{HoistType(literal.ReturnType)}:{literal.Value}",
+            ExecutionStringConcatenation concatenation => $"sql-concat:{string.Join(",", concatenation.Expressions.Select(ForHoist))}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForHoist(binary.Left)}:{ForHoist(binary.Right)}:{HoistType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForHoist(unary.Operand)}:{HoistType(unary.ReturnType)}",
             ExecutionMethodCall methodCall => HoistMethodCall(methodCall),
@@ -45,12 +47,32 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionNullContextArray nullContextArray => $"null-context:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
             ExecutionContextArray contextArray => $"context-array:{string.Join(",", contextArray.Segments.Select(static segment => ForHoist(segment.Value)))}",
             ExecutionValueTupleKey valueTupleKey => $"tuple:{string.Join(",", valueTupleKey.Parts.Select(ForHoist))}:{HoistType(valueTupleKey.ReturnType)}",
-            ExecutionAggregateCall aggregateCall => $"aggregate:{HoistMethod(aggregateCall.Method)}:{string.Join(",", aggregateCall.Arguments.Select(ForHoist))}:{HoistType(aggregateCall.ReturnType)}",
+            ExecutionAggregateCall aggregateCall => HoistAggregateCall(aggregateCall),
             ExecutionGroupKeyRead groupKeyRead => $"group-key:{groupKeyRead.Group.Name}:{groupKeyRead.KeyName}:{HoistType(groupKeyRead.ReturnType)}",
             ExecutionAggregateCapturedValueRead captured => $"captured:{captured.Group.Name}:{captured.ValueName}:{HoistType(captured.ReturnType)}",
             ExecutionWindowValueRead window => $"window:{window.Results.Name}:{window.Index.Name}:{HoistType(window.ReturnType)}",
             _ => expression.ToString() ?? expression.GetType().FullName ?? expression.GetType().Name
         };
+
+    private static string HoistAggregateCall(ExecutionAggregateCall aggregateCall)
+    {
+        var builder = new StringBuilder();
+        builder.Append("aggregate:")
+            .Append(aggregateCall.Group.Name)
+            .Append(':')
+            .Append(HoistType(aggregateCall.Group.Type))
+            .Append(':')
+            .Append(aggregateCall.Group.GeneratedRowTypeName)
+            .Append(':')
+            .Append(HoistMethod(aggregateCall.Method))
+            .Append(':');
+        AggregateAccumulatorFingerprint.Append(builder, aggregateCall.Accumulator);
+        builder.Append(":args:");
+        foreach (var argument in aggregateCall.Arguments)
+            builder.Append(ForHoist(argument)).Append(';');
+        builder.Append(":result:").Append(HoistType(aggregateCall.ReturnType));
+        return builder.ToString();
+    }
 
     private static string HoistMethodCall(ExecutionMethodCall methodCall)
     {

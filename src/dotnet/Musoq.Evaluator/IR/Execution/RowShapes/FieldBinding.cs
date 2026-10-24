@@ -74,6 +74,8 @@ public sealed record FieldBinding
 
     public string? GeneratedTypeName { get; init; }
 
+    public ExecutionInterpretationShape? InterpretationShape { get; init; }
+
     public IReadOnlyDictionary<string, string> GeneratedMemberTypeNames { get; init; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 

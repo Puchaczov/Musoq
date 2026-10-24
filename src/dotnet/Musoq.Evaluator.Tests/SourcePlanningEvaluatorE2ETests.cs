@@ -438,8 +438,7 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void ProjectionAcceptedBySource_WhenCoalesceLeftIsNonNullable_ShouldNotRequestDeadFallbackColumn()
     {
-        const string missingColumn = "MissingColumn";
-        const string query = "select s.Score ?? s.MissingColumn from #sp.items() s";
+        const string query = "select s.Score ?? s.Id from #sp.items() s";
 
         AssertOptimizedMatchesBaseline(query, SourcePlanningMode.AcceptProjection, out var provider);
         var request = provider.Requests.Single();
@@ -451,7 +450,7 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Score) },
             executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray());
-        Assert.IsFalse(request.RequiredColumns.Any(column => column.Name == missingColumn));
+        Assert.IsFalse(request.RequiredColumns.Any(static column => column.Name == nameof(SourcePlanningEntity.Id)));
     }
 
     [TestMethod]

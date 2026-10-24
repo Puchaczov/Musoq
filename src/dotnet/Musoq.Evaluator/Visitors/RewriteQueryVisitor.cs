@@ -8,6 +8,7 @@ namespace Musoq.Evaluator.Visitors;
 public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 {
     private readonly List<BinaryFromNode> _joinedTables = [];
+    internal IntermediateSourceRegistry IntermediateSources { get; } = new();
     private int _queryIndex;
     private Scope? _scopeValue;
     private RootNode? _rootScript;
@@ -40,6 +41,21 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     private Scope Scope => _scopeValue ?? throw new InvalidOperationException("Rewrite query visitor scope must be set before visiting query nodes.");
 
     private Stack<Node> Nodes { get; } = new();
+
+    internal void RewriteSubqueryScope(Action rewrite)
+    {
+        var joins = _joinedTables.ToArray();
+        _joinedTables.Clear();
+        try
+        {
+            rewrite();
+        }
+        finally
+        {
+            _joinedTables.Clear();
+            _joinedTables.AddRange(joins);
+        }
+    }
 
     public RootNode RootScript
     {

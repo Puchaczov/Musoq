@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Exceptions;
@@ -13,6 +14,9 @@ internal static class EvaluatorExceptionTaxonomy
 
         if (exception is OperationCanceledException or SchemaProviderFailureException)
             return false;
+
+        if (exception is SourceMetadataRequiresDefaultException)
+            return true;
 
         if (ContainsSchemaProviderFailure(exception))
             return false;
@@ -38,8 +42,12 @@ internal static class EvaluatorExceptionTaxonomy
 
         var visited = new HashSet<Exception>();
         for (var current = exception; current != null && visited.Add(current); current = current.InnerException)
+        {
+            if (current is SourceMetadataRequiresDefaultException)
+                return null;
             if (current is SchemaProviderFailureException providerFailure)
                 return providerFailure;
+        }
 
         return null;
     }

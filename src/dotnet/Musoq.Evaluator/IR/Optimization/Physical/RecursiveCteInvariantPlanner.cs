@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
 
@@ -59,21 +61,22 @@ internal static partial class RecursiveCteInvariantPlanner
         PhysicalNode member,
         string recursiveName,
         IReadOnlyDictionary<string, OutputSchema> externalCteSchemas,
-        IReadOnlySet<string> selfAliases,
+        HashSet<string> selfAliases,
         IReadOnlyDictionary<string, HashSet<string>> referencedColumns,
         List<PhysicalRecursiveCteInvariantDefinition> definitions)
     {
         if (member is not PhysicalMultiStatementNode multiStatement || multiStatement.Statements.Length < 2)
             return member;
 
-        var producerNames = InferTransitionProducerNames(
-            multiStatement,
-            recursiveName,
-            externalCteSchemas.Keys);
+        var producerNames = IntermediateSourceProducers.Resolve(multiStatement)
+            .ToDictionary(static producer => producer.Value, static producer => producer.Key);
         if (producerNames.Count == 0)
             return member;
 
         var statements = multiStatement.Statements.ToList();
+        var retainedIndexes = Enumerable.Range(0, statements.Count).ToList();
+        var referencesByName = statements.SelectMany(EnumerateCteReferences)
+            .ToLookup(static reference => reference.CteName, StringComparer.Ordinal);
         var removed = 0;
         foreach (var (originalIndex, producerName) in producerNames.OrderBy(static pair => pair.Key))
         {
@@ -86,16 +89,14 @@ internal static partial class RecursiveCteInvariantPlanner
                     statement,
                     recursiveName,
                     selfAliases,
-                    new HashSet<string>(StringComparer.Ordinal)))
+                    FrozenSet<string>.Empty))
+            {
+                foreach (var reference in referencesByName[producerName])
+                    selfAliases.Add(reference.Alias);
                 continue;
+            }
 
-            var producerReference = statements
-                .Skip(index + 1)
-                .SelectMany(EnumerateCteReferences)
-                .FirstOrDefault(reference => string.Equals(
-                    reference.CteName,
-                    producerName,
-                    StringComparison.Ordinal));
+            var producerReference = referencesByName[producerName].FirstOrDefault();
             if (producerReference == null || !TryCreateTransitionDefinition(
                     statement,
                     producerName,
@@ -110,6 +111,7 @@ internal static partial class RecursiveCteInvariantPlanner
 
             definitions.Add(definition);
             statements.RemoveAt(index);
+            retainedIndexes.RemoveAt(index);
             removed++;
             for (var rewriteIndex = index; rewriteIndex < statements.Count; rewriteIndex++)
             {
@@ -122,32 +124,10 @@ internal static partial class RecursiveCteInvariantPlanner
 
         return statements.Count == multiStatement.Statements.Length
             ? member
-            : new PhysicalMultiStatementNode(statements.ToArray());
+            : new PhysicalMultiStatementNode(statements.ToArray())
+            { IntermediateProducers = IntermediateSourceProducers.Remap(multiStatement, retainedIndexes) };
     }
 
-    private static Dictionary<int, string> InferTransitionProducerNames(
-        PhysicalMultiStatementNode multiStatement,
-        string recursiveName,
-        IEnumerable<string> externalCteNames)
-    {
-        var knownNames = new HashSet<string>(externalCteNames, StringComparer.Ordinal)
-        {
-            recursiveName
-        };
-        var result = new Dictionary<int, string>();
-        var nextProducerIndex = 0;
-
-        foreach (var statement in multiStatement.Statements)
-        foreach (var reference in EnumerateCteReferences(statement))
-        {
-            if (!knownNames.Add(reference.CteName))
-                continue;
-
-            result[nextProducerIndex++] = reference.CteName;
-        }
-
-        return result;
-    }
 
     private static bool TryCreateTransitionDefinition(
         PhysicalNode statement,
@@ -370,6 +350,8 @@ internal static partial class RecursiveCteInvariantPlanner
         PhysicalNode node,
         IReadOnlySet<string> selfAliases)
     {
+        if (node is PhysicalCteRefNode cteRef && selfAliases.Contains(cteRef.Alias))
+            return true;
         if (node is PhysicalAccessMethodSourceNode access && selfAliases.Contains(access.SourceAlias))
             return true;
         if (node is PhysicalPropertySourceNode property && selfAliases.Contains(property.SourceAlias))

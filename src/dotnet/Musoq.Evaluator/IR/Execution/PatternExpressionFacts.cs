@@ -9,19 +9,31 @@ internal delegate bool TryRewritePatternExpression(
 
 internal static class PatternExpressionFacts
 {
-    public static IReadOnlyList<ExecutionExpression> GetChildren(ExecutionExpression expression) =>
+    public static IReadOnlyList<ExecutionExpression> GetChildren(ExecutionExpression expression)
+    {
+        var first = GetChildAt(expression, 0);
+        if (first is null)
+            return [];
+        var second = GetChildAt(expression, 1);
+        if (second is null)
+            return [first];
+        var third = GetChildAt(expression, 2);
+        return third is null ? [first, second] : [first, second, third];
+    }
+
+    internal static ExecutionExpression? GetChildAt(ExecutionExpression expression, int index) =>
         expression switch
         {
-            ExecutionPatternMatch pattern => [pattern.Expression, pattern.Pattern],
-            ExecutionStringMatch stringMatch => [stringMatch.Input],
-            ExecutionPrepareLikeMatcher prepareLike => [prepareLike.Pattern],
-            ExecutionPreparedLikeMatch preparedLike => [preparedLike.Input, preparedLike.Matcher],
-            ExecutionDynamicLikeMatch dynamicLike => [dynamicLike.Input, dynamicLike.Pattern, dynamicLike.CacheSlot],
-            ExecutionLikeMatcherCacheSlot => [],
-            ExecutionPrepareRLikeMatcher prepareRLike => [prepareRLike.Pattern],
-            ExecutionPreparedRLikeMatch preparedRLike => [preparedRLike.Input, preparedRLike.Matcher],
-            ExecutionDynamicRLikeMatch dynamicRLike => [dynamicRLike.Input, dynamicRLike.Pattern, dynamicRLike.CacheSlot],
-            ExecutionRLikeMatcherCacheSlot => [],
+            ExecutionPatternMatch pattern => index switch { 0 => pattern.Expression, 1 => pattern.Pattern, _ => null },
+            ExecutionStringMatch stringMatch => index switch { 0 => stringMatch.Input, _ => null },
+            ExecutionPrepareLikeMatcher prepareLike => index switch { 0 => prepareLike.Pattern, _ => null },
+            ExecutionPreparedLikeMatch preparedLike => index switch { 0 => preparedLike.Input, 1 => preparedLike.Matcher, _ => null },
+            ExecutionDynamicLikeMatch dynamicLike => index switch { 0 => dynamicLike.Input, 1 => dynamicLike.Pattern, 2 => dynamicLike.CacheSlot, _ => null },
+            ExecutionLikeMatcherCacheSlot => null,
+            ExecutionPrepareRLikeMatcher prepareRLike => index switch { 0 => prepareRLike.Pattern, _ => null },
+            ExecutionPreparedRLikeMatch preparedRLike => index switch { 0 => preparedRLike.Input, 1 => preparedRLike.Matcher, _ => null },
+            ExecutionDynamicRLikeMatch dynamicRLike => index switch { 0 => dynamicRLike.Input, 1 => dynamicRLike.Pattern, 2 => dynamicRLike.CacheSlot, _ => null },
+            ExecutionRLikeMatcherCacheSlot => null,
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression.GetType().Name, "Unknown pattern expression.")
         };
 

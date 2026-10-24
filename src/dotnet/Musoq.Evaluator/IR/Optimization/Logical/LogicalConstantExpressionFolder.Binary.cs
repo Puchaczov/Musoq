@@ -39,7 +39,7 @@ internal sealed partial class LogicalConstantExpressionFolder
                     Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) >= 0, node), out folded),
                 BinaryOpKind.LessOrEqual =>
                     Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) <= 0, node), out folded),
-                BinaryOpKind.StringConcatenate =>
+                BinaryOpKind.SqlStringConcatenate or BinaryOpKind.StringConcatenate =>
                     Succeed(CreateFoldedLiteral(string.Concat(left.Value, right.Value), node), out folded),
                 BinaryOpKind.Add when node.ReturnType == typeof(string) =>
                     Succeed(CreateFoldedLiteral(string.Concat(left.Value, right.Value), node), out folded),
@@ -76,6 +76,10 @@ internal sealed partial class LogicalConstantExpressionFolder
         if (left is not null && right is not null)
             return false;
 
+        if (knownValues != null && node.ReturnType == typeof(string) &&
+            node.Kind is BinaryOpKind.Add or BinaryOpKind.StringConcatenate)
+            return Succeed(CreateFoldedLiteral(string.Concat(left, right), node), out folded);
+
         return node.Kind switch
         {
             BinaryOpKind.Equal or BinaryOpKind.NotEqual or
@@ -89,7 +93,7 @@ internal sealed partial class LogicalConstantExpressionFolder
                 BinaryOpKind.Multiply or
                 BinaryOpKind.Divide or
                 BinaryOpKind.Modulo or
-                BinaryOpKind.StringConcatenate => Succeed(CreateFoldedLiteral(null, node), out folded),
+                BinaryOpKind.SqlStringConcatenate or BinaryOpKind.StringConcatenate => Succeed(CreateFoldedLiteral(null, node), out folded),
             _ => false
         };
     }
@@ -137,6 +141,7 @@ internal sealed partial class LogicalConstantExpressionFolder
 
     private static object NormalizeNumericLiteral(object value, Type targetType)
     {
+        targetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
         if (targetType == typeof(byte) ||
             targetType == typeof(sbyte) ||
             targetType == typeof(short) ||

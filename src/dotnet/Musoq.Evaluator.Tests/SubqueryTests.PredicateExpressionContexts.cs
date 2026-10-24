@@ -38,7 +38,7 @@ public partial class SubqueryTests
             ["WARSAW", "Y"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
         Assert.IsFalse(inspection.PhysicalPlanText.Contains("PhysicalHashJoin [LeftSemi]", System.StringComparison.Ordinal));
     }
 
@@ -69,7 +69,7 @@ public partial class SubqueryTests
             ["WARSAW", "WARSAW"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
     }
 
     [TestMethod]
@@ -162,7 +162,7 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("BiggerThanAny", typeof(bool)));
+            ("BiggerThanAny", typeof(bool?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", false],
@@ -229,7 +229,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenPartitionedRangeQuantifiedSubquery_IsUsedInSelectExpression_ShouldUsePartitionedRangeMark()
+    public void WhenPartitionedRangeQuantifiedSubquery_IsUsedInSelectExpression_ShouldUseThreeValuedTypedFallback()
     {
         const string query = @"
             SELECT a.City,
@@ -244,17 +244,14 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("BiggerThanAny", typeof(bool)));
+            ("BiggerThanAny", typeof(bool?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", false],
             ["PARIS", false],
             ["WARSAW", true]);
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalSortMergeJoin [LeftMark]", inspection.PhysicalPlanText);
-        Assert.Contains("[partitions:", inspection.PhysicalPlanText);
-        Assert.Contains("PredicateRangeMark", inspection.PlanningText);
-        AssertNoPerRowSubqueryExecution(inspection);
+        Assert.Contains("-> Apply", inspection.PlanningText);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreatePredicateContextSources()

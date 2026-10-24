@@ -142,9 +142,9 @@ public sealed class DiagnosticBinary045SubstreamTests : BinaryInterpretationTest
         Assert.AreEqual(ParseErrorCode.ValidationFailed, exception.ErrorCode);
         Assert.AreEqual("Packet", exception.SchemaName);
         Assert.AreEqual("Payload", exception.FieldName);
-        Assert.AreEqual(1, exception.Position);
+        Assert.AreEqual(3, exception.Position);
         StringAssert.Contains(exception.Details, "declared 3 bytes");
-        StringAssert.Contains(exception.Details, "consumed only 2");
+        StringAssert.Contains(exception.Details, "stopped at byte 2, bit 0");
     }
 
     [TestMethod]

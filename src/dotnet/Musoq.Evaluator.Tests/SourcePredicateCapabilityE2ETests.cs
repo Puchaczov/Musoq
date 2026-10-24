@@ -36,7 +36,7 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         Assert.HasCount(1, optimizedProvider.PlanResults.Single().ExecutionPlan.PredicateApplications);
         Assert.HasCount(1, plan.PredicateApplications);
         Assert.AreEqual(SourcePredicateEvaluationPhase.RowFiltering, plan.PredicateApplications[0].Phase);
-        Assert.AreEqual(SourceStringMatchKind.Prefix, plan.PredicateApplications[0].Predicate.Kind);
+        Assert.AreEqual(SourceStringMatchKind.Prefix, ((SourcePredicateStringMatch)plan.PredicateApplications[0].Predicate).Kind);
         Assert.IsTrue(optimizedProvider.Recorder.SourceRowsProduced < baselineProvider.Recorder.SourceRowsProduced);
         Assert.DoesNotContain("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.DoesNotContain("LikePrefix(", inspection.GeneratedCSharpCode);

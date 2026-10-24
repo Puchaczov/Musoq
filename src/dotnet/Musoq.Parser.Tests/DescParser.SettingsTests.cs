@@ -10,6 +10,32 @@ namespace Musoq.Parser.Tests;
 public class DescParserSettingsTests : DescParserTestBase
 {
     [TestMethod]
+    [DataRow("desc schema.method(path: 'file', count: 2)")]
+    [DataRow("desc settings schema.method(path: 'file', count: 2)")]
+    [DataRow("desc #schema.method(path: 'file', count: 2)")]
+    [DataRow("desc settings #schema.method(path: 'file', count: 2)")]
+    public void ConcreteDescription_ShouldPreserveNamedSourceArguments(string query)
+    {
+        var source = GetSchemaFromNode(ParseDescNode(query));
+
+        Assert.IsTrue(source.Parameters.HasNamedArguments);
+        Assert.AreEqual(2, source.Parameters.Args.Length);
+    }
+
+    [TestMethod]
+    [DataRow("desc Source(path: 'file', count: 2)")]
+    [DataRow("desc arguments Source(path: 'file', count: 2)")]
+    [DataRow("desc settings Source(path: 'file', count: 2)")]
+    public void CoupledDescription_ShouldPreserveNamedSourceArguments(string query)
+    {
+        var source = (AliasedFromNode)ParseDescNode(query).From;
+
+        Assert.AreEqual("Source", source.Identifier);
+        Assert.IsTrue(source.Args.HasNamedArguments);
+        Assert.AreEqual(2, source.Args.Args.Length);
+    }
+
+    [TestMethod]
     public void DescSettingsSchemaMethod_ShouldParse()
     {
         var query = "desc settings #schema.method";

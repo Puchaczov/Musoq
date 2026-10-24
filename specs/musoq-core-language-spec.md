@@ -1,6 +1,6 @@
 # Musoq Core SQL Language Specification
 
-**Version:** 1.8.0
+**Version:** 2.0.0
 **Status:** Language specification
 **Author:** Jakub Puchała
 
@@ -74,7 +74,7 @@ Musoq implements a subset of SQL with several extensions:
 | Pagination | `OFFSET` / `LIMIT` | `SKIP` / `TAKE` |
 | Set operation keys | Implicit (all columns) | Omitted keys and `()` compare all projected values; explicit key lists such as `UNION (col1)` compare a subset |
 | Not-equal operator | Both `<>` and `!=` | Both `<>` and `!=` are supported |
-| CASE WHEN | ELSE is optional | ELSE is **mandatory** |
+| CASE WHEN | ELSE is optional | ELSE is optional; omitted ELSE returns NULL |
 | Simple CASE form | `CASE expr WHEN value THEN ...` | Supported (desugared to searched CASE internally) |
 | FROM-first syntax | Not standard | Supported: `FROM ... WHERE ... SELECT ...` |
 | CROSS APPLY / OUTER APPLY | T-SQL extension | Fully supported with method and property expansion |
@@ -98,7 +98,7 @@ Musoq implements a subset of SQL with several extensions:
 | Term | Definition |
 |------|------------|
 | **Schema** | A named data source provider (e.g., `git`, `os`, `csv`) that exposes one or more methods |
-| **Method** | A specific data-producing function on a schema (e.g., `git.log()`, `os.files('/path')`) |
+| **Method** | A specific data-producing function on a schema (e.g., `schema.records()`, `schema.method('key')`) |
 | **Entity** | A single row returned by a data source method |
 | **Column** | A named, typed field within an entity |
 | **Expression** | Any computation that produces a value (arithmetic, function call, column reference, etc.) |
@@ -156,8 +156,10 @@ Provider contracts describe available sources, fields, callable signatures,
 function identities, optional settings, and declared capabilities. Providers are
 not required to expose native objects or any particular host interface.
 Core conformance does not require installing the providers used in examples.
-Examples using files, APIs, named external providers, or undeclared symbols are
-informative templates requiring the stated receiving contract. The specifications
+Ordinary examples use inline VALUES rows and require no installed datasource.
+Examples about source binding, metadata, settings, or supplied member shapes use
+the generic contracts in [Appendix H](#appendix-h-generic-source-contracts-used-in-examples). SQL syntax fragments and intentional failures
+are identified by their surrounding text. The specifications
 define the required behavior independently of any implementation test corpus.
 
 Host-specific type lookup, metadata rendering, integration APIs, execution
@@ -220,7 +222,7 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 | `CASE` | Begin conditional expression |
 | `WHEN` | Conditional branch |
 | `THEN` | Branch result |
-| `ELSE` | Default branch (mandatory in CASE) |
+| `ELSE` | Optional default branch in CASE; omitted ELSE means NULL |
 | `END` | End conditional expression |
 | `DISTINCT` | Remove duplicate rows / null-safe comparison phrase |
 | `ASC` | Ascending sort order (default) |
@@ -286,14 +288,14 @@ outside those forms both words remain ordinary identifiers.
 Contextual keywords used as identifiers preserve their source casing. For example, `Exists`, `ANY`, and `Some` can be selected as ordinary columns when they are not occupying their predicate-operator positions:
 
 ```sql
-select FullPath, Exists from os.files('path', true) take 5
-select Any, Some, All from A.entities()
+select FullPath, Exists from values { (FullPath: 'notes.txt', [Exists]: true) } files take 5
+select Any, Some, All from values { ([Any]: 1, [Some]: 2, [All]: 3) } words
 ```
 
 **Bracket-quoted identifiers** allow reserved words and special characters:
 
 ```sql
-select [case], [order], [Column With Spaces] from schema.method()
+select [case], [order], [Column With Spaces] from values { ([case]: 'item', [order]: 1, [Column With Spaces]: 'value') } names
 ```
 
 Schema data sources are referenced directly as `Schema.Method()`.
@@ -318,7 +320,7 @@ as the delimiter and are accepted anywhere a string literal is accepted.
 Ordinary string literals decode the escape sequences listed below:
 
 ```sql
-select 'Hello, World!' from system.dual()
+select 'Hello, World!' from values { (Seed: 0) } seed
 ```
 
 #### Escape Sequences
@@ -351,10 +353,10 @@ select 'Hello, World!' from system.dual()
 Raw string literals use an adjacent lowercase or uppercase `r` prefix:
 
 ```sql
-select r'C:\Some\Path\To\Directory' from system.dual()
-select r'\\server\share' from system.dual()
-select r'C:\Temp\' from system.dual()
-select r'a''b' from system.dual()
+select r'C:\Some\Path\To\Directory' from values { (Seed: 0) } seed
+select r'\\server\share' from values { (Seed: 0) } seed
+select r'C:\Temp\' from values { (Seed: 0) } seed
+select r'a''b' from values { (Seed: 0) } seed
 ```
 
 Raw literal rules:
@@ -374,8 +376,8 @@ Raw literal rules:
 The distinction between the two forms is observable:
 
 ```sql
-select '\n' from system.dual()   -- one newline character
-select r'\n' from system.dual()  -- two literal characters: backslash and n
+select '\n' from values { (Seed: 0) } seed   -- one newline character
+select r'\n' from values { (Seed: 0) } seed  -- two literal characters: backslash and n
 ```
 
 Use raw literals for Windows paths, or double each backslash in an ordinary
@@ -390,24 +392,23 @@ advisory warning `MQ5014_SuspiciousOrdinaryStringEscape`. The warning does not
 rewrite the literal, change its runtime value, or prevent compilation.
 
 ```sql
-select FullPath
-from os.files('C:\new\test', true)
+select 'C:\new\test' as FullPath from values { (Seed: 0) } seed
 -- MQ5014: \n and \t alter this path-like ordinary string
 
-select FullPath from os.files(r'C:\new\test', true)
-select FullPath from os.files('C:\\new\\test', true)
+select r'C:\new\test' as FullPath from values { (Seed: 0) } seed
+select 'C:\\new\\test' as FullPath from values { (Seed: 0) } seed
 ```
 
 Rooted path risks such as drive-rooted, UNC, device, and explicit relative-root
 forms can be identified during parsing. A relative value such as
 `'some\text'` is warned about only when semantic binding identifies a
-path-sensitive string destination, for example `os.files('some\text', true)`;
+path-sensitive string destination, for example `schema.files('some\text')`;
 a bare projection such as
-`select 'some\text' from system.dual()` remains quiet because its intent cannot
+`select 'some\text' from values { (Seed: 0) } seed` remains quiet because its intent cannot
 be inferred. The detector reports at most one warning per literal, at the first
 recognized value-changing escape.
 
-Intentional standalone escapes such as `select '\n' from system.dual()` and
+Intentional standalone escapes such as `select '\n' from values { (Seed: 0) } seed` and
 unknown escapes such as `\q` remain warning-free. Malformed fixed-length
 `\u` and `\x` sequences remain `MQ1004` errors. Consumers that need advisory
 diagnostics must use a diagnostic-aware host operation. An execution-only operation need not expose warnings.
@@ -420,19 +421,19 @@ schema and method metadata are available.
 **Examples:**
 
 ```sql
-select '\\' from system.dual()                    -- result: \
-select '\'' from system.dual()                     -- result: '
-select '\n' from system.dual()                     -- result: (newline)
-select '\u0041' from system.dual()                 -- result: A
-select '\x41' from system.dual()                   -- result: A
-select 'Hello\nWorld\t\u0394\\test' from system.dual()  -- result: Hello(LF)World(TAB)Δ\test
-select '\0\b\f\e' from system.dual()              -- result: (null)(backspace)(formfeed)(ESC)
+select '\\' from values { (Seed: 0) } seed                    -- result: \
+select '\'' from values { (Seed: 0) } seed                     -- result: '
+select '\n' from values { (Seed: 0) } seed                     -- result: (newline)
+select '\u0041' from values { (Seed: 0) } seed                 -- result: A
+select '\x41' from values { (Seed: 0) } seed                   -- result: A
+select 'Hello\nWorld\t\u0394\\test' from values { (Seed: 0) } seed  -- result: Hello(LF)World(TAB)Δ\test
+select '\0\b\f\e' from values { (Seed: 0) } seed              -- result: (null)(backspace)(formfeed)(ESC)
 ```
 
 Special characters are valid inside string literals — all punctuation, braces, brackets, etc.:
 
 ```sql
-select '{', '}', '[', ']', '(', ')' from system.dual()
+select '{', '}', '[', ']', '(', ')' from values { (Seed: 0) } seed
 ```
 
 ### Advisory warning contract
@@ -478,28 +479,69 @@ Diagnostic-aware operations expose warnings separately from errors. The host ope
 Common examples:
 
 ```sql
-select Name from A.entities() where Name rlike '\bword\b'
+param(eventTime: datetime = '2024-01-02T03:04:05')
+select Name from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} rows where Name rlike '\bword\b'
 -- MQ5015: the ordinary \b escape becomes backspace before regex matching
 
-select Name from A.entities() where Name like '*.log'
+select Name from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} rows where Name like '*.log'
 -- MQ5016: SQL LIKE uses '%' and '_', not filesystem glob '*'
 
-select Name from A.entities() where Name = NULL
+select Name from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} rows where Name = NULL
 -- MQ5017: NULL comparison is UNKNOWN; use IS NULL
 
 select a.Name, b.Name
-from A.entities() a
-left join B.entities() b on a.Id = b.Id
+from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} a
+left join values {
+    (Id: 1, Name: 'Eve', Time: $eventTime),
+    (Id: 2, Name: 'Finn', Time: $eventTime),
+    (Id: 3, Name: 'Gia', Time: $eventTime),
+    (Id: 4, Name: 'Hugo', Time: $eventTime)
+} b on a.Id = b.Id
 where b.Name = 'match'
 -- MQ5019: the WHERE predicate removes NULL-extended unmatched rows
 
-select Name from A.entities() skip 10
+select Name from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} rows skip 10
 -- MQ5021: SKIP needs ORDER BY for a deterministic result
 
-select Name from A.entities() where Name not in ('Alice', NULL)
+select Name from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} rows where Name not in ('Alice', NULL)
 -- MQ5024: NULL makes NOT IN non-matching results UNKNOWN
 
-select 1 from A.entities() where Time = '02/31/2026'
+select 1 from values {
+    (Id: 1, Name: 'Ada', Time: $eventTime),
+    (Id: 2, Name: 'Bob', Time: $eventTime),
+    (Id: 3, Name: 'Cara', Time: $eventTime),
+    (Id: 4, Name: 'Dan', Time: $eventTime)
+} rows where Time = '02/31/2026'
 -- MQ5025: the constant cannot be implicitly converted to the temporal type
 ```
 
@@ -510,8 +552,8 @@ select 1 from A.entities() where Time = '02/31/2026'
 Bare integers default to `int` (32-bit signed integer):
 
 ```sql
-select 42 from system.dual()        -- type: int
-select -42 from system.dual()       -- type: int (negative)
+select 42 from values { (Seed: 0) } seed        -- type: int
+select -42 from values { (Seed: 0) } seed       -- type: int (negative)
 ```
 
 #### Decimal Literals
@@ -519,9 +561,9 @@ select -42 from system.dual()       -- type: int (negative)
 Numbers with a decimal point are `decimal`:
 
 ```sql
-select 3.14 from system.dual()      -- type: decimal
-select -1.5 from system.dual()      -- type: decimal
-select .5 from system.dual()        -- type: decimal (leading dot)
+select 3.14 from values { (Seed: 0) } seed      -- type: decimal
+select -1.5 from values { (Seed: 0) } seed      -- type: decimal
+select .5 from values { (Seed: 0) } seed        -- type: decimal (leading dot)
 ```
 
 #### Numeric Type Suffixes
@@ -543,16 +585,16 @@ Append a suffix to force a specific numeric type:
 **Examples:**
 
 ```sql
-select 1b from system.dual()        -- sbyte
-select 255ub from system.dual()     -- byte
-select 1000s from system.dual()     -- short
-select 65535us from system.dual()   -- ushort
-select 42i from system.dual()       -- int (explicit)
-select 100ui from system.dual()     -- uint
-select 1l from system.dual()        -- long
-select 1ul from system.dual()       -- ulong
-select 42d from system.dual()       -- decimal (integer forced to decimal)
-select 1.0 from system.dual()       -- decimal (implicit from decimal point)
+select 1b from values { (Seed: 0) } seed        -- sbyte
+select 255ub from values { (Seed: 0) } seed     -- byte
+select 1000s from values { (Seed: 0) } seed     -- short
+select 65535us from values { (Seed: 0) } seed   -- ushort
+select 42i from values { (Seed: 0) } seed       -- int (explicit)
+select 100ui from values { (Seed: 0) } seed     -- uint
+select 1l from values { (Seed: 0) } seed        -- long
+select 1ul from values { (Seed: 0) } seed       -- ulong
+select 42d from values { (Seed: 0) } seed       -- decimal (integer forced to decimal)
+select 1.0 from values { (Seed: 0) } seed       -- decimal (implicit from decimal point)
 ```
 
 #### Alternative Number Bases
@@ -568,24 +610,24 @@ Prefixes are case-insensitive: `0xFF` and `0XFF` are equivalent.
 **Examples:**
 
 ```sql
-select 0xFF from system.dual()                    -- 255 (long)
-select 0b1010 from system.dual()                  -- 10 (long)
-select 0o77 from system.dual()                    -- 63 (long)
-select 0xFF + 0b1010 + 0o77 + 42 from system.dual()  -- 370 (mixed arithmetic)
-select 0x0 from system.dual()                     -- 0 (zero values valid)
+select 0xFF from values { (Seed: 0) } seed                    -- 255 (long)
+select 0b1010 from values { (Seed: 0) } seed                  -- 10 (long)
+select 0o77 from values { (Seed: 0) } seed                    -- 63 (long)
+select 0xFF + 0b1010 + 0o77 + 42 from values { (Seed: 0) } seed  -- 370 (mixed arithmetic)
+select 0x0 from values { (Seed: 0) } seed                     -- 0 (zero values valid)
 ```
 
 ### 2.7 Boolean Literals
 
 ```sql
-select true from system.dual()
-select false from system.dual()
+select true from values { (Seed: 0) } seed
+select false from values { (Seed: 0) } seed
 ```
 
 ### 2.8 NULL Literal
 
 ```sql
-select null from system.dual()
+select null from values { (Seed: 0) } seed
 ```
 
 ### 2.9 Operators
@@ -599,7 +641,7 @@ select null from system.dual()
 | 3 | `*` | Multiplication | `2 * 3` → 6 |
 | 3 | `/` | Division | `10 / 3` → 3 |
 | 3 | `%` | Modulo | `10 % 3` → 1 |
-| 2 | `+` | Addition / String concatenation | `1 + 2` → 3, `'a' + 'b'` → `'ab'` |
+| 2 | `+`, `\|\|` | Addition / String concatenation (left-associative) | `1 + 2` → 3, `'a' + 'b'` → `'ab'` |
 | 2 | `-` | Subtraction | `5 - 3` → 2 |
 | 1 | `<<` | Left bit shift | `1 << 3` → 8 |
 | 1 | `>>` | Right bit shift | `8 >> 2` → 2 |
@@ -610,19 +652,26 @@ select null from system.dual()
 All arithmetic operators are **left-associative**. Use parentheses to override precedence:
 
 ```sql
-select 256 + 256 / 2 from system.dual()       -- 384 (division first)
-select (256 + 256) / 2 from system.dual()      -- 256 (parentheses override)
-select 2 * 3 / 2 from system.dual()            -- 3
-select 1 + 2 * 3 * (7 * 8) - (45 - 10) from system.dual()  -- 302
+select 256 + 256 / 2 from values { (Seed: 0) } seed       -- 384 (division first)
+select (256 + 256) / 2 from values { (Seed: 0) } seed      -- 256 (parentheses override)
+select 2 * 3 / 2 from values { (Seed: 0) } seed            -- 3
+select 1 + 2 * 3 * (7 * 8) - (45 - 10) from values { (Seed: 0) } seed  -- 302
 ```
 
 **Unary minus** is supported:
 
 ```sql
-select 1 - -1 from system.dual()               -- 2
-select 1 - -(1 + 2) from system.dual()         -- 4
-select 1 + (-2) from system.dual()             -- -1
+select 1 - -1 from values { (Seed: 0) } seed               -- 2
+select 1 - -(1 + 2) from values { (Seed: 0) } seed         -- 4
+select 1 + (-2) from values { (Seed: 0) } seed             -- -1
 ```
+
+Arithmetic with a nullable numeric operand has a nullable result and preserves
+NULL. Callable binding uses that nullable type; it does not implicitly unwrap a
+nullable value for a non-nullable parameter. The byte-array slice overload of
+`ToBase64(value, offset, length)` accepts nullable integer offsets and lengths,
+returning NULL when any argument is NULL. The existing non-nullable integer
+overload retains its range validation.
 
 #### Comparison Operators
 
@@ -674,11 +723,19 @@ The operands MUST have compatible types. A nullable scalar type MAY fall back to
 
 #### String Concatenation
 
-The `+` operator concatenates strings when both operands are strings:
+The SQL `||` operator accepts strings and contextual `NULL` only. Its result is `NULL` when either operand is `NULL`. Convert numeric, character, or other values explicitly before concatenation; implicit formatting is an `MQ3007` type error. `||` has the same precedence as `+` and `-` and associates left to right. Every operand is evaluated once, in order, including operands after a NULL. Homogeneous chains preserve these semantics without allocating intermediate concatenated strings or temporary argument arrays.
 
 ```sql
-select 'Hello' + ' ' + 'World' from system.dual()   -- 'Hello World'
-select Concat(Name, ' - ', City) from schema.method()  -- alternative
+select 'Hello' || ' ' || 'World' from values { (Seed: 0) } seed -- 'Hello World'
+select 'Hello' || null from values { (Seed: 0) } seed          -- NULL
+select ToString(42) || ' items' from values { (Seed: 0) } seed -- '42 items'
+```
+
+A single `|` remains bitwise OR. Legacy string `+` and the `Concat` function retain their existing behavior. Use `||` when NULL propagation is required. The `+` operator concatenates strings when both operands are strings:
+
+```sql
+select 'Hello' + ' ' + 'World' from values { (Seed: 0) } seed -- 'Hello World'
+select Concat(Name, ' - ', City) from values { (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d), (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d) } people
 ```
 
 ---
@@ -721,8 +778,8 @@ Any type can be nullable. When a column is nullable, its values may be `null`. V
 ```sql
 -- If outer apply produces no match, b.Population becomes decimal? (nullable)
 select a.Name, b.Population
-from A.entities() a
-outer apply B.entities(a.Country) b
+from schema.records() a
+outer apply schema.byCountry(a.Country) b
 ```
 
 ### 3.4 Complex Object Types
@@ -730,10 +787,10 @@ outer apply B.entities(a.Country) b
 Data sources may expose columns containing complex objects with nested properties. Access nested values with dot notation:
 
 ```sql
-select Self.Name from A.entities()              -- one level deep
-select Self.Self.Name from A.entities()          -- two levels deep
-select Self.Dictionary['key'] from A.entities()  -- dictionary access
-select Self.Array[2] from A.entities()           -- array indexing
+select Self.Name from schema.records()              -- one level deep
+select Self.Self.Name from schema.records()          -- two levels deep
+select Self.Dictionary['key'] from schema.records()  -- dictionary access
+select Self.Array[2] from schema.records()           -- array indexing
 ```
 
 ### 3.5 Collections and Arrays
@@ -763,9 +820,9 @@ Columns may hold ordered collections with an element type (`T[]`). These can be:
 Musoq supports strict postfix casts:
 
 ```sql
-select Population::Int32 from A.entities()
-select (Population + 1)::Decimal from A.entities()
-select Name::String::Guid from A.entities()
+select Population::Int32 from values { (Population: 100d) } people
+select (Population + 1)::Decimal from values { (Population: 100) } people
+select Name::String::Guid from values { (Name: '2ffcf6fa-3369-4300-946a-bb131a037985') } identifiers
 ```
 
 The cast operator has high postfix precedence. `a + b::Int32` is parsed as `a + (b::Int32)`, while `(a + b)::Int32` casts the parenthesized expression.
@@ -972,7 +1029,8 @@ timespan uses `[-][d.]hh:mm:ss[.fffffff]`, with seven fractional digits when non
 Guid casts use the canonical form above. Fixture serialization instead uses
 complete ISO temporal forms so expectations do not lose precision.
 
-Binding may eliminate statically unreachable CASE results; such results do not
+After validating every branch's names and types, binding may eliminate
+statically unreachable CASE results; such results do not
 contribute to the chosen result metadata. Invalid constant casts are binding errors. Invalid demanded execution casts fail
 execution; unselected CASE branches, short-circuited predicates and unreachable
 fallbacks MUST NOT execute conversions. Binding still validates constant casts
@@ -995,7 +1053,7 @@ Statements are optionally terminated with `;`. Multiple statements in a batch ar
 
 ```sql
 table MyTable { Name: string };
-couple A.Entities with table MyTable as Source;
+couple schema.records with table MyTable as Source;
 select Name from Source();
 ```
 
@@ -1022,7 +1080,7 @@ The block is optional; a script without either spelling is parsed, compiled, and
 ```sql
 param(author: string, minStars: int = 10)
 select Name, Stars
-from github.repositories()
+from values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects
 where Author = $author and Stars >= $minStars
 ```
 
@@ -1030,15 +1088,17 @@ The parameter block MUST appear before every query or utility statement:
 
 ```sql
 -- valid
-param(country: string)
-select City from geo.cities() where Country = $country
+param(createdAt: datetime = '2024-01-02T03:04:05', country: string)
+select City from values { (Id: 1, Name: 'WARSAW', City: 'WARSAW', Country: 'Poland', Population: 1800000, CreatedAt: $createdAt), (Id: 2, Name: 'BERLIN', City: 'BERLIN', Country: 'Germany', Population: 3700000, CreatedAt: $createdAt) } cities where Country = $country
 
 -- invalid: parameter block after a query statement
-select City from geo.cities();
+select City from values { (Id: 1, Name: 'WARSAW', City: 'WARSAW', Country: 'Poland', Population: 1800000, CreatedAt: $createdAt), (Id: 2, Name: 'BERLIN', City: 'BERLIN', Country: 'Germany', Population: 3700000, CreatedAt: $createdAt) } cities;
 param(country: string)
 ```
 
 #### 4.3.1 Declaration Syntax
+
+Syntax fragment (not a complete executable batch):
 
 ```sql
 param(name: type, optionalName: type = defaultValue)
@@ -1056,10 +1116,10 @@ Rules:
 Examples:
 
 ```sql
-param(country: string, minPopulation: int = 1000000, since: datetime? = null)
+param(createdAt: datetime = '2024-01-02T03:04:05', country: string, minPopulation: int = 1000000, since: datetime? = null)
 
 select City
-from geo.cities()
+from values { (Id: 1, Name: 'WARSAW', City: 'WARSAW', Country: 'Poland', Population: 1800000, CreatedAt: $createdAt), (Id: 2, Name: 'BERLIN', City: 'BERLIN', Country: 'Germany', Population: 3700000, CreatedAt: $createdAt) } cities
 where Country = $country
   and Population >= $minPopulation
   and ($since is null or CreatedAt >= $since)
@@ -1070,14 +1130,14 @@ The alias spelling is equivalent:
 ```sql
 params(author: string)
 select Name, Stars
-from github.repositories()
+from values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects
 where Author = $author
 ```
 
 ```sql
-param(ids: int[])
+param(createdAt: datetime = '2024-01-02T03:04:05', ids: int[])
 select Name
-from geo.cities()
+from values { (Id: 1, Name: 'WARSAW', City: 'WARSAW', Country: 'Poland', Population: 1800000, CreatedAt: $createdAt), (Id: 2, Name: 'BERLIN', City: 'BERLIN', Country: 'Germany', Population: 3700000, CreatedAt: $createdAt) } cities
 where Id in $ids
 ```
 
@@ -1092,6 +1152,8 @@ and `bit` mean `bool`; `money` means `decimal`; `datetime`, `datetimeoffset`,
 The nullable form `type?` is supported for scalar types and accepts `null`. For a structural declaration, `?` applies recursively to the immediately preceding scalar, record, or collection node; `int?[]` and `int[]?` therefore have different meanings.
 
 Examples of recursive declarations are `int?[]` (array of nullable integers), `int[]?` (nullable array of integers), `(Id: string)?[]?` (nullable array of nullable records), and `int[][]` (array of integer arrays). Structural declarations may use a closed named-record shape:
+
+Syntax fragment (not a complete executable batch):
 
 ```sql
 param(
@@ -1121,7 +1183,7 @@ param(
     id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985',
     created: datetime = '2024-01-02T03:04:05'
 )
-select $flag, $code, $limit, $id, $created from system.dual()
+select $flag, $code, $limit, $id, $created from values { (Seed: 0) } seed
 ```
 
 Default binding rules:
@@ -1141,16 +1203,17 @@ Valid typed comparison:
 ```sql
 param(minStars: int)
 select Name
-from github.repositories()
+from values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects
 where Stars >= $minStars
 ```
 
 Invalid comparison:
 
 ```sql
+-- INVALID: string parameters do not implicitly become numeric operands.
 param(minStars: string)
 select Name
-from github.repositories()
+from values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects
 where Stars >= $minStars
 ```
 
@@ -1161,7 +1224,7 @@ Use a strict postfix cast when a textual parameter should be interpreted as anot
 ```sql
 param(minStarsText: string)
 select Name
-from github.repositories()
+from values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects
 where Stars >= $minStarsText::Int32
 ```
 
@@ -1171,29 +1234,28 @@ Normal expression compatibility still applies: same-type comparisons are valid, 
 
 #### 4.3.5 Source Arguments
 
-A script parameter MAY be passed into a schema source argument only as a direct `$name` argument. Required parameters are supported when the provider can resolve the source shape without the runtime value:
+Script parameters MAY occur in ordinary supported scalar expressions in positional or named datasource arguments in `FROM` and correlated `APPLY`. Concatenation, arithmetic, CASE, explicit casts, indexing and scalar calls retain their normal type and evaluation rules. Each bound argument is evaluated once per source opening in the existing argument order; ordinary stability rules govern reuse and movement.
 
 ```sql
--- valid when files.list metadata does not depend on the path value
-param(path: string)
-select Name from files.list($path)
+param(root: string = 'repo')
+select Name from schema.files($root + '/src')
 
--- valid when a default is needed by files.list metadata
-param(path: string = 'repo')
-select Name from files.list($path)
-
--- invalid: source argument parameter is nested in an expression
-param(path: string = 'repo')
-select Name from files.list($path + '/src')
+-- Also valid without a default when metadata does not depend on the path.
+param(root: string)
+select Name from schema.files($root + '/src')
 ```
 
-The complete source argument expression remains available at runtime. A provider that requires a parameter value during source metadata resolution, source description, or source planning cannot resolve a required parameter at compile time; declare a default for that parameter or make the provider's metadata independent of runtime source arguments. Computed or nested parameter expressions remain unsupported. Use the parameter directly as the source argument and perform additional filtering in `WHERE` when possible.
+Compilation evaluates metadata arguments only within the existing safe constant-expression subset, using literals, LET values and declared parameter defaults. It MUST NOT execute arbitrary scalar/plugin calls, read correlated columns, or fabricate values for required parameters. Computed scalar metadata values must fold completely using the bound numeric types and runtime string semantics. Runtime-supported expressions outside that subset remain valid when provider metadata is independent of their values. A provider requiring an unavailable metadata argument receives MQ3062; supply appropriate defaults and a safe static expression, or make its metadata independent of runtime arguments.
+
+Metadata APIs receive only the known canonical positional prefix. Binding stops at the first unavailable slot, including named invocations; later constants/defaults MUST NOT shift into that slot. The original expressions and typed argument carriers remain available at execution. Runtime overrides do not trigger metadata discovery or recompilation and MUST preserve the compiled source shape and existing provider contracts. Missing required parameters fail before any source is opened.
 
 Script variables are compile-time values and may be used directly or inside supported constant source-argument expressions. See [§4.4.4](#444-source-arguments).
 
 #### 4.3.6 Unsupported Declaration Styles
 
 Musoq deliberately uses one compact syntax instead of borrowing declaration forms from other languages. These forms are rejected with script-parameter diagnostics:
+
+Syntax fragment (not a complete executable batch):
 
 ```sql
 param(string author)             -- type-first order is invalid
@@ -1240,7 +1302,7 @@ let topic: string = 'important'
 let minimumStars: int = 10 + 5
 
 select Name, Stars
-from github.repositories()
+from values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects
 where Description like '%' + $topic + '%'
     and Stars >= $minimumStars
 ```
@@ -1248,6 +1310,8 @@ where Description like '%' + $topic + '%'
 `let` is contextual: it begins a script variable declaration only when it appears at statement start. Existing identifiers or columns named `let` remain valid in expression contexts.
 
 #### 4.4.1 Declaration Syntax
+
+Syntax fragment (not a complete executable batch):
 
 ```sql
 let name: type = initializer
@@ -1268,6 +1332,8 @@ Script variables support the same primitive and recursive structural types as sc
 #### 4.4.3 Initializers
 
 Initializers MUST be compile-time constants. They MAY use literals, `null`, `array { ... }`, named records `(Field: expression, ...)`, supported unary/binary constant operators, comparisons, boolean operators, `IS NULL`, `BETWEEN`, and references to earlier script variables. Runtime parameters, datasource access, subqueries, forward references, and unsupported function evaluation remain invalid.
+
+Syntax fragment (not a complete executable batch):
 
 ```sql
 let root: string = 'repo'
@@ -1295,10 +1361,10 @@ Because script variables are compile-time values, they MAY be used as schema sou
 
 ```sql
 let root: string = 'repo'
-select Name from files.list($root + '/src')
+select Name from schema.files($root + '/src')
 ```
 
-This differs from script parameters: parameters used in source arguments must still be direct `$name` references. A default is required only when the provider needs that value while resolving compile-time source metadata; providers whose metadata is independent of the value can accept a required parameter and receive it at runtime. Computed or nested parameter expressions remain unsupported.
+Script parameters may also occur in source-argument expressions. Their defaults can participate in safe static metadata expressions, while current runtime values determine actual source arguments; see [§4.3.5](#435-source-arguments). LET initializers still cannot depend on runtime parameters.
 
 #### 4.4.5 Diagnostics
 
@@ -1345,7 +1411,7 @@ let patterns = array {
 };
 
 select m.PatternId
-from #inputs.match('TODO FIXME', patterns: $patterns) m
+from schema.match('TODO FIXME', patterns: $patterns) m
 ```
 
 Record fields are matched using ordinal case-insensitive names (§3.9); single-field records are valid, and arbitrary record equality, member access, and collection-to-table conversion are outside this feature. Empty or all-null arrays require an expected element type. Core never falls back to a collection of dynamic values to hide missing or incompatible type information.
@@ -1367,6 +1433,8 @@ The former brace-row spelling remains rejected. Implementations MUST preserve au
 
 ### 5.1 Basic Syntax
 
+Syntax fragment (not a complete executable batch):
+
 ```sql
 SELECT [DISTINCT] expression [[AS] alias], ...
 ```
@@ -1376,14 +1444,17 @@ SELECT [DISTINCT] expression [[AS] alias], ...
 Any expression can appear in SELECT:
 
 ```sql
-select 1 from system.dual()                          -- literal
-select Name from A.entities()                         -- column reference
-select a.Name from A.entities() a                     -- qualified column
-select 1 + 2 * 3 from system.dual()                  -- arithmetic
-select Concat(City, ', ', Country) from A.entities()  -- function call
-select a.GetPopulation() from A.entities() a          -- registered method with an injected entity
-select Self.Name from A.entities()                    -- property access
-select Self.Array[2] from A.entities()                -- indexed access
+select 1 from values { (Seed: 0) } seed                -- literal
+select Name from values { (Name: 'Ada') } people       -- column reference
+select p.Name from values { (Name: 'Ada') } p           -- qualified column
+select 1 + 2 * 3 from values { (Seed: 0) } seed          -- arithmetic
+select Concat(City, ', ', Country)
+from values { (City: 'WARSAW', Country: 'Poland') } places -- function call
+
+-- Supplied member/callable shapes follow Appendix H.
+select a.GetPopulation() from schema.records() a
+select Self.Name from schema.records()
+select Self.Array[2] from schema.records()
 ```
 
 ### 5.3 Column Aliasing
@@ -1391,9 +1462,24 @@ select Self.Array[2] from A.entities()                -- indexed access
 Three equivalent forms:
 
 ```sql
-select Name as FullName from A.entities()       -- explicit AS keyword
-select Name FullName from A.entities()           -- implicit (space-separated)
-select Name [Full Name] from A.entities()        -- bracketed (allows spaces)
+select Name as FullName from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows       -- explicit AS keyword
+select Name FullName from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows           -- implicit (space-separated)
+select Name [Full Name] from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows        -- bracketed (allows spaces)
 ```
 
 When no alias is given, the column name is derived from the expression:
@@ -1412,7 +1498,12 @@ Explicit aliases always define the output column name. This is especially import
 
 ```sql
 with p as (
-    select a.City from A.entities() a
+    select a.City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} a
 )
 select City from p          -- valid; exposed name is City
 
@@ -1424,7 +1515,12 @@ If a dotted output name is required, it MUST be declared explicitly and referenc
 
 ```sql
 with p as (
-    select a.City as [a.City] from A.entities() a
+    select a.City as [a.City] from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
 )
 select [a.City] from p
 ```
@@ -1433,16 +1529,31 @@ Musoq also makes explicit SELECT aliases visible in selected clauses of the same
 
 ```sql
 -- Non-aggregate alias in WHERE
-select Name as FileName from A.entities() where FileName = 'test'
+select Name as FileName from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows where FileName = 'test'
 
 -- Non-aggregate alias in GROUP BY
 select Length(Name) as NameLen, Count(*)
-from A.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 group by NameLen
 
 -- Aggregate alias in HAVING
 select Count(*) as cnt
-from A.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 group by City
 having cnt > 1
 ```
@@ -1460,29 +1571,74 @@ Alias lookup rules:
 `*` expands to all columns from the data source:
 
 ```sql
-select * from A.entities()                              -- all columns
-select *, Name as Name2 from A.entities() a             -- star + explicit columns
-select *, * from A.entities() a                          -- duplicated columns
+select * from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows                              -- all columns
+select *, Name as Name2 from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} a             -- star + explicit columns
+select *, * from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} a                          -- duplicated columns
 ```
 
 Qualified star selects columns from a specific table in a join:
 
 ```sql
-select a.* from A.entities() a inner join B.entities() b on a.Id = b.Id
-select a.*, b.* from A.entities() a inner join B.entities() b on a.Id = b.Id
+select a.* from values {
+    (Id: 1),
+    (Id: 2),
+    (Id: 3),
+    (Id: 4)
+} a inner join values {
+    (Id: 1),
+    (Id: 2),
+    (Id: 3),
+    (Id: 4)
+} b on a.Id = b.Id
+select a.*, b.* from values {
+    (Id: 1),
+    (Id: 2),
+    (Id: 3),
+    (Id: 4)
+} a inner join values {
+    (Id: 1),
+    (Id: 2),
+    (Id: 3),
+    (Id: 4)
+} b on a.Id = b.Id
 ```
 
 Star works through CTEs:
 
 ```sql
-with p as (select City, Country from A.entities())
+with p as (select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows)
 select * from p       -- expands to City, Country
 ```
 
 Qualified star inside a CTE exports the source column names, not source-qualified names:
 
 ```sql
-with p as (select a.* from A.entities() a)
+with p as (select a.* from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a)
 select City, Country from p
 ```
 
@@ -1493,38 +1649,88 @@ Star expressions support optional modifiers that filter or transform the expande
 **EXCLUDE** removes named columns from the expansion:
 
 ```sql
-select * exclude (City) from A.entities() a
-select * exclude (City, Country, Population) from A.entities() a
-select a.* exclude (Id) from A.entities() a inner join B.entities() b on a.Id = b.Id
+select * exclude (City) from values {
+    (Id: 1, City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Id: 2, City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Id: 3, City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Id: 4, City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a
+select * exclude (City, Country, Population) from values {
+    (Id: 1, City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Id: 2, City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Id: 3, City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Id: 4, City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a
+select a.* exclude (Id) from values {
+    (Id: 1, City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Id: 2, City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Id: 3, City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Id: 4, City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a inner join values {
+    (Id: 1, City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Id: 2, City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Id: 3, City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (Id: 4, City: 'ROME', Country: 'Italy', Population: 400d)
+} b on a.Id = b.Id
 ```
 
 **REPLACE** substitutes a column's expression while keeping it in the same position:
 
 ```sql
-select * replace (Population * 2 as Population) from A.entities() a
-select * replace (Upper(Name) as Name, Round(Money, 0) as Money) from A.entities() a
+select * replace (Population * 2 as Population) from values {
+    (Name: 'Ada', Population: 100d, Money: 100d),
+    (Name: 'Bob', Population: 200d, Money: 200d),
+    (Name: 'Cara', Population: 200d, Money: 300d),
+    (Name: 'Dan', Population: 400d, Money: 400d)
+} a
+select * replace (ToUpper(Name) as Name, Round(Money, 0) as Money) from values {
+    (Name: 'Ada', Population: 100d, Money: 100d),
+    (Name: 'Bob', Population: 200d, Money: 200d),
+    (Name: 'Cara', Population: 200d, Money: 300d),
+    (Name: 'Dan', Population: 400d, Money: 400d)
+} a
 ```
 
 **RENAME** changes the output column name after filtering and replacement without changing the underlying expression:
 
 ```sql
-select * rename (Name as EntityName) from A.entities() a
-select * replace (Population * 2 as Population) rename (Population as Pop2) from A.entities() a
-select a.* rename (a.Name as EntityName) from A.entities() a
+select * rename (Name as EntityName) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} a
+select * replace (Population * 2 as Population) rename (Population as Pop2) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} a
+select a.* rename (a.Name as EntityName) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} a
 ```
 
 **LIKE / NOT LIKE** filters columns by a SQL LIKE pattern on column names (case-insensitive):
 
 ```sql
-select * like 'C%' from A.entities() a           -- only columns starting with 'C'
-select * not like '%Id' from A.entities() a       -- exclude columns ending with 'Id'
-select * like '_ame' from A.entities() a          -- match single-char wildcard
+select * like 'C%' from values { (Id: 1, Name: 'Ada', City: 'WARSAW', Country: 'Poland') } a           -- only columns starting with 'C'
+select * not like '%Id' from values { (Id: 1, Name: 'Ada', City: 'WARSAW', Country: 'Poland') } a       -- exclude columns ending with 'Id'
+select * like '_ame' from values { (Id: 1, Name: 'Ada', City: 'WARSAW', Country: 'Poland') } a          -- match single-char wildcard
 ```
 
 Modifiers can be composed:
 
 ```sql
-select * like '%o%' exclude (Country) replace (Population * 3 as Population) rename (Population as Population3x) from A.entities() a
+select * like '%o%' exclude (Country) replace (Population * 3 as Population) rename (Population as Population3x) from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Poland', Population: 200d),
+    (Country: 'Germany', Population: 400d)
+} a
 ```
 
 **Rules:**
@@ -1545,14 +1751,29 @@ select * like '%o%' exclude (Country) replace (Population * 3 as Population) ren
 `SELECT DISTINCT` removes duplicate rows from the result:
 
 ```sql
-select distinct Country from A.entities()
-select distinct City, Country from A.entities()   -- unique combinations
+select distinct Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows
+select distinct City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows   -- unique combinations
 ```
 
 DISTINCT uses **ordinal (case-sensitive) comparison** — `'POLAND'` and `'poland'` are treated as different values. To achieve case-insensitive deduplication, use `ToLower()`:
 
 ```sql
-select distinct ToLower(Country) from A.entities()
+select distinct ToLower(Country) from values {
+    (Country: 'Poland'),
+    (Country: 'Germany'),
+    (Country: 'Poland'),
+    (Country: 'Germany')
+} rows
 ```
 
 ### 5.6 RowNumber
@@ -1560,13 +1781,18 @@ select distinct ToLower(Country) from A.entities()
 `RowNumber()` returns a 1-based sequential integer for each row in the result:
 
 ```sql
-select RowNumber(), Name from A.entities()
+select RowNumber(), Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 ```
 
 `RowNumber()` is assigned **after** ORDER BY but **before** SKIP/TAKE. When used with ORDER BY, rows are first sorted, then numbered sequentially:
 
 ```sql
-select Country, RowNumber() from A.entities() order by Country
+select Country, RowNumber() from values { (Country: 'Poland'), (Country: 'Germany') } countries order by Country
 -- Rows are sorted alphabetically, then numbered 1, 2, 3, ...
 -- Germany → 1, Poland → 2 (sorted order determines numbering)
 ```
@@ -1574,14 +1800,14 @@ select Country, RowNumber() from A.entities() order by Country
 With SKIP, row numbers are assigned before SKIP is applied:
 
 ```sql
-select Country, RowNumber() from A.entities() order by Country skip 1
+select Country, RowNumber() from values { (Country: 'Poland'), (Country: 'Germany') } countries order by Country skip 1
 -- Full result: Germany=1, Poland=2; after SKIP 1: Poland=2 (number preserved)
 ```
 
 With WHERE filtering, `RowNumber()` counts only the rows that pass the filter:
 
 ```sql
-select Country, RowNumber() from A.entities() where Country = 'Poland'
+select Country, RowNumber() from values { (Country: 'Poland'), (Country: 'Germany') } countries where Country = 'Poland'
 -- Returns rows numbered 1, 2, ... (only matching rows counted)
 ```
 
@@ -1595,14 +1821,14 @@ The primary data source syntax uses schema providers:
 
 ```sql
 select * from schema.method()
-select * from schema.method(arg1, arg2)
-select * from schema.method() alias
+select * from schema.method('4', 2)
+select * from schema.method() sourceAlias
 ```
 
 Arguments can be literals of any type:
 
 ```sql
-select * from test.whatever(1, 2d, true, false, 'text')
+select * from schema.arguments(1, 2d, true, false, 'text')
 ```
 
 #### 6.1.1 Named source arguments
@@ -1612,8 +1838,8 @@ name. Names are case-insensitive and are part of the datasource's public SQL
 surface:
 
 ```sql
-from #schema.method(required: '4', limit: 2)
-from #schema.method('4', limit: 2)       -- positional prefix, then named suffix
+select * from schema.method(required: '4', limit: 2)
+select * from schema.method('4', limit: 2) -- positional prefix, then named suffix
 ```
 
 The receiver publishes an ordered signature with parameter names, logical types,
@@ -1630,8 +1856,9 @@ complete named-signature metadata remains positional-only. Hidden context and
 cancellation inputs are not SQL-bindable parameters. Inconsistent signature
 metadata MUST NOT enable named binding.
 
-Exact logical type matches outrank compatible matches. Equally applicable
-overloads are ambiguous; registration order MUST NOT select an overload.
+Exact logical type matches outrank compatible matches. Scalar applicability and
+overload preference follow §22.6; equally applicable or incomparable overloads
+are ambiguous. Registration order MUST NOT select an overload.
 Before execution, metadata requests may inspect only the known ordered argument
 prefix. A later constant or default MUST NOT shift into an earlier unknown slot.
 At execution the selected callable receives all argument values in signature order.
@@ -1641,15 +1868,15 @@ At execution the selected callable receives all argument values in signature ord
 Data sources can be given an alias for reference in expressions:
 
 ```sql
-select a.Name from A.entities() a
-select entities.Name from A.entities() entities
+select a.Name from schema.records() a
+select entities.Name from schema.records() entities
 ```
 
 In **single-table queries**, aliasing is optional — column names can be used directly:
 
 ```sql
-select Name from A.entities()         -- no alias needed
-select a.Name from A.entities() a     -- alias optional
+select Name from schema.records()         -- no alias needed
+select a.Name from schema.records() a     -- alias optional
 ```
 
 Every source in a query block containing a `JOIN` or `APPLY` MUST have a stable,
@@ -1668,8 +1895,8 @@ auto-resolution after the source aliases have been parsed; see
 
 ```sql
 select a.Name, b.City
-from A.entities() a
-inner join B.entities() b on a.Id = b.Id
+from schema.records() a
+inner join schema.byCountry() b on a.Id = b.Id
 ```
 
 The first source must already have an alias before the first join or apply
@@ -1677,7 +1904,7 @@ operator, and each right operand must have one before its following boundary:
 
 ```sql
 select a1.Name, item.Value
-from a.b() a1
+from schema.collections() a1
 cross apply a1.Column item
 take 10
 ```
@@ -1687,7 +1914,7 @@ the parser reports `MQ2035_MissingRequiredAlias` at the insertion point:
 
 ```sql
 select a1.Name
-from a.b() a1
+from schema.collections() a1
 cross apply a1.Column
 take 10
 -- MQ2035 at the position immediately after Column:
@@ -1699,7 +1926,7 @@ source boundary. Use brackets when a reserved word is intentional:
 
 ```sql
 select [take].Name, [where].Name
-from A.entities() [take]
+from schema.records() [take]
 cross apply [take].Children [where]
 take 10
 ```
@@ -1720,21 +1947,36 @@ cross apply a1.Column AS 123
 After a CTE is defined, use its name as a data source:
 
 ```sql
-with cte as (select City, Country from A.entities())
+with cte as (select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows)
 select * from cte
 ```
 
 CTE references can be aliased:
 
 ```sql
-with cte as (select City from A.entities())
+with cte as (select City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows)
 select p.City from cte p
 ```
 
 When a CTE reference has a table alias, that alias hides the original CTE name in the current query block:
 
 ```sql
-with cte as (select City from A.entities())
+with cte as (select City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows)
 select p.City from cte p      -- valid
 
 -- INVALID in the same query block
@@ -1747,10 +1989,20 @@ In a multi-source block, the CTE name itself is a natural stable alias and may
 be used without an explicit override:
 
 ```sql
-with source as (select City from A.entities() a)
+with source as (select City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a)
 select source.City, rightSide.City
 from source
-cross join B.entities() rightSide
+cross join values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} rightSide
 ```
 
 ### 6.4 Derived Tables
@@ -1761,15 +2013,30 @@ A parenthesized query may be used as a `FROM` or `JOIN` source when it has an al
 select d.City
 from (
     select a.City
-    from A.entities() a
+    from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a
     where a.Population > 250
 ) d
 
 select a.City, d.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a
 inner join (
     select b.Country, b.City
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (City: 'ROME', Country: 'Italy', Population: 400d)
+} b
 ) d on a.Country = d.Country
 ```
 
@@ -1788,10 +2055,20 @@ Rules:
 ```sql
 -- INVALID: plain JOIN derived tables are independent
 select a.City, d.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 inner join (
     select b.City
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
 ) d on 1 = 1
 ```
@@ -1862,7 +2139,7 @@ After a `COUPLE` statement, the coupled alias becomes a data source. The alias c
 
 ```sql
 table MyTable { Name: string };
-couple A.Entities with table MyTable as Source;
+couple schema.records with table MyTable as Source;
 select Name from Source()
 select Name from Source(true, 'param')   -- with arguments
 ```
@@ -1871,19 +2148,6 @@ Coupled aliases use the underlying source's published names and defaults as thei
 signature. TABLE controls row shape, not source parameters. Named and positional
 binding use core §6.1 consistently in metadata and execution.
 
-### 6.7 Optional host `system.range(start, end)` contract
-
-The Musoq core packages do not register a `system.range` source. A host may
-provide one; hosts that claim this optional contract use an **end-exclusive**
-interval.
-
-```sql
-select Value from system.range(1, 5)
--- Returns: 1, 2, 3, 4
-```
-
-Formally, a conforming host returns the sequence $[start, end)$. Without host
-registration, binding reports the ordinary unknown-schema diagnostic.
 
 ---
 
@@ -1907,6 +2171,40 @@ where Name <> 'Unknown'
 ```
 
 ### 7.3 Logical Operators
+
+Logical values are `true`, `false`, and `NULL` (unknown). `AND`, `OR`, and `NOT`
+use the following three-valued rules:
+
+| Left | Right | AND | OR |
+|------|-------|-----|----|
+| false | false | false | false |
+| false | true | false | true |
+| false | NULL | false | NULL |
+| true | false | false | true |
+| true | true | true | true |
+| true | NULL | NULL | true |
+| NULL | false | false | NULL |
+| NULL | true | NULL | true |
+| NULL | NULL | NULL | NULL |
+
+`NOT true` is false, `NOT false` is true, and `NOT NULL` is NULL. Logical result
+metadata is nullable when its operand types can produce an unknown result.
+Filtering clauses admit only true; false and unknown both exclude the row.
+
+Logical operands are evaluated from left to right, at most once per demanded
+expression. For `AND`, a false left operand MUST leave the right operand
+unevaluated. For `OR`, a true left operand MUST leave the right operand
+unevaluated. A null left operand requires the right operand to distinguish a
+decisive result from unknown. `NOT` evaluates its operand once.
+
+Runtime laziness does not waive static name and type validity. An unselected
+operand does not execute casts, functions, or subqueries and cannot raise their
+runtime failures. Optimizers may transform expressions only when they preserve
+these guards, results, and observable failures. Stability alone does not permit
+moving a potentially failing expression outside its guard. Provider contracts
+must identify volatile functions and fields; declared stable callables may be
+reused only within the same valid evaluation region. Ordinary scalar function
+arguments remain eager unless their own contract specifies otherwise.
 
 ```sql
 where Country = 'POLAND' and Population > 300
@@ -1941,8 +2239,18 @@ Semantics:
 
 ```sql
 select a.Name, b.Name
-from A.entities() a
-inner join B.entities() b on a.OptionalCode is not distinct from b.OptionalCode
+from values {
+    (Name: 'Ada', OptionalCode: 7),
+    (Name: 'Bob', OptionalCode: null),
+    (Name: 'Cara', OptionalCode: 7),
+    (Name: 'Dan', OptionalCode: 9)
+} a
+inner join values {
+    (Name: 'Eve', OptionalCode: 7),
+    (Name: 'Finn', OptionalCode: null),
+    (Name: 'Gia', OptionalCode: 7),
+    (Name: 'Hugo', OptionalCode: 9)
+} b on a.OptionalCode is not distinct from b.OptionalCode
 ```
 
 ### 7.6 LIKE Pattern Matching
@@ -2074,7 +2382,12 @@ When a script parameter is declared as a one-dimensional collection, `IN $name` 
 ```sql
 param(ids: int[])
 select Name
-from A.entities()
+from values {
+    (Id: 1, Name: 'Ada'),
+    (Id: 2, Name: 'Bob'),
+    (Id: 3, Name: 'Cara'),
+    (Id: 4, Name: 'Dan')
+} rows
 where Id in $ids
 ```
 
@@ -2086,20 +2399,50 @@ The `IN` and `NOT IN` predicates also accept a single-column subquery:
 
 ```sql
 -- Basic IN subquery: keep rows whose City appears in the subquery result
-select a.City from A.entities() a
-where a.City in (select b.City from B.entities() b)
+select a.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
+where a.City in (select b.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b)
 
 -- NOT IN subquery: exclude rows whose City appears in the subquery result
-select a.City from A.entities() a
-where a.City not in (select b.City from B.entities() b)
+select a.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
+where a.City not in (select b.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b)
 ```
 
 The subquery MUST return exactly one column. If it returns more than one column, a compile-time error is raised (MQ3049):
 
 ```sql
 -- ERROR: MQ3049 — subquery returns two columns
-select a.City from A.entities() a
-where a.City in (select b.City, b.Country from B.entities() b)
+select a.City from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
+where a.City in (select b.City, b.Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b)
 ```
 
 #### 7.9.4 Set Operators in IN Subqueries
@@ -2108,24 +2451,69 @@ Subqueries within `IN` / `NOT IN` support set operators (`UNION`, `EXCEPT`, `INT
 
 ```sql
 -- UNION: cities from either source
-select a.City from A.entities() a
+select a.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
 where a.City in (
-    select b.City from B.entities() b
-    union (City) select c.City from C.entities() c
+    select b.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b
+    union (City) select c.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} c
 )
 
 -- EXCEPT: cities in B but not in C
-select a.City from A.entities() a
+select a.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
 where a.City in (
-    select b.City from B.entities() b
-    except (City) select c.City from C.entities() c
+    select b.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b
+    except (City) select c.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} c
 )
 
 -- INTERSECT: cities in both B and C
-select a.City from A.entities() a
+select a.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
 where a.City in (
-    select b.City from B.entities() b
-    intersect (City) select c.City from C.entities() c
+    select b.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b
+    intersect (City) select c.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} c
 )
 ```
 
@@ -2137,13 +2525,33 @@ IN subqueries can be combined with other conditions using `AND` and `OR`:
 
 ```sql
 -- Combined with OR
-select a.City from A.entities() a
-where a.City in (select b.City from B.entities() b)
+select a.City from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a
+where a.City in (select b.City from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (City: 'ROME', Country: 'Italy', Population: 400d)
+} b)
    or a.Population > 400
 
 -- Combined with AND
-select a.City from A.entities() a
-where a.City in (select b.City from B.entities() b)
+select a.City from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} a
+where a.City in (select b.City from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (City: 'ROME', Country: 'Italy', Population: 400d)
+} b)
   and a.Country = 'Poland'
 ```
 
@@ -2153,15 +2561,25 @@ An `IN` or `NOT IN` subquery may reference aliases from the containing query blo
 
 ```sql
 select a.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 where a.City in (
     select b.City
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
 )
 ```
 
-Equality correlations are decorrelated to semi-join or anti-semi-join plans where possible, preserving one output row per matching left row. These internal plans share the same left-sided row and column semantics as direct `SEMI JOIN` and `ANTI JOIN` syntax. When an `IN` or `NOT IN` subquery appears inside an expression that must produce a Boolean value, Musoq may use a left-join/null-check fallback. That fallback is supported only for uncorrelated subqueries and equality-only correlations; non-equality correlated fallback shapes raise MQ2024 until APPLY fallback lowering is available.
+Equality correlations are decorrelated to semi-join or anti-semi-join plans where possible, preserving one output row per matching left row. These internal plans share the same left-sided row and column semantics as direct `SEMI JOIN` and `ANTI JOIN` syntax. When an `IN` or `NOT IN` subquery appears inside an expression that produces a Boolean value, its result MUST preserve three-valued membership semantics, including null values and empty inputs. Otherwise valid correlations MUST be accepted even when no specialized join or range strategy preserves their meaning; the planner selects the general per-binding fallback in that case.
 
 ### 7.10 EXISTS / NOT EXISTS
 
@@ -2169,25 +2587,45 @@ Equality correlations are decorrelated to semi-join or anti-semi-join plans wher
 
 ```sql
 select a.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 where exists (
     select b.City
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
 )
 
 select a.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 where not exists (
     select b.City
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
 )
 ```
 
-The selected expressions inside an `EXISTS` subquery are ignored for the truth value. They are parsed and bound only as far as needed for the query shape; correlation must normally be expressed in the subquery `WHERE`, join, grouping, or other filtering clauses. Equality-correlated `EXISTS` and `NOT EXISTS` predicates are lowered to semi-join or anti-semi-join plans where possible.
+The selected expressions inside an `EXISTS` subquery are ignored for the truth value. They MUST be parsed and bound, but MUST NOT be evaluated when their values are unnecessary for row presence. Values needed by `DISTINCT`, grouping, set operations, or other result shaping retain their normal semantics. Equality-correlated `EXISTS` and `NOT EXISTS` predicates are lowered to semi-join or anti-semi-join plans where possible.
 
-Predicate subqueries (`IN`, `NOT IN`, `EXISTS`, `NOT EXISTS`, and equality `ANY`/`SOME` forms) may also appear in Boolean expression contexts such as `SELECT`/`CASE`, `JOIN ON`, `WHERE`, `HAVING`, `QUALIFY`, and `ORDER BY`. Top-level `WHERE` predicates use semi/anti-semi joins when possible. Expression-producing contexts use a left-join/null-check fallback when the fallback is cardinality-safe. In `HAVING`, predicate subqueries can be moved before grouping only when every outer reference used by the predicate is a grouping key; predicates depending on non-grouped row values raise MQ2024.
+Predicate subqueries (`IN`, `NOT IN`, `EXISTS`, `NOT EXISTS`, and equality `ANY`/`SOME` forms) may also appear in Boolean expression contexts such as `SELECT`/`CASE`, `JOIN ON`, `WHERE`, `HAVING`, `QUALIFY`, and `ORDER BY`. Top-level `WHERE` predicates use semi/anti-semi joins when possible. Expression-producing contexts use a specialized strategy when it preserves the required result, or the general per-binding fallback otherwise. In `HAVING`, predicate subqueries can be moved before grouping only when every outer reference used by the predicate is a grouping key; predicates depending on non-grouped row values raise MQ2024.
 
 ### 7.11 Scalar Subqueries
 
@@ -2195,12 +2633,10 @@ A parenthesized `SELECT` or `FROM`-first query can appear as a scalar expression
 
 ```sql
 select a.City,
-       (
-           select b.City
-           from B.entities() b
-           where b.Country = a.Country
-       ) as MatchCity
-from A.entities() a
+       (select b.City
+        from values { (City: 'WARSAW', Country: 'Poland'), (City: 'BERLIN', Country: 'Germany') } b
+        where b.Country = a.Country) as MatchCity
+from values { (City: 'KRAKOW', Country: 'Poland'), (City: 'MUNICH', Country: 'Germany') } a
 ```
 
 Scalar subqueries are valid in expression contexts including `SELECT`, `WHERE`, `JOIN ON`, `GROUP BY`, `HAVING`, `WINDOW`, `QUALIFY`, `ORDER BY`, function arguments, and `CASE` expressions.
@@ -2208,7 +2644,7 @@ Scalar subqueries are valid in expression contexts including `SELECT`, `WHERE`, 
 Rules:
 
 - A scalar subquery MUST return exactly one column. Otherwise Musoq raises MQ2024.
-- Scalar subqueries over `UNION`, `UNION ALL`, `EXCEPT`, and `INTERSECT` are supported. Correlated branches must expose the same equality-correlation keys; incompatible branch keys raise MQ2024 rather than falling back to per-row execution.
+- Scalar subqueries over `UNION`, `UNION ALL`, `EXCEPT`, and `INTERSECT` are supported. Correlated branches MAY use different outer references or correlation keys; this can require the general per-binding fallback.
 - If the subquery returns zero rows, the scalar value is `NULL`.
 - If the subquery returns more than one row, query execution raises
   `MQ7016_ScalarSubqueryCardinalityViolation`. This includes identical duplicate
@@ -2218,28 +2654,52 @@ Rules:
   not rejected during binding. `MQ3095_ScalarSubqueryCardinality` is retired;
   its numeric identifier remains reserved for compatibility.
 - Uncorrelated scalar subqueries may use result-shaping clauses such as `DISTINCT`, `GROUP BY`, `ORDER BY`, `SKIP`, `TAKE`, `WINDOW`, and `QUALIFY`. Musoq materializes the shaped subquery result and then applies scalar cardinality rules to the materialized rows.
-- Correlated scalar aggregates are optimized as grouped aggregate plus left join where possible. Correlated scalar subqueries with result-shaping clauses that cannot be decorrelated accurately raise MQ2024.
+- Correlated scalar aggregates are optimized as grouped aggregate plus left join where possible. Correlated scalar subqueries with result-shaping clauses MUST use the general per-binding fallback when a specialized strategy cannot preserve their meaning. A scalar result with value type `T` has nullable type `T?`, including when the selected inner expression itself is non-nullable.
+
+#### 7.11.1 General per-binding execution
+
+Acceptance of a well-formed scalar, `EXISTS`, `IN`, or negated subquery MUST NOT depend on whether an optimizer can decorrelate it. The planner MUST retain a valid specialized strategy or select a typed per-binding fallback. Existing query inspection output identifies this strategy as `Apply` and includes the inner plan.
+
+Outer references bind lexically to the nearest visible query scope. An unqualified column first resolves against the inner query; only a missing local column can resolve to an outer scope. Local ambiguity remains an error. Nested subqueries capture the current typed outer values, and references to an enclosing CTE consume that execution's stored rows rather than rebuilding the CTE for each outer row. Plain derived tables remain independent; explicit `CROSS APPLY` or `OUTER APPLY` is required for a correlated FROM source. Restrictions on recursive members remain in force.
+
+The fallback evaluates the inner query for the current outer binding only when the enclosing expression is demanded. It MUST preserve the surrounding Boolean, `CASE`, and `??` guards, the clause's evaluation phase, cancellation, and disposal of inner enumerators. Filtering and result shaping run within that binding before scalar cardinality or membership is determined. Planning and binding still validate an inner query whose execution is skipped by a guard.
 
 ### 7.12 Quantified Subqueries: ANY, SOME, ALL
 
 Comparison predicates may use `ANY`, `SOME`, or `ALL` with a subquery:
 
 ```sql
-where a.Population > ANY (select b.Population from B.entities() b)
-where a.Population > ALL (select b.Population from B.entities() b)
-where a.Country = SOME (select b.Country from B.entities() b)
+where a.Population > ANY (select b.Population from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Italy', Population: 400d)
+} b)
+where a.Population > ALL (select b.Population from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Italy', Population: 400d)
+} b)
+where a.Country = SOME (select b.Country from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Italy', Population: 400d)
+} b)
 ```
 
-`SOME` is a synonym for `ANY`. `= ANY` and `= SOME` are equivalent to `IN` and use the same semi-join lowering path.
+`SOME` is a synonym for `ANY`. `= ANY` and `= SOME` have the same three-valued result as `IN`.
 
 Rules:
 
-- Quantified subqueries MUST return exactly one column.
-- Except for `= ANY` / `= SOME`, which lower to `IN`, quantified subqueries over set operators are not supported.
-- `ANY` / `SOME` is true when at least one non-null comparison is true. If the subquery is empty, it is false.
-- `ALL` is true when no row makes the comparison false or unknown. If the subquery is empty, it is true.
-- Null operands make the comparison unknown for quantified predicates; unknown does not pass `WHERE` filtering.
-- Correlated quantified subqueries are lowered through `EXISTS`, `NOT EXISTS`, `IN`, semi-join, or anti-semi-join plans when the rewritten predicate is decorrelatable. Non-equality quantified predicates in expression contexts are supported when an available decorrelation strategy, including a partitioned range-mark strategy, preserves their Boolean result. Shapes that require an unavailable APPLY fallback raise MQ2024.
+- Quantified subqueries MUST return exactly one column. All comparison operators (`=`, `<>`, `<`, `<=`, `>`, `>=`) are supported.
+- The left operand is evaluated once when the expression is demanded. The comparison is applied to each row of the completed inner result, including its filtering, grouping, `DISTINCT`, windows, ordering, `SKIP`, `TAKE`, and set operations.
+- `ANY` / `SOME` returns `true` if any comparison is true; otherwise it returns `null` if any comparison is unknown; otherwise it returns `false`.
+- `ALL` returns `false` if any comparison is false; otherwise it returns `null` if any comparison is unknown; otherwise it returns `true`.
+- Empty inputs yield `false` for `ANY` / `SOME` and `true` for `ALL`, even when the left operand is null. A comparison with a null operand is unknown. Duplicates do not change these reductions.
+- The expression has nullable Boolean type. Negation preserves unknown; only true passes a filtering clause. The same reduction applies in projections, `CASE`, joins, filters, `HAVING`, `QUALIFY`, and nested expressions.
+- Valid bodies, including `UNION`, `UNION ALL`, `EXCEPT`, and `INTERSECT`, are accepted independently of optimizer capabilities. The planner retains specialized semi/anti-semi plans when they preserve the demanded result and evaluation boundaries. It uses the typed per-binding fallback otherwise, including expression contexts that must retain unknown results. The scope, guards, cancellation, and disposal rules in §7.11.1 also apply.
 
 ### 7.13 CONTAINS
 
@@ -2264,7 +2724,12 @@ where Match('\d+', Name) = true
 where Match('\d+', Name)
 
 -- Also works in CASE WHEN:
-select case when Match('\d+', Name) then 'yes' else 'no' end from A.entities()
+select case when Match('\d+', Name) then 'yes' else 'no' end from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 ```
 
 ---
@@ -2284,14 +2749,36 @@ Returns only rows where the join condition matches in both tables:
 
 ```sql
 select a.City, b.Population
-from A.entities() a
-inner join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} a
+inner join values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'HAMBURG', Population: 200d),
+    (City: 'ROME', Population: 400d)
+} b on a.City = b.City
 ```
 
 `JOIN` without the `INNER` keyword is equivalent to `INNER JOIN`:
 
+Syntax fragment (not a complete executable batch):
+
 ```sql
-from A.entities() a join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a join values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b on a.City = b.City
 ```
 
 ### 8.2 LEFT OUTER JOIN
@@ -2300,8 +2787,18 @@ Returns all rows from the left table. Unmatched right-side columns are `null`:
 
 ```sql
 select a.City, b.Population
-from A.entities() a
-left join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} a
+left join values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'HAMBURG', Population: 200d),
+    (City: 'ROME', Population: 400d)
+} b on a.City = b.City
 ```
 
 `LEFT OUTER JOIN` and `LEFT JOIN` are equivalent.
@@ -2320,8 +2817,18 @@ Returns all rows from the right table. Unmatched left-side columns are `null`:
 
 ```sql
 select a.City, b.Population
-from A.entities() a
-right join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} a
+right join values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'HAMBURG', Population: 200d),
+    (City: 'ROME', Population: 400d)
+} b on a.City = b.City
 ```
 
 ### 8.4 FULL OUTER JOIN
@@ -2330,8 +2837,18 @@ Returns all rows from both sides. Matched rows contain columns from both sources
 
 ```sql
 select a.City, b.Population
-from A.entities() a
-full outer join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} a
+full outer join values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'HAMBURG', Population: 200d),
+    (City: 'ROME', Population: 400d)
+} b on a.City = b.City
 ```
 
 `FULL OUTER JOIN` and `FULL JOIN` are equivalent.
@@ -2346,8 +2863,18 @@ select
         when b.Hash <> a.Hash then 'Changed'
         else 'Unchanged'
     end as State
-from AfterFiles.entities() a
-full outer join BeforeFiles.entities() b on a.RelativePath = b.RelativePath
+from values {
+    (RelativePath: 'a.txt', Hash: 'new'),
+    (RelativePath: 'b.txt', Hash: 'same'),
+    (RelativePath: 'c.txt', Hash: 'third'),
+    (RelativePath: 'd.txt', Hash: 'fourth')
+} a
+full outer join values {
+    (RelativePath: 'a.txt', Hash: 'old'),
+    (RelativePath: 'b.txt', Hash: 'same'),
+    (RelativePath: 'c.txt', Hash: 'third'),
+    (RelativePath: 'd.txt', Hash: 'fourth')
+} b on a.RelativePath = b.RelativePath
 ```
 
 Do not use `b.Id is null` to decide that `b` is absent: `b.Id` can be `null` on a real row. Use `b is missing` instead. Row presence predicates are rejected for aliases that are always present, such as single-source aliases, inner-join aliases, cross-join aliases, cross-apply aliases, or the preserved side of an outer join. They cannot classify the unmatched side inside the same join's `ON` predicate, because unmatched rows are produced after the join condition is evaluated.
@@ -2360,16 +2887,36 @@ Returns each left-side row for which at least one right-side row satisfies the j
 
 ```sql
 select a.City
-from A.entities() a
-semi join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
+semi join values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b on a.City = b.City
 ```
 
 `LEFT SEMI JOIN` is equivalent to `SEMI JOIN`:
 
 ```sql
 select a.City
-from A.entities() a
-left semi join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
+left semi join values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b on a.City = b.City
 ```
 
 `SEMI JOIN` requires an `ON` condition. Right-side columns are available inside the `ON` condition but are not part of the join output.
@@ -2380,16 +2927,36 @@ Returns each left-side row for which no right-side row satisfies the join condit
 
 ```sql
 select a.City
-from A.entities() a
-anti join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
+anti join values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b on a.City = b.City
 ```
 
 `ANTI SEMI JOIN` and `LEFT ANTI SEMI JOIN` are equivalent to `ANTI JOIN`:
 
 ```sql
 select a.City
-from A.entities() a
-left anti semi join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
+left anti semi join values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'HAMBURG'),
+    (City: 'ROME')
+} b on a.City = b.City
 ```
 
 `ANTI JOIN` requires an `ON` condition. Right-side columns are available inside the `ON` condition but are not part of the join output.
@@ -2400,16 +2967,36 @@ Produces the Cartesian product of the left and right sources:
 
 ```sql
 select a.Name, b.Name
-from A.entities() a
-cross join B.entities() b
+from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} a
+cross join values {
+    (Name: 'Eve'),
+    (Name: 'Finn'),
+    (Name: 'Gia'),
+    (Name: 'Hugo')
+} b
 ```
 
 `CROSS JOIN` does not accept an `ON` condition. Use `WHERE` to filter the Cartesian product:
 
 ```sql
 select a.Name, b.Name
-from A.entities() a
-cross join B.entities() b
+from values {
+    (Name: 'Ada', Country: 'Poland'),
+    (Name: 'Bob', Country: 'Germany'),
+    (Name: 'Cara', Country: 'Poland'),
+    (Name: 'Dan', Country: 'Germany')
+} a
+cross join values {
+    (Name: 'Eve', Country: 'Poland'),
+    (Name: 'Finn', Country: 'Germany'),
+    (Name: 'Gia', Country: 'Germany'),
+    (Name: 'Hugo', Country: 'Italy')
+} b
 where a.Country = b.Country
 ```
 
@@ -2421,18 +3008,45 @@ Chain multiple joins in a single query:
 
 ```sql
 select a.City, b.Population, c.Area
-from A.entities() a
-inner join B.entities() b on a.City = b.City
-inner join C.entities() c on a.City = c.City
+from values {
+    (City: 'WARSAW', Population: 100d, Area: 50d),
+    (City: 'BERLIN', Population: 200d, Area: 150d),
+    (City: 'WARSAW', Population: 200d, Area: 250d),
+    (City: 'MUNICH', Population: 400d, Area: 350d)
+} a
+inner join values {
+    (City: 'WARSAW', Population: 100d, Area: 50d),
+    (City: 'BERLIN', Population: 200d, Area: 150d),
+    (City: 'HAMBURG', Population: 200d, Area: 250d),
+    (City: 'ROME', Population: 400d, Area: 350d)
+} b on a.City = b.City
+inner join values {
+    (City: 'WARSAW', Population: 100d, Area: 50d),
+    (City: 'BERLIN', Population: 200d, Area: 150d),
+    (City: 'WARSAW', Population: 200d, Area: 250d),
+    (City: 'MUNICH', Population: 400d, Area: 350d)
+} c on a.City = c.City
 ```
 
 ### 8.9 Join Condition Expressions
 
 Join conditions can contain expressions, not just simple column equality:
 
+Syntax fragment (not a complete executable batch):
+
 ```sql
-inner join B.entities() b on a.Id = b.Id + 1
-inner join B.entities() b on a.Population > b.Population + 100
+inner join values {
+    (Id: 1, Population: 100d),
+    (Id: 2, Population: 200d),
+    (Id: 3, Population: 200d),
+    (Id: 4, Population: 400d)
+} b on a.Id = b.Id + 1
+inner join values {
+    (Id: 1, Population: 100d),
+    (Id: 2, Population: 200d),
+    (Id: 3, Population: 200d),
+    (Id: 4, Population: 400d)
+} b on a.Population > b.Population + 100
 ```
 
 ### 8.10 Function Calls in Multi-Source Queries
@@ -2468,9 +3082,9 @@ Understanding how methods are classified helps predict when auto-resolution succ
 `ToDecimal` is inherited by every schema from the shared plugin library. Both schemas resolve it to the same implementation, so no alias is needed:
 
 ```sql
-select e.Department, Sum(ToDecimal(t.Amount)) as total_amount
-from separatedvalues.comma('employees.csv', true, 0) e
-inner join separatedvalues.comma('transactions.csv', true, 0) t
+select e.Department, Sum(t.Amount) as total_amount
+from values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e
+inner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t
     on e.Id = t.EmployeeId
 group by e.Department
 ```
@@ -2481,8 +3095,8 @@ If `SpecialParse` exists only in schema A's library but not in schema B's, the e
 
 ```sql
 select SpecialParse(a.RawData), b.Name
-from A.entities() a
-inner join B.entities() b on a.Id = b.Id
+from schema.records() a
+inner join schema.byCountry() b on a.Id = b.Id
 ```
 
 **Ambiguous — explicit alias required (Rule 3):**
@@ -2492,13 +3106,13 @@ If schemas A and B each define their own `Transform` with different implementati
 ```sql
 -- ERROR MQ3035: Transform resolves to different implementations in A and B
 select Transform(a.Value)
-from A.entities() a
-inner join B.entities() b on a.Id = b.Id
+from schema.records() a
+inner join schema.byCountry() b on a.Id = b.Id
 
 -- FIX: prefix with the desired schema alias
 select a.Transform(a.Value)
-from A.entities() a
-inner join B.entities() b on a.Id = b.Id
+from schema.records() a
+inner join schema.byCountry() b on a.Id = b.Id
 ```
 
 #### 8.10.4 Explicit Alias Prefix
@@ -2507,9 +3121,24 @@ Even when auto-resolution would succeed, you can always qualify a function call 
 
 ```sql
 select cities.Country, countries.Sum(population.Population)
-from A.entities() countries
-inner join B.entities() cities on countries.Country = cities.Country
-inner join C.entities() population on cities.City = population.City
+from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} countries
+inner join values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (City: 'ROME', Country: 'Italy', Population: 400d)
+} cities on countries.Country = cities.Country
+inner join values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} population on cities.City = population.City
 group by cities.Country
 ```
 
@@ -2518,14 +3147,34 @@ This applies to all functions, including aggregation:
 ```sql
 -- Explicit alias on aggregate
 select a.Count(a.City)
-from A.entities() a
-inner join B.entities() b on a.Id = b.Id
+from values {
+    (Id: 1, City: 'WARSAW'),
+    (Id: 2, City: 'BERLIN'),
+    (Id: 3, City: 'WARSAW'),
+    (Id: 4, City: 'MUNICH')
+} a
+inner join values {
+    (Id: 1, City: 'WARSAW'),
+    (Id: 2, City: 'BERLIN'),
+    (Id: 3, City: 'HAMBURG'),
+    (Id: 4, City: 'ROME')
+} b on a.Id = b.Id
 group by a.City
 
 -- Auto-resolved alias on aggregate (Count is shared across schemas)
 select Count(a.City)
-from A.entities() a
-inner join B.entities() b on a.Id = b.Id
+from values {
+    (Id: 1, City: 'WARSAW'),
+    (Id: 2, City: 'BERLIN'),
+    (Id: 3, City: 'WARSAW'),
+    (Id: 4, City: 'MUNICH')
+} a
+inner join values {
+    (Id: 1, City: 'WARSAW'),
+    (Id: 2, City: 'BERLIN'),
+    (Id: 3, City: 'HAMBURG'),
+    (Id: 4, City: 'ROME')
+} b on a.Id = b.Id
 group by a.City
 ```
 
@@ -2536,9 +3185,9 @@ When the same aggregate expression is projected with `AS`, prefer the projected 
 ```sql
 select
     e.Department as department,
-    Sum(ToDecimal(t.Amount)) as total_amount
-from separatedvalues.comma('employees.csv', true, 0) e
-inner join separatedvalues.comma('transactions.csv', true, 0) t
+    Sum(t.Amount) as total_amount
+from values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e
+inner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t
     on e.Id = t.EmployeeId
 group by e.Department
 order by total_amount desc
@@ -2549,8 +3198,18 @@ For complex analytics that combine JOINs with GROUP BY, use a CTE to flatten the
 ```sql
 with joined as (
     select a.City as City, b.Population as Population
-    from A.entities() a
-    inner join B.entities() b on a.City = b.City
+    from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} a
+    inner join values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'HAMBURG', Population: 200d),
+    (City: 'ROME', Population: 400d)
+} b on a.City = b.City
 )
 select j.City, Sum(j.Population) as TotalPop
 from joined j
@@ -2564,6 +3223,8 @@ group by j.City
 ASOF JOIN matches each left-side row to the **single nearest** right-side row based on an ordered (inequality) column. Unlike a regular inequality join — which returns all matching rows — ASOF JOIN returns **at most one right-side row per left-side row**.
 
 #### 8.11.1 Syntax
+
+Syntax fragment (not a complete executable batch):
 
 ```sql
 select <columns>
@@ -2593,8 +3254,18 @@ The inequality operator determines the match direction:
 
 ```sql
 select a.Name, a.Population, b.Name, b.Population
-from A.entities() a
-asof join B.entities() b on a.Population >= b.Population
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} a
+asof join values {
+    (Name: 'Eve', Population: 100d),
+    (Name: 'Finn', Population: 200d),
+    (Name: 'Gia', Population: 200d),
+    (Name: 'Hugo', Population: 400d)
+} b on a.Population >= b.Population
 ```
 
 For each left-side row, returns the single right-side row whose `Population` is the largest value that is less than or equal to the left-side `Population`.
@@ -2602,6 +3273,14 @@ For each left-side row, returns the single right-side row whose `Population` is 
 **With equality partition — match within groups:**
 
 ```sql
+param(errorTime: datetime = '2024-01-02T12:00:00', commitTime: datetime = '2024-01-02T11:00:00')
+with errors as (
+    select ErrorTime, Service, Message
+    from values { (ErrorTime: $errorTime, Service: 'api', Message: 'timeout') } inputErrors
+), commits as (
+    select AuthorDate, Project, Sha, Message
+    from values { (AuthorDate: $commitTime, Project: 'api', Sha: 'abc123', Message: 'fix') } inputCommits
+)
 select e.ErrorTime, e.Service, c.Sha
 from errors e
 asof join commits c on e.Service = c.Project and e.ErrorTime >= c.AuthorDate
@@ -2612,6 +3291,14 @@ For each error, finds the most recent commit **within the same project/service**
 **Forward lookup — find what happened next:**
 
 ```sql
+param(errorTime: datetime = '2024-01-02T12:00:00', commitTime: datetime = '2024-01-02T11:00:00')
+with errors as (
+    select ErrorTime, Service, Message
+    from values { (ErrorTime: $errorTime, Service: 'api', Message: 'timeout') } inputErrors
+), commits as (
+    select AuthorDate, Project, Sha, Message
+    from values { (AuthorDate: $commitTime, Project: 'api', Sha: 'abc123', Message: 'fix') } inputCommits
+)
 select c.AuthorDate, c.Sha, e.ErrorTime, e.Message
 from commits c
 asof join errors e on c.AuthorDate <= e.ErrorTime
@@ -2624,6 +3311,14 @@ For each commit, finds the first error that occurred at or after it.
 When no match exists on the right side, `ASOF JOIN` drops the left row (like `INNER JOIN`). To preserve all left rows with NULLs on the right:
 
 ```sql
+param(errorTime: datetime = '2024-01-02T12:00:00', commitTime: datetime = '2024-01-02T11:00:00')
+with errors as (
+    select ErrorTime, Service, Message
+    from values { (ErrorTime: $errorTime, Service: 'api', Message: 'timeout') } inputErrors
+), commits as (
+    select AuthorDate, Project, Sha, Message
+    from values { (AuthorDate: $commitTime, Project: 'api', Sha: 'abc123', Message: 'fix') } inputCommits
+)
 select c.Sha, c.Message, e.ErrorTime
 from commits c
 asof left join errors e on c.AuthorDate <= e.ErrorTime
@@ -2643,8 +3338,18 @@ When multiple right-side rows have the exact same value on the inequality column
 
 ```sql
 select a.Name, b.Name
-from A.entities() a
-asof join B.entities() b on a.Population >= b.Population
+from values {
+    (Name: 'Ada', Population: 100d, UpdatedAt: 1),
+    (Name: 'Bob', Population: 200d, UpdatedAt: 2),
+    (Name: 'Cara', Population: 200d, UpdatedAt: 3),
+    (Name: 'Dan', Population: 400d, UpdatedAt: 4)
+} a
+asof join values {
+    (Name: 'Eve', Population: 100d, UpdatedAt: 1),
+    (Name: 'Finn', Population: 200d, UpdatedAt: 2),
+    (Name: 'Gia', Population: 200d, UpdatedAt: 3),
+    (Name: 'Hugo', Population: 400d, UpdatedAt: 4)
+} b on a.Population >= b.Population
 tie break by b.UpdatedAt desc nulls last
 ```
 
@@ -2702,9 +3407,24 @@ Multiple ASOF JOINs can be chained in a single query:
 
 ```sql
 select a.Name, b.Population, c.Area
-from A.entities() a
-asof join B.entities() b on a.Population >= b.Population
-asof join C.entities() c on a.Population >= c.Area
+from values {
+    (Name: 'Ada', Population: 100d, Area: 50d),
+    (Name: 'Bob', Population: 200d, Area: 150d),
+    (Name: 'Cara', Population: 200d, Area: 250d),
+    (Name: 'Dan', Population: 400d, Area: 350d)
+} a
+asof join values {
+    (Name: 'Eve', Population: 100d, Area: 50d),
+    (Name: 'Finn', Population: 200d, Area: 150d),
+    (Name: 'Gia', Population: 200d, Area: 250d),
+    (Name: 'Hugo', Population: 400d, Area: 350d)
+} b on a.Population >= b.Population
+asof join values {
+    (Name: 'Ada', Population: 100d, Area: 50d),
+    (Name: 'Bob', Population: 200d, Area: 150d),
+    (Name: 'Cara', Population: 200d, Area: 250d),
+    (Name: 'Dan', Population: 400d, Area: 350d)
+} c on a.Population >= c.Area
 ```
 
 Each ASOF JOIN independently selects the nearest candidate under its own keys. With no tie-break, equal candidates retain source encounter order; reversing a lookup direction does not select a different duplicate representative.
@@ -2743,15 +3463,20 @@ including `NULL` values and declared defaults. A row access method such as
 
 ```sql
 select a.Country, b.City
-from A.entities() a
-cross apply B.entities(a.Country) b
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
+cross apply schema.byCountry(a.Country) b
 ```
 
 The alias is mandatory when the APPLY source is a property or method result:
 
 ```sql
 select a1.Name, item.Value
-from a.b() a1
+from schema.collections() a1
 cross apply a1.Column item
 take 10
 ```
@@ -2760,7 +3485,7 @@ The following is invalid because `TAKE` is a query boundary, not an alias:
 
 ```sql
 select a1.Name
-from a.b() a1
+from schema.collections() a1
 cross apply a1.Column
 take 10
 -- MQ2035_MissingRequiredAlias: The CROSS APPLY source requires an alias before TAKE.
@@ -2774,8 +3499,13 @@ Like `CROSS APPLY`, but preserves left-side rows without matches. Unmatched righ
 
 ```sql
 select a.Country, b.City
-from A.entities() a
-outer apply B.entities(a.Country) b
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
+outer apply schema.byCountry(a.Country) b
 -- If no match for a.Country, b.City is null
 ```
 
@@ -2788,12 +3518,12 @@ Call a method on a row that produces a table of results:
 ```sql
 -- Split a string into rows
 select b.Value
-from schema.first() a
+from schema.texts() a
 cross apply a.Split(a.Text, ' ') as b
 
 -- Chain method results
 select c.Value
-from schema.first() a
+from schema.texts() a
 cross apply a.Split(a.Text, ' ') as b
 cross apply b.ToCharArray(b.Value) as c
 ```
@@ -2803,7 +3533,7 @@ Nested method calls are supported:
 ```sql
 -- Skip first element, take next 6
 select b.Value
-from schema.first() a
+from schema.texts() a
 cross apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) as b
 ```
 
@@ -2814,19 +3544,19 @@ Expand a collection property (array, list) into rows:
 ```sql
 -- Expand an array property
 select a.City, b.Value
-from schema.first() a
+from schema.values() a
 cross apply a.Values as b
 
 -- Expand nested collection
 select d.Value
-from schema.first() a
+from schema.nestedValues() a
 cross apply a.Values as b
 cross apply b.Values as c
 cross apply c.Values as d
 
 -- Expand through property chain
 select b.Value
-from schema.first() a
+from schema.values() a
 cross apply a.ComplexType.PrimitiveValues as b
 ```
 
@@ -2840,7 +3570,7 @@ When expanding **complex type arrays** (collections of records), each property o
 
 ```sql
 select a.City, b.Value, b.Ordinal
-from schema.first() a
+from schema.values() a
 cross apply a.Values b with ordinality
 order by a.City, b.Ordinal
 ```
@@ -2859,13 +3589,13 @@ Multiple applies can be chained. Each can reference results from previous ones:
 
 ```sql
 select b.Value, c.Value
-from schema.first() a
+from schema.texts() a
 cross apply a.Split(a.Text, ' ') as b
 cross apply b.ToCharArray(b.Value) as c
 
 -- Apply results can be filtered and grouped
 select b.Length(b.Value), b.Count(Length(b.Value))
-from schema.first() a
+from schema.texts() a
 cross apply a.Split(a.Text, ' ') as b
 group by b.Length(b.Value)
 ```
@@ -2876,18 +3606,38 @@ group by b.Length(b.Value)
 
 ```sql
 select a.City, d.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 cross apply (
     select b.City, b.Country
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
 ) d
 
 select a.City, d.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 outer apply (
     select b.City, b.Country
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
 ) d
 ```
@@ -2900,14 +3650,29 @@ An APPLY derived-table body may contain set operators when every set branch expo
 
 ```sql
 select a.City, d.City
-from A.entities() a
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 cross apply (
     select b.City, b.Country
-    from B.entities() b
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
     where b.Country = a.Country
     union (City, Country)
     select c.City, c.Country
-    from C.entities() c
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} c
     where c.Country = a.Country
 ) d
 ```
@@ -2920,7 +3685,7 @@ When multiple applies reference the same source, they produce a Cartesian produc
 
 ```sql
 select b.Value, c.Value
-from schema.first() a
+from schema.texts() a
 cross apply a.Split(a.Numbers, ',') as b
 cross apply a.Split(a.Words, ' ') as c
 -- Every combination of b and c values
@@ -2956,7 +3721,7 @@ Aggregate functions operate on groups of rows and return a single value per grou
 To discover all available aggregate functions for a given schema, use the `DESC FUNCTIONS` statement (see [§16.5](#165-describe-schema-functions)):
 
 ```sql
-desc functions A.entities()
+desc functions schema.records()
 ```
 
 All numeric aggregation functions accept any numeric type (`byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, etc.) as input. Different data sources may provide additional aggregate functions beyond the common set.
@@ -2970,15 +3735,20 @@ Temporal extrema use separate names: `MinDateTime`, `MaxDateTime`, `MinDateTimeO
 In a query with only one source, aggregates can be written without a source alias:
 
 ```sql
-select Country, Sum(Population) from A.entities() group by Country
+select Country, Sum(Population) from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Poland', Population: 200d),
+    (Country: 'Germany', Population: 400d)
+} rows group by Country
 ```
 
 In a query with multiple sources, unqualified aggregate calls are resolved with the same method-owner auto-resolution rules described in §8.10.1. If exactly one alias can provide the aggregate implementation, the unqualified call is accepted:
 
 ```sql
-select e.Department, Sum(ToDecimal(t.Amount))
-from separatedvalues.comma('/adventure/data/employees.csv', true, 0) e
-inner join separatedvalues.comma('/adventure/data/transactions.csv', true, 0) t
+select e.Department, Sum(t.Amount)
+from values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e
+inner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t
     on e.Id = t.EmployeeId
 group by e.Department
 ```
@@ -2986,9 +3756,9 @@ group by e.Department
 You may still qualify an aggregate explicitly to choose the owner:
 
 ```sql
-select e.Department, t.Sum(ToDecimal(t.Amount))
-from separatedvalues.comma('/adventure/data/employees.csv', true, 0) e
-inner join separatedvalues.comma('/adventure/data/transactions.csv', true, 0) t
+select e.Department, t.Sum(t.Amount)
+from values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e
+inner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t
     on e.Id = t.EmployeeId
 group by e.Department
 ```
@@ -3000,8 +3770,8 @@ If multiple aliases can resolve the same unqualified aggregate and they resolve 
 ```sql
 -- ERROR: aggregate owner is ambiguous across aliases
 select AggregateMethodB()
-from schema.first() first
-inner join schema.second() second on 1 = 1
+from schema.records() first
+inner join schema.otherRecords() second on 1 = 1
 
 -- CORRECT:
 select first.AggregateMethodB()
@@ -3010,38 +3780,79 @@ select first.AggregateMethodB()
 ### 10.3 GROUP BY Examples
 
 ```sql
+param(committedWhen: datetimeoffset = '2024-01-02T03:04:05+00:00')
 -- Basic grouping with count
-select Country, Count(Country) from A.entities() group by Country
+select Country, Count(Country) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows group by Country
 
 -- Grouping with sum
-select Country, Sum(Population) from A.entities() group by Country
+select Country, Sum(Population) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows group by Country
 
 -- Multi-column grouping
-select Country, City, Count(City) from A.entities() group by Country, City
+select Country, City, Count(City) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows group by Country, City
 
 -- Grouping with expression
-select Substr(Name, 0, 2), Count(Name)
-from A.entities()
-group by Substr(Name, 0, 2)
+select Substring(Name, 0, 2), Count(Name)
+from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows
+group by Substring(Name, 0, 2)
 
 -- CASE WHEN in GROUP BY
 select case when Population >= 500 then 'big' else 'small' end, Count(City)
-from A.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows
 group by case when Population >= 500 then 'big' else 'small' end
 
 -- Function-of-column expression in SELECT and GROUP BY (supported)
 select ToString(CommittedWhen, 'yyyy-MM', '') as MonthBucket, Count(Sha)
-from A.commits()
+from values { (Sha: 'abc123', CommittedWhen: $committedWhen) } commits
 group by ToString(CommittedWhen, 'yyyy-MM', '')
 
 -- Positional grouping by the first final SELECT expression
-select City, Count(*) from A.entities() group by 1
+select City, Count(*) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows group by 1
 
 -- Grouping by a non-aggregate SELECT alias
-select City as c, Count(*) from A.entities() group by c
+select City as c, Count(*) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows group by c
 
 -- HAVING can reference aggregate aliases
-select Count(*) as cnt from A.entities() group by City having cnt > 1
+select Count(*) as cnt from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows group by City having cnt > 1
 ```
 
 ### 10.3.1 GROUP BY Positional References
@@ -3050,7 +3861,12 @@ A direct positive integer literal in `GROUP BY` is a SELECT-list ordinal, counte
 
 ```sql
 select City, Count(*)
-from A.entities()
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows
 group by 1
 ```
 
@@ -3058,7 +3874,12 @@ This groups by the first final SELECT expression (`City`). Multiple ordinals may
 
 ```sql
 select City, Country, Count(*)
-from A.entities()
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows
 group by 1, 2
 ```
 
@@ -3075,7 +3896,12 @@ Rules:
 
 ```sql
 select City, Country, Count(Name)
-from A.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows
 group by all
 ```
 
@@ -3083,7 +3909,12 @@ This is equivalent to:
 
 ```sql
 select City, Country, Count(Name)
-from A.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows
 group by City, Country
 ```
 
@@ -3091,7 +3922,7 @@ The expansion runs after projection shaping. Star projections, `alias.*`, `LIKE`
 
 ```sql
 select * like 'C%', Count(Name) as Rows
-from A.entities()
+from values { (Id: 1, Name: 'Ada', City: 'WARSAW', Country: 'Poland') } rows
 group by all
 ```
 
@@ -3099,7 +3930,12 @@ Computed scalar expressions are also grouped automatically:
 
 ```sql
 select ToLower(City) as CityKey, Sum(Population) as TotalPopulation
-from A.entities()
+from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} rows
 group by all
 having Sum(Population) > 1000
 ```
@@ -3119,7 +3955,12 @@ Aggregate functions accept an optional second parameter indicating the "parent l
 ```sql
 -- Group by Month, City but aggregate at Month level
 select SumIncome(Money, 1), SumOutcome(Money, 1)
-from A.Entities()
+from values {
+    (City: 'WARSAW', Money: 100d, Month: 'January'),
+    (City: 'BERLIN', Money: 200d, Month: 'January'),
+    (City: 'WARSAW', Money: 300d, Month: 'February'),
+    (City: 'MUNICH', Money: 400d, Month: 'February')
+} rows
 group by Month, City
 ```
 
@@ -3132,7 +3973,12 @@ With `group by Month, City`:
 Using aggregate functions without GROUP BY produces a single-row result aggregating all rows:
 
 ```sql
-select Count(Name), Sum(Population) from A.entities()
+select Count(Name), Sum(Population) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 -- Returns one row with totals
 ```
 
@@ -3141,7 +3987,12 @@ select Count(Name), Sum(Population) from A.entities()
 Grouping by a non-ordinal constant treats all rows as a single group:
 
 ```sql
-select Count(Country) from A.entities() group by 'fake'
+select Count(Country) from values {
+    (Country: 'Poland'),
+    (Country: 'Germany'),
+    (Country: 'Poland'),
+    (Country: 'Germany')
+} rows group by 'fake'
 -- Equivalent to aggregate without GROUP BY
 ```
 
@@ -3152,7 +4003,12 @@ Direct positive integer literals are positional references, not constants. Use a
 HAVING filters groups after aggregation:
 
 ```sql
-select Name, Count(Name) from A.entities()
+select Name, Count(Name) from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Ada'),
+    (Name: 'Dan')
+} rows
 group by Name
 having Count(Name) >= 2
 ```
@@ -3160,7 +4016,12 @@ having Count(Name) >= 2
 HAVING can use any aggregate expression:
 
 ```sql
-select City, Sum(Money) from A.entities()
+select City, Sum(Money) from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows
 group by City
 having Sum(Money) >= 400
 ```
@@ -3169,7 +4030,12 @@ HAVING can also use aggregate SELECT aliases and grouped non-aggregate aliases:
 
 ```sql
 select City as c, Count(*) as cnt
-from A.entities()
+from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows
 group by c
 having cnt > 1 and c is not null
 ```
@@ -3180,21 +4046,46 @@ In a SELECT with GROUP BY, every non-aggregated column MUST appear in the GROUP 
 
 ```sql
 -- VALID: Name is in GROUP BY
-select Name, Count(Name) from A.entities() group by Name
+select Name, Count(Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows group by Name
 
 -- VALID: Only aggregates, no non-aggregated columns
-select Count(Country) from A.entities() group by Country
+select Count(Country) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows group by Country
 
 -- ERROR: Name is not in GROUP BY
-select Name, City, Count(1) from A.entities() group by City
+select Name, City, Count(1) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows group by City
 -- Reports a nonaggregated-column diagnostic
 
 -- ERROR: SELECT * with explicit GROUP BY expands to non-aggregated columns
-select * from A.entities() group by City
+select * from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows group by City
 -- Reports a nonaggregated-column diagnostic
 
 -- VALID: GROUP BY ALL infers every expanded SELECT * column as a grouping key
-select * from A.entities() group by all
+select * from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')
+} rows group by all
 ```
 
 ### 10.9 NULL in GROUP BY
@@ -3202,15 +4093,19 @@ select * from A.entities() group by all
 `NULL` values form their own group:
 
 ```sql
--- If some Country values are null, null is its own group
-select Country, Count(Country) from A.entities() group by Country
--- Group: null, Count(Country): 0 (Count ignores nulls)
+select Country, Count(Country) from values { (Country: 'Poland'), (Country: null), (Country: null) } countries group by Country
+-- The NULL group has Count(Country) = 0.
 ```
 
 Multi-column grouping treats `(POLAND, null)` as distinct from `(POLAND, WARSAW)`:
 
 ```sql
-select Country, City, Count(City) from A.entities() group by Country, City
+select Country, City, Count(City) from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows group by Country, City
 ```
 
 ### 10.10 FILTER Clause on Aggregates
@@ -3227,15 +4122,33 @@ The `FILTER` clause applies a row-level predicate *before* the aggregate process
 
 #### 10.10.2 Equivalence to CASE WHEN
 
-Internally, `FILTER` is rewritten as a `CASE WHEN` expression. The following two queries are semantically equivalent:
+Row exclusion is the normative definition of `FILTER`, independently of any
+implementation strategy. For a null-ignoring aggregate such as `Count`, the
+following two queries are semantically equivalent:
 
 ```sql
 -- FILTER syntax (preferred)
-select Count(City) filter (where Population > 200) from A.entities()
+select Count(City) filter (where Population > 200) from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} rows
 
 -- Equivalent CASE WHEN
-select Count(case when Population > 200 then City else null end) from A.entities()
+select Count(case when Population > 200 then City else null end) from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} rows
 ```
+
+This equivalence does not hold for aggregates that observe null inputs or count
+updates. For example, `AggregateValues` converts null inputs to empty strings;
+substituting null would add an unwanted value. An excluded row MUST NOT evaluate
+the aggregate's arguments or invoke its update operation. The filter predicate
+is evaluated before those arguments, and only `true` admits the row.
 
 #### 10.10.3 Supported Functions
 
@@ -3248,7 +4161,12 @@ Applying `FILTER` to a non-aggregate function is a compile-time error (MQ3051).
 **Basic filtered count:**
 
 ```sql
-select Count(City) filter (where Population > 200) from A.entities()
+select Count(City) filter (where Population > 200) from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} rows
 ```
 
 **Multiple aggregates with different filters:**
@@ -3257,7 +4175,12 @@ select Count(City) filter (where Population > 200) from A.entities()
 select
     Count(City) filter (where Country = 'Poland') as PolishCities,
     Count(City) filter (where Country = 'Germany') as GermanCities
-from A.entities()
+from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows
 ```
 
 **FILTER with GROUP BY:**
@@ -3265,7 +4188,12 @@ from A.entities()
 ```sql
 select Country,
        Count(City) filter (where Population > 200) as LargeCities
-from A.entities()
+from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows
 group by Country
 ```
 
@@ -3274,7 +4202,12 @@ group by Country
 ```sql
 select Country,
        Count(City) filter (where Population > 200) as LargeCities
-from A.entities()
+from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 300d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 600d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows
 group by Country
 having Count(City) filter (where Population > 200) >= 2
 ```
@@ -3306,7 +4239,7 @@ The `IN (...)` list is required so the output schema is known at compile time. D
 #### 10.11.1 Single-Key Example
 
 ```sql
-pivot sales.orders()
+pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
 on Quarter in ('Q1' as Q1, 'Q2' as Q2)
 using Sum(Amount) as Sales, Count(*) as Orders
 group by Region
@@ -3323,7 +4256,7 @@ This query groups rows by `Region`. For each listed `Quarter` value, Musoq emits
 If there is exactly one measure, the pivot value alias is the output column name:
 
 ```sql
-pivot sales.orders()
+pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
 on Quarter in ('Q1' as Q1)
 using Sum(Amount) as Sales
 group by Region
@@ -3333,7 +4266,7 @@ group by Region
 If there is more than one measure, Musoq uses `{pivot_alias}_{measure_alias}`:
 
 ```sql
-pivot sales.orders()
+pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
 on Quarter in ('Q1' as Q1)
 using Sum(Amount) as Sales, Count(*) as Orders
 group by Region
@@ -3347,7 +4280,7 @@ Generated output names MUST be unique. If aliases would produce duplicate names,
 `USING` accepts aggregate function calls only, including `DISTINCT` aggregate calls:
 
 ```sql
-pivot sales.orders()
+pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
 on Quarter in ('Q1' as Q1)
 using Count(distinct CustomerId) as Customers
 group by Region
@@ -3360,7 +4293,7 @@ Non-aggregate scalar functions in `USING` are rejected.
 If `GROUP BY` is omitted, all input rows form a single aggregate group:
 
 ```sql
-pivot sales.orders()
+pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
 on Quarter in ('Q1' as Q1, 'Q2' as Q2)
 using Count(*) as Orders
 ```
@@ -3372,7 +4305,7 @@ The result has one row.
 Multiple `ON` expressions are matched with tuple values in the `IN (...)` list:
 
 ```sql
-pivot cities
+pivot values { (Year: 2000, Country: 'NL', Population: 100, Name: 'City'), (Year: 2020, Country: 'PL', Population: 200, Name: 'City') } cities
 on Year, Country in ((2000, 'NL') as y2000_nl, (2020, 'PL') as y2020_pl)
 using Sum(Population) as Total
 group by Name
@@ -3385,7 +4318,7 @@ Every tuple MUST contain the same number of values as the `ON` key list. A misma
 `NULL` pivot values match source rows where the corresponding pivot key is `NULL`:
 
 ```sql
-pivot sales.orders()
+pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
 on Quarter in (null as Missing, 'Q1' as Q1)
 using Count(*) as Orders
 ```
@@ -3396,7 +4329,7 @@ A pivot query is select-like. It can appear at the top level, inside a CTE, or a
 
 ```sql
 with p as (
-    pivot sales.orders()
+    pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
     on Quarter in ('Q1' as Q1)
     using Sum(Amount) as Sales
     group by Region
@@ -3407,7 +4340,7 @@ select Region, Q1 from p
 ```sql
 select p.Region, p.Q1
 from (
-    pivot sales.orders()
+    pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales
     on Quarter in ('Q1' as Q1)
     using Sum(Amount) as Sales
     group by Region
@@ -3445,7 +4378,7 @@ The source is scanned once. For each source row, Musoq emits one output row per 
 #### 10.12.1 Example
 
 ```sql
-unpivot #sales.wide() s
+unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s
 on Quarter in (s.Q1 as Q1, s.Q2 as Q2, s.Q3 as Q3)
 using Sales
 keep s.Region as Region
@@ -3467,7 +4400,7 @@ The generated name column has type `string`. The generated value column uses the
 `KEEP` is explicit. Source columns that are not listed in `KEEP` are not carried forward automatically:
 
 ```sql
-unpivot #sales.wide() s
+unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s
 on Metric in (s.Population as Population, s.Money as Money)
 using Amount
 keep s.Country as Country, s.Name as City
@@ -3507,7 +4440,7 @@ An unpivot query is select-like. It can appear at the top level, inside a CTE, a
 
 ```sql
 with u as (
-    unpivot #sales.wide() s
+    unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s
     on Quarter in (s.Q1 as Q1, s.Q2 as Q2)
     using Sales
     keep s.Region as Region
@@ -3518,7 +4451,7 @@ select Region, Quarter, Sales from u
 ```sql
 select u.Region, u.Quarter, u.Sales
 from (
-    unpivot #sales.wide() s
+    unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s
     on Quarter in (s.Q1 as Q1)
     using Sales
     keep s.Region as Region
@@ -3591,7 +4524,7 @@ Named windows are declared in a `WINDOW` clause that appears after the `FROM` / 
 
 ```sql
 SELECT col, Sum(col2) OVER w
-FROM schema.table()
+FROM values { (col: 1, col2: 10, col3: 'x', col4: 1), (col: 2, col2: 20, col3: 'x', col4: 2) } data
 WINDOW w AS (PARTITION BY col3 ORDER BY col4)
 ```
 
@@ -3608,20 +4541,35 @@ WINDOW w AS (PARTITION BY col3 ORDER BY col4)
 
 ```sql
 -- Count employees per department
-select Name, City, Count(Name) over (partition by City) from a.entities()
+select Name, City, Count(Name) over (partition by City) from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 ```
 
 Multiple partition columns are supported — rows are grouped by the composite key:
 
 ```sql
-select Name, Sum(Population) over (partition by Country, City) from a.entities()
+select Name, Sum(Population) over (partition by Country, City) from values {
+    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows
 ```
 
 When `PARTITION BY` is omitted, all rows belong to a single partition:
 
 ```sql
 -- Running sum across all rows
-select Name, Sum(Population) over (order by Name) from a.entities()
+select Name, Sum(Population) over (order by Name) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 ```
 
 ### 11.4 ORDER BY within Window Specification
@@ -3636,13 +4584,28 @@ select Name, Sum(Population) over (order by Name) from a.entities()
 
 ```sql
 -- Running sum (with ORDER BY)
-select Name, Sum(Population) over (order by Name) from a.entities()
+select Name, Sum(Population) over (order by Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 
 -- Partition total (without ORDER BY)
-select Name, City, Sum(Population) over (partition by City) from a.entities()
+select Name, City, Sum(Population) over (partition by City) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 
 -- Descending order
-select Name, RowNumber() over (order by Name desc) from a.entities()
+select Name, RowNumber() over (order by Name desc) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 ```
 
 ### 11.5 Supported Window Functions
@@ -3662,22 +4625,22 @@ Ranking functions assign an ordinal position to each row within its partition ba
 
 ```sql
 -- RowNumber: 1, 2, 3, 4, 5
-select Name, RowNumber() over (order by Name) from a.entities()
+select Name, RowNumber() over (order by Name) from values { (Name: 'Ada'), (Name: 'Bob'), (Name: 'Cara'), (Name: 'Dan'), (Name: 'Eve') } people
 
--- Rank with ties: 1, 2, 2, 4
-select Name, Rank() over (order by Population) from a.entities()
+-- Rank: 1, 2, 2, 4
+select Name, Rank() over (order by Population) from values { (Name: 'Ada', Population: 100), (Name: 'Bob', Population: 200), (Name: 'Cara', Population: 200), (Name: 'Dan', Population: 400) } people
 
--- DenseRank without gaps: 1, 2, 2, 3
-select Name, DenseRank() over (order by Population) from a.entities()
+-- DenseRank: 1, 2, 2, 3
+select Name, DenseRank() over (order by Population) from values { (Name: 'Ada', Population: 100), (Name: 'Bob', Population: 200), (Name: 'Cara', Population: 200), (Name: 'Dan', Population: 400) } people
 
--- PercentRank with ties: 0, 0.333..., 0.333..., 1
-select Name, PercentRank() over (order by Population) from a.entities()
+-- PercentRank: 0, 0.333..., 0.333..., 1
+select Name, PercentRank() over (order by Population) from values { (Name: 'Ada', Population: 100), (Name: 'Bob', Population: 200), (Name: 'Cara', Population: 200), (Name: 'Dan', Population: 400) } people
 
--- CumeDist with ties: 0.25, 0.75, 0.75, 1
-select Name, CumeDist() over (order by Population) from a.entities()
+-- CumeDist: 0.25, 0.75, 0.75, 1
+select Name, CumeDist() over (order by Population) from values { (Name: 'Ada', Population: 100), (Name: 'Bob', Population: 200), (Name: 'Cara', Population: 200), (Name: 'Dan', Population: 400) } people
 
--- Ntile: distribute 5 rows into 3 buckets → 1, 1, 2, 2, 3
-select Name, Ntile(3) over (order by Name) from a.entities()
+-- Ntile: 1, 1, 2, 2, 3
+select Name, Ntile(3) over (order by Name) from values { (Name: 'Ada'), (Name: 'Bob'), (Name: 'Cara'), (Name: 'Dan'), (Name: 'Eve') } people
 ```
 
 `RowNumber`, `Rank`, `DenseRank`, `PercentRank`, and `CumeDist` take no arguments — the ordering is determined solely by the `ORDER BY` clause. `Ntile` takes a single integer argument specifying the number of buckets.
@@ -3693,10 +4656,20 @@ Offset functions access values from rows at a fixed distance from the current ro
 
 ```sql
 -- Previous row's Population (NULL for the first row)
-select Name, Lag(Population) over (order by Name) from a.entities()
+select Name, Lag(Population) over (order by Name) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 
 -- Next row's Population (NULL for the last row)
-select Name, Lead(Population) over (order by Name) from a.entities()
+select Name, Lead(Population) over (order by Name) from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 ```
 
 **NULL semantics for offset functions:**
@@ -3718,17 +4691,42 @@ Standard aggregate functions can be used as window functions when combined with 
 
 ```sql
 -- Running sum ordered by Name
-select Name, Sum(Population) over (order by Name) from a.entities()
+select Name, Sum(Population) over (order by Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 
 -- Count per partition
-select Name, City, Count(Name) over (partition by City) from a.entities()
+select Name, City, Count(Name) over (partition by City) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 
 -- Running average
-select Name, Avg(Population) over (order by Name) from a.entities()
+select Name, Avg(Population) over (order by Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 
 -- Partition minimum and maximum
-select Name, City, Min(Population) over (partition by City) from a.entities()
-select Name, City, Max(Population) over (partition by City) from a.entities()
+select Name, City, Min(Population) over (partition by City) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
+select Name, City, Max(Population) over (partition by City) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 ```
 
 #### 11.5.4 Value Access Functions
@@ -3737,34 +4735,65 @@ Value access functions retrieve a specific row's value from within the partition
 
 | Function | Return Type | Description |
 |----------|-------------|-------------|
-| `FirstValue(column)` | Input scalar type, nullable | Returns the first value in the partition (determined by `ORDER BY`). All rows in the partition receive the same result. |
-| `LastValue(column)` | Input scalar type, nullable | Running last with `ORDER BY`: returns the current row's value. Without `ORDER BY`: returns the last value in the partition (all rows same). |
-| `NthValue(column, n)` | Input scalar type, nullable | Returns the value from the `n`-th row in the partition. Returns `NULL` when fewer than `n` rows have been seen. `n` is 1-based. |
+| `FirstValue(column)` | Input scalar type, nullable | Returns the first value in the effective frame, or `NULL` for an empty frame. |
+| `LastValue(column)` | Input scalar type, nullable | Returns the last value in the effective frame, or `NULL` for an empty frame. |
+| `NthValue(column, n)` | Input scalar type, nullable | Returns the value at 1-based position `n` in the effective frame, or `NULL` when that position is outside the frame. |
 
 ```sql
 -- First value in partition
-select Name, FirstValue(Name) over (order by Name) from a.entities()
+select Name, FirstValue(Name) over (order by Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d, Value: 1),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d, Value: 2),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d, Value: 3),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d, Value: 4)
+} rows
 
--- Running last value (equals current row's value)
-select Name, LastValue(Name) over (order by Name) from a.entities()
+-- Running last value (last included peer; current row when keys are unique)
+select Name, LastValue(Name) over (order by Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d, Value: 1),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d, Value: 2),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d, Value: 3),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d, Value: 4)
+} rows
 
 -- Partition-wide last value (all rows same)
-select Name, LastValue(Population) over () from a.entities()
+select Name, LastValue(Population) over () from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d, Value: 1),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d, Value: 2),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d, Value: 3),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d, Value: 4)
+} rows
 
--- Second value in partition (NULL for the first row)
-select Name, NthValue(Name, 2) over (order by Name) from a.entities()
+-- Second value in the running frame (NULL until the frame contains two rows)
+select Name, NthValue(Name, 2) over (order by Name) from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d, Value: 1),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d, Value: 2),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d, Value: 3),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d, Value: 4)
+} rows
 
 -- NthValue per partition
 select Name, City, NthValue(Name, 2) over (partition by City order by Name)
-from a.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d, Value: 1),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d, Value: 2),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d, Value: 3),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d, Value: 4)
+} rows
 ```
 
-**NthValue semantics with ORDER BY (running mode):**
-- Before the `n`-th row, `NthValue` returns `NULL`.
-- From the `n`-th row onward, it returns the value seen at position `n`.
+**NthValue with the implicit ordered frame:**
+- The frame includes all peers of the current row, so position `n` can be
+  available before the current physical row reaches position `n`.
+- With unique ordering keys, this reduces to a running prefix: positions before
+  `n` return `NULL`, and subsequent rows return the value at position `n`.
 
 **NthValue semantics without ORDER BY:**
 - All rows receive the same value from the `n`-th row in the partition, or `NULL` if the partition has fewer than `n` rows.
+
+These partition-wide and running descriptions assume no explicit frame. An
+explicit frame overrides them. Without a defined order, the choice of rows at
+frame positions is unspecified.
 
 ### 11.6 Underscore Naming Variants
 
@@ -3785,8 +4814,18 @@ Both forms produce identical results:
 
 ```sql
 -- These two queries are equivalent
-select Name, RowNumber() over (order by Name) from a.entities()
-select Name, ROW_NUMBER() over (order by Name) from a.entities()
+select Name, RowNumber() over (order by Name) from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
+select Name, ROW_NUMBER() over (order by Name) from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 ```
 
 ### 11.7 WHERE Clause Interaction
@@ -3796,7 +4835,12 @@ select Name, ROW_NUMBER() over (order by Name) from a.entities()
 ```sql
 -- Only rows with Population > 150 participate in the window
 select Name, RowNumber() over (order by Name)
-from a.entities()
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 where Population > 150
 ```
 
@@ -3830,7 +4874,7 @@ Data-source plugins can register custom window functions beyond the built-in set
 
 ```sql
 select Name, RunningProduct(Population) over (partition by City order by Name)
-from a.entities()
+from values { (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d), (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d) } people
 ```
 
 Custom window functions support `PARTITION BY`, `ORDER BY`, and multi-argument signatures — the same capabilities as the built-in functions.
@@ -3841,14 +4885,17 @@ Musoq's implicit ordered window frame uses peer-aware `RANGE` semantics. Explici
 
 #### 11.11.1 Implicit Frame
 
-When no explicit frame specification is provided, every window function operates under a fixed implicit frame:
+When no explicit frame specification is provided, frame-sensitive aggregate and
+value-access window functions use the following implicit frame:
 
 | Condition | Implicit Frame (Musoq) | PostgreSQL Default |
 |-----------|------------------------|--------------------|
 | `ORDER BY` present | `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` | `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` |
 | `ORDER BY` absent | Entire partition (all rows receive the same value) | Entire partition (same) |
 
-The difference between ROWS and RANGE only matters **when ORDER BY values contain ties** (duplicate values).
+For the unbounded-preceding-to-current-row frames compared here, ROWS and RANGE
+differ only when ordering values contain ties. Bounded positional and
+value-distance frames can differ even when all ordering keys are distinct.
 
 When an explicit `ROWS BETWEEN` or `RANGE BETWEEN` frame is specified, it overrides the implicit frame. See section 11.12 for the explicit frame specification syntax.
 
@@ -3870,7 +4917,7 @@ Example with `SUM(val) OVER (ORDER BY category)`:
 - Rows 2 and 3 both have `category = B`. In RANGE mode, they are peers and both receive 50 (sum of all rows up to and including all B's). In ROWS mode, row 2 gets 30 (A + first B) and row 3 gets 50 (A + both B's).
 - Rows 1 and 4 have unique ORDER BY values, so both modes produce the same result.
 
-**When ORDER BY values are all distinct, ROWS and RANGE produce identical results.** The divergence only appears with duplicate ORDER BY values.
+For this running-prefix example, distinct ordering values give identical results.
 
 #### 11.11.3 Which Functions Are Affected
 
@@ -3878,13 +4925,18 @@ Example with `SUM(val) OVER (ORDER BY category)`:
 |-------------------|:--------------------------:|-------|
 | `RowNumber()` | No | Always assigns distinct sequential numbers — no tie concept |
 | `Rank()`, `DenseRank()` | No | Tie-aware by definition — identical behavior in both modes |
-| `Ntile(n)` | No | Bucket assignment is position-based in all SQL engines |
-| `Lag()`, `Lead()` | No | Offset functions are position-based (ROWS) by definition in standard SQL |
+| `Ntile(n)` | No | Bucket assignment uses positions in the partition |
+| `Lag()`, `Lead()` | No | Offsets use positions in the partition, independently of the frame |
 | `Sum()`, `Count()`, `Avg()` | **Yes** | Running aggregates differ when ORDER BY has ties |
 | `Min()`, `Max()` | **Yes** | Running min/max differ when ORDER BY has ties |
-| `FirstValue()` | No | Returns the first row in the partition — same in both modes |
+| `FirstValue()` | **Yes** | Returns the first row in the effective frame; identical for the running-prefix comparison above |
 | `LastValue()` | **Yes** | ROWS: current row is last. RANGE: last peer is last |
 | `NthValue()` | **Yes** | ROWS: Nth physical row. RANGE: depends on peer-group boundary |
+
+Ranking functions (including `PercentRank` and `CumeDist`) and offset functions
+ignore frame boundaries. The running descriptions in this table compare
+unbounded-preceding-to-current-row frames; explicit bounded frames govern
+aggregate and value-access functions through their own included rows.
 
 #### 11.11.4 NULL Ordering
 
@@ -3981,7 +5033,12 @@ This means `2 PRECEDING` on the first row of a partition includes only the curre
 ```sql
 select Name, Population,
        Sum(Population) over (order by Name rows between 1 preceding and 1 following)
-from a.entities()
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 ```
 
 For rows ordered A, B, C, D, E with populations 100, 200, 300, 400, 500:
@@ -3996,7 +5053,12 @@ For rows ordered A, B, C, D, E with populations 100, 200, 300, 400, 500:
 ```sql
 select Name, Population,
        Avg(Population) over (order by Name rows between 2 preceding and current row)
-from a.entities()
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 ```
 
 **Full partition aggregate with explicit frame:**
@@ -4004,7 +5066,12 @@ from a.entities()
 ```sql
 select Name, Population,
        Sum(Population) over (rows between unbounded preceding and unbounded following) as Total
-from a.entities()
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 ```
 
 This produces the same result as `Sum(Population) over ()` — every row receives the total of all rows.
@@ -4018,7 +5085,12 @@ select Name, City, Population,
            order by Name
            rows between 1 preceding and 1 following
        )
-from a.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 ```
 
 The frame operates independently within each partition defined by `City`.
@@ -4057,7 +5129,12 @@ The `QUALIFY` expression must evaluate to a boolean. It can reference any column
 
 ```sql
 select Name, City, RowNumber() over (partition by City order by Name) as rn
-from a.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 qualify rn <= 2
 ```
 
@@ -4067,7 +5144,12 @@ Returns at most 2 rows per `City`, ordered by `Name` within each city.
 
 ```sql
 select Name, Population, DenseRank() over (order by Population desc) as dr
-from a.entities()
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows
 qualify dr <= 3
 ```
 
@@ -4077,7 +5159,12 @@ Returns rows with the top 3 distinct population values.
 
 ```sql
 select Name, City, RowNumber() over (order by Name) as rn
-from a.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW', Population: 100d),
+    (Name: 'Bob', City: 'BERLIN', Population: 200d),
+    (Name: 'Cara', City: 'WARSAW', Population: 200d),
+    (Name: 'Dan', City: 'MUNICH', Population: 400d)
+} rows
 where Population > 100
 qualify rn <= 3
 ```
@@ -4088,7 +5175,12 @@ qualify rn <= 3
 
 ```sql
 select Name, RowNumber() over (order by Name) as rn
-from a.entities()
+from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 qualify rn <= 5
 skip 1 take 2
 ```
@@ -4103,13 +5195,23 @@ Before `QUALIFY` was available, the equivalent could be achieved with a CTE:
 -- Without QUALIFY (CTE workaround)
 with ranked as (
     select Name, City, RowNumber() over (partition by City order by Name) as rn
-    from a.entities()
+    from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 )
 select Name, City, rn from ranked where rn <= 2
 
 -- With QUALIFY (more concise)
 select Name, City, RowNumber() over (partition by City order by Name) as rn
-from a.entities()
+from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 qualify rn <= 2
 ```
 
@@ -4139,7 +5241,28 @@ If the key list is omitted, or if the key list is written as empty parentheses `
 
 The key columns specify which projected values are used to determine row identity for deduplication, difference, or intersection. Explicit key names are resolved against the left query projection. The resulting ordinal positions are then compared on both sides.
 
+All three operations use the same component-wise key equality. NULL key
+components compare equal to NULL and unequal to non-NULL values. Text comparison
+is ordinal and case-sensitive. Non-NULL values retain their logical type's
+set-operation equality, including nominal enum identity; floating-point NaN does
+not compare equal to itself. Duplicate keys in the right input do not multiply
+membership matches.
+
 Both sides of a set operation MUST return the same number of projected values. Corresponding projected values MUST have compatible types.
+
+A bare `NULL` opposite a value type `T` makes the corresponding column `T?`
+(`Nullable<T>`) in both inputs and the combined output. This rule applies to
+`UNION`, `UNION ALL`, `EXCEPT`, and `INTERSECT`, including empty results, decoded
+schema columns, computed expressions, CTEs, and chained operations. Reversing
+the inputs does not change the inferred type. Pairing `T` with `T?` likewise
+produces `T?`; it does not introduce additional numeric conversions.
+
+Reference types retain their type when paired with `NULL`. Columns whose inputs
+are all bare `NULL` retain the existing null-only (`DBNull`) metadata until a
+concrete type supplies context. Enum identity must still match; nullable enum
+carriers preserve that identity. Output column names come from the left input.
+The typed-null workaround `CASE WHEN 1 = 0 THEN ToByte(0) ELSE NULL END` remains
+valid and retains the `MQ5008_UnreachableCode` warning.
 
 `UNION ALL` accepts omitted, empty, and explicit key syntax for consistency, but it preserves every row from both inputs and does not use the key list to remove duplicates.
 
@@ -4148,55 +5271,134 @@ Both sides of a set operation MUST return the same number of projected values. C
 Combines results from two queries, removing duplicates identified by the effective key. With omitted keys, every projected value participates:
 
 ```sql
-select Name, City from A.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 union
-select Name, City from B.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'ROME'),
+    (Name: 'Eve', City: 'HAMBURG'),
+    (Name: 'Finn', City: 'ROME')
+} rows
 ```
 
 With an explicit subset key, only the named projected values participate:
 
 ```sql
-select Name, City from A.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 union (Name)
-select Name, City from B.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'ROME'),
+    (Name: 'Eve', City: 'HAMBURG'),
+    (Name: 'Finn', City: 'ROME')
+} rows
 ```
+
+Representative selection considers the left input before the right input and
+retains the first encountered complete row for each key. A matching left row
+therefore wins over every right row, including when their non-key values differ.
+If only the right input contains a key, its first encountered row wins. These
+rules also apply to NULL keys and to intermediate results in a set-operation
+chain.
+
+An input with unspecified row order may encounter any of its equal-key rows
+first; any such row is a permitted representative. This does not permit a right
+representative when the left input contains that key. Representative selection
+does not promise final output ordering; use ORDER BY on the combined result when
+that ordering matters.
 
 ### 12.3 UNION ALL
 
 Combines results preserving all rows including duplicates. The key list may be omitted:
 
 ```sql
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union all
-select Name from B.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Eve'),
+    (Name: 'Finn')
+} rows
 ```
 
 An explicit key list is accepted for syntactic consistency but does not change `UNION ALL` behavior:
 
 ```sql
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union all (Name)
-select Name from B.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Eve'),
+    (Name: 'Finn')
+} rows
 ```
 
 ### 12.4 EXCEPT
 
-Returns rows from the first query whose effective key does not appear in the second query:
+Returns every row from the first query whose effective key does not appear in
+the second query. Repeated left rows retain their multiplicity and complete
+projected values; this operation does not deduplicate the left input:
 
 ```sql
-select Name, City from A.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 except
-select Name, City from B.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'ROME'),
+    (Name: 'Eve', City: 'HAMBURG'),
+    (Name: 'Finn', City: 'ROME')
+} rows
 ```
 
 ### 12.5 INTERSECT
 
-Returns distinct complete rows from the first query whose effective key appears in both queries. Membership uses the effective key; duplicate elimination compares the entire projected output row using the existing set-operation equality rules. With an explicit subset key, matching left rows with different non-key values remain separate results. Repeated identical output rows appear once:
+Returns every row from the first query whose effective key appears in the second
+query. Membership uses only the effective key. Matching left rows retain their
+complete projected values and multiplicity, including repeated identical rows
+and rows with different non-key values. Right duplicates do not multiply the
+result:
 
 ```sql
-select Name, City from A.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 intersect
-select Name, City from B.Entities()
+select Name, City from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'ROME'),
+    (Name: 'Eve', City: 'HAMBURG'),
+    (Name: 'Finn', City: 'ROME')
+} rows
 ```
 
 ### 12.6 Chaining Set Operations
@@ -4207,15 +5409,40 @@ grouping, use a CTE or derived-table wrapper. Trailing modifiers still apply onc
 to the entire result (§12.8):
 
 ```sql
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union all (Name)
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union all (Name)
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union all (Name)
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union all (Name)
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 ```
 
 ### 12.7 Different Source Columns
@@ -4223,9 +5450,19 @@ select Name from A.Entities()
 Source columns can differ if aliases unify them:
 
 ```sql
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} rows
 union (Name)
-select City as Name from B.Entities()   -- City aliased as Name
+select City as Name from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'ROME'),
+    (Name: 'Eve', City: 'HAMBURG'),
+    (Name: 'Finn', City: 'ROME')
+} rows   -- City aliased as Name
 ```
 
 ### 12.8 SKIP/TAKE Scope
@@ -4234,18 +5471,38 @@ Trailing `SKIP` / `TAKE` apply once to the complete set result, after set
 combination and after any trailing `ORDER BY`:
 
 ```sql
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union (Name)
-select Name from B.Entities() order by Name skip 2 take 5
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Eve'),
+    (Name: 'Finn')
+} rows order by Name skip 2 take 5
 ```
 
 Use an explicit derived table or CTE when an operand-local slice is intended:
 
 ```sql
-select Name from A.Entities()
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 union (Name)
 select Name from (
-    select Name from B.Entities() order by Name skip 2 take 5
+    select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Eve'),
+    (Name: 'Finn')
+} rows order by Name skip 2 take 5
 ) sliced_branch
 ```
 
@@ -4255,11 +5512,26 @@ The parser never pushes trailing result modifiers into an operand.
 
 ```sql
 with p as (
-    select 1 as Id, 'First' as Name from A.Entities()
+    select 1 as Id, 'First' as Name from values {
+    (Id: 1, Name: 'Ada'),
+    (Id: 2, Name: 'Bob'),
+    (Id: 3, Name: 'Cara'),
+    (Id: 4, Name: 'Dan')
+} rows
     union all (Name)
-    select 2 as Id, 'Second' as Name from A.Entities()
+    select 2 as Id, 'Second' as Name from values {
+    (Id: 1, Name: 'Ada'),
+    (Id: 2, Name: 'Bob'),
+    (Id: 3, Name: 'Cara'),
+    (Id: 4, Name: 'Dan')
+} rows
     union all (Name)
-    select 3 as Id, 'Third' as Name from A.Entities()
+    select 3 as Id, 'Third' as Name from values {
+    (Id: 1, Name: 'Ada'),
+    (Id: 2, Name: 'Bob'),
+    (Id: 3, Name: 'Cara'),
+    (Id: 4, Name: 'Dan')
+} rows
 )
 select Id, Name from p
 ```
@@ -4268,9 +5540,10 @@ select Id, Name from p
 
 In standard SQL, an `ORDER BY` clause placed after the last query in a set operation applies to the **entire combined result**:
 
+Syntax fragment (not a complete executable batch):
+
 ```sql
--- Standard SQL interpretation:
--- ORDER BY sorts the combined UNION result
+-- SQL comparison fragment; A is the relation defined for this illustration.
 SELECT City FROM A WHERE Money > 200
 UNION
 SELECT City FROM A WHERE Money <= 200
@@ -4283,9 +5556,19 @@ complete unparenthesized set tree and orders the combined result:
 ```sql
 -- Musoq interpretation:
 -- ORDER BY sorts the combined UNION result
-select City from A.Entities() where Money > 200
+select City from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows where Money > 200
 union (City)
-select City from A.Entities() where Money <= 200
+select City from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows where Money <= 200
 order by City desc
 ```
 
@@ -4299,9 +5582,19 @@ larger query:
 
 ```sql
 with combined as (
-    select City from A.Entities() where Money > 200
+    select City from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows where Money > 200
     union (City)
-    select City from A.Entities() where Money <= 200
+    select City from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows where Money <= 200
 )
 select City from combined order by City desc
 ```
@@ -4318,24 +5611,59 @@ derived table or CTE.
 Sorts result rows. Default direction is ascending:
 
 ```sql
-select Name from A.entities() order by Name            -- ascending (default)
-select Name from A.entities() order by Name asc        -- explicit ascending
-select Name from A.entities() order by Name desc       -- descending
-select Name from A.entities() order by Name nulls last
-select Name from A.entities() order by Name desc nulls first
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows order by Name            -- ascending (default)
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows order by Name asc        -- explicit ascending
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows order by Name desc       -- descending
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows order by Name nulls last
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows order by Name desc nulls first
 ```
 
 Multi-column ordering with mixed directions:
 
 ```sql
-select City, Population from A.entities()
+select City, Population from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} rows
 order by Population desc, City asc
 ```
 
 ORDER BY can use expressions:
 
 ```sql
-select Name, Population from A.entities() order by Population * -1
+select Name, Population from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} rows order by Population * -1
 ```
 
 ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase letters sort before lowercase (`'A'` < `'a'`).
@@ -4350,20 +5678,35 @@ ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase let
 SELECT aliases defined with `AS` can be referenced directly in ORDER BY:
 
 ```sql
-select City, Money as Amount from A.entities() order by Amount desc
+select City, Money as Amount from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows order by Amount desc
 ```
 
 This also works with computed expressions:
 
 ```sql
-select City, Money * 2 as DoubledMoney from A.entities() order by DoubledMoney desc
+select City, Money * 2 as DoubledMoney from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows order by DoubledMoney desc
 ```
 
 And with aggregate functions after GROUP BY:
 
 ```sql
 select City, Sum(Money) as TotalRevenue
-from A.entities()
+from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows
 group by City
 order by TotalRevenue desc
 ```
@@ -4373,9 +5716,9 @@ This is the recommended form in multi-source grouped queries as well:
 ```sql
 select
     e.Department as department,
-    t.Sum(ToDecimal(t.Amount)) as total_amount
-from separatedvalues.comma('/adventure/data/employees.csv', true, 0) e
-inner join separatedvalues.comma('/adventure/data/transactions.csv', true, 0) t
+    t.Sum(t.Amount) as total_amount
+from values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e
+inner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t
     on e.Id = t.EmployeeId
 group by e.Department
 order by total_amount desc
@@ -4384,7 +5727,12 @@ order by total_amount desc
 Alias lookup is **case-insensitive**:
 
 ```sql
-select City as CITYNAME, Money as amount from A.entities() order by Amount desc
+select City as CITYNAME, Money as amount from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows order by Amount desc
 -- "Amount" matches alias "amount"
 ```
 
@@ -4397,7 +5745,12 @@ When an explicit alias is used in `ORDER BY`, ordering applies to the aliased **
 Skip the first N rows of the result:
 
 ```sql
-select Name from A.entities() skip 2
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows skip 2
 ```
 
 If SKIP exceeds the number of rows, zero rows are returned (no error).
@@ -4410,7 +5763,12 @@ does not count as slicing and does not produce the warning.
 Take the first N rows of the result:
 
 ```sql
-select Name from A.entities() take 3
+select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows take 3
 ```
 
 If TAKE exceeds the number of available rows, all available rows are returned (no error).
@@ -4420,16 +5778,53 @@ If TAKE exceeds the number of available rows, all available rows are returned (n
 Combine for pagination:
 
 ```sql
-select Name from A.entities() order by Name skip 10 take 5
--- Skip first 10, return next 5
+select Name from values {
+    (Name: 'Person01'),
+    (Name: 'Person02'),
+    (Name: 'Person03'),
+    (Name: 'Person04'),
+    (Name: 'Person05'),
+    (Name: 'Person06'),
+    (Name: 'Person07'),
+    (Name: 'Person08'),
+    (Name: 'Person09'),
+    (Name: 'Person10'),
+    (Name: 'Person11'),
+    (Name: 'Person12'),
+    (Name: 'Person13'),
+    (Name: 'Person14'),
+    (Name: 'Person15')
+} people order by Name skip 10 take 5
+-- Returns Person11 through Person15.
 ```
+
+Both `SKIP` and `TAKE` accept an integer literal or a direct `$name` reference declared by `param(...)`, `params(...)`, or `let`:
+
+```sql
+params(offset: int = 0, limit: int = 100)
+select r.Value
+from values { (Value: 3), (Value: 1), (Value: 2) } r
+order by r.Value
+skip $offset take $limit
+```
+
+The referenced type must be `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, or `ulong`, optionally nullable. The count must contain a value between `0` and `2147483647`, inclusive. Null, negative, and oversized counts are errors. Other types, including strings, floating-point values, decimals, collections, and records, cannot be paging counts. Arithmetic, calls, row-dependent expressions, and member/index access are not accepted directly in these clauses. Existing `let` initializer and declaration-order rules still apply.
+
+Literal and `let` counts are validated during binding (`MQ3118_InvalidPagingCount`). Runtime parameter counts are validated once per execution after parameter binding and before opening query sources (`MQ7019_InvalidRuntimePagingCount`); missing parameters and parameter-binding failures retain their existing diagnostics. Parameter defaults may be overridden, and changing a compiled query's parameters changes its next execution's slice without recompilation. Zero is valid: `SKIP 0` skips nothing and `TAKE 0` returns no rows.
+
+Runtime counts preserve eligible bounded top-N/top-offset ordering. Combined bounds are calculated without integer overflow; a bound beyond the supported bounded-ordering range uses complete ordering before slicing. Runtime paging remains in the engine rather than being substituted into the compile-time datasource planning contract. An unordered runtime `SKIP` receives `MQ5021_UnorderedSkip` because its value may be positive; a known zero literal or `let` remains quiet.
 
 ### 13.6 Interaction with GROUP BY and HAVING
 
 ORDER BY, SKIP, and TAKE are applied after GROUP BY and HAVING:
 
 ```sql
-select City, Sum(Money) from A.entities()
+select City, Sum(Money) from values {
+    (City: 'WARSAW', Money: 100d),
+    (City: 'BERLIN', Money: 200d),
+    (City: 'WARSAW', Money: 300d),
+    (City: 'MUNICH', Money: 400d)
+} rows
 group by City
 having Sum(Money) >= 400
 order by City
@@ -4454,7 +5849,12 @@ SELECT ... FROM cte_name
 
 ```sql
 with p as (
-    select City, Country from A.entities()
+    select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows
 )
 select Country, City from p
 ```
@@ -4472,7 +5872,12 @@ The output name for each CTE column is determined as follows:
 
 ```sql
 with p as (
-    select a.City from A.entities() a
+    select a.City from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
 )
 select City from p          -- valid
 
@@ -4484,7 +5889,12 @@ To expose a dotted name, declare that name explicitly:
 
 ```sql
 with p as (
-    select a.City as [a.City] from A.entities() a
+    select a.City as [a.City] from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} a
 )
 select [a.City] from p
 ```
@@ -4496,13 +5906,30 @@ with p as (
     select
         a.Country as LeftCountry,
         b.Country as RightCountry
-    from A.entities() a
-    inner join B.entities() b on a.Id = b.Id
+    from values {
+    (Id: 1, Country: 'Poland'),
+    (Id: 2, Country: 'Germany'),
+    (Id: 3, Country: 'Poland'),
+    (Id: 4, Country: 'Germany')
+} a
+    inner join values {
+    (Id: 1, Country: 'Poland'),
+    (Id: 2, Country: 'Germany'),
+    (Id: 3, Country: 'Germany'),
+    (Id: 4, Country: 'Italy')
+} b on a.Id = b.Id
 )
 select LeftCountry, RightCountry from p
 ```
 
-Source aliases are scoped to the query block where they are declared. Aliases declared inside a CTE body are not visible outside that body.
+Source aliases are scoped to the query block where they are declared. Aliases declared inside a CTE body are not visible outside that body. A legal CTE name MUST NOT collide with internal intermediate producers, including names equal to concatenated source aliases or resembling generated names. Renaming aliases without changing their bindings MUST preserve query results.
+
+Each set-operation operand has its own source-alias scope. Reusing an alias in
+another operand or CTE definition does not change predicate placement in the
+current query block. A deterministic predicate whose dependencies are available
+on the left of APPLY may be evaluated before right-side setup. Right-dependent
+and volatile predicates retain their existing dependency and stability rules.
+This does not specify an unrestricted evaluation order for SQL expressions.
 
 An authored CTE that is not transitively reachable from the outer query is
 reported as `MQ5022_UnusedCte` during binding. References from live CTEs count
@@ -4514,10 +5941,20 @@ CTE definitions are independent named query expressions. A CTE definition MUST N
 ```sql
 with matched as (
     select a.City
-    from A.entities() a
+    from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
     where exists (
         select b.City
-        from B.entities() b
+        from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'HAMBURG', Country: 'Germany'),
+    (City: 'ROME', Country: 'Italy')
+} b
         where b.Country = a.Country
     )
 )
@@ -4528,7 +5965,12 @@ select City from matched
 
 ```sql
 with p as (
-    select City, Country from A.entities()
+    select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows
 )
 select * from p    -- expands to City, Country
 ```
@@ -4537,7 +5979,12 @@ Qualified star follows the same output-name rules:
 
 ```sql
 with p as (
-    select a.* from A.entities() a
+    select a.* from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} a
 )
 select * from p    -- expands to the source column names, for example City, Country
 ```
@@ -4546,7 +5993,12 @@ select * from p    -- expands to the source column names, for example City, Coun
 
 ```sql
 with summary as (
-    select Country, Sum(Population) from A.entities() group by Country
+    select Country, Sum(Population) from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Poland', Population: 200d),
+    (Country: 'Germany', Population: 400d)
+} rows group by Country
 )
 select * from summary
 ```
@@ -4555,7 +6007,12 @@ Aggregation can also occur on a CTE reference:
 
 ```sql
 with raw as (
-    select Population, Country from A.entities()
+    select Population, Country from values {
+    (Country: 'Poland', Population: 100d),
+    (Country: 'Germany', Population: 200d),
+    (Country: 'Poland', Population: 200d),
+    (Country: 'Germany', Population: 400d)
+} rows
 )
 select Country, Sum(Population) from raw group by Country
 ```
@@ -4566,8 +6023,18 @@ Define multiple CTEs separated by commas:
 
 ```sql
 with
-    cities as (select City, Country from A.entities()),
-    countries as (select distinct Country from A.entities())
+    cities as (select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows),
+    countries as (select distinct Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows)
 select * from cities
 ```
 
@@ -4575,9 +6042,19 @@ select * from cities
 
 ```sql
 with combined as (
-    select Name from A.Entities()
+    select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
     union (Name)
-    select Name from B.Entities()
+    select Name from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Eve'),
+    (Name: 'Finn')
+} rows
 )
 select * from combined
 ```
@@ -4585,16 +6062,31 @@ select * from combined
 ### 14.8 CTE with JOIN
 
 ```sql
-with p as (select City, Country from A.entities())
+with p as (select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'WARSAW', Country: 'Poland', Population: 200d),
+    (City: 'MUNICH', Country: 'Germany', Population: 400d)
+} rows)
 select p.City, b.Population
 from p
-inner join B.entities() b on p.City = b.City
+inner join values {
+    (City: 'WARSAW', Country: 'Poland', Population: 100d),
+    (City: 'BERLIN', Country: 'Germany', Population: 200d),
+    (City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (City: 'ROME', Country: 'Italy', Population: 400d)
+} b on p.City = b.City
 ```
 
 If a CTE reference is given a table alias in `FROM`, that alias is the only qualifier visible for that CTE in the current query block:
 
 ```sql
-with p as (select City, Country from A.entities())
+with p as (select City, Country from values {
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'BERLIN', Country: 'Germany'),
+    (City: 'WARSAW', Country: 'Poland'),
+    (City: 'MUNICH', Country: 'Germany')
+} rows)
 select c.City from p c       -- valid
 
 -- INVALID in the same query block
@@ -4605,7 +6097,12 @@ Unqualified identifiers in expression contexts resolve to columns before table o
 
 ```sql
 with cte as (
-    select City as cte from A.entities()
+    select City as cte from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows
 )
 select cte from cte          -- reads the column named cte
 ```
@@ -4632,6 +6129,21 @@ supported derived forms. INNER JOIN and CROSS JOIN with nonrecursive sources and
 supported APPLY forms may accompany that reference; outer, ASOF, semi and anti
 recursive joins are rejected. A recursive CTE may use earlier completed CTEs;
 mutual recursion and forward dependencies are rejected.
+
+`CROSS APPLY Interpret<T>`, `InterpretAt<T>`, and `PartialInterpret<T>` may consume
+byte-array columns from the current frontier, including computed byte-array
+arguments. A chain of CROSS APPLY interpretation stages may consume fields decoded
+by earlier stages. Internal projection transitions do not require intermediate
+row objects for stable typed interpretation chains. Stable predicates depending
+only on an available left input may run before interpretation; right-dependent
+and volatile predicates retain their dependency and stability rules. The recursive
+operator restrictions above still apply and report MQ3075 for unsupported
+operators.
+
+For partial interpretation, `BytesConsumed` is relative to the supplied byte array
+or slice. Error metadata is retained for malformed chunks; applications requiring
+complete chunks can filter on `ErrorField is null`.
+
 Execution limits are host-selected safety limits, with default maximum 1,000
 iterations, 10,000,000 admitted rows and 10,000,000 captured snapshot rows. Exceeding a limit reports a recursive-limit
 diagnostic, never a silently truncated successful relation. Cancellation remains
@@ -4641,7 +6153,17 @@ cancellation. Without an outer ORDER BY, consumers must not assume result order.
 ```sql
 -- ERROR: Duplicate alias 'a'
 with p as (
-    select 1 from A.entities() a inner join A.entities() a on 1 = 1
+    select 1 from values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} a inner join values {
+    (Name: 'Ada', City: 'WARSAW'),
+    (Name: 'Bob', City: 'BERLIN'),
+    (Name: 'Cara', City: 'WARSAW'),
+    (Name: 'Dan', City: 'MUNICH')
+} a on 1 = 1
 )
 select * from p
 ```
@@ -4739,10 +6261,10 @@ table Invoice {
 Binds a schema method to a table structure, a source runtime settings profile, or both, creating a new data source alias:
 
 ```sql
-couple schema.Method with table TableName as AliasName;
-couple schema.Method with settings ProfileName as AliasName;
-couple schema.Method with table TableName and settings ProfileName as AliasName;
-couple schema.Method with settings ProfileName and table TableName as AliasName;
+couple schema.method with table TableName as AliasName;
+couple schema.method with settings ProfileName as AliasName;
+couple schema.method with table TableName and settings ProfileName as AliasName;
+couple schema.method with settings ProfileName and table TableName as AliasName;
 ```
 
 **Complete Example:**
@@ -4751,13 +6273,15 @@ couple schema.Method with settings ProfileName and table TableName as AliasName;
 table DummyTable {
     Name: string
 };
-couple A.Entities with table DummyTable as SourceOfDummyRows;
+couple schema.records with table DummyTable as SourceOfDummyRows;
 select Name from SourceOfDummyRows();
 ```
 
 With parameters:
 
 ```sql
+table DummyTable { Name: string };
+couple schema.records with table DummyTable as SourceOfDummyRows;
 select Name from SourceOfDummyRows(true, 'filter');
 ```
 
@@ -4766,7 +6290,7 @@ The `settings` option selects a host-resolved source runtime settings profile. S
 **Settings example:**
 
 ```sql
-couple api.items with settings prod as ProdItems;
+couple schema.items with settings prod as ProdItems;
 select Id, Name from ProdItems();
 ```
 
@@ -4790,7 +6314,7 @@ TABLE and COUPLE are used when:
 List available methods exposed by a schema:
 
 ```sql
-desc A
+desc schema
 ```
 
 Returns a single-column table named `Name`. Each row contains one available schema method (for example `empty`, `entities`).
@@ -4798,7 +6322,7 @@ Returns a single-column table named `Name`. Each row contains one available sche
 ### 16.2 Describe a Method (Overloads)
 
 ```sql
-desc A.entities
+desc schema.records
 ```
 
 Returns one row per available overload of the selected method.
@@ -4815,7 +6339,7 @@ Each parameter cell contains `ParameterName: logical-type` using the canonical n
 Describe the columns produced by a concrete source call:
 
 ```sql
-desc A.entities()
+desc schema.records()
 ```
 
 Returns a table with columns: `Name`, `Index`, `Type`.
@@ -4823,7 +6347,7 @@ Returns a table with columns: `Name`, `Index`, `Type`.
 Arguments may be provided when the schema method is overloaded and the engine needs to identify a specific signature:
 
 ```sql
-desc dynamic.method(0, 'test', 10.5d)
+desc schema.dynamicRows(0, 'test', 10.5d)
 ```
 
 The argument values are matched against the selected source signature. The returned table describes the row shape produced by that callable.
@@ -4837,12 +6361,12 @@ arguments; an inner datasource call in `DESC QUERY` follows normal binding.
 Inspect the structure behind a complex column, private table, or nested property path:
 
 ```sql
-desc A.entities() column Array             -- describe an array column
-desc A.entities() column Self              -- describe a complex object column
-desc A.entities() column Children          -- describe a complex type column
-desc A.entities() column Self.Children     -- nested property path
-desc A.entities() column Self.Other.Children  -- deep nested path
-desc A.entities() column Self.Dictionary   -- collection path
+desc schema.records() column Array             -- describe an array column
+desc schema.records() column Self              -- describe a complex object column
+desc schema.records() column Children          -- describe a complex type column
+desc schema.records() column Self.Children     -- nested property path
+desc schema.records() column Self.Other.Children  -- deep nested path
+desc schema.records() column Self.Dictionary   -- collection path
 ```
 
 Returns a table with columns: `Name`, `Index`, `Type`.
@@ -4862,10 +6386,10 @@ For nested descriptions, the `Index` column refers to the original top-level col
 ### 16.5 Describe Schema Functions
 
 ```sql
-desc functions A
-desc functions A.entities
-desc functions A.entities()
-desc functions A.entities('filter')    -- with arguments
+desc functions schema
+desc functions schema.records
+desc functions schema.records()
+desc functions schema.records('filter')    -- with arguments
 ```
 
 Returns a table with columns: `Method`, `Description`, `Category`, `Source`.
@@ -4879,14 +6403,14 @@ Only user-visible query functions are returned. Internal helpers and aggregation
 Inspect source runtime setting requirements and resolution status:
 
 ```sql
-desc settings A.entities;
+desc settings schema.records;
 desc settings CoupledAlias;
 ```
 
 For a coupled alias, the selected settings profile is the one declared by the `couple` statement:
 
 ```sql
-couple api.items with settings prod as ProdItems;
+couple schema.items with settings prod as ProdItems;
 desc settings ProdItems;
 ```
 
@@ -4899,10 +6423,7 @@ Returns a table with columns: `Name`, `Required`, `Secret`, `Phases`, `Status`, 
 Describe the projected output columns of a query without executing the query against source rows:
 
 ```sql
-desc query (
-    select Name as PersonName, Population + Money as Total
-    from A.entities()
-)
+desc query (select Name as PersonName, Population + Money as Total from values { (Name: 'Ada', Population: 100d, Money: 50d) } people)
 ```
 
 The inner query is parsed and bound normally so aliases, star expansion, CTEs, parameters, script variables, set operators, and validation rules match normal query compilation. Execution returns only metadata, not the query's data rows.
@@ -4920,22 +6441,22 @@ One row is returned for each projected output column in final projection order.
 Use `DESC ARGUMENTS` to inspect structural receiving contracts:
 
 ```sql
-desc arguments #inputs.match
-desc arguments #inputs.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') })
+desc arguments schema.match
+desc arguments schema.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') })
 ```
 
 The parameterized form needs declarations, not host values:
 
 ```sql
 param(patterns: (Id: string, Pattern: string)[])
-desc arguments #inputs.match('TODO', patterns: $patterns)
+desc arguments schema.match('TODO', patterns: $patterns)
 ```
 
 A coupled source is described through its coupled alias:
 
 ```sql
 table MatchRows { PatternId: string };
-couple #inputs.match with table MatchRows as Matches;
+couple schema.match with table MatchRows as Matches;
 desc arguments Matches
 ```
 
@@ -4983,17 +6504,42 @@ SELECT columns
 
 ```sql
 -- Simple
-from A.Entities() select City, Country
+from values {
+    (City: 'WARSAW', Country: 'POLAND', Population: 100d),
+    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),
+    (City: 'WARSAW', Country: 'POLAND', Population: 200d),
+    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)
+} rows select City, Country
 
 -- With WHERE
-from A.Entities() where Country = 'POLAND' select City, Country
+from values {
+    (City: 'WARSAW', Country: 'POLAND', Population: 100d),
+    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),
+    (City: 'WARSAW', Country: 'POLAND', Population: 200d),
+    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)
+} rows where Country = 'POLAND' select City, Country
 
 -- With GROUP BY
-from A.Entities() group by Country select Country, Sum(Population)
+from values {
+    (City: 'WARSAW', Country: 'POLAND', Population: 100d),
+    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),
+    (City: 'WARSAW', Country: 'POLAND', Population: 200d),
+    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)
+} rows group by Country select Country, Sum(Population)
 
 -- Full combination
-from A.Entities() a
-inner join B.Entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW', Country: 'POLAND', Population: 100d),
+    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),
+    (City: 'WARSAW', Country: 'POLAND', Population: 200d),
+    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)
+} a
+inner join values {
+    (City: 'WARSAW', Country: 'POLAND', Population: 100d),
+    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),
+    (City: 'HAMBURG', Country: 'Germany', Population: 200d),
+    (City: 'ROME', Country: 'Italy', Population: 400d)
+} b on a.City = b.City
 where a.Country = 'POLAND'
 group by a.Country
 select a.Country, Sum(b.Population)
@@ -5003,7 +6549,12 @@ take 5
 
 -- Inside a CTE
 with cte as (
-    from A.Entities() where Country = 'POLAND' select City, Country
+    from values {
+    (City: 'WARSAW', Country: 'POLAND', Population: 100d),
+    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),
+    (City: 'WARSAW', Country: 'POLAND', Population: 200d),
+    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)
+} rows where Country = 'POLAND' select City, Country
 )
 select * from cte
 ```
@@ -5026,10 +6577,10 @@ Because the set of available functions depends on which data sources are in use,
 
 ```sql
 -- List all functions available for a schema
-desc functions A
+desc functions schema
 
 -- List all functions available in the context of a specific method
-desc functions A.entities()
+desc functions schema.records()
 ```
 
 The result includes the method name, description, category, and source for each function.
@@ -5074,8 +6625,9 @@ Min and Max retain their input numeric kind with nullable result metadata. Avg
 returns nullable decimal for integral inputs and preserves decimal, float or double
 for other numeric inputs. For example, Avg over integral values [1, 2] returns
 decimal 1.5. Numeric aggregates ignore null and return null for empty/all-null
-input. Integral and decimal aggregate arithmetic is checked; overflow fails the
-query. These result and empty-input rules also apply to aggregate windows and
+input. Integral and decimal aggregate updates and partial-state merges use checked
+arithmetic; runtime overflow fails the query with `MQ7018_NumericOverflow` in the
+Runtime phase. These result and empty-input rules also apply to aggregate windows and
 existing distinct variants. Floating-point results remain sensitive to input order.
 String Min/Max use §10.2. DISTINCT and FILTER alter the contributing input before
 the aggregate operates. Temporal extrema, AggregateValues, ToXxx, file readers,
@@ -5095,8 +6647,8 @@ provider and must not change the language operations or overload their meanings.
 Most expressions involving `null` produce `null`:
 
 ```sql
-select null + 1 from system.dual()        -- null
-select null = null from system.dual()      -- null (not true)
+select null + 1 from values { (Seed: 0) } seed        -- null
+select null = null from values { (Seed: 0) } seed      -- null (not true)
 ```
 
 ### 19.2 NULL in Comparisons
@@ -5149,20 +6701,31 @@ Use `IS NULL`, `IS NOT NULL`, or a null-safe distinctness operator instead.
 `NULL` values form their own distinct group:
 
 ```sql
--- Data: (POLAND, WARSAW), (POLAND, null), (GERMANY, BERLIN)
-select Country, City, Count(1) from A.entities() group by Country, City
+select Country, City, Count(1) from values { (Country: 'POLAND', City: 'WARSAW'), (Country: 'POLAND', City: null), (Country: 'GERMANY', City: 'BERLIN') } places group by Country, City
 -- Groups: (POLAND, WARSAW), (POLAND, null), (GERMANY, BERLIN)
 ```
 
 ### 19.5 NULL from OUTER Joins
 
-When `LEFT JOIN`, `RIGHT JOIN`, `FULL OUTER JOIN`, `OUTER APPLY`, or `ASOF LEFT JOIN` produces an unmatched side, columns from the missing side are `null`. Scalar types are automatically promoted to nullable:
+When `LEFT JOIN`, `RIGHT JOIN`, `FULL OUTER JOIN`, `OUTER APPLY`, or `ASOF LEFT JOIN` produces an unmatched side, columns from the missing side are `null`. Scalar expressions are evaluated over these null-extended columns using their normal semantics. A scalar function is not implicitly null-propagating: for example, `Coalesce(b.Name, 'fallback')` returns `'fallback'` when `b` is missing. Ordinary function arguments retain their established evaluation order and eager evaluation, including fallback arguments. This does not create an injected source carrier for a missing row.
+
+Scalar types are automatically promoted to nullable:
 
 ```sql
 -- If no match, b.Population becomes decimal? with value null
 select a.City, b.Population
-from A.entities() a
-left join B.entities() b on a.City = b.City
+from values {
+    (City: 'WARSAW', Population: 100d, Value: 1),
+    (City: 'BERLIN', Population: 200d, Value: 2),
+    (City: 'WARSAW', Population: 200d, Value: 3),
+    (City: 'MUNICH', Population: 400d, Value: 4)
+} a
+left join values {
+    (City: 'WARSAW', Population: 100d, Value: 1),
+    (City: 'BERLIN', Population: 200d, Value: 2),
+    (City: 'HAMBURG', Population: 200d, Value: 3),
+    (City: 'ROME', Population: 400d, Value: 4)
+} b on a.City = b.City
 ```
 
 Use alias row presence predicates to distinguish an absent row from a present row whose columns contain `null`:
@@ -5185,8 +6748,18 @@ ASOF JOIN has specific NULL behavior for inequality and equality columns:
 ```sql
 -- Left row with NULL inequality key produces no match
 select a.Name, b.Name
-from A.entities() a
-asof left join B.entities() b on a.Population >= b.Population
+from values {
+    (Name: 'Ada', Population: 100d),
+    (Name: 'Bob', Population: 200d),
+    (Name: 'Cara', Population: 200d),
+    (Name: 'Dan', Population: 400d)
+} a
+asof left join values {
+    (Name: 'Eve', Population: 100d),
+    (Name: 'Finn', Population: 200d),
+    (Name: 'Gia', Population: 200d),
+    (Name: 'Hugo', Population: 400d)
+} b on a.Population >= b.Population
 -- If a.Population is NULL, b columns are NULL
 ```
 
@@ -5195,12 +6768,38 @@ asof left join B.entities() b on a.Population >= b.Population
 The `??` operator returns the first operand when that operand is not `null`; otherwise, it evaluates to the fallback operand:
 
 ```sql
-select Name ?? 'Unknown' from system.dual()
-select NullableValue ?? 0 from A.entities()
-select null ?? Name from A.entities()
+select Name ?? 'Unknown' from values { (Name: null), (Name: 'Ada') } people
+select NullableValue ?? 0 from values {
+    (Name: 'Ada', NullableValue: null),
+    (Name: 'Bob', NullableValue: 2),
+    (Name: 'Cara', NullableValue: null),
+    (Name: 'Dan', NullableValue: 4)
+} rows
+select null ?? Name from values {
+    (Name: 'Ada', NullableValue: null),
+    (Name: 'Bob', NullableValue: 2),
+    (Name: 'Cara', NullableValue: null),
+    (Name: 'Dan', NullableValue: 4)
+} rows
 ```
 
-The result type is the compatible operand type selected by semantic analysis. For `T? ?? T`, the result type is `T`. If the left operand is a statically non-nullable scalar type, Musoq treats the fallback as unreachable and uses the left operand directly. `??` is not a null-navigation operator; `?.` is not part of the language.
+Both operands MUST bind successfully, including an unreachable fallback. Thus
+`1 ?? MissingMethod()` is a binding error, and incompatible operand types remain
+invalid even when the left operand is statically nonnullable.
+
+For numeric operands, the result uses the unique most-specific common type to
+which both underlying types have a lossless conversion (§22.6). For example,
+`int? ?? long` yields `long`, and `int ?? long` also yields `long`. The result is
+nullable only when both alternatives can be null; `T? ?? T` therefore yields
+`T`, while `T? ?? T?` yields `T?`. A literal NULL adopts the other operand's type.
+Equal nonnumeric types retain their type; related reference types use the
+compatible receiving type. Incompatible or ambiguous common types fail binding.
+
+The left operand is evaluated once. The right operand is evaluated only when the
+left value is null, after the same safe widening conversions used to determine
+the result type. A statically nonnullable left operand may be converted to the
+common type and retained after both operands have been validated. `??` is not a
+null-navigation operator; `?.` is not part of the language.
 
 ### 19.8 NULL-Related Functions
 
@@ -5211,10 +6810,10 @@ Musoq provides functions for working with `NULL` values, such as coalescing, nul
 Most built-in functions return `null` when any required parameter is `null`:
 
 ```sql
-select Trim(null) from system.dual()        -- null
-select ToUpper(null) from system.dual()      -- null
-select Abs(null) from system.dual()          -- null
-select Concat(null, 'text') from system.dual()  -- null
+select Trim(null) from values { (Seed: 0) } seed        -- null
+select ToUpper(null) from values { (Seed: 0) } seed      -- null
+select Abs(null) from values { (Seed: 0) } seed          -- null
+select Concat(Name, 'text') from values { (Name: null), (Name: 'Ada') } names -- NULL, 'Adatext'
 ```
 
 ### 19.10 NULL in Enum Intrinsics
@@ -5244,6 +6843,13 @@ These operations are **case-insensitive**:
 | `Replace()` | `Replace('Hello', 'hello', 'Hi')` → 'Hi' |
 | `IndexOf()` | `IndexOf('Hello', 'HELLO')` → 0 |
 
+`Contains(value, pattern)` and `StartsWith(value, pattern)` use ordinal-ignore-case
+comparison and return `NULL` when either string argument is `NULL`. Computed
+strings have the same behavior as literal strings. Each argument is evaluated
+once, from left to right, before the function handles NULLs; the pattern is still
+evaluated when the receiver is NULL. These ordinary scalar calls remain within
+the selected CASE branch and do not evaluate unselected branches.
+
 ### 20.2 Case-Sensitive (Ordinal) Contexts
 
 These operations use **ordinal (case-sensitive)** comparison:
@@ -5261,8 +6867,18 @@ These operations use **ordinal (case-sensitive)** comparison:
 To group or deduplicate case-insensitively, normalize with `ToLower()` or `ToUpper()`:
 
 ```sql
-select ToLower(Name), Count(Name) from A.entities() group by ToLower(Name)
-select distinct ToLower(Name) from A.entities()
+select ToLower(Name), Count(Name) from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows group by ToLower(Name)
+select distinct ToLower(Name) from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows
 ```
 
 ### 20.4 Unicode Support
@@ -5280,8 +6896,9 @@ Typed collection parameters and collection `let` values also support indexing (`
 Array elements are accessed with bracket notation (0-based):
 
 ```sql
-select Array[0] from A.entities()     -- first element
-select Array[2] from A.entities()     -- third element
+let numbers: int[] = array { 10, 20, 30 };
+select $numbers[0] from values { (Seed: 0) } seed     -- first element
+select $numbers[2] from values { (Seed: 0) } seed     -- third element
 ```
 
 #### Negative Indexing
@@ -5289,8 +6906,9 @@ select Array[2] from A.entities()     -- third element
 Negative indices count from the end using modular wrapping:
 
 ```sql
-select Array[-1] from A.entities()    -- last element
-select Array[-2] from A.entities()    -- second to last
+let numbers: int[] = array { 10, 20, 30 };
+select $numbers[-1] from values { (Seed: 0) } seed    -- last element
+select $numbers[-2] from values { (Seed: 0) } seed    -- second to last
 ```
 
 #### Out-of-Bounds Access
@@ -5314,8 +6932,18 @@ Examples:
 Strings support bracket indexing to access individual characters:
 
 ```sql
-select Name[0] from A.entities()      -- first character
-select Name[-1] from A.entities()     -- last character
+select Name[0] from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows      -- first character
+select Name[-1] from values {
+    (Name: 'Ada'),
+    (Name: 'Bob'),
+    (Name: 'Cara'),
+    (Name: 'Dan')
+} rows     -- last character
 ```
 
 Out-of-bounds on strings returns `'\0'` (null character). Null strings return `'\0'`.
@@ -5325,7 +6953,7 @@ Out-of-bounds on strings returns `'\0'` (null character). Null strings return `'
 Access dictionary values by key:
 
 ```sql
-select Dict['key_name'] from A.entities()
+select Dict['key_name'] from schema.records()
 ```
 
 Missing keys return `null` (no exception).
@@ -5335,11 +6963,11 @@ Missing keys return `null` (no exception).
 Access nested object properties with dot notation:
 
 ```sql
-select Self.Name from A.entities()              -- single level
-select Self.Self.Name from A.entities()          -- two levels
-select Self.Self.Array from A.entities()         -- deep property
-select Self.Array[2] from A.entities()           -- property + index
-select Inc(Self.Array[2]) from A.entities()      -- function on indexed property
+select Self.Name from schema.records()              -- single level
+select Self.Self.Name from schema.records()          -- two levels
+select Self.Self.Array from schema.records()         -- deep property
+select Self.Array[2] from schema.records()           -- property + index
+select Inc(Self.Array[2]) from schema.records()      -- function on indexed property
 ```
 
 Accessing a non-existing field of a known record type reports `MQ3028_UnknownProperty` during binding.
@@ -5351,8 +6979,8 @@ notation. A method may receive the source entity through the registered
 injection contract; this does not invoke a function stored on a column value:
 
 ```sql
-select a.GetPopulation() from A.entities() a
-select a.ToUpperInvariant(a.City) from A.entities() a
+select a.GetPopulation() from schema.records() a
+select a.ToUpperInvariant(a.City) from schema.records() a
 ```
 
 Calls on column values, such as `Self.ToString()`, are unsupported. If the prefix
@@ -5371,10 +6999,9 @@ Property navigation such as `Self.Name` remains supported.
 When a `string` column is compared to a numeric literal, the engine automatically attempts to parse the string as a number at runtime:
 
 ```sql
--- Size is a string column containing "1500"
-select Name from Items() where Size > 1000       -- matches: "1500" parsed as 1500
-select Name from Items() where Size = 1500       -- matches exact value
-select Name from Items() where 1000 < Size       -- bidirectional: literal on left
+select Name from values { (Name: 'parcel', Size: '1500') } items where Size > 1000
+select Name from values { (Name: 'parcel', Size: '1500') } items where Size = 1500
+select Name from values { (Name: 'parcel', Size: '1500') } items where 1000 < Size
 ```
 
 **Edge cases:**
@@ -5388,32 +7015,30 @@ select Name from Items() where 1000 < Size       -- bidirectional: literal on le
 When a `DateTime`, `DateTimeOffset`, or `TimeSpan` column is compared to a string literal, automatic parsing occurs:
 
 ```sql
--- EventDate is DateTime column
-select Name from Events() where EventDate > '2023-01-01'
-select Name from Events() where EventDate = '2023-03-15'
-
--- EventDate is DateTimeOffset column
-select Name from Events() where EventDate = '2023-03-15T12:00:00+00:00'
-
--- Duration is TimeSpan column
-select Name from Events() where Duration >= '02:00:00'
+param(eventDate: datetime = '2023-03-15', eventOffset: datetimeoffset = '2023-03-15T12:00:00+00:00', duration: timespan = '03:00:00')
+select Name from values { (Name: 'event', EventDate: $eventDate) } events where EventDate > '2023-01-01'
+select Name from values { (Name: 'event', EventDate: $eventDate) } events where EventDate = '2023-03-15'
+select Name from values { (Name: 'event', EventDate: $eventOffset) } events where EventDate = '2023-03-15T12:00:00+00:00'
+select Name from values { (Name: 'event', Duration: $duration) } events where Duration >= '02:00:00'
 ```
 
 Bidirectional comparisons work:
 
 ```sql
-select Name from Events() where '2023-03-15' < EventDate
+param(eventDate: datetime = '2023-03-15')
+select Name from values { (Name: 'event', EventDate: $eventDate) } events where '2023-03-15' < EventDate
 ```
 
 Works in CASE WHEN expressions:
 
 ```sql
+param(eventDate: datetime = '2023-03-15')
 select Name,
     case when EventDate > '2023-03-15' then 'Future'
          when EventDate = '2023-03-15' then 'Present'
          else 'Past'
     end as TimeCategory
-from Events()
+from values { (Name: 'event', EventDate: $eventDate) } events
 ```
 
 Nullable date/time types (`DateTime?`, `DateTimeOffset?`, `TimeSpan?`) behave identically.
@@ -5443,6 +7068,19 @@ In arithmetic and bitwise operations involving different numeric types, values a
 | `sbyte AND byte` | `int` (`int?` when an operand is nullable) |
 | `byte AND ulong` | `ulong` (`ulong?` when an operand is nullable) |
 
+Nonconstant integral scalar arithmetic retains its declared width and wraps on
+overflow. Decimal scalar arithmetic and integral/decimal aggregate accumulation
+are checked; their runtime overflow reports `MQ7018_NumericOverflow`. Numeric
+literal and constant-arithmetic overflow remain binding errors (§3.9.1).
+Out-of-range strict numeric conversions during execution use the same runtime
+overflow diagnostic.
+
+Widen operands before arithmetic when a wider result is required. For example,
+`Sum((x.Value::long) * 1000000)` performs long multiplication and accumulation;
+`Sum((x.Value * 1000000)::long)` first performs int multiplication, which may
+already have wrapped, and then accumulates those wrapped values as long. Casting
+the final result does not change the arithmetic or accumulator width.
+
 ### 22.4 Object Column Coercion
 
 When an `object`-typed column is compared to a numeric literal, runtime conversion is attempted. Same graceful failure as string coercion — no exception on failure.
@@ -5456,6 +7094,58 @@ inspection and `EnumName` for explicit textual output. Dynamic objects are not
 inspected row by row to infer enum identities.
 
 ---
+
+### 22.6 Callable Conversions and Overload Preference
+
+Implicit numeric conversions in callable arguments and `??` preserve every value
+in the source logical domain. Identity conversions are always allowed. The
+following table lists additional allowed targets; all other numeric conversions
+require an explicit conversion:
+
+| Source | Additional implicit targets |
+|--------|-----------------------------|
+| sbyte | short, int, long, float, double, decimal |
+| byte | short, ushort, int, uint, long, ulong, float, double, decimal |
+| short | int, long, float, double, decimal |
+| ushort | int, uint, long, ulong, float, double, decimal |
+| int | long, double, decimal |
+| uint | long, ulong, double, decimal |
+| long | decimal |
+| ulong | decimal |
+| float | double |
+| double, decimal | none |
+| char (UTF-16 code unit) | ushort, int, uint, long, ulong, float, double, decimal |
+
+These rules are type-based, not dependent on the particular argument value.
+For example, even the value `1` of type `long` does not implicitly convert to
+`double`. Nullable lifting preserves the underlying conversion: `T` may convert
+to `U?`, and `T?` to `U?`, when `T` converts to `U`. A nullable value cannot
+implicitly convert to a nonnullable value parameter. NULL is applicable only to
+nullable or reference parameters and does not invent a preferred unrelated type.
+Arrays do not gain element-wise numeric conversions. Strings, Boolean values,
+and nominal enums do not participate in this numeric widening table.
+
+First apply callable visibility, ownership, argument mapping, arity, generic
+constraints, and structural receiving-contract rules. Compare remaining scalar
+candidates argument by argument: identity is preferred to nullable lifting,
+which is preferred to numeric widening. Numeric widening is preferred to an
+erased reference receiver. Among otherwise compatible targets, prefer a target
+that converts implicitly to the other target when the reverse conversion does
+not exist. For example, a short argument prefers `F(int)` over `F(long)`;
+`F(double)` and `F(decimal)` remain incomparable for an int argument.
+
+A candidate wins through conversions only when it is no worse for every supplied
+argument and strictly better for at least one. Conflicting argument preferences
+are ambiguous, not added into a total conversion cost. When conversions are
+equivalent, prefer fixed arity over variadic, then nongeneric over generic, then
+fewer omitted defaults. If no unique candidate remains, binding reports
+`MQ3089_AmbiguousCallableOverload`. Named and positional datasource calls use the
+same preference after mapping arguments to parameters; registration order never
+breaks a tie. Structural receiving contracts retain their structural matching
+rules; their scalar field conversions use the same lossless table.
+
+Arithmetic and bitwise promotion (§3.9.1 and §22.3), explicit casts, and explicit
+conversion functions retain their separately defined rules.
 
 ## 23. Diagnostic Contract and Catalog
 
@@ -5829,7 +7519,7 @@ stable_source  ::= named_source [alias]
 cte_reference  ::= identifier
 in_memory_reference ::= identifier
 
-schema_source  ::= ['#'] identifier '.' identifier '(' [source_arg_list] ')'
+schema_source  ::= identifier '.' identifier '(' [source_arg_list] ')'
 
 function_source ::= function_call
 function_call ::= identifier {'.' identifier} '(' [arg_list] ')'
@@ -5945,10 +7635,10 @@ comparison     ::= coalesce_expr [comp_op coalesce_expr]
                  | coalesce_expr [NOT] IN script_reference
                  | [NOT] EXISTS subquery
                  | coalesce_expr comp_op quantified_subquery
-                 | coalesce_expr [NOT] LIKE expression
-                 | coalesce_expr [NOT] RLIKE expression
-                 | predicate_quantifier [NOT] LIKE expression
-                 | predicate_quantifier [NOT] RLIKE expression
+                 | coalesce_expr [NOT] LIKE coalesce_expr
+                 | coalesce_expr [NOT] RLIKE coalesce_expr
+                 | predicate_quantifier [NOT] LIKE coalesce_expr
+                 | predicate_quantifier [NOT] RLIKE coalesce_expr
                  | coalesce_expr [NOT] BETWEEN coalesce_expr AND coalesce_expr
                  | coalesce_expr CONTAINS '(' expression_list ')'
 
@@ -5980,7 +7670,7 @@ primary        ::= record_literal
                  | array_literal
                  | literal
                  | script_reference
-                 | identifier {'.' identifier} ['(' [arg_list] ')'] [filter_clause] [window_over]
+                 | identifier {'.' identifier} ['(' [call_arguments] ')'] [filter_clause] [window_over]
                  | identifier '[' expression ']'
                  | '(' expression ')'
                  | subquery
@@ -5988,14 +7678,17 @@ primary        ::= record_literal
 
 script_reference ::= '$' identifier
 
+call_arguments ::= arg_list | aggregate_star_argument
+aggregate_star_argument ::= '*'
+
 filter_clause  ::= FILTER '(' WHERE expression ')'
 
 case_expression ::= searched_case_expression
                   | simple_case_expression
 
-searched_case_expression ::= CASE when_clause+ ELSE expression END
+searched_case_expression ::= CASE when_clause+ [ELSE expression] END
 
-simple_case_expression ::= CASE expression simple_when_clause+ ELSE expression END
+simple_case_expression ::= CASE expression simple_when_clause+ [ELSE expression] END
 
 when_clause ::= WHEN expression THEN expression
 
@@ -6065,7 +7758,7 @@ qualified_type_name ::= identifier { '.' identifier }
 
 couple_statement ::= COUPLE couple_schema_source WITH couple_option { AND couple_option } AS identifier
 
-couple_schema_source ::= ['#'] identifier '.' identifier
+couple_schema_source ::= identifier '.' identifier
 
 couple_option ::= TABLE identifier
                 | SETTINGS identifier
@@ -6078,7 +7771,7 @@ desc_statement ::= DESC desc_target [column_clause]
 
 desc_target ::= identifier
               | identifier '.' identifier
-              | identifier '.' identifier '(' [arg_list] ')'
+               | identifier '.' identifier '(' [source_arg_list] ')'
 
 desc_function_target ::= identifier
                        | identifier '.' identifier
@@ -6086,7 +7779,7 @@ desc_function_target ::= identifier
 
 desc_settings_target ::= identifier
                        | identifier '.' identifier
-                       | identifier '.' identifier '(' [arg_list] ')'
+                        | identifier '.' identifier '(' [source_arg_list] ')'
 
 column_clause ::= COLUMN column_path
 
@@ -6161,6 +7854,12 @@ requires adjacency (for example raw literal prefixes). Integral enum literals
 must satisfy the backing type's range and integral-suffix restriction (§3.8).
 Indexing syntax is supported for declared columns, properties and script references;
 brackets directly following a scalar literal are not supported.
+
+An aggregate star argument is a complete argument list, not a scalar expression.
+Binding accepts it for `Count` and registered argumentless aggregates; other
+callables (including value-only aggregates such as `Sum`) reject it. A star
+cannot be mixed with positional or named arguments. `DESC FUNCTIONS` remains
+positional-only; concrete `DESC` and `DESC SETTINGS` use source argument rules.
 
 ---
 
@@ -6248,8 +7947,8 @@ Use either a raw literal or doubled backslashes when the path text should be
 preserved:
 
 ```sql
-select FullPath from os.files(r'C:\new\test', true)
-select FullPath from os.files('C:\\new\\test', true)
+select r'C:\new\test' as FullPath from values { (Seed: 0) } seed
+select 'C:\\new\\test' as FullPath from values { (Seed: 0) } seed
 ```
 
 Standalone intentional escapes and unknown preserved escapes do not produce
@@ -6284,7 +7983,7 @@ Standalone intentional escapes and unknown preserved escapes do not produce
 | Script variables | Host-language or dialect-specific variables | `let name: type = constantExpression`; references use `$name` |
 | Pagination | `OFFSET n LIMIT m` | `SKIP n TAKE m` |
 | Not-equal | `<>` and `!=` | Both `<>` and `!=` are supported |
-| CASE WHEN ELSE | ELSE optional | ELSE **mandatory** |
+| CASE WHEN ELSE | ELSE optional | ELSE optional; implicit NULL |
 | Simple CASE | `CASE expr WHEN value THEN ...` | Supported |
 | Set operations | Omitted keys compare all projected values | Omitted keys and `()` compare all projected values; explicit key lists such as `UNION (key_columns)` compare a subset |
 | Recursive CTEs | Supported | Supported with one anchor and one recursive member; see §14.9 for restrictions |
@@ -6310,14 +8009,17 @@ Standalone intentional escapes and unknown preserved escapes do not produce
 
 ### Appendix F: CASE WHEN Requirements
 
-The `ELSE` clause is **mandatory** in all CASE expressions:
+The `ELSE` clause is optional in searched and simple CASE expressions. Omitting
+it is equivalent to `ELSE NULL`: an unmatched CASE returns NULL, and nullable
+result typing is inferred in the same way as the explicit form. UNKNOWN WHEN
+conditions do not match. Only the selected result expression is evaluated.
+Every CASE still requires at least one WHEN branch, THEN, and END.
 
 ```sql
--- VALID
-select case when x > 0 then 'positive' else 'non-positive' end from ...
-
--- ERROR: Missing ELSE clause
-select case when x > 0 then 'positive' end from ...
+-- Explicit NULL fallback
+select case when x > 0 then 'positive' else null end from values { (x: 1), (x: -1) } numbers
+-- Equivalent implicit NULL fallback
+select case when x > 0 then 'positive' end from values { (x: 1), (x: -1) } numbers
 ```
 
 Multiple WHEN branches are supported:
@@ -6330,7 +8032,12 @@ select
         when Population >= 100 then 'small'
         else 'tiny'
     end
-from A.entities()
+from values {
+    (Population: 100d),
+    (Population: 200d),
+    (Population: 200d),
+    (Population: 400d)
+} rows
 ```
 
 Simple CASE is also supported:
@@ -6342,7 +8049,12 @@ select
         when 1000 then 'large'
         else 'other'
     end
-from A.entities()
+from values {
+    (Population: 100d),
+    (Population: 200d),
+    (Population: 200d),
+    (Population: 400d)
+} rows
 ```
 
 CASE expressions can be nested:
@@ -6353,7 +8065,7 @@ select
         case when x > 100 then 'very large' else 'moderate' end
     else 'non-positive'
     end
-from ...
+from values { (x: 101), (x: 1), (x: -1) } numbers
 ```
 
 CASE can appear in SELECT, WHERE, GROUP BY, ORDER BY, and HAVING:
@@ -6361,14 +8073,19 @@ CASE can appear in SELECT, WHERE, GROUP BY, ORDER BY, and HAVING:
 ```sql
 -- In GROUP BY
 select case when Population >= 500 then 'big' else 'small' end, Count(1)
-from A.entities()
+from values {
+    (City: 'WARSAW', Population: 100d),
+    (City: 'BERLIN', Population: 200d),
+    (City: 'WARSAW', Population: 200d),
+    (City: 'MUNICH', Population: 400d)
+} rows
 group by case when Population >= 500 then 'big' else 'small' end
 
 -- In arithmetic
-select 1 + (case when 2 > 1 then 1 else 0 end) - 1 from system.dual()
+select 1 + (case when 2 > 1 then 1 else 0 end) - 1 from values { (Seed: 0) } seed
 
 -- Short-circuit evaluation: only the matching branch is evaluated
-select case when City <> 'X' then 'safe' else ThrowException() end from ...
+select case when City <> 'X' then 'safe' else 'unreachable' end from values { (City: 'WARSAW') } places
 ```
 
 Static `CASE` conditions and coalesce operands are inspected during binding.
@@ -6385,15 +8102,35 @@ semantics are unchanged.
 Bare double-colon numeric grouping shorthand is invalid. The `::` token is postfix cast syntax only:
 
 ```sql
-select Population::Int32 from A.entities()
-select (Population + 1)::Decimal from A.entities()
+select Population::Int32 from values {
+    (Population: 100d),
+    (Population: 200d),
+    (Population: 200d),
+    (Population: 400d)
+} rows
+select (Population + 1)::Decimal from values {
+    (Population: 100d),
+    (Population: 200d),
+    (Population: 200d),
+    (Population: 400d)
+} rows
 ```
 
 Use `GROUP BY` ordinals or aliases for projection-based grouping references:
 
 ```sql
-select City, Count(*) from A.entities() group by 1
-select City as c, Count(*) from A.entities() group by c
+select City, Count(*) from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows group by 1
+select City as c, Count(*) from values {
+    (City: 'WARSAW'),
+    (City: 'BERLIN'),
+    (City: 'WARSAW'),
+    (City: 'MUNICH')
+} rows group by c
 ```
 
 Quick rules:
@@ -6403,3 +8140,51 @@ Quick rules:
 - Direct positive integer literals in `GROUP BY` are SELECT-list ordinals.
 - `GROUP BY ALL` infers every non-aggregate, non-window SELECT expression after projection expansion.
 - Non-aggregate SELECT aliases are visible in `WHERE` and `GROUP BY`; aggregate SELECT aliases are visible in `HAVING`.
+
+
+### Appendix H: Generic Source Contracts Used in Examples
+
+These are illustrative contracts, not installed providers or required package
+names. A receiving host supplies them only when running examples about sources.
+Ordinary expression and relational examples instead declare their input with
+VALUES. Syntax fragments containing `...`, `<placeholder>`, or symbolic argument
+names describe forms rather than complete executable batches. Consecutive queries
+in a block are independent examples unless connected by a declaration or CTE.
+
+| Source | Arguments | Returned shape and behavior |
+|--------|-----------|-----------------------------|
+| `schema.records` | `()`; overload `(filter: string)`; overload `(enabled: bool, filter: string)` | Typed rows: `Id: int`, `Name: string`, `City: string`, `Country: string`, `Population: decimal`, `Money: decimal`, `Value: int`, `RawData: string`, `Array: int[]`, `Dict: map<string,string>`, `Children: record[]` with element `Name: string`, and `Self: record`. `Self` exposes `Name: string`, `Array: int[]`, `Dictionary: map<string,string>`, `Children: record[]`, and `Other`/`Self` records with the same demonstrated paths. Array example input is `[10,20,30]`; dictionary input contains `key_name` and `key`. Primitive sample row is `(1,'Ada','WARSAW','Poland',100,50)`. |
+| `schema.byCountry` | `()`; overload `(country: string)` | Same primitive columns as `schema.records`; returns only rows with matching `Country`, possibly none. Used to demonstrate lateral source arguments and null extension. |
+| `schema.collections` | `()` | `Name: string`, `Column: record[]`; element shape `Value: int`; ordered elements `[1,2]`. Also supplies `Children: record[]` with `Name: string` where shown. |
+| `schema.files` | `(path: string)` | `Name: string`; returns fixture names for the supplied key. Metadata is independent of that key; no filesystem access is implied. |
+| `schema.match` | `(text: string, patterns: (Id: string, Pattern: string, Mode: string = 'literal')[])` | `PatternId: string`; one row per matching pattern, in input-pattern order. Literal mode tests substring membership; examples pass `TODO` and `FIXME`. |
+| `schema.arguments` | `(first: int, second: decimal, enabled: bool, archived: bool, label: string)` | One `Value: string` column containing `label`; demonstrates argument types. |
+| `schema.method` | `()`; overload `(required: string, limit: int = 10)` | `Value: string`; nonnegative limit bounds rows; no-argument overload also exposes escaped-name columns `case`, `order`, `Column With Spaces`. `arg1`/`arg2` in syntax fragments are placeholders, not undeclared script variables. |
+| `schema.dynamicRows` | `(index: int, label: string, amount: decimal)` | TABLE-defined `Id: int?`, `Name: string`, `Amount: decimal?`; used for concrete metadata discovery. |
+| `schema.items` | `()` | `Id: int`, `Name: string`; profile `prod` is passed unchanged to the host resolver. Required key `TOKEN`, ordinal comparison, secret, applicable to all source phases. No value is embedded in SQL. |
+| `schema.otherRecords` | `()` | `Id: int`, `Value: int`; separately registered `AggregateMethodB()` for the ambiguity example. |
+
+Additional member-source contracts are `schema.texts()` returning
+`City: string`, `Text: string`, `Numbers: string`, and `Words: string` (sample
+`Text = 'one two'`, `Numbers = '1,2'`, `Words = 'one two'`);
+`schema.values()` returning `City: string`, `Values: int[]`, and
+`ComplexType.PrimitiveValues: int[]` (sample arrays `[1,2]`); and
+`schema.nestedValues()` returning `Values: record[]`, with two more record levels
+exposing `Values`, ending in primitive integer elements. Collections are ordered.
+The methods `Split(string,string) -> string[]`, `ToCharArray(string) -> char[]`,
+`Skip(collection,int) -> collection` and `Take(collection,int) -> collection`
+are registered for the corresponding source aliases in those callable examples.
+
+Parent-level aggregate examples assume `SumIncome(decimal, int) -> decimal` and
+`SumOutcome(decimal, int) -> decimal`, with the parent-depth argument following
+§10.4. These are registered aggregate contracts.
+
+The indexed-property example additionally publishes `Inc(int) -> int`, returning
+its argument plus one. Source-function examples publish `GetPopulation() -> decimal` and
+`ToUpperInvariant(string) -> string`. `SpecialParse(string) -> string` is registered
+only for the left source; `Transform(int) -> int` has distinct registrations on the
+two sources. The aggregate-owner example registers distinct argumentless
+`AggregateMethodB` functions on both sources. The custom-window example assumes
+`RunningProduct(decimal) -> decimal`, multiplying values in its effective frame.
+These callables illustrate registration and binding; no particular plugin supplies
+them as part of the core language contract.

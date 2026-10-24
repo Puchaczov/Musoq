@@ -23,14 +23,12 @@ public partial class RawTraverseVisitor<TExpressionVisitor>    where TExpression
 
     public virtual void Visit(SkipNode node)
     {
-        ArgumentNullException.ThrowIfNull(node);
-        node.Accept(Visitor);
+        VisitChildrenThenNode(node);
     }
 
     public virtual void Visit(TakeNode node)
     {
-        ArgumentNullException.ThrowIfNull(node);
-        node.Accept(Visitor);
+        VisitChildrenThenNode(node);
     }
 
     public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)

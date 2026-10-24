@@ -65,8 +65,8 @@ ExecutionPlan [compiled]
   StoredTableRepresentations
     [0] GeneratedRowList; row=Cte0Row0; ownership=ConstructFresh; lifetime=Execution
   StructuralPreparation
-    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { ReturnType = string, Value = string:006C00690074006500720061006C }
-    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { ReturnType = string, Value = string:006C00690074006500720061006C }
+    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { InterpretationShape = , ReturnType = string, Value = string:006C00690074006500720061006C }
+    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { InterpretationShape = , ReturnType = string, Value = string:006C00690074006500720061006C }
 
   Body
     PhaseBoundary [Begin]
@@ -174,7 +174,7 @@ namespace GeneratedSample_Q340_StructuredSharedCteArgument
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> leftMatchRowsSource;
                     try
                     {
-                        Musoq.Examples.DataSources.StructuredInputs.MatchSource leftMatchRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_2be829b9e8470a6f("TODO", token), __musoqPrepareCte_3c3c288101ed6850(_cteRowResults.Slot0, token), leftMatchRowsSourceContext);
+                        Musoq.Examples.DataSources.StructuredInputs.MatchSource leftMatchRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_2be829b9e8470a6f("TODO", token), __musoqPrepareCte_be7b1261f9058066(_cteRowResults.Slot0, token), leftMatchRowsSourceContext);
                         leftMatchRowsSource = DataSourceLifecycle.OpenTypedRowSource<Musoq.Examples.DataSources.StructuredInputs.MatchSource, Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(__leftMatchSchema, "match", leftMatchRowsSourceInstance, leftMatchRowsSourceContext, "#inputs", "leftMatch", "leftMatch:2");
                     }
                     catch (OperationCanceledException)
@@ -196,7 +196,7 @@ namespace GeneratedSample_Q340_StructuredSharedCteArgument
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> rightMatchRowsSource;
                     try
                     {
-                        Musoq.Examples.DataSources.StructuredInputs.MatchSource rightMatchRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_983f2231889e5d6d("TODO", token), __musoqPrepareCte_89ba721be29109ac(_cteRowResults.Slot0, token), rightMatchRowsSourceContext);
+                        Musoq.Examples.DataSources.StructuredInputs.MatchSource rightMatchRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_983f2231889e5d6d("TODO", token), __musoqPrepareCte_f6b146caae224968(_cteRowResults.Slot0, token), rightMatchRowsSourceContext);
                         rightMatchRowsSource = DataSourceLifecycle.OpenTypedRowSource<Musoq.Examples.DataSources.StructuredInputs.MatchSource, Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(__rightMatchSchema, "match", rightMatchRowsSourceInstance, rightMatchRowsSourceContext, "#inputs", "rightMatch", "rightMatch:2");
                     }
                     catch (OperationCanceledException)
@@ -367,7 +367,7 @@ namespace GeneratedSample_Q340_StructuredSharedCteArgument
             return value;
         }
 
-        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_3c3c288101ed6850(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
+        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_be7b1261f9058066(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
         {
             {
                 token.ThrowIfCancellationRequested();
@@ -422,7 +422,7 @@ namespace GeneratedSample_Q340_StructuredSharedCteArgument
             return result;
         }
 
-        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_89ba721be29109ac(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
+        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_f6b146caae224968(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
         {
             {
                 token.ThrowIfCancellationRequested();

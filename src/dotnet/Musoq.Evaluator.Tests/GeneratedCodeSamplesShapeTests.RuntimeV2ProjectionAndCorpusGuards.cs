@@ -114,8 +114,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             @"CreateObject \[(?<name>__[A-Za-z0-9_]*RuntimeV2RegressionLibrary0): RuntimeV2RegressionLibrary\]");
         Assert.IsTrue(libraryTargetMatch.Success, sample);
         var libraryTarget = libraryTargetMatch.Groups["name"].Value;
-        Assert.Contains("ko3iko.Email.Contains(\"gmail\", StringComparison.OrdinalIgnoreCase)", sample);
-        Assert.Contains("ko3iko.FirstName.StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
+        Assert.Contains("__musoqStringPredicate1Value.Contains(\"gmail\", StringComparison.OrdinalIgnoreCase)", sample);
+        Assert.Contains("__musoqStringPredicate2Value.StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
         Assert.Contains("SumAggregateKernel<decimal>.Set(ref resultSums0State, (decimal?)((decimal?)ko3iko.Salary));", sample);
         Assert.Contains("SumAggregateKernel<decimal>.Get(in resultSums0State)", sample);
         Assert.Contains("ResolveRangePeerFrameEnd(resultSums0OrderKeys", sample);

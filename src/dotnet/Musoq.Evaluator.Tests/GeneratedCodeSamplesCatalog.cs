@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class GeneratedCodeSamplesCatalog
 {
-    internal const int ExpectedSampleCount = 468;
+    internal const int ExpectedSampleCount = 478;
 
     public static IReadOnlyList<GeneratedCodeSample> Samples { get; } = CreateSamples();
 
@@ -36,6 +36,12 @@ internal static partial class GeneratedCodeSamplesCatalog
         samples.AddRange(CreateQueryScopedRowSamples());
         samples.AddRange(CreateLoopInvariantSamples());
         samples.AddRange(CreateScalarReuseSamples());
+        samples.AddRange(CreateSqlConcatenationSamples());
+        samples.AddRange(CreateInterpretationLimitSamples());
+        samples.Add(CreateApplyCarrierSample());
+        samples.Add(CreateInterpretedCteSample());
+        samples.Add(CreateInterpretedIndexedCteSample());
+        samples.AddRange(CreateRecursiveInterpretationSamples());
         samples.Add(NullableProviderMethodLeftJoin());
         samples.AddRange(CreateSpecificationCoreExpressionSamples());
         samples.AddRange(CreateSpecificationCoreSourceSamples());

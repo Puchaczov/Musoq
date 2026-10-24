@@ -379,7 +379,7 @@ namespace GeneratedSample_K78_NativeSetAggregateWindow
                                 }
 
                                 var vo04qt = vo04qtChunkViewArray[vo04qtChunkViewOffset + vo04qtIndex];
-                                if (((vo04qt.Position % 2) == 0))
+                                if (((vo04qt.Position % ((int?)2).GetValueOrDefault()) == 0))
                                 {
                                     cte0.Add(new Cte0Row0(vo04qt.Partition, vo04qt.Value));
                                 }
@@ -399,7 +399,7 @@ namespace GeneratedSample_K78_NativeSetAggregateWindow
                                 }
 
                                 var vo04qt = vo04qtChunkViewList[vo04qtChunkViewOffset + vo04qtIndex];
-                                if (((vo04qt.Position % 2) == 0))
+                                if (((vo04qt.Position % ((int?)2).GetValueOrDefault()) == 0))
                                 {
                                     cte0.Add(new Cte0Row0(vo04qt.Partition, vo04qt.Value));
                                 }
@@ -417,7 +417,7 @@ namespace GeneratedSample_K78_NativeSetAggregateWindow
                         }
 
                         var vo04qt = vo04qtChunk[vo04qtIndex];
-                        if (((vo04qt.Position % 2) == 0))
+                        if (((vo04qt.Position % ((int?)2).GetValueOrDefault()) == 0))
                         {
                             cte0.Add(new Cte0Row0(vo04qt.Partition, vo04qt.Value));
                         }

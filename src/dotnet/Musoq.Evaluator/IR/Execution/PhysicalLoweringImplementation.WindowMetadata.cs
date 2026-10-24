@@ -34,6 +34,7 @@ internal sealed partial class PhysicalLoweringImplementation
                                                  ContainsRowScopedRead(branch.Result)) ||
                                              (caseWhen.ElseExpression != null &&
                                               ContainsRowScopedRead(caseWhen.ElseExpression)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(ContainsRowScopedRead),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsRowScopedRead),
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsRowScopedRead),
             _ => false

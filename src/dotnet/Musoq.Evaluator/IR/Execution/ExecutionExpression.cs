@@ -7,5 +7,7 @@ public abstract record ExecutionExpression
         ReturnType = returnType;
     }
 
+    public ExecutionInterpretationShape? InterpretationShape { get; init; }
+
     public virtual ExecutionTypeRef ReturnType { get; init; }
 }

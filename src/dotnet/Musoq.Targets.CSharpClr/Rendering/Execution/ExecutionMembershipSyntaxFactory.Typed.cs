@@ -21,7 +21,7 @@ internal sealed partial class ExecutionMembershipSyntaxFactory
         var body = binding.EvaluationMode == ExecutionMembershipEvaluationMode.Eager
             ? RenderEagerMembers(context, 0)
             : RenderMembers(context, 0);
-        return CaptureValue(RenderTypedInput(membership.Expression, binding.OperandType), operandName, body);
+        return ExecutionValueCaptureSyntax.Capture(RenderTypedInput(membership.Expression, binding.OperandType), operandName, body);
     }
 
     private ExpressionSyntax RenderEagerMembers(MembershipRenderingContext context, int index)
@@ -31,7 +31,7 @@ internal sealed partial class ExecutionMembershipSyntaxFactory
                 .Aggregate((left, right) => SyntaxFactory.BinaryExpression(SyntaxKind.LogicalOrExpression,
                     SyntaxFactory.ParenthesizedExpression(left), SyntaxFactory.ParenthesizedExpression(right)));
         var remaining = RenderEagerMembers(context, index + 1);
-        return CaptureValue(RenderTypedInput(context.Membership.Values[index], context.Binding.MemberTypes[index]), context.Members[index], remaining);
+        return ExecutionValueCaptureSyntax.Capture(RenderTypedInput(context.Membership.Values[index], context.Binding.MemberTypes[index]), context.Members[index], remaining);
     }
 
     private ExpressionSyntax RenderMembers(MembershipRenderingContext context, int index)
@@ -79,10 +79,6 @@ internal sealed partial class ExecutionMembershipSyntaxFactory
     private static VarPatternSyntax CreateCapturePattern(string name)
         => SyntaxFactory.VarPattern(SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(name)));
 
-    private static ExpressionSyntax CaptureValue(ExpressionSyntax input, string name, ExpressionSyntax body)
-        => SyntaxFactory.ParenthesizedExpression(SyntaxFactory.SwitchExpression(input)
-            .WithArms(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.SwitchExpressionArm(CreateCapturePattern(name), body))));
     private sealed record MembershipRenderingContext(ExecutionInCheck Membership,
         ExecutionMembershipBinding Binding, string Operand, string[] Members);
 }

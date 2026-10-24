@@ -278,7 +278,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             [new CastEntity { OverflowText = "256" }]);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7018_NumericOverflow);
     }
 
     [TestMethod]

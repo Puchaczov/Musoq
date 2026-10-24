@@ -209,7 +209,8 @@ public partial class TransformTree
         if (planning.PhysicalPlan == null)
             return new ExecutionStageBuildResult(new ExecutionBuildArtifacts(), context);
 
-        var shapeResolver = ExecutionShapeResolverFactory.Create(semantic, context.SchemaRegistry);
+        var shapeResolver = (planning.PlanningResult?.ExecutionArtifacts.ShapeBindings as ExecutionPlanningShapeResolverAdapter)?.ExecutionShapes ??
+                            ExecutionShapeResolverFactory.Create(semantic, context.SchemaRegistry);
         var builder = new PhysicalToExecutionPlanBuilder(
             shapeResolver,
             context.SchemaRegistry,

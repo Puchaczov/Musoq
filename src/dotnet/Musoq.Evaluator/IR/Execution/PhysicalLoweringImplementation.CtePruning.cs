@@ -108,8 +108,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var input = PruneProjectInput(project.Input, fields.Select(static field => field.Expression).ToArray());
         var pruned = new PhysicalProjectNode(fields, input) { IsDistinct = project.IsDistinct };
-        PhysicalNode prunedPlan = definition.Plan is PhysicalMultiStatementNode { Statements.Length: 1 }
-            ? new PhysicalMultiStatementNode([pruned])
+        PhysicalNode prunedPlan = definition.Plan is PhysicalMultiStatementNode { Statements.Length: 1 } statements
+            ? new PhysicalMultiStatementNode([pruned]) { IntermediateProducers = statements.IntermediateProducers }
             : pruned;
 
         return definition with { Plan = prunedPlan };

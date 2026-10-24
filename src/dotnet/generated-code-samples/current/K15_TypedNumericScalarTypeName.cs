@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-select Position, GetTypeName(Position) as PositionType, GetTypeName(Integral) as IntegralType
+select Position, GetTypeName(Position) as PositionType, GetTypeName(Integral ?? 0) as IntegralType
 from #schema.first() order by Position
 */
 
@@ -8,7 +8,7 @@ from #schema.first() order by Position
 /*
 MultiStatement
   Sort [ko3iko.Position]
-    Project [ko3iko.Position as Position, GetTypeName(ko3iko.Position) as PositionType, GetTypeName(ko3iko.Integral) as IntegralType]
+    Project [ko3iko.Position as Position, GetTypeName(ko3iko.Position) as PositionType, GetTypeName(COALESCE(ko3iko.Integral, 0)) as IntegralType]
       SchemaScan [#schema.first() as ko3iko]
 */
 
@@ -16,7 +16,7 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Position]
-    PhysicalProject [ko3iko.Position as Position, GetTypeName(ko3iko.Position) as PositionType, GetTypeName(ko3iko.Integral) as IntegralType]
+    PhysicalProject [ko3iko.Position as Position, GetTypeName(ko3iko.Position) as PositionType, GetTypeName(COALESCE(ko3iko.Integral, 0)) as IntegralType]
       PhysicalSchemaScan [#schema.first() as ko3iko]
 */
 
@@ -46,7 +46,7 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [position: int = ko3iko.Position]
-      AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: position, PositionType: GetTypeName(position), IntegralType: GetTypeName(ko3iko.Integral))]
+      AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: position, PositionType: GetTypeName(position), IntegralType: GetTypeName(COALESCE(ko3iko.Integral, 0)))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -139,7 +139,7 @@ namespace GeneratedSample_K15_TypedNumericScalarTypeName
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 int position = ko3iko.Position;
-                                resultOrderRecords.Add(new ResultRow0WithSortKeys(position, (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(position), (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(ko3iko.Integral), resultOrderRecords.Count));
+                                resultOrderRecords.Add(new ResultRow0WithSortKeys(position, (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(position), (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>((ko3iko.Integral ?? 0)), resultOrderRecords.Count));
                             }
 
                             continue;
@@ -157,7 +157,7 @@ namespace GeneratedSample_K15_TypedNumericScalarTypeName
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 int position = ko3iko.Position;
-                                resultOrderRecords.Add(new ResultRow0WithSortKeys(position, (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(position), (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(ko3iko.Integral), resultOrderRecords.Count));
+                                resultOrderRecords.Add(new ResultRow0WithSortKeys(position, (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(position), (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>((ko3iko.Integral ?? 0)), resultOrderRecords.Count));
                             }
 
                             continue;
@@ -173,7 +173,7 @@ namespace GeneratedSample_K15_TypedNumericScalarTypeName
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         int position = ko3iko.Position;
-                        resultOrderRecords.Add(new ResultRow0WithSortKeys(position, (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(position), (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(ko3iko.Integral), resultOrderRecords.Count));
+                        resultOrderRecords.Add(new ResultRow0WithSortKeys(position, (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>(position), (string)__resultOrderRecordsLibraryBase0.GetTypeName<int>((ko3iko.Integral ?? 0)), resultOrderRecords.Count));
                     }
                 }
 

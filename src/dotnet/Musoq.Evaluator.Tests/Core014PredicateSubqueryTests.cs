@@ -112,7 +112,7 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void CorrelatedNonEqualityInInSelectExpression_ShouldReportUnsupportedFallback()
+    public void CorrelatedNonEqualityInInSelectExpression_ShouldEvaluatePerOuterRow()
     {
         const string query = """
             select a.City,
@@ -123,33 +123,10 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
             from #A.Entities() a
             """;
 
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
-        var envelope = exception.PrimaryEnvelope;
-        var expectedStart = query.IndexOf("City", query.IndexOf("a.City in", StringComparison.Ordinal), StringComparison.Ordinal);
-        var correlatedReferenceStart = query.IndexOf("a.Population", query.IndexOf("where b.Population", StringComparison.Ordinal), StringComparison.Ordinal);
-        var expectedEnd = query.IndexOf(')', correlatedReferenceStart);
-
-        AssertErrorEnvelope(exception, DiagnosticCode.MQ2024_InvalidSubquery, DiagnosticPhase.Parse);
-        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
-        Assert.AreEqual(expectedStart, envelope.Offset);
-        Assert.AreEqual(expectedEnd - expectedStart + 1, envelope.Length);
-        StringAssert.Contains(envelope.Message, "requires an equality correlation key");
-        Assert.AreEqual(
-            "A subquery is malformed or appears in a location where this parser path cannot accept it.",
-            envelope.Explanation);
-        Assert.AreEqual("Core Spec - Subqueries", envelope.DocsReference);
-        CollectionAssert.AreEqual(
-            new[]
-            {
-                "Ensure the subquery starts with SELECT and is enclosed in parentheses.",
-                "Use the subquery only in a supported expression or source position."
-            },
-            envelope.SuggestedFixes.ToArray());
-        Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
-        Assert.HasCount(0, envelope.Arguments);
-        AssertHasGuidance(exception);
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            ["WARSAW", true], ["BERLIN", false], ["PARIS", false], [null, false]);
     }
 
     [TestMethod]

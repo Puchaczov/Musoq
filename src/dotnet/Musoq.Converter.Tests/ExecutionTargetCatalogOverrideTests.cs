@@ -212,7 +212,7 @@ public sealed class ExecutionTargetCatalogOverrideTests
                 new TestOnlyRenderedArtifact(),
                 TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr),
                 TargetArtifactSemanticFacts.Empty,
-                ExecutionSemanticsContract.Version1)));
+                ExecutionSemanticsContract.Current)));
 
         Assert.Contains("does not support artifact packaging", exception.Message);
     }
@@ -248,7 +248,7 @@ public sealed class ExecutionTargetCatalogOverrideTests
                 new TestOnlyRenderedArtifact(),
                 executableArtifact,
                 TargetArtifactSemanticFacts.Empty,
-                ExecutionSemanticsContract.Version1));
+                ExecutionSemanticsContract.Current));
 
         Assert.AreEqual(TestExecutionTargetIds.TestOnlyNonClr, package.TargetId);
         Assert.AreEqual("TargetExport", package.ArtifactKind);
@@ -267,7 +267,7 @@ public sealed class ExecutionTargetCatalogOverrideTests
                 ExecutionTargetIds.CSharpClr,
                 "wrong",
                 "wrong",
-                ExecutionSemanticsContract.Version1));
+                ExecutionSemanticsContract.Current));
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -280,7 +280,7 @@ public sealed class ExecutionTargetCatalogOverrideTests
                     new TestOnlyRenderedArtifact(),
                     TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr),
                     TargetArtifactSemanticFacts.Empty,
-                    ExecutionSemanticsContract.Version1)));
+                    ExecutionSemanticsContract.Current)));
 
         Assert.Contains("produced a package for target", exception.Message);
     }

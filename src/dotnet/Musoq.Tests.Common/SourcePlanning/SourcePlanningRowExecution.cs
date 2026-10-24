@@ -63,7 +63,7 @@ public static class SourcePlanningRowExecution
         var phaseApplications = applications
             .Where(application => application.Phase == phase)
             .Select(application => new PreparedStringMatch<T>(
-                application.Predicate,
+                (SourcePredicateStringMatch)application.Predicate,
                 createKeySelector(application.Predicate.Column.Name)))
             .ToArray();
 

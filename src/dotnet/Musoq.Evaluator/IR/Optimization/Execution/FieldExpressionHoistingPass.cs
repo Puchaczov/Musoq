@@ -150,7 +150,7 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
             var variables = reads.ToDictionary(
                 static read => read,
-                read => new ExecutionVariable(CreateHoistedVariableName(read, usedNames), read.ReturnType));
+                read => new ExecutionVariable(CreateHoistedVariableName(read, usedNames), read.ReturnType, read.InterpretationShape?.TypeName ?? read.GeneratedTypeName));
             var lets = reads
                 .Select(read => new ExecutionLet(variables[read], read))
                 .ToArray();
@@ -210,7 +210,7 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
             var rewriter = new ExecutionExpressionSubstitutionRewriter(expression =>
                 expression is ExecutionFieldRead fieldRead &&
                 variablesByRead.TryGetValue(fieldRead, out var variable)
-                    ? new ExecutionVariableRead(variable)
+                    ? new ExecutionVariableRead(variable) { InterpretationShape = fieldRead.InterpretationShape }
                     : null);
 
             return includeAppendContexts || node is not ExecutionAppendRow appendRow

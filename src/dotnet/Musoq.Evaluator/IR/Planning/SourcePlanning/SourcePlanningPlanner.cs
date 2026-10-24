@@ -131,12 +131,12 @@ internal static partial class SourcePlanningPlanner
                 case MultiStatementNode { Statements.Length: 1 } multiStatement:
                     current = multiStatement.Statements[0];
                     continue;
-                case TakeNode takeNode when take == null:
-                    take = takeNode.Count;
+                case TakeNode takeNode when take == null && takeNode.Count.IsConstant:
+                    take = takeNode.Count.Value;
                     current = takeNode.Input;
                     continue;
-                case SkipNode skipNode when skip == null:
-                    skip = skipNode.Count;
+                case SkipNode skipNode when skip == null && skipNode.Count.IsConstant:
+                    skip = skipNode.Count.Value;
                     current = skipNode.Input;
                     continue;
                 case SortNode sortNode when orderFields.Length == 0:

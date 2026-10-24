@@ -296,10 +296,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     private static readonly IReadOnlyDictionary<string, int> ProductionHighCountNotSupportedExceptionBudgets =
         new Dictionary<string, int>(StringComparer.Ordinal)
         {
+            ["src/dotnet/Musoq.Evaluator/Visitors/ScriptParameterMetadataBinder.cs"] = 5,
             ["src/dotnet/Musoq.Evaluator/IR/UnsupportedShape.cs"] = 5,
             ["src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.CachedMethodCalls.cs"] = 2,
             ["src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.MethodInvocationArguments.cs"] = 2,
-            ["src/dotnet/Musoq.Evaluator/Visitors/ScriptParameterMetadataBinder.cs"] = 6,
             ["src/dotnet/Musoq.Evaluator/Visitors/ScriptVariableMetadataBinder.cs"] = 3,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.AsOfJoins.cs"] = 2,
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.QueryValidation.cs"] = 3,
@@ -318,10 +318,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     private static readonly IReadOnlyDictionary<string, string> ProductionHighCountNotSupportedExceptionRationales =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            ["src/dotnet/Musoq.Evaluator/Visitors/ScriptParameterMetadataBinder.cs"] = "Metadata binder rejects invalid script parameter declarations, defaults and undeclared references.",
             ["src/dotnet/Musoq.Evaluator/IR/UnsupportedShape.cs"] = "Centralized unsupported-shape exception factory for Execution IR lowering and C# rendering.",
             ["src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.CachedMethodCalls.cs"] = "Renderer guardrails for unsupported cached invocation shapes.",
             ["src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.MethodInvocationArguments.cs"] = "Renderer guardrails for unsupported method argument expressions.",
-            ["src/dotnet/Musoq.Evaluator/Visitors/ScriptParameterMetadataBinder.cs"] = "Metadata binder rejects unsupported script parameter expression forms.",
             ["src/dotnet/Musoq.Evaluator/Visitors/ScriptVariableMetadataBinder.cs"] = "Metadata binder rejects unsupported script variable declaration and initializer forms.",
             ["src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.AsOfJoins.cs"] = "Execution planning rejects unsupported ASOF join shapes.",
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.QueryValidation.cs"] = "Semantic validation rejects unsupported query result shapes.",

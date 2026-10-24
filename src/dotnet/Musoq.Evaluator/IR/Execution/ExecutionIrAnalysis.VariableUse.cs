@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -22,26 +21,47 @@ internal static partial class ExecutionIrAnalysis
 
     internal static bool ContainsVariableUse(ExecutionBlock block, string variableName)
     {
-        return block.Nodes.Any(node => ContainsVariableUse(node, variableName));
+        var visitor = new VariableUseNodeVisitor(variableName);
+        return !ExecutionIrTraversal.VisitNodes(block, ref visitor);
     }
 
     internal static bool ContainsVariableUse(ExecutionNode node, string variableName)
     {
-        return ExecutionNodeFacts.GetDirectVariableReferences(node).Any(variable => HasName(variable, variableName)) ||
-               ContainsVariableUse(GetNodeExpressions(node), variableName) ||
-               GetChildBlocks(node).Any(block => ContainsVariableUse(block, variableName));
+        var visitor = new VariableUseNodeVisitor(variableName);
+        return !ExecutionIrTraversal.VisitNode(node, ref visitor);
     }
 
     internal static bool ContainsVariableUse(IEnumerable<ExecutionExpression> expressions, string variableName)
     {
-        return FlattenExpressions(expressions)
-            .Any(expression => ExpressionUsesVariable(expression, variableName));
+        foreach (var expression in expressions)
+            if (ContainsVariableUse(expression, variableName))
+                return true;
+        return false;
     }
 
     internal static bool ContainsVariableUse(ExecutionExpression? expression, string variableName)
     {
-        return FlattenExpressions(expression)
-            .Any(current => ExpressionUsesVariable(current, variableName));
+        var visitor = new VariableUseExpressionVisitor(variableName);
+        return !ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
+    }
+
+    private readonly struct VariableUseExpressionVisitor(string name) : IExecutionExpressionVisitor
+    {
+        public bool Visit(ExecutionExpression expression) => !ExpressionUsesVariable(expression, name);
+    }
+
+    private readonly struct VariableUseNodeVisitor(string name) : IExecutionNodeVisitor
+    {
+        public bool Visit(ExecutionNode node)
+        {
+            if (ExecutionNodeFacts.HasDirectVariableUse(node, name))
+                return false;
+            var expressions = new ExecutionLocalExpressionCursor(node);
+            while (expressions.MoveNext())
+                if (ContainsVariableUse(expressions.Current, name))
+                    return false;
+            return true;
+        }
     }
 
     private static bool ExpressionUsesVariable(ExecutionExpression expression, string variableName)

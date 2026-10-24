@@ -95,23 +95,24 @@ inner join #B.entities() b on a.City = b.City";
     }
 
     [TestMethod]
-    public void WhenDifferentImplementationsAreVisibleAcrossJoinKinds_ShouldReportAmbiguity()
+    [DataRow("inner join")]
+    [DataRow("left outer join")]
+    [DataRow("right outer join")]
+    [DataRow("full outer join")]
+    public void WhenDifferentImplementationsAreVisibleAcrossJoinKinds_ShouldReportAmbiguity(string joinKind)
     {
-        foreach (var joinKind in new[] { "inner join", "left outer join", "right outer join", "full outer join" })
-        {
-            var query = $@"select AmbiguousMethod(a.Population)
+        var query = $@"select AmbiguousMethod(a.Population ?? 0d)
 from #A.entities() a
 {joinKind} #B.entities() b on a.City = b.City";
 
-            var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-                query,
-                schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
+            query,
+            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
 
-            AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind,
-                "AmbiguousMethod(a.Population)");
-            AssertMessageContains(ex, "a");
-            AssertMessageContains(ex, "b");
-        }
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind,
+            "AmbiguousMethod");
+        AssertMessageContains(ex, "a");
+        AssertMessageContains(ex, "b");
     }
 
     [TestMethod]

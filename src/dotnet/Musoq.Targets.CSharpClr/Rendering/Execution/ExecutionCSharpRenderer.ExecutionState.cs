@@ -21,7 +21,8 @@ public sealed partial class ExecutionCSharpRenderer
         if (context.Session.IncludeCteIndexResults)
             yield return CreateObjectLocalDeclaration(CteIndexResultsFieldName, CreateCteIndexResultsTypeSyntax());
 
-        yield return CreateExecutionStateLocalDeclaration(context);
+        if (!context.Session.IsSubqueryHelper)
+            yield return CreateExecutionStateLocalDeclaration(context);
 
     }
 

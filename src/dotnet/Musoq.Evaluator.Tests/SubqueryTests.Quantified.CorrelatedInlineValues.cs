@@ -39,14 +39,13 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void InlineCorrelatedCaseQuantifier_ShouldProbeDeclaredNullablePartitionType()
+    public void InlineCorrelatedCaseQuantifier_ShouldRetainTypedCapturesUnderCaseGuard()
     {
         AssertCorrelatedInlineRows(CorrelatedInlineCaseQuery, "Outcome", ["match"], ["match"], ["miss"]);
         var inspection = InstanceCreator.CompileForInspection(CorrelatedInlineCaseQuery, Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()),
             LoggerResolver, TestCompilationOptions);
-        Assert.Contains("PredicateRangeMark", inspection.PlanningText);
-        Assert.Contains(".Find<int?>", inspection.GeneratedCSharpCode);
+        Assert.Contains("-> Apply", inspection.PlanningText);
     }
 
     [TestMethod]

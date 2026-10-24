@@ -71,11 +71,7 @@ internal static class StoredTableBuildDiscovery
             return false;
         }
 
-        var enclosingPhaseNodes = pendingNodes
-            .OfType<ExecutionPhaseBoundary>()
-            .Where(static boundary => string.IsNullOrEmpty(boundary.QueryIdSuffix))
-            .Cast<ExecutionNode>()
-            .ToArray();
+        var enclosingNodes = pendingNodes.Where(IsEnclosingNode).ToArray();
         var nestedPhaseSuffixes = pendingNodes
             .OfType<ExecutionPhaseBoundary>()
             .Where(static boundary =>
@@ -92,17 +88,18 @@ internal static class StoredTableBuildDiscovery
             } && nestedPhaseSuffixes.Contains(suffix))
             .ToArray();
         var helperNodes = pendingNodes
-            .Where(static node => node is not ExecutionPhaseBoundary
-            {
-                QueryIdSuffix: null or ""
-            })
+            .Where(static node => !IsEnclosingNode(node))
             .ToArray();
 
         build = new StoredTableBuild(store.TableIndex, helperNodes, store.Table, [])
         {
-            EnclosingPhaseNodes = enclosingPhaseNodes,
+            EnclosingNodes = enclosingNodes,
             TrailingPhaseNodes = trailingPhaseNodes
         };
         return true;
     }
+
+    private static bool IsEnclosingNode(ExecutionNode node) => node is
+        ExecutionPhaseBoundary { QueryIdSuffix: null or "" } or
+        ExecutionLet { DeclarationScope: ExecutionDeclarationScope.Execution };
 }

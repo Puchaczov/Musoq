@@ -48,13 +48,13 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        _skipValue = (int)node.Value;
+        _skipValue = PagingCount.FromSyntax(node.Expression);
     }
 
     public void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        _takeValue = (int)node.Value;
+        _takeValue = PagingCount.FromSyntax(node.Expression);
     }
 
     public void Visit(QueryNode node)
@@ -176,7 +176,8 @@ public sealed partial class LogicalPlanBuilder
         var statements = new LogicalNode[produced];
         for (var i = produced - 1; i >= 0; i--)
             statements[i] = _nodeStack.Pop();
-        _nodeStack.Push(new IrNodes.MultiStatementNode(statements));
+        _nodeStack.Push(new IrNodes.MultiStatementNode(statements)
+        { IntermediateProducers = node is Parser.IntermediateStatementsNode bound ? bound.Producers : [] });
     }
 
     internal void EnterMultiStatement() => _multiStatementBaseDepths.Push(_nodeStack.Count);
@@ -282,10 +283,10 @@ public sealed partial class LogicalPlanBuilder
         }
 
         if (node.ResultSkip != null)
-            result = new IrNodes.SkipNode((int)node.ResultSkip.Value, result);
+            result = new IrNodes.SkipNode(PagingCount.FromSyntax(node.ResultSkip.Expression), result);
 
         if (node.ResultTake != null)
-            result = new IrNodes.TakeNode((int)node.ResultTake.Value, result);
+            result = new IrNodes.TakeNode(PagingCount.FromSyntax(node.ResultTake.Expression), result);
 
         _nodeStack.Push(result);
     }

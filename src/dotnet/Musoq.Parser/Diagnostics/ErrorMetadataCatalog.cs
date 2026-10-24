@@ -53,6 +53,7 @@ public static class ErrorMetadataCatalog
         AddRange(entries, WarningMetadataCatalog.Build());
         AddRange(entries, FeatureGateErrorMetadataCatalog.Build());
         AddRange(entries, RuntimeErrorMetadataCatalog.Build());
+        AddRange(entries, PagingErrorMetadata.Build());
         AddRange(entries, CodeGenerationErrorMetadataCatalog.Build());
         AddRange(entries, InternalErrorMetadataCatalog.Build());
 

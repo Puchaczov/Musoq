@@ -294,7 +294,19 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                                 int salary = ko3iko.Salary;
                                 bool __expr = (value > 100);
                                 bool __expr1 = (salary > 1000);
-                                yield return new ResultRow0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, ((Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
+                                yield return new ResultRow0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % ((int?)10).GetValueOrDefault()), (salary % ((int?)10).GetValueOrDefault()), __expr, __expr1, (((bool?)((((bool?)(Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    true => (bool?)true,
+                                    false => (bool?)Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                }))) switch
+                                {
+                                    true => (bool?)true,
+                                    false => (bool?)Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                }), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
                             }
 
                             continue;
@@ -321,7 +333,19 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                                 int salary = ko3iko.Salary;
                                 bool __expr = (value > 100);
                                 bool __expr1 = (salary > 1000);
-                                yield return new ResultRow0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, ((Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
+                                yield return new ResultRow0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % ((int?)10).GetValueOrDefault()), (salary % ((int?)10).GetValueOrDefault()), __expr, __expr1, (((bool?)((((bool?)(Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    true => (bool?)true,
+                                    false => (bool?)Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                }))) switch
+                                {
+                                    true => (bool?)true,
+                                    false => (bool?)Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                }), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
                             }
 
                             continue;
@@ -346,7 +370,19 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                         int salary = ko3iko.Salary;
                         bool __expr = (value > 100);
                         bool __expr1 = (salary > 1000);
-                        yield return new ResultRow0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, ((Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
+                        yield return new ResultRow0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % ((int?)10).GetValueOrDefault()), (salary % ((int?)10).GetValueOrDefault()), __expr, __expr1, (((bool?)((((bool?)(Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                        {
+                            true => (bool?)true,
+                            false => (bool?)Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                        }))) switch
+                        {
+                            true => (bool?)true,
+                            false => (bool?)Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                        }), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
                     }
                 }
             }

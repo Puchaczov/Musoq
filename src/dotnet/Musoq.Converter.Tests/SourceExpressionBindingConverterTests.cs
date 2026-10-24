@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,6 +8,9 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
+using Musoq.Schema;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Converter.Tests;
 
@@ -14,7 +18,7 @@ namespace Musoq.Converter.Tests;
 public sealed class SourceExpressionBindingConverterTests
 {
     [TestMethod]
-    [DataRow("system.dual(FromHexToBytes('2A000000')) s", DiagnosticCode.MQ3022_MissingAlias, "FromHexToBytes('2A000000')")]
+    [DataRow("system.dual(MissingBytes('2A000000')) s", DiagnosticCode.MQ3086_UnknownCallable, "MissingBytes('2A000000')")]
     [DataRow("system.dual() s cross apply Interpret<Header>(missing.FromHexToBytes('2A000000')) h", DiagnosticCode.MQ3015_UnknownAlias, "missing.FromHexToBytes('2A000000')")]
     [DataRow("system.dual() s cross apply Interpret<Header>(MissingBytes('2A000000')) h", DiagnosticCode.MQ3086_UnknownCallable, "MissingBytes('2A000000')")]
     [DataRow("system.dual() s cross apply Interpret<Header>(FromHexToBytes()) h", DiagnosticCode.MQ3087_InvalidCallableArity, "FromHexToBytes()")]
@@ -57,12 +61,56 @@ public sealed class SourceExpressionBindingConverterTests
             select h.Value from system.dual() s
             cross apply Interpret<Header>(FromHexToBytes('2A000000')) h
             """;
-        const string invalid = "select 1 from system.dual(FromHexToBytes('2A000000')) s";
+        const string invalid = "select 1 from system.dual(MissingBytes('2A000000')) s";
         var analyzer = new QueryAnalyzer(new SystemSchemaProvider());
 
         Assert.IsTrue(analyzer.Analyze(valid).IsSuccess);
-        Assert.IsTrue(analyzer.Analyze(invalid).Errors.Any(error => error.Code == DiagnosticCode.MQ3022_MissingAlias));
+        Assert.IsTrue(analyzer.Analyze(invalid).Errors.Any(error => error.Code == DiagnosticCode.MQ3086_UnknownCallable));
         Assert.IsTrue(analyzer.Analyze(valid).IsSuccess);
+    }
+
+    [TestMethod]
+    public void InitialSourceScalarArgument_ShouldAnalyzeAndDeliverCurrentTypedBytes()
+    {
+        const string sql = "param(hex: string = '2A000000') select 1 from system.dual(FromHexToBytes($hex)) s";
+        var provider = new CapturingProvider();
+        Assert.IsTrue(new QueryAnalyzer(provider).Analyze(sql).IsSuccess);
+        using var compiled = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
+            new TestsLoggerResolver());
+        Assert.IsEmpty(provider.Inputs);
+        using (var first = compiled.Run(CancellationToken.None)) Assert.AreEqual(1, first.Count);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions,
+            "hex", "2B000000");
+        using (var second = compiled.Run(CancellationToken.None)) Assert.AreEqual(1, second.Count);
+        Assert.HasCount(2, provider.Inputs);
+        CollectionAssert.AreEqual(new byte[] { 42, 0, 0, 0 }, provider.Inputs[0]);
+        CollectionAssert.AreEqual(new byte[] { 43, 0, 0, 0 }, provider.Inputs[1]);
+    }
+
+    private sealed class CapturingProvider : ISchemaProvider
+    {
+        internal List<byte[]> Inputs { get; } = [];
+        public ISchema GetSchema(string schema) => new CapturingSystemSchema(this);
+    }
+
+    private sealed class CapturingSystemSchema(CapturingProvider owner) : SystemSchema
+    {
+        public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext context) =>
+        [
+            new("dual", new global::Musoq.Schema.Reflection.ConstructorInfo(
+                typeof(BinaryInputSignature).GetConstructors().Single(), false, ("bytes", typeof(byte[]))))
+        ];
+
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext context, TArguments arguments)
+        {
+            owner.Inputs.Add(arguments.GetValue<byte[]>(0));
+            return base.GetRowSource<T, TArguments>(name, context, arguments);
+        }
+    }
+
+    private sealed class BinaryInputSignature
+    {
+        public BinaryInputSignature(byte[] bytes) => _ = bytes;
     }
 
     [TestMethod]

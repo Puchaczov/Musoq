@@ -11,8 +11,8 @@ internal sealed class SourceMetadataRequiresDefaultException : Exception, IDiagn
         TextSpan span,
         Exception innerException)
         : base(
-            $"Source metadata for '{schemaName}.{sourceName}' requires a value for a direct script parameter. " +
-            "Declare a default value for that parameter or make the provider's metadata independent of runtime source arguments.",
+            $"Source metadata for '{schemaName}.{sourceName}' requires a static argument value. " +
+            "Declare defaults for required parameters and use the safe static expression subset, or make the provider's metadata independent of runtime source arguments. Correlated columns and scalar calls cannot supply static metadata values.",
             innerException)
     {
         SchemaName = schemaName;

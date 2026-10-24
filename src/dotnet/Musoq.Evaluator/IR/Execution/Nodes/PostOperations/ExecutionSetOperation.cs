@@ -21,8 +21,8 @@ public sealed record ExecutionSetOperation : ExecutionNode
         FieldIndexes = ExecutionIrCollections.Freeze(fieldIndexes);
         FieldTypes = ExecutionIrCollections.Freeze(fieldTypes);
         Strategy = strategy;
-        DistinctFieldIndexes = kind == SetOpKind.Intersect ? FieldIndexes : [];
-        DistinctFieldTypes = kind == SetOpKind.Intersect ? FieldTypes : [];
+        DistinctFieldIndexes = [];
+        DistinctFieldTypes = [];
     }
 
     public ExecutionVariable Target { get; init; }

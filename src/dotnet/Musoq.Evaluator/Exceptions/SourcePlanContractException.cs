@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.Exceptions;
 
 internal sealed class SourcePlanContractException : Exception, IDiagnosticException
 {
-    public SourcePlanContractException(string detail, TextSpan span)
+    public SourcePlanContractException(string detail, TextSpan? span = null)
         : base($"Source contract error: {detail}")
     {
         Detail = detail;
@@ -20,7 +20,7 @@ internal sealed class SourcePlanContractException : Exception, IDiagnosticExcept
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty)
+        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText)
             .WithArgument("detail", Detail);
     }
 }

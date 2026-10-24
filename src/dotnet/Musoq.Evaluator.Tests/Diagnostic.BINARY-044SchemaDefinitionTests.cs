@@ -87,7 +87,7 @@ public sealed class DiagnosticBinary044SchemaDefinitionTests
                         [new BinarySwitchCaseNode(
                             new IntegerNode("1", "i"),
                             "Flags",
-                            new BitsTypeNode(4))]))
+                            new AlignmentNode(8))]))
             ]);
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));

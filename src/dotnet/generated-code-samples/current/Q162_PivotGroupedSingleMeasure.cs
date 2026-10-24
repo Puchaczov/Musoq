@@ -54,10 +54,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [month: string = ko3iko.Month]
       GetOrAddSingleKeyAggregateGroup [group = groups[ko3iko.City] by City; typed: ResultAggregateGroup]
-      Let [money: decimal = ko3iko.Money]
-      TypedAggregateSet [Set(group.__agg0, money) filter (month = 'Feb')]
-      Let [money1: decimal = ko3iko.Money]
-      TypedAggregateSet [Set(group.__agg1, money1) filter (month = 'Jan')]
+      TypedAggregateSet [Set(group.__agg0, ko3iko.Money) filter (month = 'Feb')]
+      TypedAggregateSet [Set(group.__agg1, ko3iko.Money) filter (month = 'Jan')]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Jan: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'))]
@@ -154,58 +152,7 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string month = ko3iko.Month;
-                                string groupKey = ko3iko.City;
-                                ResultAggregateGroup group = null;
-                                if (groupKey != null)
-                                {
-                                    ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                                    if (!groupExists)
-                                    {
-                                        groupRef = new ResultAggregateGroup(groupKey);
-                                        groupsToFinalize.Add(groupRef);
-                                    }
-
-                                    group = groupRef;
-                                }
-                                else
-                                {
-                                    if (nullGroup == null)
-                                    {
-                                        nullGroup = new ResultAggregateGroup(null);
-                                        groupsToFinalize.Add(nullGroup);
-                                    }
-
-                                    group = nullGroup;
-                                }
-
-                                decimal money = ko3iko.Money;
-                                if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
-                                {
-                                    {
-                                        var __agg0Input = (decimal?)money;
-                                        if (__agg0Input.HasValue)
-                                        {
-                                            var __agg0Current = __agg0Input.GetValueOrDefault();
-                                            group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
-                                            group.__agg0.HasValue = true;
-                                        }
-                                    }
-                                }
-
-                                decimal money1 = ko3iko.Money;
-                                if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
-                                {
-                                    {
-                                        var __agg1Input = (decimal?)money1;
-                                        if (__agg1Input.HasValue)
-                                        {
-                                            var __agg1Current = __agg1Input.GetValueOrDefault();
-                                            group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
-                                            group.__agg1.HasValue = true;
-                                        }
-                                    }
-                                }
+                                UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                             }
 
                             continue;
@@ -222,58 +169,7 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string month = ko3iko.Month;
-                                string groupKey = ko3iko.City;
-                                ResultAggregateGroup group = null;
-                                if (groupKey != null)
-                                {
-                                    ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                                    if (!groupExists)
-                                    {
-                                        groupRef = new ResultAggregateGroup(groupKey);
-                                        groupsToFinalize.Add(groupRef);
-                                    }
-
-                                    group = groupRef;
-                                }
-                                else
-                                {
-                                    if (nullGroup == null)
-                                    {
-                                        nullGroup = new ResultAggregateGroup(null);
-                                        groupsToFinalize.Add(nullGroup);
-                                    }
-
-                                    group = nullGroup;
-                                }
-
-                                decimal money = ko3iko.Money;
-                                if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
-                                {
-                                    {
-                                        var __agg0Input = (decimal?)money;
-                                        if (__agg0Input.HasValue)
-                                        {
-                                            var __agg0Current = __agg0Input.GetValueOrDefault();
-                                            group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
-                                            group.__agg0.HasValue = true;
-                                        }
-                                    }
-                                }
-
-                                decimal money1 = ko3iko.Money;
-                                if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
-                                {
-                                    {
-                                        var __agg1Input = (decimal?)money1;
-                                        if (__agg1Input.HasValue)
-                                        {
-                                            var __agg1Current = __agg1Input.GetValueOrDefault();
-                                            group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
-                                            group.__agg1.HasValue = true;
-                                        }
-                                    }
-                                }
+                                UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                             }
 
                             continue;
@@ -288,58 +184,7 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        string month = ko3iko.Month;
-                        string groupKey = ko3iko.City;
-                        ResultAggregateGroup group = null;
-                        if (groupKey != null)
-                        {
-                            ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                            if (!groupExists)
-                            {
-                                groupRef = new ResultAggregateGroup(groupKey);
-                                groupsToFinalize.Add(groupRef);
-                            }
-
-                            group = groupRef;
-                        }
-                        else
-                        {
-                            if (nullGroup == null)
-                            {
-                                nullGroup = new ResultAggregateGroup(null);
-                                groupsToFinalize.Add(nullGroup);
-                            }
-
-                            group = nullGroup;
-                        }
-
-                        decimal money = ko3iko.Money;
-                        if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
-                        {
-                            {
-                                var __agg0Input = (decimal?)money;
-                                if (__agg0Input.HasValue)
-                                {
-                                    var __agg0Current = __agg0Input.GetValueOrDefault();
-                                    group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
-                                    group.__agg0.HasValue = true;
-                                }
-                            }
-                        }
-
-                        decimal money1 = ko3iko.Money;
-                        if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
-                        {
-                            {
-                                var __agg1Input = (decimal?)money1;
-                                if (__agg1Input.HasValue)
-                                {
-                                    var __agg1Current = __agg1Input.GetValueOrDefault();
-                                    group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
-                                    group.__agg1.HasValue = true;
-                                }
-                            }
-                        }
+                        UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                     }
                 }
 
@@ -387,6 +232,61 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
         private void OnPhaseChanged(string queryId, QueryPhase phase)
         {
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko)
+        {
+            string month = ko3iko.Month;
+            string groupKey = ko3iko.City;
+            ResultAggregateGroup group = null;
+            if (groupKey != null)
+            {
+                ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                if (!groupExists)
+                {
+                    groupRef = new ResultAggregateGroup(groupKey);
+                    groupsToFinalize.Add(groupRef);
+                }
+
+                group = groupRef;
+            }
+            else
+            {
+                if (nullGroup == null)
+                {
+                    nullGroup = new ResultAggregateGroup(null);
+                    groupsToFinalize.Add(nullGroup);
+                }
+
+                group = nullGroup;
+            }
+
+            if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
+            {
+                {
+                    var __agg0Input = (decimal?)ko3iko.Money;
+                    if (__agg0Input.HasValue)
+                    {
+                        var __agg0Current = __agg0Input.GetValueOrDefault();
+                        group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
+                        group.__agg0.HasValue = true;
+                    }
+                }
+            }
+
+            if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
+            {
+                {
+                    var __agg1Input = (decimal?)ko3iko.Money;
+                    if (__agg1Input.HasValue)
+                    {
+                        var __agg1Current = __agg1Input.GetValueOrDefault();
+                        group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
+                        group.__agg1.HasValue = true;
+                    }
+                }
+            }
         }
 
         private sealed class ResultAggregateGroup

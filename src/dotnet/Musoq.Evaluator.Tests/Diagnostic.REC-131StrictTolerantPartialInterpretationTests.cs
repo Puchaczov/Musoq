@@ -217,10 +217,10 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 AssertCancellation();
                 return;
             case "EB-11":
-                AssertInternalInvariant("select Population / (Population - Population) from #A.Entities()");
+                AssertArithmeticBoundary("select Population / (Population - Population) from #A.Entities()");
                 return;
             case "EB-12":
-                AssertInternalInvariant("select Population + Money from #A.Entities()", overflow: true);
+                AssertArithmeticBoundary("select Population + Money from #A.Entities()", overflow: true);
                 return;
             default:
                 Assert.Fail($"Unknown failure-boundary case '{caseId}'.");
@@ -766,7 +766,7 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
 
-    private void AssertInternalInvariant(string query, bool overflow = false)
+    private void AssertArithmeticBoundary(string query, bool overflow = false)
     {
         var compiled = CompileGeneratedQuery(
             query,
@@ -782,9 +782,12 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
         var exception = Assert.ThrowsExactly<QueryExecutionException>(() => _ = compiled.Run(CancellationToken.None).Count);
         Assert.IsNotNull(exception.Envelope);
-        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
-        Assert.AreEqual(DiagnosticPhase.Internal, exception.Envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Internal, exception.Envelope.SourceKind);
+        var expected = overflow
+            ? (Code: DiagnosticCode.MQ7018_NumericOverflow, Phase: DiagnosticPhase.Runtime, Source: DiagnosticSourceKind.Runtime)
+            : (Code: DiagnosticCode.MQ9002_InternalExecutionError, Phase: DiagnosticPhase.Internal, Source: DiagnosticSourceKind.Internal);
+        Assert.AreEqual(expected.Code, exception.Envelope!.Code);
+        Assert.AreEqual(expected.Phase, exception.Envelope.Phase);
+        Assert.AreEqual(expected.Source, exception.Envelope.SourceKind);
         Assert.IsNotNull(exception.InnerException);
         Assert.DoesNotContain("rec131-provider-secret", exception.Message);
     }

@@ -4,6 +4,7 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -77,7 +78,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 table = resolvedNestedTable;
 
                 UpdateQueryAliasAndSymbolTable(node, schema, table);
-                RegisterBinaryArrayElementAlias(node, targetColumn);
+                RegisterBinaryArrayElementAlias(resolved.Value.IntendedTypeName);
                 var resolvedChain = new PropertyFromNode.PropertyNameAndTypePair[node.PropertiesChain.Length];
                 resolvedChain[0] = new PropertyFromNode.PropertyNameAndTypePair(
                     targetColumn.ColumnName, targetColumn.ColumnType, targetColumn.IntendedTypeName);
@@ -121,7 +122,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         table = nestedTable;
 
         UpdateQueryAliasAndSymbolTable(node, schema, table);
-        RegisterBinaryArrayElementAlias(node, targetColumn);
+        RegisterBinaryArrayElementAlias(targetColumn.IntendedTypeName);
 
         var rewrittenChain =
             RewritePropertiesChainWithTargetColumnWithDiagnostics(targetColumn, node.PropertiesChain, node);
@@ -140,13 +141,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         );
     }
 
-    private void RegisterBinaryArrayElementAlias(PropertyFromNode node, ISchemaColumn targetColumn)
+    private void RegisterBinaryArrayElementAlias(string? intendedTypeName)
     {
-        if (!_binaryInterpretationAliases.TryGetValue(node.SourceAlias, out var sourceSchemaName) ||
-            ResolveBinaryArrayElementSchemaName(sourceSchemaName, targetColumn.ColumnName) is not { } elementSchemaName)
+        if (intendedTypeName?.EndsWith("[]", StringComparison.Ordinal) != true)
             return;
-
-        _binaryInterpretationAliases[_sourceBinding.QueryAlias] = elementSchemaName;
+        var reference = ParseSchemaReferenceFromTypeName(intendedTypeName[..^2]);
+        if (SchemaRegistry?.TryGetSchema(reference.SchemaName, out var registration) != true ||
+            registration?.Node is not BinarySchemaNode)
+            return;
+        _binaryInterpretationAliases[_sourceBinding.QueryAlias] = reference.SchemaName;
     }
 
     public override void Visit(AccessMethodFromNode node)

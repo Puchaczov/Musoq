@@ -20,7 +20,8 @@ public sealed partial class LogicalPlanBuilder
         var right = _nodeStack.Pop();
         var left = CreateInMemoryCteRef(
             node.InMemoryTableAlias,
-            (node as Parser.JoinInMemoryWithSourceTableFromNode)?.InMemoryTableVariableName);
+            (node as Parser.JoinInMemoryWithSourceTableFromNode)?.InMemoryTableVariableName,
+            (node as Parser.JoinInMemoryWithSourceTableFromNode)?.IntermediateSource);
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
         _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind))));
@@ -30,7 +31,7 @@ public sealed partial class LogicalPlanBuilder
     {
         ArgumentNullException.ThrowIfNull(node);
         var right = _nodeStack.Pop();
-        var left = CreateInMemoryCteRef(node.InMemoryTableAlias);
+        var left = CreateInMemoryCteRef(node.InMemoryTableAlias, intermediate: (node as Parser.ApplyInMemoryWithSourceTableFromNode)?.IntermediateSource);
         var kind = MapApplyKind(node.ApplyType);
         _nodeStack.Push(new IrNodes.ApplyNode(kind, left, right, node.WithOrdinality));
     }
@@ -169,7 +170,9 @@ public sealed partial class LogicalPlanBuilder
         if (node is InMemoryGroupedFromNode groupedFrom)
         {
             var schema = BuildOutputSchema(groupedFrom.Alias, groupedFrom.Alias.ToScoreTable());
-            _nodeStack.Push(new IrNodes.CteRefNode(groupedFrom.Alias, groupedFrom.Alias, schema));
+            var source = (groupedFrom as Parser.InMemoryGroupedFromNode)?.IntermediateSource;
+            _nodeStack.Push(new IrNodes.CteRefNode(source?.StorageName ?? groupedFrom.Alias, groupedFrom.Alias, schema)
+            { IntermediateProducerId = source?.ProducerId });
             return;
         }
 
@@ -219,11 +222,6 @@ public sealed partial class LogicalPlanBuilder
         }
 
         return OutputSchema.Empty;
-    }
-
-    private IrNodes.CteRefNode CreateInMemoryCteRef(string alias, string? cteName = null)
-    {
-        return new IrNodes.CteRefNode(cteName ?? alias, alias, BuildCteReferenceSchema(cteName ?? alias, alias));
     }
 
     private static IrNodes.JoinKind MapJoinKind(JoinType joinType) =>

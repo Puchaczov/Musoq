@@ -14,10 +14,10 @@ public partial class SubqueryTests
     {
         const string query = @"
             SELECT a.City,
-                   CASE WHEN EXISTS (
+                   EXISTS (
                        SELECT b.City FROM #B.entities() b
                        WHERE b.Population < a.Population
-                   ) THEN 'Y' ELSE 'N' END AS HasSmaller
+                   ) AS HasSmaller
             FROM #A.entities() a
             ORDER BY a.City";
         var sources = CreateRangeCorrelationSources();
@@ -26,12 +26,12 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("HasSmaller", typeof(string)));
+            ("HasSmaller", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["HIGH", "Y"],
-            ["LOW", "N"],
-            ["MID", "Y"]);
+            ["HIGH", true],
+            ["LOW", false],
+            ["MID", true]);
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateRangeMark", inspection.PlanningText);
         Assert.Contains("PhysicalSortMergeJoin [LeftMark]", inspection.PhysicalPlanText);

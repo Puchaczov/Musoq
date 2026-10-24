@@ -53,7 +53,7 @@ internal static class ArtifactMetadataSnapshot
     private static SourcePredicateApplication CopyPredicateApplication(SourcePredicateApplication application)
     {
         return new SourcePredicateApplication(
-            (SourcePredicateStringMatch)CopyPredicate(application.Predicate)!,
+            (SourcePredicatePatternMatch)CopyPredicate(application.Predicate)!,
             application.Phase);
     }
 
@@ -82,6 +82,8 @@ internal static class ArtifactMetadataSnapshot
             SourcePredicateNullCheck nullCheck => new SourcePredicateNullCheck(
                 CopyPredicate(nullCheck.Expression)!,
                 nullCheck.IsNegated),
+            SourcePredicateRegexMatch match => new SourcePredicateRegexMatch(
+                CopyColumn(match.Column), match.Pattern, match.MatchTimeout, match.Semantics, match.IsNegated),
             SourcePredicateStringMatch stringMatch => new SourcePredicateStringMatch(
                 CopyColumn(stringMatch.Column),
                 stringMatch.Kind,

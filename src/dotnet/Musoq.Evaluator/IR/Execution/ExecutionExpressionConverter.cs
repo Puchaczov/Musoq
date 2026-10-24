@@ -35,6 +35,8 @@ public static partial class ExecutionExpressionConverter
     {
         var converted = expression switch
         {
+            SubqueryExpression subquery => SubqueryExecutionLowering.Convert(subquery, sourceShapes, cteTableIndexes, methodTargets),
+            SubqueryParameterRef parameter => new ExecutionVariableRead(new ExecutionVariable($"__outer{parameter.Index}", parameter.ReturnType)),
             ColumnRef column => ConvertColumnRef(column, sourceShapes),
             ScriptParameterRef parameter => ConvertScriptParameter(parameter),
             ScriptVariableRef variable => new ExecutionScriptVariableRead(variable.Name, variable.ReturnType),
@@ -45,12 +47,9 @@ public static partial class ExecutionExpressionConverter
             StructuralArrayLiteral array => ConvertStructuralArray(array, sourceShapes, cteTableIndexes, methodTargets),
             StructuralConversion conversion => ConvertStructuralConversion(conversion, sourceShapes, cteTableIndexes, methodTargets),
             WildcardLiteral => new ExecutionLiteral("*", typeof(string)),
-            BinaryOp binary => new ExecutionBinary(
-                binary.Kind,
+            BinaryOp binary => ExecutionBinaryLowering.Create(binary,
                 Convert(binary.Left, sourceShapes, cteTableIndexes, methodTargets),
-                Convert(binary.Right, sourceShapes, cteTableIndexes, methodTargets),
-                binary.ReturnType)
-            { UsesSqlNullSemantics = binary.UsesSqlNullSemantics },
+                Convert(binary.Right, sourceShapes, cteTableIndexes, methodTargets)),
             UnaryOp unary => new ExecutionUnary(unary.Kind, Convert(unary.Operand, sourceShapes, cteTableIndexes, methodTargets), unary.ReturnType),
             MethodCall method => ConvertMethodCall(method, sourceShapes, cteTableIndexes, methodTargets),
             StrictCast strictCast => new ExecutionStrictCast(

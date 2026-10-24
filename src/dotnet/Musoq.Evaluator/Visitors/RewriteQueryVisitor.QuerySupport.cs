@@ -63,7 +63,7 @@ public sealed partial class RewriteQueryVisitor
         var nodes = new Node[]
             { new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false), query };
 
-        Nodes.Push(new MultiStatementNode(nodes, null));
+        Nodes.Push(IntermediateSources.CreateStatements(nodes, null));
     }
 
     public void Visit(RefreshNode node)

@@ -56,6 +56,9 @@ public sealed partial class CSharpRenderer
         if (unsupportedReason != null)
             return ExecutionQueryRenderOutcome.Unsupported(unsupportedReason);
 
+        foreach (var member in executionRenderer.RenderSubqueryMembers(plan))
+            _context.AddClassMember(member);
+
         var hasTableViaRowsRenderPlan = TryGetTableViaRowsRenderPlan(plan, out var precomputedRenderPlan);
         var tableDirectSink = hasTableViaRowsRenderPlan
             ? precomputedRenderPlan.FinalSinkPlans.TableDirectProjection

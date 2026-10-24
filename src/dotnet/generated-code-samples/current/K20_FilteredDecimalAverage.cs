@@ -47,8 +47,7 @@ ExecutionPlan [compiled]
       Let [__expr: bool = (position > 1)]
       EnsureAggregateGroup [group; typed: ResultAggregateGroup]
       TypedAggregateSet [Set(group.__agg0) filter __expr]
-      Let [integral: int? = ko3iko.Integral]
-      TypedAggregateSet [Set(group.__agg1, integral) filter __expr]
+      TypedAggregateSet [Set(group.__agg1, ko3iko.Integral) filter __expr]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
@@ -154,10 +153,9 @@ namespace GeneratedSample_K20_FilteredDecimalAverage
                                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
                                 }
 
-                                int? integral = ko3iko.Integral;
                                 if (__expr)
                                 {
-                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                 }
                             }
 
@@ -188,10 +186,9 @@ namespace GeneratedSample_K20_FilteredDecimalAverage
                                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
                                 }
 
-                                int? integral = ko3iko.Integral;
                                 if (__expr)
                                 {
-                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                 }
                             }
 
@@ -220,10 +217,9 @@ namespace GeneratedSample_K20_FilteredDecimalAverage
                             group.__agg0.Count = checked(group.__agg0.Count + 1L);
                         }
 
-                        int? integral = ko3iko.Integral;
                         if (__expr)
                         {
-                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                         }
                     }
                 }

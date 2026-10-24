@@ -16,6 +16,14 @@ namespace Musoq.Converter.Tests;
 public sealed class PortableSubsetTargetAssemblyTests
 {
     [TestMethod]
+    public void ClosedInterpretationMemberOperation_ShouldRemainOutsideThePortableSubset()
+    {
+        var operation = new ExecutionOperationId("expr.union-member-read");
+        Assert.IsFalse(PortableSubsetTarget.SupportedOperations.Contains(operation));
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.SupportedOperations.Contains(operation));
+    }
+
+    [TestMethod]
     public void PortableSubsetTarget_WhenRendering_ShouldProduceDeterministicImmutableProgram()
     {
         var plan = CreateLiteralPlan();
@@ -30,7 +38,7 @@ public sealed class PortableSubsetTargetAssemblyTests
         var secondArtifact = Assert.IsInstanceOfType<PortableSubsetRenderedArtifact>(second.Artifact);
         Assert.AreEqual(firstArtifact.Program.CreateManifest(), secondArtifact.Program.CreateManifest());
         StringAssert.Contains(firstArtifact.Program.CreateManifest(), "let value = i32:1");
-        StringAssert.Contains(firstArtifact.Program.CreateManifest(), $"semantics-fingerprint={ExecutionSemanticsContract.Version1.Fingerprint}");
+        StringAssert.Contains(firstArtifact.Program.CreateManifest(), $"semantics-fingerprint={ExecutionSemanticsContract.Current.Fingerprint}");
         Assert.Throws<NotSupportedException>(() =>
             ((IList<PortableInstruction>)firstArtifact.Program.Body.Instructions).Clear());
     }

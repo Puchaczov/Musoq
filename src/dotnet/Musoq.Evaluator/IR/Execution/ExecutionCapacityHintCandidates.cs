@@ -11,6 +11,18 @@ internal static class ExecutionCapacityHintCandidates
             : null;
     }
 
+    public static ExecutionCapacityHint? CreateConstantCandidate(ExecutionVariable target, PagingCount count) =>
+        count.Constant is { } value ? CreateConstantCandidate(target, value) : null;
+
+    public static ExecutionCapacityHint? CreateTakeCandidate(ExecutionVariable target, ExecutionVariable collection, PagingCount count) =>
+        count.Constant is { } value ? CreateTakeCandidate(target, collection, value) : null;
+
+    public static ExecutionCapacityHint? CreateSkipCandidate(ExecutionVariable target, ExecutionVariable collection, PagingCount count) =>
+        count.Constant is { } value ? CreateSkipCandidate(target, collection, value) : null;
+
+    public static ExecutionCapacityHint? CreateSkipTakeCandidate(ExecutionVariable target, ExecutionVariable collection, PagingCount skip, PagingCount take) =>
+        skip.Constant is { } offset && take.Constant is { } limit ? CreateSkipTakeCandidate(target, collection, offset, limit) : null;
+
     public static ExecutionCapacityHint CreateConstantCandidate(
         ExecutionVariable target,
         int capacity)

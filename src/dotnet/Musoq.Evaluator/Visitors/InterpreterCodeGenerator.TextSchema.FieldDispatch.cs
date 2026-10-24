@@ -5,6 +5,24 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
+    private string? _textDiagnosticName;
+
+    private string GetTextFieldDiagnosticName(TextFieldDefinitionNode field) => _textDiagnosticName ?? field.Name;
+
+    private string GenerateTextBranchReadCode(TextFieldDefinitionNode owner, TextFieldDefinitionNode body, string localName)
+    {
+        var previous = _textDiagnosticName;
+        _textDiagnosticName ??= owner.Name;
+        try
+        {
+            return GenerateTextFieldReadCode(body, localName, false);
+        }
+        finally
+        {
+            _textDiagnosticName = previous;
+        }
+    }
+
     private string GenerateTextFieldReadCode(TextFieldDefinitionNode field)
     {
         var localVar = GetLocalVarName(field.Name);

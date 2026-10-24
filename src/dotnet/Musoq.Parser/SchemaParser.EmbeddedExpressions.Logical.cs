@@ -77,43 +77,24 @@ public partial class SchemaParser
 
     private Node ComposeBitwiseOrExpression()
     {
-        var left = ComposeBitwiseXorExpression();
-
-        while (Current.TokenType == TokenType.Pipe)
-        {
-            Consume(TokenType.Pipe);
-            var right = ComposeBitwiseXorExpression();
-            left = new BitwiseOrNode(left, right);
-        }
-
-        return left;
-    }
-
-    private Node ComposeBitwiseXorExpression()
-    {
-        var left = ComposeBitwiseAndExpression();
-
-        while (Current.TokenType == TokenType.Caret)
-        {
-            Consume(TokenType.Caret);
-            var right = ComposeBitwiseAndExpression();
-            left = new BitwiseXorNode(left, right);
-        }
-
-        return left;
-    }
-
-    private Node ComposeBitwiseAndExpression()
-    {
         var left = ComposeShiftExpression();
-
-        while (Current.TokenType == TokenType.Ampersand)
+        while (Current.TokenType is TokenType.Pipe or TokenType.Caret or TokenType.Ampersand or TokenType.NullCoalescing)
         {
-            Consume(TokenType.Ampersand);
-            var right = ComposeShiftExpression();
-            left = new BitwiseAndNode(left, right);
+            var operation = Current.TokenType;
+            Consume(operation);
+            Node right;
+            if (operation == TokenType.NullCoalescing)
+                right = ComposeBitwiseOrExpression();
+            else
+                right = ComposeShiftExpression();
+            left = operation switch
+            {
+                TokenType.NullCoalescing => new CoalesceNode(left, right),
+                TokenType.Pipe => new BitwiseOrNode(left, right),
+                TokenType.Caret => new BitwiseXorNode(left, right),
+                _ => new BitwiseAndNode(left, right)
+            };
         }
-
         return left;
     }
 

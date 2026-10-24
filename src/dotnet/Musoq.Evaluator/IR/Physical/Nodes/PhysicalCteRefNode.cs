@@ -8,5 +8,7 @@ public sealed record PhysicalCteRefNode(
     string Alias,
     OutputSchema OutputSchema) : PhysicalNode(OutputSchema)
 {
+    internal IntermediateProducerId? IntermediateProducerId { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

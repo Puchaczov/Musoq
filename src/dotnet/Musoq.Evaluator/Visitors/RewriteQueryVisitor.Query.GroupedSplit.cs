@@ -16,7 +16,7 @@ public sealed partial class RewriteQueryVisitor
         var groupBy = context.GroupBy!;
         QueryRewriteUtilities.ThrowIfUnsupportedAggregateProjection(context.GroupBy, context.Select.Fields, true);
         var nestedFrom = context.SplitNodes.Count > 0
-            ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(context.LastJoinQuery!.From.Alias))
+            ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(context.LastJoinQuery!.From.Alias) { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery) })
             : context.From;
         var refreshMethods = QueryRewriteUtilities.CreateRefreshMethods(context.UsedRefreshMethods ?? []);
         var splitSelectFields =
@@ -99,6 +99,7 @@ public sealed partial class RewriteQueryVisitor
             refreshMethods);
 
         var returnScore = nestedFrom.Alias.ToScoreTable();
+        IntermediateSources.Register(transformingQuery, returnScore);
         scopeResultQuery[MetaAttributes.SelectIntoVariableName] = returnScore;
         scopeResultQuery[MetaAttributes.SourceName] = groupingTableName;
         scopeResultQuery[MetaAttributes.Contexts] = $"{nestedFrom.Alias}";
@@ -118,7 +119,7 @@ public sealed partial class RewriteQueryVisitor
         QueryNode query = new DetailedQueryNode(
             outSelect,
             new Parser.ExpressionFromNode(
-                new InMemoryGroupedFromNode(returnScore)),
+                new InMemoryGroupedFromNode(returnScore) { IntermediateSource = IntermediateSources.Get(transformingQuery) }),
             null,
             null,
             modifiedOrderBy,
@@ -134,9 +135,6 @@ public sealed partial class RewriteQueryVisitor
         context.SplitNodes.Add(new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false));
         context.SplitNodes.Add(query);
 
-        Nodes.Push(
-            new MultiStatementNode(
-                context.SplitNodes.ToArray(),
-                null));
+        Nodes.Push(IntermediateSources.CreateStatements(context.SplitNodes.ToArray(), null));
     }
 }

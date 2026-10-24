@@ -118,6 +118,13 @@ internal static class RuntimeErrorMetadataCatalog
             ["Simplify the pattern or reduce the input size.", "Review the configured regex match timeout and machine load."],
             "Core Spec - Pattern Predicates");
 
+        yield return Entry(
+            DiagnosticCode.MQ7018_NumericOverflow,
+            "Numeric arithmetic, checked aggregation, or a strict numeric conversion overflowed its declared type during execution.",
+            ["Widen operands before arithmetic or use a wider aggregate input type.",
+                "Casting an already computed result does not prevent overflow; reduce the values when a wider type is unsuitable."],
+            "Core Spec - Numeric Arithmetic");
+
         foreach (var entry in RecursiveCteRuntimeErrorMetadata.Build())
             yield return entry;
     }

@@ -302,6 +302,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'Patterned'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Patterned : TextInterpreterBase<Patterned>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

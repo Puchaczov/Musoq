@@ -36,7 +36,7 @@ public partial class CloneQueryVisitor
     public override void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new SkipNode((IntegerNode)node.Expression)
+        Nodes.Push(new SkipNode(Nodes.Pop())
             .WithSpan(node.Span)
             .WithFullSpan(node.FullSpan));
     }
@@ -44,7 +44,7 @@ public partial class CloneQueryVisitor
     public override void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new TakeNode((IntegerNode)node.Expression)
+        Nodes.Push(new TakeNode(Nodes.Pop())
             .WithSpan(node.Span)
             .WithFullSpan(node.FullSpan));
     }

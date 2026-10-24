@@ -11,11 +11,9 @@ internal static partial class ApplyPredicateMovementPlanner
 {
     private sealed partial class PlanningState
     {
-        private IrExpression RewriteCteAliases(IrExpression predicate)
+        private static IrExpression RewriteCteAliases(IrExpression predicate, QueryScope scope)
         {
-            var boundaryAliases = _allBoundaries
-                .SelectMany(static boundary => boundary.LeftAliases.Concat(boundary.RightAliases))
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var boundaryAliases = scope.BoundaryAliases;
 
             var rewriter = new ApplyPredicateAliasRewriter(column =>
             {
@@ -24,7 +22,7 @@ internal static partial class ApplyPredicateMovementPlanner
                     return null;
 
                 var sourceAlias = column.ColumnName[..separator];
-                var isKnownCteAlias = _sourceAliasesByCteAlias.TryGetValue(
+                var isKnownCteAlias = scope.SourceAliasesByCteAlias.TryGetValue(
                     column.Alias,
                     out var sourceAliases);
                 return ((isKnownCteAlias && sourceAliases is not null && sourceAliases.Contains(sourceAlias)) ||
@@ -74,12 +72,9 @@ internal static partial class ApplyPredicateMovementPlanner
         }
 
         private static IReadOnlyDictionary<string, IReadOnlySet<string>> CreateSourceAliasesByCteAlias(
-            LogicalNode logicalPlan)
+            IReadOnlyDictionary<string, LogicalNode> definitions,
+            IEnumerable<CteRefNode> references)
         {
-            var definitions = new Dictionary<string, LogicalNode>(StringComparer.OrdinalIgnoreCase);
-            var references = new List<CteRefNode>();
-            CollectCteDefinitionsAndReferences(logicalPlan, definitions, references);
-
             var aliasesByCteAlias = new Dictionary<string, IReadOnlySet<string>>(
                 StringComparer.OrdinalIgnoreCase);
             foreach (var reference in references)

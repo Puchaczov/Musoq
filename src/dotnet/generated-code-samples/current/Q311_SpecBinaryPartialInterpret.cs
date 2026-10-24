@@ -39,6 +39,9 @@ ExecutionPlan [compiled]
       ErrorField: string <- property ErrorField
       ErrorMessage: string <- property ErrorMessage
       BytesConsumed: int <- property BytesConsumed
+      CompletedFields: IReadOnlySet<string> <- property CompletedFields
+      IsSuccess: bool <- property IsSuccess
+      BitOffset: int <- property BitOffset
     Generated [ResultRow0]
       ErrorField: string <- field ErrorField
       ErrorMessage: string <- field ErrorMessage
@@ -53,7 +56,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     ChunkedForEach [f in fRows]
       InterpretSource [DebugPacket.PartialInterpret(f.Content) -> pRows]
-      ChunkedForEach [p in pRows]
+      ScalarForEach [p in pRows]
         AppendShape [result <- ResultRow0(ErrorField: p.ErrorField, ErrorMessage: p.ErrorMessage, BytesConsumed: p.BytesConsumed)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
@@ -148,19 +151,12 @@ namespace GeneratedSample_Q311_SpecBinaryPartialInterpret
 
                                     var f = fChunkViewArray[fChunkViewOffset + fIndex];
                                     var _interpreter_DebugPacket = new Musoq.Generated.Interpreters.DebugPacket();
-                                    var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.DebugPacket>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.DebugPacket>>(_interpreter_DebugPacket.PartialInterpret(f.Content)));
-                                    foreach (var pChunk in pRows)
+                                    var pRows = _interpreter_DebugPacket.PartialInterpret(f.Content);
+                                    if (pRows != null)
                                     {
-                                        for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                        {
-                                            if ((pIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var p = pChunk[pIndex];
-                                            yield return new ResultRow0(p.ErrorField, p.ErrorMessage, p.BytesConsumed);
-                                        }
+                                        token.ThrowIfCancellationRequested();
+                                        var p = pRows;
+                                        yield return new ResultRow0(p.ErrorField, p.ErrorMessage, p.BytesConsumed);
                                     }
                                 }
 
@@ -179,19 +175,12 @@ namespace GeneratedSample_Q311_SpecBinaryPartialInterpret
 
                                     var f = fChunkViewList[fChunkViewOffset + fIndex];
                                     var _interpreter_DebugPacket = new Musoq.Generated.Interpreters.DebugPacket();
-                                    var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.DebugPacket>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.DebugPacket>>(_interpreter_DebugPacket.PartialInterpret(f.Content)));
-                                    foreach (var pChunk in pRows)
+                                    var pRows = _interpreter_DebugPacket.PartialInterpret(f.Content);
+                                    if (pRows != null)
                                     {
-                                        for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                        {
-                                            if ((pIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var p = pChunk[pIndex];
-                                            yield return new ResultRow0(p.ErrorField, p.ErrorMessage, p.BytesConsumed);
-                                        }
+                                        token.ThrowIfCancellationRequested();
+                                        var p = pRows;
+                                        yield return new ResultRow0(p.ErrorField, p.ErrorMessage, p.BytesConsumed);
                                     }
                                 }
 
@@ -208,19 +197,12 @@ namespace GeneratedSample_Q311_SpecBinaryPartialInterpret
 
                             var f = fChunk[fIndex];
                             var _interpreter_DebugPacket = new Musoq.Generated.Interpreters.DebugPacket();
-                            var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.DebugPacket>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.DebugPacket>>(_interpreter_DebugPacket.PartialInterpret(f.Content)));
-                            foreach (var pChunk in pRows)
+                            var pRows = _interpreter_DebugPacket.PartialInterpret(f.Content);
+                            if (pRows != null)
                             {
-                                for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                {
-                                    if ((pIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var p = pChunk[pIndex];
-                                    yield return new ResultRow0(p.ErrorField, p.ErrorMessage, p.BytesConsumed);
-                                }
+                                token.ThrowIfCancellationRequested();
+                                var p = pRows;
+                                yield return new ResultRow0(p.ErrorField, p.ErrorMessage, p.BytesConsumed);
                             }
                         }
                     }
@@ -319,6 +301,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'DebugPacket'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class DebugPacket : BytesInterpreterBase<DebugPacket>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

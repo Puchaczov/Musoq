@@ -11,7 +11,7 @@ public sealed record ExecutionCoalesce : ExecutionExpression
         ExecutionTypeRef returnType)
         : base(returnType)
     {
-        Expressions = ExecutionIrCollections.Freeze(expressions);
+        Expressions = expressions;
         ReturnType = returnType;
     }
 

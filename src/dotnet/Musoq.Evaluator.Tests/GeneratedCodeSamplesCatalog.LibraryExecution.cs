@@ -232,7 +232,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                 on a.Position = b.Position and b.Position > 2 order by a.Position
             """),
         LibraryExecution("K15_TypedNumericScalarTypeName", """
-            select Position, GetTypeName(Position) as PositionType, GetTypeName(Integral) as IntegralType
+            select Position, GetTypeName(Position) as PositionType, GetTypeName(Integral ?? 0) as IntegralType
             from #schema.first() order by Position
             """),
         new GeneratedCodeSample

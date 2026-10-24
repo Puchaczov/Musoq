@@ -60,6 +60,7 @@ internal static partial class ExecutionExpressionCseFacts
         {
             ExecutionGetOrAddSingleKeyAggregateGroup group => StableScalarExpressions([group.Key]),
             ExecutionGetOrAddValueTupleAggregateGroup group => StableScalarExpressions(group.Keys),
+            ExecutionAggregateSet { FilterPredicate: not null } aggregate => StableScalarExpressions([aggregate.FilterPredicate]),
             ExecutionAggregateSet aggregate => StableScalarExpressions(
                 AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregate.Arguments)
                     .Concat(OptionalExpression(aggregate.FilterPredicate))
@@ -87,7 +88,13 @@ internal static partial class ExecutionExpressionCseFacts
 
     public static bool IsWindowHelperIndependentExpression(ExecutionExpression expression)
     {
-        return !ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current => current is
+        var visitor = new WindowIndependenceVisitor();
+        return ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
+    }
+
+    private readonly struct WindowIndependenceVisitor : IExecutionExpressionVisitor
+    {
+        public bool Visit(ExecutionExpression expression) => !(expression is
             ExecutionFieldRead or
             ExecutionMemberRead or
             ExecutionVariableRead or
@@ -124,6 +131,8 @@ internal static partial class ExecutionExpressionCseFacts
                 return CollectHoistableOccurrences(getOrAdd.Key, inPassThroughUnsafeContext);
             case ExecutionGetOrAddValueTupleAggregateGroup getOrAdd:
                 return getOrAdd.Keys.SelectMany(key => CollectHoistableOccurrences(key, inPassThroughUnsafeContext));
+            case ExecutionAggregateSet { FilterPredicate: not null } aggregateSet:
+                return CollectHoistableOccurrences(aggregateSet.FilterPredicate, inPassThroughUnsafeContext);
             case ExecutionAggregateSet aggregateSet:
                 return aggregateSet.Arguments
                     .SelectMany(argument => CollectHoistableOccurrences(argument, inPassThroughUnsafeContext))
@@ -184,6 +193,7 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionKeySetProbe keySetProbe => [keySetProbe.Key],
             ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => [getOrAdd.Key],
             ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
+            ExecutionAggregateSet { FilterPredicate: not null } aggregateSet => [aggregateSet.FilterPredicate],
             ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
                 .Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
                 .Concat(aggregateSet.AccumulatorInput == null ? [] : [aggregateSet.AccumulatorInput]),
@@ -225,7 +235,7 @@ internal static partial class ExecutionExpressionCseFacts
                         yield return occurrence;
                 break;
             case ExecutionBinary binary:
-                var rightIsShortCircuitConditional = binary.Kind is BinaryOpKind.And or BinaryOpKind.Or;
+                var rightIsShortCircuitConditional = binary.IsShortCircuiting;
                 foreach (var occurrence in CollectHoistableOccurrences(binary.Left, inPassThroughUnsafeContext))
                     yield return occurrence;
                 foreach (var occurrence in CollectHoistableOccurrences(
@@ -284,6 +294,7 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionMethodTargetReuseCandidate candidate => IsSafeWholeMethodCallCseCandidate(candidate.MethodCall, hasExplicitTargetMetadata: true),
             ExecutionStrictCast strictCast => IsSafeWholeStrictCastCseCandidate(strictCast),
             ExecutionBinary binary => binary.Kind is not (BinaryOpKind.And or BinaryOpKind.Or),
+            ExecutionStringConcatenation => true,
             ExecutionUnary => true,
             ExecutionArrayAccess => true,
             ExecutionIsNullCheck => true,
@@ -353,6 +364,7 @@ internal static partial class ExecutionExpressionCseFacts
         return expression switch
         {
             ExecutionMemberRead memberRead => 1 + GetExpressionDepth(memberRead.Receiver),
+            ExecutionStringConcatenation concatenation => 1 + concatenation.Expressions.Max(GetExpressionDepth),
             ExecutionBinary binary => 1 + Math.Max(GetExpressionDepth(binary.Left), GetExpressionDepth(binary.Right)),
             ExecutionUnary unary => 1 + GetExpressionDepth(unary.Operand),
             ExecutionStrictCast strictCast => 1 + GetExpressionDepth(strictCast.Expression),

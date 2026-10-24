@@ -122,7 +122,7 @@ internal sealed class AggregatePlanLowerer(
         return handlers.CreatePlanResult(identifier, handlers.BuildAggregateOnlyTable(
             pipeline,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
             null,
             0,
@@ -138,7 +138,7 @@ internal sealed class AggregatePlanLowerer(
         return handlers.CreatePlanResult(identifier, handlers.BuildSingleKeyAggregateTable(
             pipeline,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
             null,
             0,
@@ -154,7 +154,7 @@ internal sealed class AggregatePlanLowerer(
         return handlers.CreatePlanResult(identifier, handlers.BuildValueTupleAggregateTable(
             pipeline,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
             null,
             0,

@@ -331,6 +331,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'LoginPayload'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class LoginPayload : BytesInterpreterBase<LoginPayload>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -376,6 +377,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'DataPayload'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class DataPayload : BytesInterpreterBase<DataPayload>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -421,6 +423,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Packet'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : BytesInterpreterBase<Packet>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -488,15 +491,15 @@ namespace Musoq.Generated.Interpreters
             byte[] _payload_Raw = default;
             if (_type == 1)
             {
-                var _payload_Login_value_interpreter = new LoginPayload();
-                var _payload_Login_value = InterpretNested(_payload_Login_value_interpreter, data, "Payload");
+                var __payload_Login_value_interpreter = new LoginPayload();
+                var _payload_Login_value = InterpretNested(__payload_Login_value_interpreter, data, "Payload");
                 _payload_Login = _payload_Login_value;
                 _payload_case = "Login";
             }
             else if (_type == 2)
             {
-                var _payload_Data_value_interpreter = new DataPayload();
-                var _payload_Data_value = InterpretNested(_payload_Data_value_interpreter, data, "Payload");
+                var __payload_Data_value_interpreter = new DataPayload();
+                var _payload_Data_value = InterpretNested(__payload_Data_value_interpreter, data, "Payload");
                 _payload_Data = _payload_Data_value;
                 _payload_case = "Data";
             }

@@ -342,6 +342,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Body'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Body : BytesInterpreterBase<Body>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -400,6 +401,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Frame'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Frame : BytesInterpreterBase<Frame>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -486,10 +488,12 @@ namespace Musoq.Generated.Interpreters
             SetCurrentField("Exact");
             var __exact_substreamLength = ResolveExpressionSize<byte>(() => checked((byte?)(_exactLength)), ParseErrorCode.InvalidSize);
             var __exact_substreamSlice = ReadSubstreamSlice(data, __exact_substreamLength);
+            var __exact_substreamStart = ParsePosition;
             var __exact_substreamInterpreter = new Body();
             var _exact = InterpretNestedAt(__exact_substreamInterpreter, __exact_substreamSlice, 0, "Exact");
-            EnsureSubstreamFullyConsumed("Exact", __exact_substreamLength, __exact_substreamInterpreter.BytesConsumed);
-            ParsePosition += __exact_substreamLength;
+            EnsureSubstreamFullyConsumed("Exact", __exact_substreamLength, __exact_substreamInterpreter);
+            ParsePosition = __exact_substreamStart + __exact_substreamLength;
+            BitOffset = 0;
             __parsedValue.Exact = _exact;
             RecordParsedField("Exact");
             SetCurrentField("LaxLength");
@@ -499,9 +503,11 @@ namespace Musoq.Generated.Interpreters
             SetCurrentField("Lax");
             var __lax_substreamLength = ResolveExpressionSize<byte>(() => checked((byte?)(_laxLength)), ParseErrorCode.InvalidSize);
             var __lax_substreamSlice = ReadSubstreamSlice(data, __lax_substreamLength);
+            var __lax_substreamStart = ParsePosition;
             var __lax_substreamInterpreter = new Body();
             var _lax = InterpretNestedAt(__lax_substreamInterpreter, __lax_substreamSlice, 0, "Lax");
-            ParsePosition += __lax_substreamLength;
+            ParsePosition = __lax_substreamStart + __lax_substreamLength;
+            BitOffset = 0;
             __parsedValue.Lax = _lax;
             RecordParsedField("Lax");
             SetCurrentField("InlineLength");
@@ -511,10 +517,12 @@ namespace Musoq.Generated.Interpreters
             SetCurrentField("Inline");
             var __inline_substreamLength = ResolveExpressionSize<byte>(() => checked((byte?)(_inlineLength)), ParseErrorCode.InvalidSize);
             var __inline_substreamSlice = ReadSubstreamSlice(data, __inline_substreamLength);
+            var __inline_substreamStart = ParsePosition;
             var __inline_substreamInterpreter = new Inline_Inline();
             var _inline = InterpretNestedAt(__inline_substreamInterpreter, __inline_substreamSlice, 0, "Inline");
-            EnsureSubstreamFullyConsumed("Inline", __inline_substreamLength, __inline_substreamInterpreter.BytesConsumed);
-            ParsePosition += __inline_substreamLength;
+            EnsureSubstreamFullyConsumed("Inline", __inline_substreamLength, __inline_substreamInterpreter);
+            ParsePosition = __inline_substreamStart + __inline_substreamLength;
+            BitOffset = 0;
             __parsedValue.Inline = _inline;
             RecordParsedField("Inline");
             return __parsedValue;
@@ -524,6 +532,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated nested interpreter for inline schema 'Inline_Inline'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Inline_Inline : BytesInterpreterBase<Inline_Inline>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

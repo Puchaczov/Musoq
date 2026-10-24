@@ -37,7 +37,7 @@ internal sealed class SchemaSourceBindingResult
     public static SchemaSourceBindingResult Error(SchemaSourceBindingFailure failure) => new(null, failure);
 }
 
-internal static class SchemaSourceArgumentBinder
+internal static partial class SchemaSourceArgumentBinder
 {
     public static IReadOnlySet<int> GetPathSensitiveArgumentIndexes(
         ArgsListNode arguments,
@@ -121,15 +121,12 @@ internal static class SchemaSourceArgumentBinder
                     arguments,
                     signatures));
 
-            var scored = fullArityCandidates
-                .Select(signature => (signature, score: GetMatchScore(arguments, signature, structuralTypeResolver, relationResolver)))
-                .OrderByDescending(item => item.score)
-                .ToArray();
-            var bestFullArity = scored.Where(item => item.score == scored[0].score).ToArray();
+            var bestFullArity = fullArityCandidates.Where(candidate => !fullArityCandidates.Any(other =>
+                other != candidate && CompareSourceSignatures(arguments, other, candidate) == OverloadPreference.Left)).ToArray();
             if (bestFullArity.Length > 1)
-                return SchemaSourceBindingResult.NotRequired();
+                return AmbiguousSourceOverload(arguments, bestFullArity);
 
-            var selectedSignature = bestFullArity[0].signature;
+            var selectedSignature = bestFullArity[0];
             if (selectedSignature.HasStructuralParameters)
             {
                 var structuralCandidate = TryBindCandidate(arguments, selectedSignature, [selectedSignature], structuralTypeResolver, relationResolver);
@@ -219,8 +216,8 @@ internal static class SchemaSourceArgumentBinder
                 signatures.Where(static signature => signature.CanBindNamedArguments)));
         }
 
-        var bestScore = candidates.Max(static candidate => candidate.Score);
-        var best = candidates.Where(candidate => candidate.Score == bestScore).ToArray();
+        var bestInvocations = SelectMostSpecificInvocations(arguments, candidates.Select(static candidate => candidate.Invocation).ToArray());
+        var best = candidates.Where(candidate => bestInvocations.Contains(candidate.Invocation)).ToArray();
         if (best.Length != 1)
         {
             var signaturesText = string.Join(
@@ -305,8 +302,7 @@ internal static class SchemaSourceArgumentBinder
                 signatures));
         }
 
-        var bestCost = candidates.Min(static candidate => candidate.Cost);
-        var best = candidates.Where(candidate => candidate.Cost == bestCost).ToArray();
+        var best = SelectTypedSourceCandidates(arguments, candidates);
         if (best.Length > 1)
         {
             var signaturesText = string.Join(
@@ -866,8 +862,7 @@ internal static class SchemaSourceArgumentBinder
         if (argumentType == null)
             return true;
 
-        return parameterType.IsAssignableFrom(argumentType) ||
-               Nullable.GetUnderlyingType(parameterType) == argumentType;
+        return SchemaConversionClassifier.TryGetCost(argumentType, parameterType, out _);
     }
 
     private static int GetMatchScore(

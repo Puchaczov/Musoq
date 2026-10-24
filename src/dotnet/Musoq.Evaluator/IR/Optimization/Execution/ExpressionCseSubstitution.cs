@@ -172,11 +172,15 @@ internal static partial class ExpressionCseSubstitution
         if (ExecutionExpressionCseFacts.IsWorthHoistingExpression(expression) &&
             variablesBySignature.TryGetValue(ExecutionExpressionFingerprint.ForHoist(expression), out var variable))
         {
-            return new ExecutionVariableRead(variable);
+            return new ExecutionVariableRead(variable) { InterpretationShape = expression.InterpretationShape };
         }
 
         return expression switch
         {
+            ExecutionStringConcatenation concatenation => concatenation with
+            {
+                Expressions = concatenation.Expressions.Select(value => Replace(value, variablesBySignature)).ToArray()
+            },
             ExecutionBinary binary => binary with
             {
                 Left = Replace(binary.Left, variablesBySignature),
@@ -200,6 +204,7 @@ internal static partial class ExpressionCseSubstitution
             {
                 Expression = Replace(strictCast.Expression, variablesBySignature)
             },
+            ExecutionUnionMemberRead union => union with { Receiver = Replace(union.Receiver, variablesBySignature) },
             ExecutionMemberRead memberRead => memberRead with
             {
                 Receiver = Replace(memberRead.Receiver, variablesBySignature)

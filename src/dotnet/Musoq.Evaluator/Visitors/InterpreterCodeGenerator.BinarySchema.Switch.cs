@@ -19,15 +19,6 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GenerateBinarySwitchReadCodeInner(string localVar, string fieldName, BinarySwitchTypeNode switchType)
-    {
-        var className = GetOrRegisterSwitchClassName(fieldName, switchType);
-        var builder = new StringBuilder();
-        AppendBinarySwitchBody(builder, localVar, fieldName, switchType);
-        builder.Append(GenerateBinarySwitchConstruction(localVar, localVar, className, switchType));
-        return builder.ToString();
-    }
-
     private void AppendBinarySwitchBody(
         StringBuilder builder,
         string localVar,
@@ -40,7 +31,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(CultureInfo.InvariantCulture, $"string {SwitchCaseVariable(localVar)} = null;");
         foreach (var switchCase in switchType.Cases)
             builder.AppendLine(CultureInfo.InvariantCulture,
-                $"{GetSwitchBranchClrTypeName(switchCase.BranchType)} {SwitchBranchHolder(localVar, switchCase.BranchAlias)} = default;");
+                $"{GetSwitchBranchClrTypeName(fieldName, switchCase)} {SwitchBranchHolder(localVar, switchCase.BranchAlias)} = default;");
 
         var isFirstCase = true;
         foreach (var switchCase in switchType.Cases)
@@ -92,41 +83,12 @@ public partial class InterpreterCodeGenerator
         var temp = $"{holder}_value";
 
         builder.AppendLine("{");
-        builder.Append(Indent(GenerateBinarySwitchBranchRead(temp, switchCase.BranchType, fieldName), 1));
+        var readName = switchCase.BranchType is SchemaReferenceTypeNode
+            ? fieldName : SwitchBranchFieldName(fieldName, switchCase.BranchAlias);
+        builder.Append(Indent(GenerateBinaryValueRead(temp, readName, switchCase.BranchType), 1));
         builder.AppendLine(CultureInfo.InvariantCulture, $"    {holder} = {temp};");
         builder.AppendLine(CultureInfo.InvariantCulture, $"    {SwitchCaseVariable(localVar)} = \"{switchCase.BranchAlias}\";");
         builder.AppendLine("}");
-    }
-
-    private string GenerateBinarySwitchBranchRead(string branchVar, TypeAnnotationNode branchType, string fieldName)
-    {
-        var builder = new StringBuilder();
-        switch (branchType)
-        {
-            case PrimitiveTypeNode primitiveType:
-                builder.AppendLine(CultureInfo.InvariantCulture,
-                    $"var {branchVar} = {GetPrimitiveReadMethod(primitiveType)}(data);");
-                break;
-
-            case ByteArrayTypeNode byteArrayType:
-                var size = GenerateSizeExpression(byteArrayType.SizeExpression);
-                builder.AppendLine(CultureInfo.InvariantCulture, $"var {branchVar} = ReadBytes(data, {size});");
-                break;
-
-            case SchemaReferenceTypeNode schemaRef:
-                var interpreterVar = $"{branchVar}_interpreter";
-                builder.AppendLine(CultureInfo.InvariantCulture, $"var {interpreterVar} = {CreateNestedInterpreter(schemaRef.FullTypeName)};");
-                AppendGeneratedLine(builder, $"var {branchVar} = InterpretNested({interpreterVar}, data, \"{EscapeString(fieldName)}\");");
-                break;
-
-            default:
-                throw CreateUnsupportedCodeGenerationException(
-                    branchVar,
-                    branchType,
-                    "binary switch branch type");
-        }
-
-        return builder.ToString();
     }
 
     private string GenerateBinarySwitchConstruction(
@@ -156,6 +118,8 @@ public partial class InterpreterCodeGenerator
 
     private string GetOrRegisterSwitchClassName(string fieldName, BinarySwitchTypeNode switchType)
     {
+        var registered = _switchSchemas.FirstOrDefault(item => ReferenceEquals(item.Switch, switchType));
+        if (registered.Switch != null) return registered.ClassName;
         var className = SwitchClassName(fieldName);
         if (_switchSchemas.All(x => x.ClassName != className))
             _switchSchemas.Add((className, switchType));
@@ -164,6 +128,7 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateSwitchNestedClass(string className, BinarySwitchTypeNode switchType)
     {
+        var fieldName = className["Switch_".Length..];
         var builder = new StringBuilder();
         builder.AppendLine("/// <summary>");
         builder.AppendLine(CultureInfo.InvariantCulture, $"/// Generated tagged-union value for binary switch '{className}'.");
@@ -176,7 +141,7 @@ public partial class InterpreterCodeGenerator
 
         foreach (var switchCase in switchType.Cases)
         {
-            var branchTypeName = GetSwitchBranchClrTypeName(switchCase.BranchType);
+            var branchTypeName = GetSwitchBranchClrTypeName(fieldName, switchCase);
             builder.AppendLine(CultureInfo.InvariantCulture, $"    /// <summary>Gets the '{switchCase.BranchAlias}' branch value; non-null only when selected.</summary>");
             builder.AppendLine(CultureInfo.InvariantCulture, $"    public {branchTypeName} {EscapeCSharpIdentifier(switchCase.BranchAlias)} {{ get; init; }}");
             builder.AppendLine();
@@ -201,10 +166,13 @@ public partial class InterpreterCodeGenerator
         return $"{localVar}_{EscapeCSharpIdentifier(branchAlias).TrimStart('@')}";
     }
 
-    private static string GetSwitchBranchClrTypeName(TypeAnnotationNode branchType)
+    private static string SwitchBranchFieldName(string fieldName, string alias) => $"{fieldName}_{alias}";
+
+    private string GetSwitchBranchClrTypeName(string fieldName, BinarySwitchCaseNode branch)
     {
-        var clrTypeName = GetClrTypeName(branchType);
-        return branchType is PrimitiveTypeNode ? $"{clrTypeName}?" : clrTypeName;
+        var type = branch.BranchType;
+        var clrTypeName = GetBinaryValueClrTypeName(SwitchBranchFieldName(fieldName, branch.BranchAlias), type);
+        return type is PrimitiveTypeNode or BitsTypeNode ? $"{clrTypeName}?" : clrTypeName;
     }
 
     private Type? GetSwitchSelectorType(string selector)

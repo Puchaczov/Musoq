@@ -168,8 +168,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
                 provider));
 
         Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, exception.Code);
-        StringAssert.Contains(exception.Message, "requires a value for a direct script parameter");
-        StringAssert.Contains(exception.Message, "Declare a default value");
+        StringAssert.Contains(exception.Message, "requires a static argument value");
+        StringAssert.Contains(exception.Message, "Declare defaults");
         StringAssert.Contains(exception.Message, "metadata independent");
         Assert.IsNotNull(attemptedArguments);
         Assert.IsEmpty(attemptedArguments);
@@ -198,7 +198,7 @@ public partial class BuildMetadataAndInferTypesVisitorTests
                 new TestsLoggerResolver()));
 
         Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, exception.PrimaryEnvelope.Code);
-        StringAssert.Contains(exception.PrimaryEnvelope.Message, "Declare a default value");
+        StringAssert.Contains(exception.PrimaryEnvelope.Message, "Declare defaults");
     }
 
     [TestMethod]
@@ -218,10 +218,13 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     }
 
     [TestMethod]
-    public void ScriptParameters_WhenNestedInSchemaArgument_ShouldThrow()
+    public void ScriptParameters_WhenNestedInSchemaArgument_ShouldBindComputedDefault()
     {
-        Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')"));
+        object?[]? captured = null;
+        Analyze("param (name: string = 'KEY_1'); select 1 from #capture.any($name + '_2')",
+            new CaptureArgumentsSchemaProvider(arguments => captured = arguments));
+        Assert.IsNotNull(captured);
+        CollectionAssert.AreEqual(new object?[] { "KEY_1_2" }, captured);
     }
 
     [TestMethod]

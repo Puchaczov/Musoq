@@ -11,6 +11,8 @@ internal static class ExecutionIndexedAccessBinding
     public static ExecutionExpression Bind(ExecutionArrayAccess access)
     {
         ArgumentNullException.ThrowIfNull(access);
+        if (BindGeneratedArray(access) is { } generated)
+            return generated;
         if (access.Array is ExecutionScriptParameterRead or ExecutionScriptVariableRead ||
             ExecutionIrAnalysis.FlattenExpressions(access.Array).Any(IsDynamicRead))
             return access;
@@ -22,6 +24,25 @@ internal static class ExecutionIndexedAccessBinding
             return access;
         return new ExecutionMethodCall(ExecutionClrBindingFactory.FromClr(method), [access.Array, access.Index],
             null, access.ReturnType, null);
+    }
+
+    private static ExecutionMethodCall? BindGeneratedArray(ExecutionArrayAccess access)
+    {
+        if (access.Array is not ExecutionFieldRead { GeneratedTypeName: { } typeName } ||
+            !typeName.EndsWith("[]", StringComparison.Ordinal) ||
+            access.Array.ReturnType.ResolveClrType() != typeof(object[]) ||
+            access.Index.ReturnType.ResolveClrType() != typeof(int))
+            return null;
+
+        var method = typeof(SafeArrayAccess).GetMethod(nameof(SafeArrayAccess.GetArrayElement))!
+            .MakeGenericMethod(typeof(object));
+        ExecutionExpression[] arguments = [access.Array, access.Index];
+        var bindings = GeneratedScalarGenericBinding.Resolve(method, arguments);
+        return new ExecutionMethodCall(ExecutionClrBindingFactory.FromClr(method), arguments, null, access.ReturnType, null)
+        {
+            GeneratedGenericArguments = bindings,
+            GeneratedResultTypeName = GeneratedScalarGenericBinding.ResolveResult(method, bindings)
+        };
     }
 
     private static bool IsDynamicRead(ExecutionExpression expression)

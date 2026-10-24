@@ -19,10 +19,10 @@ public sealed record ExecutionPlan
             throw new ArgumentOutOfRangeException(nameof(executionIrVersion));
 
         Identifier = identifier;
-        Shapes = ExecutionIrCollections.Freeze(shapes);
+        Shapes = shapes;
         Body = body;
         FinalResult = finalResult;
-        SemanticsContract = semanticsContract ?? ExecutionSemanticsContract.Version1;
+        SemanticsContract = semanticsContract ?? ExecutionSemanticsContract.Current;
         ExecutionIrVersion = executionIrVersion;
         StoredTableRepresentations = storedTableRepresentations?.ToArray() ?? [];
     }

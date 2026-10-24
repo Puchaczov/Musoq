@@ -11,7 +11,7 @@ internal sealed record ExecutionTargetReadinessReport
         ExecutionSemanticsContract? semanticsContract = null)
     {
         Issues = Freeze(issues);
-        SemanticsContract = semanticsContract ?? ExecutionSemanticsContract.Version1;
+        SemanticsContract = semanticsContract ?? ExecutionSemanticsContract.Current;
     }
 
     public IReadOnlyList<ExecutionTargetReadinessIssue> Issues { get; }

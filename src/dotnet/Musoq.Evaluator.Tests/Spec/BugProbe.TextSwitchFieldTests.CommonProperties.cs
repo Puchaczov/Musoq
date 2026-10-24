@@ -13,7 +13,7 @@ public partial class BugProbeTextSwitchFieldTests
 {
     [TestMethod]
     [DataRow("text A { Payload: rest } text B { Payload: rest }", "p.Variant.Payload", "value", typeof(string), "value")]
-    [DataRow("text A { Payload: rest } text B { Other: rest }", "p.Variant.Payload", "value", typeof(string), null)]
+    [DataRow("text A { Payload: rest } text B { Other: rest }", "p.Variant.Payload", "value", typeof(object), null)]
     [DataRow("text Base { Payload: rest } text A extends Base {} text B extends Base {}", "p.Variant.Payload", "value", typeof(string), "value")]
     [DataRow("text Base { Payload: chars[1] } text A extends Base { Payload: rest } text B { Payload: rest }", "p.Variant.Payload", "value", typeof(string), "value")]
     [DataRow("text Item { Value: rest } text A { Payload: Item } text B { Payload: Item }", "p.Variant.Payload.Value", "value", typeof(string), "value")]
@@ -37,7 +37,7 @@ public partial class BugProbeTextSwitchFieldTests
     [TestMethod]
     [DataRow("text Item { Value: rest } text A { Payload: rest } text B { Payload: Item }")]
     [DataRow("text Item { Value: rest } text OtherItem { Value: rest } text A { Payload: Item } text B { Payload: OtherItem }")]
-    public void TextSwitch_IncompatiblePropertyShapes_ShouldReportTheSourceContract(string schemas)
+    public void TextSwitch_IncompatiblePropertyShapes_ShouldReturnTheSelectedPayload(string schemas)
     {
         var query = $"{schemas} text Packet {{ Variant: switch {{ pattern 'A' => A, _ => B }} }} " +
                     "select p.Variant.Payload as Result from #test.entities() e cross apply Parse<Packet>(e.Text) p";
@@ -45,10 +45,12 @@ public partial class BugProbeTextSwitchFieldTests
         {
             ["#test"] = [new TextEntity { Name = "input", Text = "value" }]
         };
-        var error = Assert.Throws<MusoqQueryException>(() => InstanceCreator.CompileForExecution(query,
-            Guid.NewGuid().ToString(), new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions));
-        Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
-        Assert.Contains("incompatible concrete branch types", error.Message);
+        using var compiled = InstanceCreator.CompileForExecution(query,
+            Guid.NewGuid().ToString(), new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions);
+        using var result = compiled.Run();
+        Assert.AreEqual(typeof(object), result.Columns.Single().ColumnType);
+        var selected = result[0].ReadValues()[0]!;
+        Assert.AreEqual("value", selected.GetType().GetProperty("Value")!.GetValue(selected));
     }
 
     [TestMethod]
@@ -78,7 +80,7 @@ public partial class BugProbeTextSwitchFieldTests
             new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions);
         using var result = compiled.Run();
 
-        Assert.AreEqual("TextSwitch_Variant", result.Columns.Single().ColumnType.Name);
+        Assert.AreEqual("Arm", result.Columns.Single().ColumnType.Name);
         Assert.AreEqual(1, result.Count);
         var value = result[0].ReadValues()[0]!;
         Assert.AreEqual(result.Columns.Single().ColumnType, value.GetType());
@@ -105,7 +107,7 @@ public partial class BugProbeTextSwitchFieldTests
         using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
             new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions);
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result, ("Typed", typeof(string)), ("Dynamic", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(result, ("Typed", typeof(string)), ("Dynamic", typeof(object)));
         TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { "value", null });
     }
 }

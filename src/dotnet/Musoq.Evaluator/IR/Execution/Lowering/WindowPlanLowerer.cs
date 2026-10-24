@@ -35,7 +35,7 @@ internal sealed class WindowPlanLowerer(
         return handlers.CreatePlanResult(identifier, handlers.BuildWindowTable(
             pipeline,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
             null,
             0,

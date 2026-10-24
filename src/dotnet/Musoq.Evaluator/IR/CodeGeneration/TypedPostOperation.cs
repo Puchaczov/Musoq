@@ -12,7 +12,7 @@ internal abstract record TypedPostOperation
 
     public sealed record Order(IReadOnlyList<ExecutionOrderField> Keys) : TypedPostOperation;
 
-    public sealed record Skip(int Count) : TypedPostOperation;
+    public sealed record Skip(PagingCount Count) : TypedPostOperation;
 
-    public sealed record Take(int Count) : TypedPostOperation;
+    public sealed record Take(PagingCount Count) : TypedPostOperation;
 }

@@ -246,7 +246,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                                 {
                                     return _interpreter_Header.Interpret(f.Content);
                                 }
-                                catch
+                                catch (global::Musoq.Schema.Interpreters.ParseException)
                                 {
                                     return null;
                                 }
@@ -280,7 +280,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                                 {
                                     return _interpreter_Header.Interpret(f.Content);
                                 }
-                                catch
+                                catch (global::Musoq.Schema.Interpreters.ParseException)
                                 {
                                     return null;
                                 }
@@ -312,7 +312,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                         {
                             return _interpreter_Header.Interpret(f.Content);
                         }
-                        catch
+                        catch (global::Musoq.Schema.Interpreters.ParseException)
                         {
                             return null;
                         }
@@ -412,6 +412,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Header'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Header : BytesInterpreterBase<Header>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -470,6 +471,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Payload'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Payload : BytesInterpreterBase<Payload>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

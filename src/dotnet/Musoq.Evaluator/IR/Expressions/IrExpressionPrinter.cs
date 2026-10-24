@@ -208,6 +208,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
             BinaryOpKind.BitwiseXor => "^",
             BinaryOpKind.LeftShift => "<<",
             BinaryOpKind.RightShift => ">>",
+            BinaryOpKind.SqlStringConcatenate => "||",
             BinaryOpKind.StringConcatenate => "||",
             _ => "?"
         };

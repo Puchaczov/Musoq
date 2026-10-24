@@ -71,6 +71,8 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         switch (expression)
         {
+            case SubqueryExpression subquery:
+                return SubqueryInputBinding.Convert(subquery, value => ConvertAggregateFinalExpression(value, context));
             case Literal literal:
                 return LoweringAttempt<ExecutionExpression>.Built(new ExecutionLiteral(literal.Value, literal.ReturnType));
             case WildcardLiteral:
@@ -119,14 +121,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!right.IsBuilt)
             return right;
 
-        return LoweringAttempt<ExecutionExpression>.Built(new ExecutionBinary(
-            binary.Kind,
-            left.Value,
-            right.Value,
-            binary.ReturnType)
-        {
-            UsesSqlNullSemantics = binary.UsesSqlNullSemantics
-        });
+        return LoweringAttempt<ExecutionExpression>.Built(ExecutionBinaryLowering.Create(binary, left.Value, right.Value));
     }
 
     private static LoweringAttempt<ExecutionExpression> ConvertAggregateFinalUnaryExpression(

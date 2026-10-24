@@ -56,7 +56,7 @@ public partial class SubqueryTests
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("ValueTuple<", inspection.GeneratedCSharpCode);
-        Assert.Contains("PredicateHashMark", inspection.PlanningText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
         Assert.Contains("ScalarHashSingle", inspection.PlanningText);
         Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
         AssertNoPerRowSubqueryExecution(inspection);
@@ -124,7 +124,7 @@ public partial class SubqueryTests
         AssertWideKeyRows(fallbackTable, expected);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PredicateHashMark", inspection.PlanningText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
         Assert.Contains("ScalarHashSingle", inspection.PlanningText);
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
         Assert.Contains("ValueTuple<", inspection.GeneratedCSharpCode);

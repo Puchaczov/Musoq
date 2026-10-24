@@ -21,7 +21,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var result = BuildPlanTable(
             definition.Plan,
             cteName,
-            $"Cte{index.ToString(CultureInfo.InvariantCulture)}Row0",
+            $"{scope.GeneratedTypePrefix}Cte{index.ToString(CultureInfo.InvariantCulture)}Row0",
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,

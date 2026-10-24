@@ -13,7 +13,7 @@ public sealed record ExecutionCreateValuesRows : ExecutionNode
     {
         Rows = rows;
         RowShape = rowShape;
-        Values = ExecutionIrCollections.FreezeNested(values);
+        Values = values;
     }
 
     public ExecutionVariable Rows { get; init; }

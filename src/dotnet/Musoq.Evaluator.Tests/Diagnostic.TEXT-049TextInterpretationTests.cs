@@ -216,7 +216,7 @@ public partial class TextInterpretationTests
         var content = GetPropertyValue<object>(result, "Content");
 
         Assert.AreEqual("data", GetPropertyValue<string>(content, "Value"));
-        Assert.IsNull(GetPropertyValue<string>(content, "Other"));
+        Assert.IsNull(content.GetType().GetProperty("Other"));
     }
 
     [TestMethod]

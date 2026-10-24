@@ -11,35 +11,29 @@ internal static partial class SingleUseMaterializationPlanner
     public static IReadOnlyList<PlanningDecision> Plan(PhysicalNode physicalPlan)
     {
         var decisions = new List<PlanningDecision>();
-        Visit(physicalPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), decisions);
+        Visit(physicalPlan, decisions);
         return decisions;
     }
 
     private static void Visit(
         PhysicalNode node,
-        IReadOnlySet<string> visibleCteNames,
         List<PlanningDecision> decisions)
     {
         if (node is PhysicalCteNode cte)
         {
             AddCteCandidates(cte, decisions);
 
-            var nestedVisibleCteNames = new HashSet<string>(visibleCteNames, StringComparer.OrdinalIgnoreCase);
             foreach (var definition in cte.Definitions)
-                nestedVisibleCteNames.Add(definition.Name);
-
-            foreach (var definition in cte.Definitions)
-                Visit(definition.Plan, nestedVisibleCteNames, decisions);
-
-            Visit(cte.Query, nestedVisibleCteNames, decisions);
+                Visit(definition.Plan, decisions);
+            Visit(cte.Query, decisions);
             return;
         }
 
         if (node is PhysicalMultiStatementNode multiStatement)
-            AddMultiStatementCandidates(multiStatement, visibleCteNames, decisions);
+            AddMultiStatementCandidates(multiStatement, decisions);
 
         foreach (var child in node.Children)
-            Visit(child, visibleCteNames, decisions);
+            Visit(child, decisions);
     }
 
     private static void AddCteCandidates(
@@ -72,10 +66,9 @@ internal static partial class SingleUseMaterializationPlanner
 
     private static void AddMultiStatementCandidates(
         PhysicalMultiStatementNode multiStatement,
-        IReadOnlySet<string> visibleCteNames,
         List<PlanningDecision> decisions)
     {
-        var producerIndexByName = CreateProducerIndexByName(multiStatement, visibleCteNames);
+        var producerIndexByName = IntermediateSourceProducers.Resolve(multiStatement);
         if (producerIndexByName.Count == 0)
             return;
 
@@ -100,30 +93,6 @@ internal static partial class SingleUseMaterializationPlanner
 
             decisions.Add(decision);
         }
-    }
-
-    private static Dictionary<string, int> CreateProducerIndexByName(
-        PhysicalMultiStatementNode multiStatement,
-        IReadOnlySet<string> visibleCteNames)
-    {
-        var producerIndexByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var nextProducerIndex = 0;
-
-        foreach (var statement in multiStatement.Statements)
-        {
-            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            CollectCteNames(statement, names);
-
-            foreach (var name in names.OrderBy(static value => value, StringComparer.OrdinalIgnoreCase))
-            {
-                if (visibleCteNames.Contains(name) || producerIndexByName.ContainsKey(name))
-                    continue;
-
-                producerIndexByName[name] = nextProducerIndex++;
-            }
-        }
-
-        return producerIndexByName;
     }
 
     private static bool TryCreateCandidate(
@@ -182,18 +151,6 @@ internal static partial class SingleUseMaterializationPlanner
                !characteristics.HasFlag(CteOutputCharacteristics.Window) &&
                !characteristics.HasFlag(CteOutputCharacteristics.SetOperation) &&
                !characteristics.HasFlag(CteOutputCharacteristics.SideEffectSensitive);
-    }
-
-    private static void CollectCteNames(PhysicalNode node, ISet<string> names)
-    {
-        if (node is PhysicalCteRefNode cteRef)
-        {
-            names.Add(cteRef.CteName);
-            return;
-        }
-
-        foreach (var child in node.Children)
-            CollectCteNames(child, names);
     }
 
     private static CteOutputCharacteristics ClassifyOutput(PhysicalNode node)

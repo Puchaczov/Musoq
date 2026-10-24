@@ -27,10 +27,8 @@ public partial class MalformedQueryErrorTests : NegativeTestsBase
 
 
     // ========================================================================
-    // GAP 3: CASE WHEN without ELSE (mandatory ELSE per spec)
-    // Spec (Appendix F) says ELSE is mandatory in all CASE expressions.
-    // Existing tests cover empty CASE, missing THEN, missing END — but not
-    // the specific case of well-formed WHEN/THEN with missing ELSE.
+    // GAP 3: CASE defaults and nearby malformed expressions.
+    // Omitted ELSE is an implicit NULL; WHEN, THEN and END remain required.
     // ========================================================================
 
 

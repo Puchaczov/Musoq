@@ -72,6 +72,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 return TryRewriteMethodPayloadKey(method, payloadAlias, fieldMap, out rewritten);
             case ExecutionIsNullCheck isNull:
                 return TryRewriteIsNullPayloadKey(isNull, payloadAlias, fieldMap, out rewritten);
+            case ExecutionStringConcatenation concatenation:
+                if (!TryRewritePayloadKeyExpressions(concatenation.Expressions, payloadAlias, fieldMap, out var operands))
+                {
+                    rewritten = null;
+                    return false;
+                }
+                rewritten = concatenation with { Expressions = operands };
+                return true;
             case ExecutionCoalesce coalesce:
                 return TryRewriteCoalescePayloadKey(coalesce, payloadAlias, fieldMap, out rewritten);
             case ExecutionValueTupleKey valueTupleKey:
@@ -190,22 +198,6 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         rewritten = isNull with { Expression = expression };
-        return true;
-    }
-
-    private static bool TryRewriteCoalescePayloadKey(
-        ExecutionCoalesce coalesce,
-        string payloadAlias,
-        IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
-    {
-        if (!TryRewritePayloadKeyExpressions(coalesce.Expressions, payloadAlias, fieldMap, out var expressions))
-        {
-            rewritten = null;
-            return false;
-        }
-
-        rewritten = coalesce with { Expressions = expressions };
         return true;
     }
 

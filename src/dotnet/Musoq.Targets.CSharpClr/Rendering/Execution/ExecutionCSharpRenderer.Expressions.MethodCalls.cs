@@ -62,43 +62,6 @@ public sealed partial class ExecutionCSharpRenderer
         return expression != null;
     }
 
-    private ParenthesizedExpressionSyntax RenderLibraryBaseStringPredicate(
-        ExecutionMethodCall methodCall,
-        string methodName,
-        ExecutionRenderContext context)
-    {
-        var value = RenderExpression(methodCall.Arguments[0], context);
-        var pattern = RenderExpression(methodCall.Arguments[1], context);
-        var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        var nullableBoolType = CreateTypeSyntax(typeof(bool?));
-
-        var hasNullArgument = SyntaxFactory.BinaryExpression(
-            SyntaxKind.LogicalOrExpression,
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.EqualsExpression,
-                value,
-                nullLiteral),
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.EqualsExpression,
-                pattern,
-                nullLiteral));
-
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    value,
-                    SyntaxFactory.IdentifierName(methodName)))
-            .WithArgumentList(CreateArgumentList(
-                pattern,
-                CreateOrdinalIgnoreCaseStringComparisonExpression()));
-
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.ConditionalExpression(
-                SyntaxFactory.ParenthesizedExpression(hasNullArgument),
-                SyntaxFactory.CastExpression(nullableBoolType, nullLiteral),
-                invocation));
-    }
-
     private ParenthesizedExpressionSyntax RenderLibraryBaseNumericToDecimal(
         ExecutionMethodCall methodCall,
         ExecutionRenderContext context)
@@ -113,13 +76,17 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionMethodCall methodCall,
         ExecutionRenderContext context)
     {
+        var argument = methodCall.Arguments[0];
+        var renderedArgument = RenderExpression(argument, context);
+        if (argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
+            renderedArgument = SyntaxFactory.CastExpression(CreateTypeSyntax(argument.ReturnType), renderedArgument);
+
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     CreateTypeSyntax(typeof(CorrelatedScalarSubqueryResultExtractor)),
                     SyntaxFactory.IdentifierName(nameof(CorrelatedScalarSubqueryResultExtractor.GetValue))))
-            .WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(CreateMethodInvocationArguments(methodCall, context))));
+            .WithArgumentList(CreateArgumentList(renderedArgument));
 
         return methodCall.GeneratedResultTypeName is null
             ? CastIfNeeded(invocation, methodCall.ReturnType) : invocation;

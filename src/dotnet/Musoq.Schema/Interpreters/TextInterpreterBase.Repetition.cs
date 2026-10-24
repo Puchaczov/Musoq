@@ -5,12 +5,20 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Guards a text repeat against an input or schema that never reaches its terminator.
     /// </summary>
-    protected void EnsureRepeatIteration(string fieldName, int iteration)
-    {
-        const int maxIterations = 10_000;
-        if (iteration < maxIterations)
-            return;
+    protected void EnsureRepeatIteration(string fieldName, int iteration) =>
+        EnsureRepeatIteration(fieldName, iteration, 10_000);
 
+    /// <summary>Guards a repeat using a positive maximum supplied by the compiled interpreter.</summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    protected void EnsureRepeatIteration(string fieldName, int iteration, int maxIterations)
+    {
+        if (iteration >= maxIterations)
+            ThrowRepeatIterationLimit(fieldName, maxIterations);
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private void ThrowRepeatIterationLimit(string fieldName, int maxIterations)
+    {
         throw ParseException.ForText(
             ParseErrorCode.MaxIterationsExceeded,
             SchemaName,

@@ -12,6 +12,7 @@ public sealed partial class ExecutionCSharpRenderer
         var session = new ExecutionRenderSession
         {
             UseQueryRunContext = useQueryRunContext,
+            ValueCaptureScope = plan.Body,
             RegexMatchTimeout = plan.RegexMatchTimeout
         };
         var context = new ExecutionRenderContext(_renderOptions, session);

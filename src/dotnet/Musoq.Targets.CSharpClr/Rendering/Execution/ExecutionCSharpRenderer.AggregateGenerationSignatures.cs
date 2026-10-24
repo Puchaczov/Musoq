@@ -30,7 +30,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         builder.Append("|accumulators:");
         foreach (var accumulator in shape.Accumulators)
-            ExecutionExpressionFingerprint.AppendAggregateAccumulator(builder, accumulator);
+            AggregateAccumulatorFingerprint.Append(builder, accumulator);
 
         builder.Append("|owners:");
         foreach (var owner in shape.OwnerFields)
@@ -69,10 +69,10 @@ public sealed partial class ExecutionCSharpRenderer
         return node switch
         {
             ExecutionLet let => $"let:{let.Variable.Name}:{ExecutionExpressionFingerprint.ForAggregateType(let.Variable.Type)}={ExecutionExpressionFingerprint.ForParallelAggregate(let.Value, parallelAggregate)}",
-            ExecutionAssign assign => $"assign:{ExecutionExpressionFingerprint.ForAggregateVariable(assign.Variable, parallelAggregate)}={ExecutionExpressionFingerprint.ForParallelAggregate(assign.Value, parallelAggregate)}",
+            ExecutionAssign assign => $"assign:{AggregateVariableFingerprint.Create(assign.Variable, parallelAggregate)}={ExecutionExpressionFingerprint.ForParallelAggregate(assign.Value, parallelAggregate)}",
             ExecutionIf branch => $"if:{ExecutionExpressionFingerprint.ForParallelAggregate(branch.Condition, parallelAggregate)}:{CreateBlockSignature(branch.Body, parallelAggregate)}",
             ExecutionAggregateSet aggregateSet => CreateAggregateSetSignature(aggregateSet, parallelAggregate),
-            ExecutionAggregateCapturedValueSet capturedValueSet => $"captured-set:{ExecutionExpressionFingerprint.ForAggregateVariable(capturedValueSet.Group, parallelAggregate)}:{capturedValueSet.CapturedField.FieldName}:{ExecutionExpressionFingerprint.ForParallelAggregate(capturedValueSet.Value, parallelAggregate)}",
+            ExecutionAggregateCapturedValueSet capturedValueSet => $"captured-set:{AggregateVariableFingerprint.Create(capturedValueSet.Group, parallelAggregate)}:{capturedValueSet.CapturedField.FieldName}:{ExecutionExpressionFingerprint.ForParallelAggregate(capturedValueSet.Value, parallelAggregate)}",
             _ => $"{node.GetType().FullName}:{node}"
         };
     }
@@ -84,9 +84,9 @@ public sealed partial class ExecutionCSharpRenderer
         var builder = new StringBuilder();
         builder
             .Append("aggregate-set:")
-            .Append(ExecutionExpressionFingerprint.ForAggregateVariable(aggregateSet.Group, parallelAggregate))
+            .Append(AggregateVariableFingerprint.Create(aggregateSet.Group, parallelAggregate))
             .Append(':');
-        ExecutionExpressionFingerprint.AppendAggregateAccumulator(builder, aggregateSet.Accumulator);
+        AggregateAccumulatorFingerprint.Append(builder, aggregateSet.Accumulator);
         builder.Append(":input=");
         builder.Append(aggregateSet.AccumulatorInput is null
             ? "<null>"

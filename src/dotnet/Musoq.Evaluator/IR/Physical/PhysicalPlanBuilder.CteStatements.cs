@@ -1,7 +1,6 @@
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-
 namespace Musoq.Evaluator.IR.Physical;
 
 public sealed partial class PhysicalPlanBuilder
@@ -39,6 +38,6 @@ public sealed partial class PhysicalPlanBuilder
         for (var i = 0; i < node.Statements.Length; i++)
             statements[i] = Lower(node.Statements[i], strategyPlan);
 
-        return new PhysicalMultiStatementNode(statements);
+        return new PhysicalMultiStatementNode(statements) { IntermediateProducers = node.IntermediateProducers };
     }
 }

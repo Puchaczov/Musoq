@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
@@ -45,7 +46,8 @@ internal sealed partial class PhysicalLoweringImplementation :
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
 
-        var scope = _physicalLoweringFacade.CreateScope(_facts);
+        var scope = _physicalLoweringFacade.CreateScope(_facts).WithGeneratedTypePrefix(_facts.GeneratedTypePrefix)
+            .WithSubqueryCtes(_shapeResolver.Subqueries.Get(identifier));
         return BuildWithScope(physicalPlan, identifier, scope);
     }
 
@@ -55,6 +57,8 @@ internal sealed partial class PhysicalLoweringImplementation :
         LoweringScope scope)
     {
         var unwrapped = UnwrapSingleStatement(physicalPlan);
+        _shapeResolver.Subqueries.Register(physicalPlan, new Dictionary<string, int>(),
+            new Dictionary<string, GeneratedRowShape>(), scope.SubqueryCtes);
         var loweringContext = new PhysicalToExecutionLoweringContext(unwrapped, identifier, scope);
 
         var result = _physicalLoweringFacade.BuildPlan(loweringContext, CreateUnsupported);
@@ -63,7 +67,7 @@ internal sealed partial class PhysicalLoweringImplementation :
             {
                 ExecutionPlan = ExecutionPlanRepresentationPlanner.Plan(
                     new NativeScriptGenericBinding(_shapeResolver.ScriptValues).RewritePlan(
-                        ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan))) with
+                        PagingCountExecution.AddValidation(unwrapped, ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan)))) with
                 {
                     StructuralCarriers = ExecutionIrCollections.Freeze(_shapeResolver.InlineRecords.Carriers)
                 }
@@ -84,9 +88,9 @@ internal sealed partial class PhysicalLoweringImplementation :
         var result = BuildTable(
             pipeline,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             cteIndexes,
-            cteShapesByName: null,
+            cteShapesByName: scope.SubqueryCtes.ToDictionary(static binding => binding.Name, static binding => binding.Shape, StringComparer.OrdinalIgnoreCase),
             schemaFromIndex: DefaultSchemaFromIndex,
             scope: scope);
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -8,6 +7,17 @@ namespace Musoq.Evaluator.Visitors;
 public partial class BuildMetadataAndInferTypesVisitor
 {
     private readonly Dictionary<string, string> _binaryInterpretationAliases = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly HashSet<Node> _nullableInterpretationRecords = new(ReferenceEqualityComparer.Instance);
+
+    private void RegisterNullableInterpretationColumn(Node node, Musoq.Schema.ISchemaColumn column)
+    {
+        if (column is NullableInterpretationColumn)
+            _nullableInterpretationRecords.Add(node);
+    }
+
+    private bool IsNullableInterpretationExpression(Node node) =>
+        node is DotNode { IsNullSafePath: true } || _nullableInterpretationRecords.Contains(node);
 
     private DotNode PreserveInterpretationPathNullability(DotNode node)
     {
@@ -20,44 +30,20 @@ public partial class BuildMetadataAndInferTypesVisitor
             AccessObjectArrayNode { IsColumnAccess: true } indexed => indexed.TableAlias,
             _ => null
         };
-        if (alias is null || !_binaryInterpretationAliases.TryGetValue(alias, out var schemaName) ||
-            SchemaRegistry?.TryGetSchema(schemaName, out var registration) != true || registration?.Node is not BinarySchemaNode schema)
-            return node;
         if (node.ReturnType is not { } type)
             return node;
-        if (!BinarySchemaExpressionTypes.IsNullable(type) && !BinarySchemaExpressionTypes.MayBeNull(node, GetAllBinarySchemaFields(schema), SchemaRegistry))
-            return node;
+        if (!IsNullableInterpretationExpression(node.Root))
+        {
+            if (alias is null || !_binaryInterpretationAliases.TryGetValue(alias, out var schemaName) ||
+                SchemaRegistry?.TryGetSchema(schemaName, out var registration) != true || registration?.Node is not BinarySchemaNode schema)
+                return node;
+            if (!BinarySchemaExpressionTypes.IsNullable(type) &&
+                !BinarySchemaExpressionTypes.MayBeNull(node, GetAllBinarySchemaFields(schema), SchemaRegistry))
+                return node;
+        }
         type = BinarySchemaExpressionTypes.Lift(type, true);
         return new DotNode(node.Root, node.Expression, node.IsTheMostInner, node.Name, type, node.IntendedTypeName)
         { IsNullSafePath = true }.CopySpansFrom(node);
     }
 
-    private string? ResolveBinaryArrayElementSchemaName(string sourceSchemaName, string fieldName)
-    {
-        if (SchemaRegistry?.TryGetSchema(sourceSchemaName, out var registration) != true ||
-            registration?.Node is not BinarySchemaNode schema)
-            return null;
-
-        var field = GetAllBinarySchemaFields(schema)
-            .OfType<FieldDefinitionNode>()
-            .FirstOrDefault(candidate => candidate.Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
-        var annotation = field?.TypeAnnotation;
-        while (annotation is SubstreamTypeNode { Target: not null } substream)
-            annotation = substream.Target;
-
-        var element = annotation switch
-        {
-            ArrayTypeNode array => array.ElementType,
-            RepeatUntilTypeNode repeat => repeat.ElementType,
-            _ => null
-        };
-        if (element is SubstreamTypeNode { Target: not null } elementSubstream)
-            element = elementSubstream.Target;
-
-        return element is SchemaReferenceTypeNode reference &&
-               SchemaRegistry.TryGetSchema(reference.SchemaName, out var elementRegistration) &&
-               elementRegistration?.Node is BinarySchemaNode
-            ? reference.SchemaName
-            : null;
-    }
 }

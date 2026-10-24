@@ -159,10 +159,12 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(RLikeNode node)
     {
-        Nodes.Pop();
-        Nodes.Pop();
+        ArgumentNullException.ThrowIfNull(node);
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
 
-        PushNeutralPredicate();
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new RLikeNode(left, right));
     }
 
     public override void Visit(ContainsNode node)

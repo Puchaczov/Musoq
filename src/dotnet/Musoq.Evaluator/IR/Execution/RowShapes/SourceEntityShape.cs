@@ -16,7 +16,7 @@ public sealed record SourceEntityShape : RowShape
         Alias = alias;
         EntityType = entityType;
         GeneratedTypeName = generatedTypeName;
-        Fields = ExecutionIrCollections.Freeze(fields);
+        Fields = fields;
     }
 
     public string Alias { get; init; }

@@ -36,7 +36,7 @@ ExecutionPlan [compiled]
       Weight: decimal <- field Weight
       Enabled: bool <- field Enabled
   StructuralPreparation
-    Musoq.Examples.DataSources.StructuredInputs.WeightedInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.WeightedInput@Musoq.Examples.DataSources.StructuredInputs(primitive:int32,primitive:decimal,primitive:bool); shape=(Value: int32, Weight: decimal); origin=Inline; lifetime=Inline; metrics=Runtime; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { ReturnType = bool, Value = Boolean:0:0:1:0:0:Unspecified:0 }
+    Musoq.Examples.DataSources.StructuredInputs.WeightedInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.WeightedInput@Musoq.Examples.DataSources.StructuredInputs(primitive:int32,primitive:decimal,primitive:bool); shape=(Value: int32, Weight: decimal); origin=Inline; lifetime=Inline; metrics=Runtime; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { InterpretationShape = , ReturnType = bool, Value = Boolean:0:0:1:0:0:Unspecified:0 }
     Musoq.Examples.DataSources.StructuredInputs.WeightedInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.WeightedInput@Musoq.Examples.DataSources.StructuredInputs(primitive:int32,primitive:decimal,primitive:bool); shape=(Weight: decimal, Value: int32, Enabled: bool = true); origin=Inline; lifetime=Inline; metrics=Runtime; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,-
 
   Body

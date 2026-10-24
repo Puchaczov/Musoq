@@ -71,13 +71,7 @@ public sealed partial class LogicalPlanBuilder
 
     private static OutputSchema CreatePartialInterpretOutputSchema(string schemaName)
     {
-        return new OutputSchema(
-        [
-            new ColumnSchema("ParsedFields", typeof(object), 0, $"Musoq.Generated.Interpreters.{schemaName}"),
-            new ColumnSchema("ErrorField", typeof(string), 1),
-            new ColumnSchema("ErrorMessage", typeof(string), 2),
-            new ColumnSchema("BytesConsumed", typeof(int), 3)
-        ]);
+        return new OutputSchema(PartialInterpretationShape.CreateColumns(schemaName));
     }
 
     private static bool ShouldUseDerivedInterpretSchema(OutputSchema inferredSchema, OutputSchema derivedSchema)

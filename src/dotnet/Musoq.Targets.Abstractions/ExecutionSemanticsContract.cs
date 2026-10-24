@@ -81,12 +81,32 @@ public sealed record ExecutionSemanticsContract
             new(ExecutionSemanticsRuleId.FloatingPoint, "ieee-754-clr"),
             new(ExecutionSemanticsRuleId.Decimal, "clr-128-bit-decimal-checked"),
             new(ExecutionSemanticsRuleId.StringEqualityOrderingHashing, "ordinal"),
+            new(ExecutionSemanticsRuleId.SqlStringConcatenation, "string-only;null-propagating;left-to-right;eager-operands"),
             new(ExecutionSemanticsRuleId.TemporalValueSemantics, "clr-value-semantics"),
             new(ExecutionSemanticsRuleId.StrictCast, "invariant-culture"),
             new(ExecutionSemanticsRuleId.GroupingDistinctJoinSetEquality, "musoq-clr-v1")
         ]);
 
-    public static IReadOnlyList<ExecutionSemanticsContract> KnownContracts { get; } = [Version1];
+    public static ExecutionSemanticsContract Version2 { get; } = new(
+        2,
+        Version1.RuleDefinitions.Select(static rule => rule.Id switch
+        {
+            ExecutionSemanticsRuleId.NullLogic => rule with { Behavior = "sql-three-valued;left-to-right;short-circuit-and-or" },
+            ExecutionSemanticsRuleId.GroupingDistinctJoinSetEquality => rule with
+            {
+                Behavior = "musoq-clr-v1;union-left-first-representative;except-intersect-left-multiplicity"
+            },
+            _ => rule
+        }).Concat([
+                new(ExecutionSemanticsRuleId.ImplicitConversion, "lossless-domain-widening;pointwise-specificity;fixed-arity;non-generic;fewer-defaults;ambiguous-incomparable"),
+                new(ExecutionSemanticsRuleId.Coalesce, "bind-all-operands;unique-most-specific-common-type;lazy-fallback"),
+                new(ExecutionSemanticsRuleId.SubqueryExecution, "typed-lexical-captures;demand-scoped-apply;post-shaping-scalar-cardinality;three-valued-membership;post-shaping-any-some-all-three-valued-reduction"),
+                new(ExecutionSemanticsRuleId.InterpretationExpressions, "lossless-coalesce;lazy-three-valued-logic;checked-int32-cursor-domain;typed-parse-recovery;precise-partial-cursor;recursive-binary-values;direct-text-switch-values;payload-json-converters")
+            ]));
+
+    public static ExecutionSemanticsContract Current => Version2;
+
+    public static IReadOnlyList<ExecutionSemanticsContract> KnownContracts { get; } = [Version1, Version2];
 
     private static IEnumerable<ExecutionSemanticsRule> CreateRules(IReadOnlyDictionary<string, string> rules)
     {

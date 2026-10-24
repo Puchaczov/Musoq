@@ -31,6 +31,7 @@ internal sealed class PhysicalLoweringFacts
         CompilationOptions = compilationOptions ?? throw new ArgumentNullException(nameof(compilationOptions));
         CteExecutionPlan = cteExecutionPlan;
         ArgumentNullException.ThrowIfNull(executionArtifacts);
+        GeneratedTypePrefix = executionArtifacts.GeneratedTypePrefix;
         ExecutionStrategies = executionArtifacts.ExecutionStrategies ??
             throw new ArgumentNullException(nameof(executionArtifacts.ExecutionStrategies));
         SourceInteractionPlansBySourceId = new ReadOnlyDictionary<string, SourceInteractionPlan>(
@@ -46,6 +47,7 @@ internal sealed class PhysicalLoweringFacts
     }
 
     public ExecutionShapeResolver ShapeResolver { get; }
+    internal string GeneratedTypePrefix { get; }
 
     public SchemaRegistry? SchemaRegistry { get; }
 

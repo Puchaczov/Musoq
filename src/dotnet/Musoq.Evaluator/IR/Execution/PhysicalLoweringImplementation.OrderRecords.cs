@@ -79,7 +79,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var renumberFieldIndexes = ResolveRenumberFieldIndexes(materializedFields, workingShape);
 
         var boundedSelection = IsBoundedOrderSelection(selection);
-        ExecutionCapacityHint materializeCapacityHint = selection switch
+        ExecutionCapacityHint? materializeCapacityHint = selection switch
         {
             ExecutionTakeOrderRecordSelection take => ExecutionCapacityHintCandidates.CreateConstantCandidate(finalTable, take.Count),
             ExecutionSkipTakeOrderRecordSelection skipTake => ExecutionCapacityHintCandidates.CreateConstantCandidate(finalTable, skipTake.TakeCount),

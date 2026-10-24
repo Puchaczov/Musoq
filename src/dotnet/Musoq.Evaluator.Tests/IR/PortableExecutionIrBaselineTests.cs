@@ -44,11 +44,11 @@ public sealed class PortableExecutionIrBaselineTests
                 .Concat(clrShapedMembers.Select(static member => $"clr:{member}")));
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(inventory)));
         Assert.AreEqual(89, nodeCount);
-        Assert.AreEqual(50, expressionCount);
+        Assert.AreEqual(53, expressionCount);
         Assert.AreEqual(7, rowShapeCount);
         Assert.AreEqual(0, clrShapedMembers.Length);
         Assert.AreEqual(
-            "8FA1BC93C8D4F9B0DE3DF1F67877475DAA68E29845518BF6C1F6B54359ED9FC6",
+            "8CBB0F211787A33A7D7A7B1155F47097C10AA699B251BA4BD72A7A0CAA3CFD1D",
             hash,
             $"Current inventory hash: {hash}");
     }

@@ -166,6 +166,6 @@ internal static partial class LogicalPlanRewriter
             changed |= !ReferenceEquals(statements[index], multiStatement.Statements[index]);
         }
 
-        return changed ? new MultiStatementNode(statements) : multiStatement;
+        return changed ? new MultiStatementNode(statements) { IntermediateProducers = multiStatement.IntermediateProducers } : multiStatement;
     }
 }

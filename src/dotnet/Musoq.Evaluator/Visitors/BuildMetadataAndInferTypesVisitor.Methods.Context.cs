@@ -5,7 +5,6 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins.Attributes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
@@ -15,6 +14,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
     {
         var identifier = GetCurrentMethodResolutionIdentifier();
+        if (string.IsNullOrWhiteSpace(identifier) && string.IsNullOrWhiteSpace(node.Alias) &&
+            SourceArgumentContext is { Source: var source })
+            return CreateSourceArgumentMethodContext(source);
+
         if (string.IsNullOrWhiteSpace(identifier) && string.IsNullOrWhiteSpace(node.Alias))
             throw new AliasMissingException(
                 $"Method call '{node}' has no source owner. Move it to an APPLY after a source is bound.",
@@ -73,7 +76,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private string GetCurrentMethodResolutionIdentifier() =>
-        _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId)
+        _semanticState.Subqueries.HasCurrentProcessedQueryId()
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
             : _sourceBinding.Identifier;
 
@@ -116,8 +119,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (allCandidatesEquivalent)
             {
                 allCandidatesEquivalent = AreSameMethod(firstMethod, candidateMethod) &&
-                                          IsAliasIndependentInvocation(firstMethod) &&
-                                          IsAliasIndependentInvocation(candidateMethod);
+                                          SourceArgumentMethodValidation.IsAliasIndependent(firstMethod) &&
+                                          SourceArgumentMethodValidation.IsAliasIndependent(candidateMethod);
             }
         }
 
@@ -133,14 +136,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         RegisterMethodContextAssemblies(resolvedContext.Value.EntityType);
         context = resolvedContext.Value;
         return true;
-    }
-
-    private static bool IsAliasIndependentInvocation(MethodInfo method)
-    {
-        return !method.GetParameters()
-            .SelectMany(static parameter => parameter.GetCustomAttributes(true))
-            .Any(static attribute => attribute.GetType().Name is
-                nameof(InjectSpecificSourceAttribute) or "InjectSourceAttribute");
     }
 
     private void ReportAmbiguousMethodOwner(AccessMethodNode methodNode, IReadOnlyCollection<string> candidateAliases)

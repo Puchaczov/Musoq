@@ -346,7 +346,19 @@ namespace GeneratedSample_K52_TypedWideRangeJoinPartition
                                 string k91 = b.K9;
                                 decimal amount = a.Amount;
                                 decimal amount1 = b.Amount;
-                                if ((((((((((((k1 == k11) && (k2 == k21)) && (k3 == k31)) && (k4 == k41)) && (k5 == k51)) && (k6 == k61)) && (k7 == k71)) && (k8 == k81)) & Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) & (amount > amount1))) == true)
+                                if (((((bool?)((((bool?)((((((((k1 == k11) && (k2 == k21)) && (k3 == k31)) && (k4 == k41)) && (k5 == k51)) && (k6 == k61)) && (k7 == k71)) && (k8 == k81))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(amount > amount1),
+                                    _ => (bool?)(amount > amount1) & (bool?)null
+
+                                })) == true)
                                 {
                                     statement0.Add(new Statement0Row0(a.Position, amount, k1, k2, k3, k4, k5, k6, k7, k8, k9, b.Position, amount1, k11, k21, k31, k41, k51, k61, k71, k81, k91));
                                 }
@@ -389,7 +401,19 @@ namespace GeneratedSample_K52_TypedWideRangeJoinPartition
                                 string k91 = b.K9;
                                 decimal amount = a.Amount;
                                 decimal amount1 = b.Amount;
-                                if ((((((((((((k1 == k11) && (k2 == k21)) && (k3 == k31)) && (k4 == k41)) && (k5 == k51)) && (k6 == k61)) && (k7 == k71)) && (k8 == k81)) & Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) & (amount > amount1))) == true)
+                                if (((((bool?)((((bool?)((((((((k1 == k11) && (k2 == k21)) && (k3 == k31)) && (k4 == k41)) && (k5 == k51)) && (k6 == k61)) && (k7 == k71)) && (k8 == k81))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(amount > amount1),
+                                    _ => (bool?)(amount > amount1) & (bool?)null
+
+                                })) == true)
                                 {
                                     statement0.Add(new Statement0Row0(a.Position, amount, k1, k2, k3, k4, k5, k6, k7, k8, k9, b.Position, amount1, k11, k21, k31, k41, k51, k61, k71, k81, k91));
                                 }
@@ -430,7 +454,19 @@ namespace GeneratedSample_K52_TypedWideRangeJoinPartition
                         string k91 = b.K9;
                         decimal amount = a.Amount;
                         decimal amount1 = b.Amount;
-                        if ((((((((((((k1 == k11) && (k2 == k21)) && (k3 == k31)) && (k4 == k41)) && (k5 == k51)) && (k6 == k61)) && (k7 == k71)) && (k8 == k81)) & Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) & (amount > amount1))) == true)
+                        if (((((bool?)((((bool?)((((((((k1 == k11) && (k2 == k21)) && (k3 == k31)) && (k4 == k41)) && (k5 == k51)) && (k6 == k61)) && (k7 == k71)) && (k8 == k81))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(k9, k91, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(amount > amount1),
+                            _ => (bool?)(amount > amount1) & (bool?)null
+
+                        })) == true)
                         {
                             statement0.Add(new Statement0Row0(a.Position, amount, k1, k2, k3, k4, k5, k6, k7, k8, k9, b.Position, amount1, k11, k21, k31, k41, k51, k61, k71, k81, k91));
                         }

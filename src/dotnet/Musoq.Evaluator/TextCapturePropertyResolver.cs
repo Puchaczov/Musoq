@@ -27,11 +27,11 @@ internal static class TextCapturePropertyResolver
             return null;
 
         var fieldName = intendedTypeName[(markerIndex + captureMarker.Length)..];
-        var field = fields(schema).FirstOrDefault(candidate =>
+        var field = InterpretationTextFieldTypeResolver.EnumerateDefinitions(fields(schema)).FirstOrDefault(candidate =>
             candidate.FieldType == TextFieldType.Pattern &&
             string.Equals(candidate.Name, fieldName, StringComparison.OrdinalIgnoreCase));
         return field?.CaptureGroups.Any(group =>
-            string.Equals(group, propertyName, StringComparison.OrdinalIgnoreCase)) == true
+            string.Equals(group, propertyName, StringComparison.Ordinal)) == true
             ? (typeof(string), null)
             : null;
     }

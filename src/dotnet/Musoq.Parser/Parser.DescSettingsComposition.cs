@@ -21,6 +21,9 @@ public partial class Parser
             return new DescNode(fromNode, DescForType.Settings);
         }
 
+        if (Current is FunctionToken)
+            return new DescNode(ComposeDescriptionAliasCall(), DescForType.Settings);
+
         var targetToken = Current;
         var targetName = targetToken.Value;
         var hasHashPrefix = targetName.StartsWith('#');

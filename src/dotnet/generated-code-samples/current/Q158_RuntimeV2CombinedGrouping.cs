@@ -289,7 +289,13 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    if ((((finalGroup.__agg1.Count > 1) & (Operators.SqlCompare<decimal?, decimal?>(finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null, global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00"), (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))))) == true)
+                    if (((((bool?)(finalGroup.__agg1.Count > 1)) switch
+                    {
+                        false => (bool?)false,
+                        true => (bool?)(Operators.SqlCompare<decimal?, decimal?>(finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null, global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00"), (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))),
+                        _ => (bool?)(Operators.SqlCompare<decimal?, decimal?>(finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null, global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00"), (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) & (bool?)null
+
+                    })) == true)
                     {
                         result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
                     }

@@ -399,6 +399,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'BitsRepeatPacket'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class BitsRepeatPacket : BytesInterpreterBase<BitsRepeatPacket>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -439,8 +440,9 @@ namespace Musoq.Generated.Interpreters
             var __flags_iteration = 0;
             do
             {
-                EnsureRepeatIteration("Flags", __flags_iteration++);
-                __flags_lastElem = (byte)ReadBits(data, 1);
+                EnsureRepeatIteration("Flags", __flags_iteration++, 10000);
+                var __flags_lastElem_value = (byte)ReadBits(data, 1);
+                __flags_lastElem = __flags_lastElem_value;
                 __flags_list.Add(__flags_lastElem);
             }
             while (((__flags_lastElem == 0)) != true);

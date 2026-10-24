@@ -9,10 +9,6 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         ArgumentNullException.ThrowIfNull(node);
 
         node.Left.Accept(this);
-        if (Visitor is BuildMetadataAndInferTypesVisitor metadataVisitor &&
-            metadataVisitor.ShouldSkipCoalesceRightOperand())
-            return;
-
         node.Right.Accept(this);
         node.Accept(Visitor);
     }

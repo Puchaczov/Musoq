@@ -60,7 +60,7 @@ internal sealed partial class PhysicalLoweringImplementation
             new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
             storageType == columnType ? null : columnType,
             sourceReadType: columnType,
-            enumType: field.Expression.EnumType);
+            enumType: field.Expression.EnumType) { InterpretationShape = expression.InterpretationShape };
 
         var generatedTypeName = _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression) ??
                                 TryResolveGeneratedTypeName(expression, sourceLookup);
@@ -215,6 +215,7 @@ internal sealed partial class PhysicalLoweringImplementation
                                                  ContainsNullablePositionalFieldRead(branch.Result)) ||
                                              (caseWhen.ElseExpression != null &&
                                               ContainsNullablePositionalFieldRead(caseWhen.ElseExpression)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(ContainsNullablePositionalFieldRead),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsNullablePositionalFieldRead),
 
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsNullablePositionalFieldRead),

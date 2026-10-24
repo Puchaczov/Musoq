@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Musoq.Targets.CSharpClr;
 
-public sealed class CompiledQueryClassRenderer(RenderContext context)
+public sealed partial class CompiledQueryClassRenderer(RenderContext context)
 {
     private const string DefaultNamespaceName = "Query.Compiled";
     private const string DefaultClassName = "CompiledQuery";
@@ -63,61 +63,16 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 _context.IsMetadataOnly);
         }
 
-            return ClassEmitter.CreateClassDeclaration(
-                _context.Generator,
-                DefaultClassName,
-                members,
-                IsInstrumentationEnabled,
-                _context.EnableContextualExecution,
-                IsInstrumentationEnabled && _context.EnableContextualExecution,
-                _context.IsMetadataOnly);
+        return ClassEmitter.CreateClassDeclaration(
+            _context.Generator,
+            DefaultClassName,
+            members,
+            IsInstrumentationEnabled,
+            _context.EnableContextualExecution,
+            IsInstrumentationEnabled && _context.EnableContextualExecution,
+            _context.IsMetadataOnly);
     }
 
-    private IEnumerable<string> ResolveNamespaces(IReadOnlyList<SyntaxNode> members)
-    {
-        var usesFrozenSet = members.Any(UsesFrozenSet);
-        var usesQueryRowsRuntime = members.Any(UsesQueryRowsRuntime);
-        var usesStructuralInputs = members.Any(UsesStructuralInputs);
-        foreach (var namespaceName in DefaultNamespaces)
-        {
-            yield return namespaceName;
-            if (usesStructuralInputs && namespaceName == "Musoq.Schema")
-                yield return "Musoq.Schema.StructuralInputs";
-            if (usesQueryRowsRuntime && namespaceName == "Musoq.Evaluator.Helpers")
-                yield return "Musoq.Evaluator.Runtime";
-            if (usesFrozenSet && namespaceName == "System.Collections.Generic")
-                yield return "System.Collections.Frozen";
-            if (IsInstrumentationEnabled && namespaceName == "Musoq.Evaluator")
-                yield return "Musoq.Evaluator.Diagnostics";
-            if (IsInstrumentationEnabled && namespaceName == "Musoq.Schema")
-                yield return "Musoq.Schema.Diagnostics";
-        }
-    }
-
-    private static bool UsesFrozenSet(SyntaxNode node)
-    {
-        return node.DescendantNodesAndSelf()
-            .OfType<GenericNameSyntax>()
-            .Any(static name => name.Identifier.ValueText == "FrozenSet");
-    }
-
-    private static bool UsesQueryRowsRuntime(SyntaxNode node)
-    {
-        return node.DescendantNodesAndSelf()
-            .OfType<SimpleNameSyntax>()
-            .Any(static name => name.Identifier.ValueText is "QueryRows" or "QueryTableEnumerable" or "QueryEnumerable");
-    }
-
-    private static bool UsesStructuralInputs(SyntaxNode node)
-    {
-        return node.DescendantNodesAndSelf()
-            .OfType<SimpleNameSyntax>()
-            .Any(static name => name.Identifier.ValueText is
-                "StructuralTypeDescriptor" or
-                "StructuralFieldDescriptor" or
-                "StructuralDefaultDescriptor" or
-                "StructuralValue");
-    }
     private List<SyntaxNode> CreateClassMembers(
         string computeMethodName,
         int inMemoryTableCount,

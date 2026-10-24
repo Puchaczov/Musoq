@@ -13,6 +13,37 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
     [TestMethod]
+    public void RewritingIntermediateStatements_ShouldPreserveProducerBindings()
+    {
+        var scan = CreateScan();
+        var plan = new PhysicalMultiStatementNode([scan])
+        {
+            IntermediateProducers = [new(new(new(7), "producer"), 0)]
+        };
+        var rewritten = (PhysicalMultiStatementNode)Musoq.Evaluator.IR.Physical.Rewriting.PhysicalPlanRewriter
+            .RewriteChildren(plan, _ => CreateScan("renamed"));
+        CollectionAssert.AreEqual(plan.IntermediateProducers.ToArray(), rewritten.IntermediateProducers.ToArray());
+    }
+
+    [TestMethod]
+    public void IntermediateProducerBindings_ShouldUseDeclarationIndexRatherThanReferenceOrder()
+    {
+        var first = new PhysicalCteRefNode("second", "s", new OutputSchema([])) { IntermediateProducerId = new(2) };
+        var second = new PhysicalCteRefNode("first", "f", new OutputSchema([])) { IntermediateProducerId = new(1) };
+        var plan = new PhysicalMultiStatementNode([CreateScan(), CreateScan(), first, second])
+        {
+            IntermediateProducers = [new(new(new(1), "first"), 0), new(new(new(2), "second"), 1)]
+        };
+        var bindings = Musoq.Evaluator.IR.Planning.IntermediateSourceProducers.Resolve(plan);
+        Assert.AreEqual(0, bindings["first"]);
+        Assert.AreEqual(1, bindings["second"]);
+        var remapped = Musoq.Evaluator.IR.Planning.IntermediateSourceProducers.Remap(plan, [1, 2, 3]);
+        Assert.HasCount(1, remapped);
+        Assert.AreEqual(new IntermediateProducerId(2), remapped[0].Source.ProducerId);
+        Assert.AreEqual(0, remapped[0].StatementIndex);
+    }
+
+    [TestMethod]
     public void Build_WhenPlanUsesReadOnceProjectionCte_ShouldFuseCteTable()
     {
         var scan = CreateScan();
@@ -65,7 +96,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         [
             new ColumnSchema("Name", typeof(string), 0),
             new ColumnSchema("Age", typeof(int), 1)
-        ]));
+        ])) { IntermediateProducerId = new IntermediateProducerId(0) };
         var filter = new PhysicalFilterNode(
             new BinaryOp(
                 BinaryOpKind.GreaterThan,
@@ -78,7 +109,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             filter);
         var builder = CreateBuilder();
 
-        var result = builder.Build(new PhysicalMultiStatementNode([producer, query]), "Q_SingleUseProjectionChain");
+        var result = builder.Build(new PhysicalMultiStatementNode([producer, query]) { IntermediateProducers = [new(new(new(0), "people"), 0)] }, "Q_SingleUseProjectionChain");
         var plan = RequireExecutionPlan(result);
         var initialText = ExecutionPlanPrinter.Print(plan);
         var optimizedText = ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan);

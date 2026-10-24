@@ -84,7 +84,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (string.IsNullOrEmpty(name))
             return false;
 
-        var hasProcessedQueryId = _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+        var hasProcessedQueryId = _semanticState.Subqueries.HasCurrentProcessedQueryId();
         var identifier = hasProcessedQueryId
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
             : _sourceBinding.Identifier;

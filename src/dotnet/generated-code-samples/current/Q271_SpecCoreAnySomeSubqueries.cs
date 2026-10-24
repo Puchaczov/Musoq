@@ -5,139 +5,84 @@ select a.City, a.Country = ANY (select b.Country from #B.entities() b) as AnyMat
 
 // === Logical Plan ===
 /*
-Cte
-  Definition [_sq_1]
-    MultiStatement
-      Project [b.Country as Country]
-        SchemaScan [#B.entities() as b]
-  Definition [_sq_2]
-    MultiStatement
-      Project [1 as _sq_2_key, c.Population as _sq_2_corr_0]
-        Filter [c.Population IS NOT NULL]
-          SchemaScan [#C.entities() as c]
-  Query
-    MultiStatement
-      Project [a.City as a.City, a.Country as a.Country, a.Population as a.Population, _sq_1.Country as _sq_1.Country]
-        Join [LeftMark] [(a.Country = _sq_1.Country)]
-          SchemaScan [#A.entities() as a]
-          CteRef [_sq_1 as _sq_1]
-      Project [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1.a.Population as a.Population, a_sq_1._sq_1.Country as _sq_1.Country, _sq_2._sq_2_key as _sq_2_key, _sq_2._sq_2_corr_0 as _sq_2_corr_0]
-        Join [LeftMark] [((1 = _sq_2._sq_2_key) AND (a_sq_1.a.Population IS NOT NULL AND (a_sq_1.a.Population > _sq_2._sq_2_corr_0)))]
-          CteRef [a_sq_1 as a_sq_1]
-          CteRef [_sq_2 as _sq_2]
-      Project [a.City as City, _sq_1.Country IS NOT NULL as AnyMatch, _sq_2._sq_2_key IS NOT NULL as SomeMatch]
-        CteRef [a_sq_1_sq_2 as a_sq_1_sq_2]
+MultiStatement
+  Project [a.City as City, ApplyAny<Equal>[Subquery0](a.Country; MultiStatement
+  Project [b.Country as Country]
+    SchemaScan [#B.entities() as b]) as AnyMatch, ApplyAny<GreaterThan>[Subquery1](a.Population; MultiStatement
+  Project [c.Population as Population]
+    SchemaScan [#C.entities() as c]) as SomeMatch]
+    SchemaScan [#A.entities() as a]
 */
 
 // === Physical Plan ===
 /*
-PhysicalCte
-  Definition [_sq_1]
-    PhysicalMultiStatement
-      PhysicalProject [b.Country as Country]
-        PhysicalSchemaScan [#B.entities() as b]
-  Definition [_sq_2]
-    PhysicalMultiStatement
-      PhysicalProject [1 as _sq_2_key, c.Population as _sq_2_corr_0]
-        PhysicalFilter [c.Population IS NOT NULL]
-          PhysicalSchemaScan [#C.entities() as c]
-  Query
-    PhysicalMultiStatement
-      PhysicalProject [a.City as a.City, a.Country as a.Country, a.Population as a.Population, _sq_1.Country as _sq_1.Country]
-        PhysicalHashJoin [LeftMark] [build: _sq_1.Country] [probe: a.Country]
-          PhysicalSchemaScan [#A.entities() as a]
-          PhysicalCteRef [_sq_1 as _sq_1]
-      PhysicalProject [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1.a.Population as a.Population, a_sq_1._sq_1.Country as _sq_1.Country, _sq_2._sq_2_key as _sq_2_key, _sq_2._sq_2_corr_0 as _sq_2_corr_0]
-        PhysicalSortMergeJoin [LeftMark] [left: a_sq_1.a.Population] [right: _sq_2._sq_2_corr_0] [op: >] [residual: ((1 = _sq_2._sq_2_key) AND (a_sq_1.a.Population IS NOT NULL AND (a_sq_1.a.Population > _sq_2._sq_2_corr_0)))]
-          PhysicalCteRef [a_sq_1 as a_sq_1]
-          PhysicalCteRef [_sq_2 as _sq_2]
-      PhysicalProject [a.City as City, _sq_1.Country IS NOT NULL as AnyMatch, _sq_2._sq_2_key IS NOT NULL as SomeMatch]
-        PhysicalCteRef [a_sq_1_sq_2 as a_sq_1_sq_2]
+PhysicalMultiStatement
+  PhysicalProject [a.City as City, ApplyAny<Equal>[Subquery0](a.Country; MultiStatement
+  Project [b.Country as Country]
+    SchemaScan [#B.entities() as b]) as AnyMatch, ApplyAny<GreaterThan>[Subquery1](a.Population; MultiStatement
+  Project [c.Population as Population]
+    SchemaScan [#C.entities() as c]) as SomeMatch]
+    PhysicalSchemaScan [#A.entities() as a]
 */
 
 // === Execution Plan ===
 /*
 ExecutionPlan [compiled]
   Shapes
-    SourceEntity [c: BasicEntity]
-      Population: decimal <- property Population
-    Generated [Cte1Row0]
-      _sq_2_key: int <- field _sq_2_key
-      _sq_2_corr_0: decimal <- field _sq_2_corr_0
     SourceEntity [a: BasicEntity]
       City: string <- property City
       Country: string <- property Country
       Population: decimal <- property Population
-    SourceEntity [b: BasicEntity]
-      Country: string <- property Country
-    TableRow [_sq_1]
-      Country: string <- field Country
-    Generated [Statement0Row0]
-      a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      a.Population: decimal <- field a_Population
-      _sq_1.Country: string <- field _sq_1_Country
-    TableRow [a_sq_1]
-      a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      a.Population: decimal <- field a_Population
-      _sq_1.Country: string <- field _sq_1_Country
-    TableRow [_sq_2]
-      _sq_2_key: int <- field _sq_2_key
-      _sq_2_corr_0: decimal <- field _sq_2_corr_0
     Generated [ResultRow0]
       City: string <- field City
-      AnyMatch: bool <- field AnyMatch
-      SomeMatch: bool <- field SomeMatch
+      AnyMatch: bool? <- field AnyMatch
+      SomeMatch: bool? <- field SomeMatch
 
   Body
     PhaseBoundary [Begin]
     PhaseBoundary [From]
-    PhaseBoundary [Begin:cte1]
-    PhaseBoundary [Begin:cte0]
-    PhaseBoundary [End:cte0]
-    PhaseBoundary [From:cte1]
-    SourceScan [c: BasicEntity] -> cte1_cRows
-    CreateTable [cte1: Cte1Row0]
-    PhaseBoundary [Where:cte1]
-    PhaseBoundary [Select:cte1]
-    ChunkedForEach [c in cte1_cRows]
-      Let [population: decimal = c.Population]
-      If [population IS NOT NULL]
-        AppendRow [cte1 <- Cte1Row0(_sq_2_key: 1, _sq_2_corr_0: population)]
-    StoreTable [cte1 -> _cteRowResults.Slot1: List<Cte1Row0>]
-    PhaseBoundary [End:cte1]
-    PhaseBoundary [Begin:cte2]
-    SourceScan [a: BasicEntity] -> statement0_aRows
-    SourceScan [b: BasicEntity] -> cte0_bRows
-    CreateTable [statement0: Statement0Row0]
-    CreateKeySet [statement0_sq_1Keys: string]
-    ChunkedForEach [b in cte0_bRows]
-      KeySetAdd [statement0_sq_1Keys += b.Country]
-    ChunkedForEach [a in statement0_aRows]
-      KeySetProbe [statement0_sq_1Keys[a.Country]]
-        Let [country: string = a.Country]
-        AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: country, a.Population: a.Population, _sq_1.Country: country)]
-      KeySetProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, a.Population: a.Population, _sq_1.Country: NULL)]
-    StoreTable [statement0 -> _cteRowResults.Slot2: List<Statement0Row0>]
-    PhaseBoundary [End:cte2]
-    PhaseBoundary [Select]
-    PhaseBoundary [Begin:cte3]
+    SourceScan [a: BasicEntity] -> aRows
     CreateShapeRows [result: ResultRow0 from ResultRow0]
-    CreateRangeIndex [resultRangeIndex <- _cteRowResults.Slot1 by _sq_2RangeCandidate._sq_2_corr_0 >]
-    ForEach [a_sq_1 in _cteRowResults.Slot2]
-      RangeProbe [_sq_2 <- resultRangeIndex where a_sq_1.a.Population] [match: resultRangeHasMatch]
-        Let [_sq_2_key: int? = _sq_2._sq_2_key]
-        Let [a_Population: decimal = a_sq_1.a.Population]
-        If [((1 = _sq_2_key) AND (a_Population IS NOT NULL AND (a_Population > _sq_2._sq_2_corr_0)))]
-          Assign [resultRangeHasMatch = TRUE]
-          AppendShape [result <- ResultRow0(City: a_sq_1.a.City, AnyMatch: a_sq_1._sq_1.Country IS NOT NULL, SomeMatch: _sq_2_key IS NOT NULL)]
-          Break
-      RangeProbeNoMatch
-        AppendShape [result <- ResultRow0(City: a_sq_1.a.City, AnyMatch: a_sq_1._sq_1.Country IS NOT NULL, SomeMatch: FALSE)]
-    PhaseBoundary [End:cte3]
+    PhaseBoundary [Select]
+    ChunkedForEach [a in aRows]
+      AppendShape [result <- ResultRow0(City: a.City, AnyMatch: ApplyAny<Equal>(a.Country)[Subquery0](), SomeMatch: ApplyAny<GreaterThan>(a.Population)[Subquery1]())]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
+
+  Subquery
+ExecutionPlan [Subquery0]
+  Shapes
+    SourceEntity [b: BasicEntity]
+      Country: string <- property Country
+    Generated [Subquery0ResultRow0]
+      Country: string <- field Country
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    SourceScan [b: BasicEntity] -> bRows
+    CreateShapeRows [result: Subquery0ResultRow0 from Subquery0ResultRow0]
+    PhaseBoundary [Select]
+    ChunkedForEach [b in bRows]
+      AppendShape [result <- Subquery0ResultRow0(Country: b.Country)]
+    ReturnDeferredTable [result: Subquery0ResultRow0 <- Subquery0ResultRow0]
+
+  Subquery
+ExecutionPlan [Subquery1]
+  Shapes
+    SourceEntity [c: BasicEntity]
+      Population: decimal <- property Population
+    Generated [Subquery1ResultRow0]
+      Population: decimal <- field Population
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    SourceScan [c: BasicEntity] -> cRows
+    CreateShapeRows [result: Subquery1ResultRow0 from Subquery1ResultRow0]
+    PhaseBoundary [Select]
+    ChunkedForEach [c in cRows]
+      AppendShape [result <- Subquery1ResultRow0(Population: c.Population)]
+    ReturnDeferredTable [result: Subquery1ResultRow0 <- Subquery1ResultRow0]
 */
 
 // === Generated C# ===
@@ -161,27 +106,23 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
 
     public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
     {
-        private static readonly Column[] __columns_compiled_cte1_1 = new Column[]
+        private static readonly Column[] __columns_Subquery0_result_1 = new Column[]
         {
-            new Column("_sq_2_key", typeof(int), 0),
-            new Column("_sq_2_corr_0", typeof(decimal), 1)
+            new Column("Country", typeof(string), 0)
         };
-        private static readonly Column[] __columns_compiled_result_5 = new Column[]
+        private static readonly Column[] __columns_Subquery1_result_1 = new Column[]
+        {
+            new Column("Population", typeof(decimal), 0)
+        };
+        private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
             new Column("City", typeof(string), 0),
-            new Column("AnyMatch", typeof(bool), 1),
-            new Column("SomeMatch", typeof(bool), 2)
+            new Column("AnyMatch", typeof(bool?), 1),
+            new Column("SomeMatch", typeof(bool?), 2)
         };
-        private static readonly Column[] __columns_compiled_statement0_4 = new Column[]
-        {
-            new Column("a.City", typeof(string), 0),
-            new Column("a.Country", typeof(string), 1),
-            new Column("a.Population", typeof(decimal), 2),
-            new Column("_sq_1.Country", typeof(string), 3)
-        };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Population", typeof(decimal), 2) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Country", typeof(string), 0) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Population", typeof(decimal), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Subquery0_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Country", typeof(string), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Subquery1_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Population", typeof(decimal), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Population", typeof(decimal), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
@@ -196,75 +137,24 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_5, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
-            {
-                yield return __musoqShapeRow;
-            }
-        }
-
-        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
-        {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
             Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
-            try
-            {
-                var _cteRowResults = new CteRowResults();
-                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
-                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultRow0>();
-                OnPhaseChanged("compiled", QueryPhase.Begin);
-                OnPhaseChanged("compiled", QueryPhase.From);
-                _cteRowResults.Slot1 = BuildCte1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
-                _cteRowResults.Slot2 = BuildCte2(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
-                OnPhaseChanged("compiled", QueryPhase.Select);
-                OnPhaseChanged("compiled:cte3", QueryPhase.Begin);
-                try
-                {
-                    var resultRangeIndex = EvaluationHelper.CreateRangeJoinIndex<Cte1Row0, decimal?>(_cteRowResults.Slot1, (_sq_2RangeCandidate) => _sq_2RangeCandidate._sq_2_corr_0, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterThan);
-                    var __storedTable2Rows = _cteRowResults.Slot2;
-                    for (int __storedTable2Index = 0; __storedTable2Index < __storedTable2Rows.Count; ++__storedTable2Index)
-                    {
-                        if ((__storedTable2Index & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        Statement0Row0 a_sq_1 = __storedTable2Rows[__storedTable2Index];
-                        {
-                            bool resultRangeHasMatch = false;
-                            foreach (var _sq_2 in resultRangeIndex.Find(a_sq_1.a_Population))
-                            {
-                                int? _sq_2_key = _sq_2._sq_2_key;
-                                decimal a_Population = a_sq_1.a_Population;
-                                if (((Operators.SqlCompare<int, int?>(1, _sq_2_key, (int __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & ((a_Population != null) & Operators.SqlCompare<decimal, decimal?>(a_Population, _sq_2._sq_2_corr_0, (decimal __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))))) == true)
-                                {
-                                    resultRangeHasMatch = true;
-                                    __musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, (a_sq_1._sq_1_Country != null), (_sq_2_key != null)));
-                                    break;
-                                }
-                            }
-
-                            if (!resultRangeHasMatch)
-                            {
-                                __musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, (a_sq_1._sq_1_Country != null), false));
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    OnPhaseChanged("compiled:cte3", QueryPhase.End);
-                }
-
-                return __musoqFinalShapeRows;
-            }
-            finally
+            var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+            ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
+            var __aSchema = provider.GetSchema("#A");
+            var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__aSchema, "entities", new SourceExecutionContext("a:3", sourceExecutionPlans["a:3"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+            var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:3") : aRowsSource.Chunks;
+            var __musoqTableSourceRows = aRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (a) => true, (a) => new ResultRow0(a.City, global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<Subquery0ResultRow0, string, string>(a.Country, __ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static row => (string)row.Country, static (left, right) => Operators.SqlCompare<string, string>(left, right, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)), token), global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<Subquery1ResultRow0, decimal, decimal>(a.Population, __ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static row => (decimal)row.Population, static (left, right) => (left > right), token)), token), token, onCompleted: () =>
             {
                 try
                 {
@@ -274,7 +164,27 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                 {
                     OnPhaseChanged("compiled", QueryPhase.End);
                 }
-            }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onDisposed: () =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            });
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -289,102 +199,17 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte1Row0> BuildCte1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        private static IEnumerable<Subquery0ResultRow0> __ExecuteSubquery0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged)
         {
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
             try
             {
-                var __cte1_cSchema = provider.GetSchema("#C");
-                var cte1_cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte1_cSchema, "entities", new SourceExecutionContext("c:3", sourceExecutionPlans["c:3"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["c:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
-                var cte1_cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_cRowsSource.Chunks, __musoqProgressContext, "c:3") : cte1_cRowsSource.Chunks;
-                var cte1 = new List<Cte1Row0>();
-                foreach (var cChunk in cte1_cRows)
-                {
-                    if (cChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> cChunkView)
-                    {
-                        if (cChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] cChunkViewArray)
-                        {
-                            int cChunkViewOffset = cChunkView.Offset;
-                            for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
-                            {
-                                if ((cIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var c = cChunkViewArray[cChunkViewOffset + cIndex];
-                                decimal population = c.Population;
-                                if ((population != null))
-                                {
-                                    cte1.Add(new Cte1Row0(1, population));
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (cChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> cChunkViewList)
-                        {
-                            int cChunkViewOffset = cChunkView.Offset;
-                            for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
-                            {
-                                if ((cIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var c = cChunkViewList[cChunkViewOffset + cIndex];
-                                decimal population = c.Population;
-                                if ((population != null))
-                                {
-                                    cte1.Add(new Cte1Row0(1, population));
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int cIndex = 0, cIndexCount = cChunk.Count; cIndex < cIndexCount; ++cIndex)
-                    {
-                        if ((cIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var c = cChunk[cIndex];
-                        decimal population = c.Population;
-                        if ((population != null))
-                        {
-                            cte1.Add(new Cte1Row0(1, population));
-                        }
-                    }
-                }
-
-                return cte1;
-            }
-            finally
-            {
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-            }
-        }
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement0Row0> BuildCte2(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
-        {
-            OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
-            try
-            {
-                var __statement0_aSchema = provider.GetSchema("#A");
-                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__statement0_aSchema, "entities", new SourceExecutionContext("a:3", sourceExecutionPlans["a:3"], token, __schemaColumns_compiled_a_2, sourceRuntimeSettingsBySourceContextId["a:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:3") : statement0_aRowsSource.Chunks;
-                var __cte0_bSchema = provider.GetSchema("#B");
-                var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_3, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
-                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
-                var statement0 = new List<Statement0Row0>();
-                var statement0_sq_1Keys = new HashSet<string>();
-                foreach (var bChunk in cte0_bRows)
+                OnPhaseChanged("Subquery0", QueryPhase.Begin);
+                OnPhaseChanged("Subquery0", QueryPhase.From);
+                var __bSchema = provider.GetSchema("#B");
+                var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_Subquery0_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:2") : bRowsSource.Chunks;
+                OnPhaseChanged("Subquery0", QueryPhase.Select);
+                foreach (var bChunk in bRows)
                 {
                     if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
@@ -399,10 +224,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                                 }
 
                                 var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                string key = b.Country;
-                                if (key == null)
-                                    continue;
-                                statement0_sq_1Keys.Add(key);
+                                yield return new Subquery0ResultRow0(b.Country);
                             }
 
                             continue;
@@ -419,10 +241,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                                 }
 
                                 var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                string key = b.Country;
-                                if (key == null)
-                                    continue;
-                                statement0_sq_1Keys.Add(key);
+                                yield return new Subquery0ResultRow0(b.Country);
                             }
 
                             continue;
@@ -437,138 +256,118 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                         }
 
                         var b = bChunk[bIndex];
-                        string key = b.Country;
-                        if (key == null)
-                            continue;
-                        statement0_sq_1Keys.Add(key);
+                        yield return new Subquery0ResultRow0(b.Country);
                     }
                 }
-
-                foreach (var aChunk in statement0_aRows)
+            }
+            finally
+            {
+                try
                 {
-                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("Subquery0", QueryPhase.End);
+                }
+            }
+        }
+
+        private static IEnumerable<Subquery1ResultRow0> __ExecuteSubquery1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged)
+        {
+            try
+            {
+                OnPhaseChanged("Subquery1", QueryPhase.Begin);
+                OnPhaseChanged("Subquery1", QueryPhase.From);
+                var __cSchema = provider.GetSchema("#C");
+                var cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cSchema, "entities", new SourceExecutionContext("c:3", sourceExecutionPlans["c:3"], token, __schemaColumns_Subquery1_c_0, sourceRuntimeSettingsBySourceContextId["c:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cRowsSource.Chunks, __musoqProgressContext, "c:3") : cRowsSource.Chunks;
+                OnPhaseChanged("Subquery1", QueryPhase.Select);
+                foreach (var cChunk in cRows)
+                {
+                    if (cChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> cChunkView)
                     {
-                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        if (cChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] cChunkViewArray)
                         {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            int cChunkViewOffset = cChunkView.Offset;
+                            for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
                             {
-                                if ((aIndex & 1023) == 0)
+                                if ((cIndex & 1023) == 0)
                                 {
                                     token.ThrowIfCancellationRequested();
                                 }
 
-                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                string key = a.Country;
-                                if (key != null && statement0_sq_1Keys.Contains(key))
-                                {
-                                    string country = a.Country;
-                                    statement0.Add(new Statement0Row0(a.City, country, a.Population, country));
-                                }
-                                else
-                                {
-                                    statement0.Add(new Statement0Row0(a.City, a.Country, a.Population, null));
-                                }
+                                var c = cChunkViewArray[cChunkViewOffset + cIndex];
+                                yield return new Subquery1ResultRow0(c.Population);
                             }
 
                             continue;
                         }
 
-                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
+                        if (cChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> cChunkViewList)
                         {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            int cChunkViewOffset = cChunkView.Offset;
+                            for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
                             {
-                                if ((aIndex & 1023) == 0)
+                                if ((cIndex & 1023) == 0)
                                 {
                                     token.ThrowIfCancellationRequested();
                                 }
 
-                                var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                string key = a.Country;
-                                if (key != null && statement0_sq_1Keys.Contains(key))
-                                {
-                                    string country = a.Country;
-                                    statement0.Add(new Statement0Row0(a.City, country, a.Population, country));
-                                }
-                                else
-                                {
-                                    statement0.Add(new Statement0Row0(a.City, a.Country, a.Population, null));
-                                }
+                                var c = cChunkViewList[cChunkViewOffset + cIndex];
+                                yield return new Subquery1ResultRow0(c.Population);
                             }
 
                             continue;
                         }
                     }
 
-                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                    for (int cIndex = 0, cIndexCount = cChunk.Count; cIndex < cIndexCount; ++cIndex)
                     {
-                        if ((aIndex & 1023) == 0)
+                        if ((cIndex & 1023) == 0)
                         {
                             token.ThrowIfCancellationRequested();
                         }
 
-                        var a = aChunk[aIndex];
-                        string key = a.Country;
-                        if (key != null && statement0_sq_1Keys.Contains(key))
-                        {
-                            string country = a.Country;
-                            statement0.Add(new Statement0Row0(a.City, country, a.Population, country));
-                        }
-                        else
-                        {
-                            statement0.Add(new Statement0Row0(a.City, a.Country, a.Population, null));
-                        }
+                        var c = cChunk[cIndex];
+                        yield return new Subquery1ResultRow0(c.Population);
                     }
                 }
-
-                return statement0;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte2", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("Subquery1", QueryPhase.End);
+                }
             }
-        }
-
-        private sealed class Cte1Row0
-        {
-            public Cte1Row0(int __value0, decimal __value1)
-            {
-                _sq_2_key = __value0;
-                _sq_2_corr_0 = __value1;
-            }
-
-            public decimal _sq_2_corr_0 { get; }
-            public int _sq_2_key { get; }
-        }
-
-        private sealed class CteRowResults
-        {
-            public List<Cte1Row0> Slot1;
-            public List<Statement0Row0> Slot2;
         }
 
         private sealed class ResultRow0 : Row
         {
-            public ResultRow0(string __value0, bool __value1, bool __value2)
+            public ResultRow0(string __value0, bool? __value1, bool? __value2)
             {
                 City = __value0;
                 AnyMatch = __value1;
                 SomeMatch = __value2;
             }
 
-            public bool AnyMatch { get; private set; }
+            public bool? AnyMatch { get; private set; }
             public string City { get; private set; }
             public override int Count => 3;
-            public bool SomeMatch { get; private set; }
+            public bool? SomeMatch { get; private set; }
 
             public override void AssignValue<T>(int columnNumber, T value)
             {
                 global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
                 {
                     0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
-                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.AnyMatch = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool, T>(value)),
-                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.SomeMatch = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool?>(this.AnyMatch = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool?>(this.SomeMatch = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool?, T>(value)),
                     _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
                 });
             }
@@ -576,8 +375,8 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             public override T GetValue<T>(int columnIndex) => columnIndex switch
             {
                 0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
-                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.AnyMatch),
-                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.SomeMatch),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool?>(this.AnyMatch),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool?>(this.SomeMatch),
                 _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
             };
             public override bool HasColumn(string name) => name switch
@@ -596,20 +395,76 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             }
         }
 
-        private sealed class Statement0Row0
+        private sealed class Subquery0ResultRow0 : Row
         {
-            public Statement0Row0(string __value0, string __value1, decimal __value2, string __value3)
+            public Subquery0ResultRow0(string __value0)
             {
-                a_City = __value0;
-                a_Country = __value1;
-                a_Population = __value2;
-                _sq_1_Country = __value3;
+                Country = __value0;
             }
 
-            public string _sq_1_Country { get; }
-            public string a_City { get; }
-            public string a_Country { get; }
-            public decimal a_Population { get; }
+            public override int Count => 1;
+            public string Country { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Country = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Country),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Country" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Country, ref visitor);
+            }
+        }
+
+        private sealed class Subquery1ResultRow0 : Row
+        {
+            public Subquery1ResultRow0(decimal __value0)
+            {
+                Population = __value0;
+            }
+
+            public override int Count => 1;
+            public decimal Population { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Population = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Population),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Population" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Population, ref visitor);
+            }
         }
     }
 }

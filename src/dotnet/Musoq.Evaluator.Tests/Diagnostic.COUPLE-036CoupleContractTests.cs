@@ -14,6 +14,23 @@ namespace Musoq.Evaluator.Tests;
 public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBase
 {
     [TestMethod]
+    public void TableCoupleAndCteNames_ShouldUseTheirOwnSourcePositions()
+    {
+        const string query =
+            "table Rows { Value: int };" +
+            "couple test.whatever with table Rows as Rows;" +
+            "with Rows as (select 9 as Value from test.whatever()) " +
+            "select c.Value, t.Value from Rows c cross join rOwS() t;";
+
+        var table = CreateAndRunVirtualMachine(
+                query,
+                [new Dictionary<string, object?> { ["Value"] = 7 }])
+            .Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [9, 7]);
+    }
+
+    [TestMethod]
     public void CoupleTableOnly_ShouldUseTheDeclaredTableShape()
     {
         const string query =

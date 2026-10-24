@@ -13,7 +13,7 @@ public sealed record ExecutionCreateHashPayload : ExecutionNode
     {
         Payload = payload;
         PayloadShape = payloadShape;
-        Values = ExecutionIrCollections.Freeze(values);
+        Values = values;
     }
 
     public ExecutionVariable Payload { get; init; }

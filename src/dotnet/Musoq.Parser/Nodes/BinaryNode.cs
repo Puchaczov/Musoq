@@ -112,7 +112,8 @@ public abstract class BinaryNode : Node
         if (this is HyphenNode && IsTemporalNullableOperation(leftType, rightType))
             return true;
 
-        return IsAggregateAccess(Left) || IsAggregateAccess(Right);
+        return this is AddNode or HyphenNode or StarNode or FSlashNode or ModuloNode ||
+               IsAggregateAccess(Left) || IsAggregateAccess(Right);
     }
 
     private static bool IsTemporalNullableOperation(Type leftType, Type rightType)

@@ -25,11 +25,6 @@ public abstract partial class TextInterpreterBase<TOut>
             return new PartialInterpretResult<TOut>(_partialParsedValue, parsedFields, CharsConsumed,
                 ex.FieldName ?? _currentFieldName ?? "Unknown", ex.GetPartialInterpretationMessage());
         }
-        catch (Exception ex)
-        {
-            return new PartialInterpretResult<TOut>(_partialParsedValue, parsedFields, CharsConsumed,
-                _currentFieldName ?? "Unknown", ex.Message);
-        }
         finally
         {
             EndPartialCapture(captureState);

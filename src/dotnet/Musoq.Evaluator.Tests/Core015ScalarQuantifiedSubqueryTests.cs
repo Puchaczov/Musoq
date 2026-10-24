@@ -149,75 +149,31 @@ public sealed class Core015ScalarQuantifiedSubqueryTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void NonEqualityQuantifiedSetOperator_ShouldReportExactUnsupportedContract()
+    public void NonEqualityQuantifiedSetOperator_ShouldExecuteTheShapedSet()
     {
-        const string query = "select a.City from #A.Entities() a where a.Population > any (select b.Population from #B.Entities() b union (Population) select c.Population from #C.Entities() c)";
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
-        var envelope = exception.PrimaryEnvelope;
-        var expectedStart = query.IndexOf("Population", query.IndexOf("select b.Population", StringComparison.Ordinal), StringComparison.Ordinal);
-        var expectedEnd = query.IndexOf("c.Population", expectedStart, StringComparison.Ordinal) + "c.Population".Length - 1;
-
-        Assert.AreEqual(DiagnosticCode.MQ2024_InvalidSubquery, envelope.Code);
-        Assert.AreEqual(DiagnosticPhase.Parse, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
-        Assert.AreEqual(expectedStart, envelope.Offset);
-        Assert.AreEqual(expectedEnd - expectedStart + 1, envelope.Length);
-        StringAssert.Contains(envelope.Message, "Quantified subqueries over set operators are not supported yet.");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
-        Assert.AreEqual(
-            "A subquery is malformed or appears in a location where this parser path cannot accept it.",
-            envelope.Explanation);
-        Assert.AreEqual("Core Spec - Subqueries", envelope.DocsReference);
-        AssertGenericSubqueryFixes(envelope);
+        const string query = "select a.City from #A.Entities() a where a.Population > any (select b.Population from #B.Entities() b union (Population) select c.Population from #C.Entities() c) order by a.City";
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN"], ["PARIS"], ["WARSAW"]);
     }
 
     [TestMethod]
-    public void CorrelatedScalarSetBranchesWithDifferentKeys_ShouldReportExactContract()
+    public void CorrelatedScalarSetBranchesWithDifferentKeys_ShouldEnforceRuntimeCardinality()
     {
         const string query = "select a.City, (select b.City from #B.Entities() b where b.Country = a.Country union (City) select c.City from #C.Entities() c where c.City = a.City) as MatchCity from #A.Entities() a";
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
-        var envelope = exception.PrimaryEnvelope;
-        var expectedStart = query.IndexOf("City", query.IndexOf("select b.City", StringComparison.Ordinal), StringComparison.Ordinal);
-        var expectedEnd = query.LastIndexOf("a.City", StringComparison.Ordinal) + "a.City".Length - 1;
-
-        Assert.AreEqual(DiagnosticCode.MQ2024_InvalidSubquery, envelope.Code);
-        Assert.AreEqual(DiagnosticPhase.Parse, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
-        Assert.AreEqual(expectedStart, envelope.Offset);
-        Assert.AreEqual(expectedEnd - expectedStart + 1, envelope.Length);
-        StringAssert.Contains(envelope.Message, "Every correlated scalar set-operator branch must expose the same equality correlation key.");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
-        Assert.AreEqual(
-            "A subquery is malformed or appears in a location where this parser path cannot accept it.",
-            envelope.Explanation);
-        Assert.AreEqual("Core Spec - Subqueries", envelope.DocsReference);
-        AssertGenericSubqueryFixes(envelope);
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }
 
     [TestMethod]
-    public void NonEqualityQuantifiedProjectionReusingItsEqualityKey_ShouldReportExactFallbackContract()
+    public void NonEqualityQuantifiedProjectionReusingItsEqualityKey_ShouldExecutePerBinding()
     {
         const string query = "select a.Id, a.Id > any (select b.Id from #B.Entities() b where b.Id = a.Id) as HasGreater from #A.Entities() a";
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
-        var envelope = exception.PrimaryEnvelope;
-        var quantifiedExpressionStart = query.IndexOf("a.Id > any", StringComparison.Ordinal);
-        var expectedStart = query.IndexOf("Id", quantifiedExpressionStart + 1, StringComparison.Ordinal);
-        var expectedEnd = query.IndexOf(") as HasGreater", expectedStart, StringComparison.Ordinal);
-
-        Assert.AreEqual(DiagnosticCode.MQ2024_InvalidSubquery, envelope.Code);
-        Assert.AreEqual(DiagnosticPhase.Parse, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
-        Assert.AreEqual(expectedStart, envelope.Offset);
-        Assert.AreEqual(expectedEnd - expectedStart + 1, envelope.Length);
-        StringAssert.Contains(
-            envelope.Message,
-            "This non-equality quantified predicate reuses its equality correlation key in a value expression and cannot be lowered safely.");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
-        Assert.AreEqual(
-            "A subquery is malformed or appears in a location where this parser path cannot accept it.",
-            envelope.Explanation);
-        Assert.AreEqual("Core Spec - Subqueries", envelope.DocsReference);
-        AssertGenericSubqueryFixes(envelope);
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("HasGreater", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [0, false], [0, false], [0, false]);
     }
 
     private static void AssertGenericSubqueryFixes(MusoqErrorEnvelope envelope)

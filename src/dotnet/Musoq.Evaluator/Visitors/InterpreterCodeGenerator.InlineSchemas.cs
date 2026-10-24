@@ -16,6 +16,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("/// <summary>");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated nested interpreter for inline schema '{className}'.");
         builder.AppendLine("/// </summary>");
+        builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : BytesInterpreterBase<{className}>, global::Musoq.Plugins.IJsonPayload");
         builder.AppendLine("{");
         builder.Append(PartialPayloadCodeEmitter.Members(className));
@@ -103,26 +104,8 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GetClrTypeNameForFieldInline(SchemaFieldNode field)
-    {
-        return field switch
-        {
-            FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode nestedInline } parsedField => GetOrRegisterInlineSchemaClassName(parsedField.Name, nestedInline, null),
-            FieldDefinitionNode { TypeAnnotation: ArrayTypeNode
-                {
-                    ElementType: InlineSchemaTypeNode
-                } arrayType
-            } parsedField => GetArrayClrTypeName(parsedField.Name, arrayType),
-            FieldDefinitionNode { TypeAnnotation: RepeatUntilTypeNode
-                {
-                    ElementType: InlineSchemaTypeNode inlineSchema
-                }
-            } parsedField => GetRepeatUntilClrTypeName(parsedField.Name, inlineSchema),
-            FieldDefinitionNode parsedField => GetClrTypeName(parsedField.TypeAnnotation),
-            ComputedFieldNode computedField => InferComputedFieldTypeName(computedField.Expression, _expressionFields.ToList()),
-            _ => "object"
-        };
-    }
+    private string GetClrTypeNameForFieldInline(SchemaFieldNode field) =>
+        GetClrTypeNameForFieldWithContext(field, _expressionFields.ToList());
 
     private string GenerateInlineSchemaReadCode(string localVar, string fieldName, InlineSchemaTypeNode inlineSchema)
     {
@@ -138,6 +121,8 @@ public partial class InterpreterCodeGenerator
     private string GetOrRegisterInlineSchemaClassName(string fieldName, InlineSchemaTypeNode inlineSchema,
         string? parentPrefix)
     {
+        var registered = _inlineSchemas.FirstOrDefault(item => ReferenceEquals(item.Schema, inlineSchema));
+        if (registered.Schema != null) return registered.ClassName;
         var className = $"Inline_{fieldName}";
 
         var existing = _inlineSchemas.FirstOrDefault(x => x.ClassName == className);

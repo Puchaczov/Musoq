@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup Condition="'$(IsTestProject)' == 'true' and '$(ServerGarbageCollection)' == ''">
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+    </PropertyGroup>
+</Project>

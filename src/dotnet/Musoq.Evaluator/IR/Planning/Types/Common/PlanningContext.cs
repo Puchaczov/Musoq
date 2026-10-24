@@ -25,4 +25,6 @@ internal sealed partial record PlanningContext(
     SourceTransferCapabilities TargetSourceTransferCapabilities =
         SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads,
     CancellationToken CancellationToken = default)
-{ public LogicalNode LogicalPlan => LogicalArtifacts.OptimizedLogicalPlan; }
+{
+    public LogicalNode LogicalPlan => LogicalArtifacts.OptimizedLogicalPlan;
+}

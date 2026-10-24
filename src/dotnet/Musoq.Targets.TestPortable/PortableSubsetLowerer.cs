@@ -78,26 +78,26 @@ internal static class PortableSubsetLowerer
             top.Source.Name,
             top.Target.Name,
             top.Keys,
-            top.SkipCount,
-            top.TakeCount),
+            top.SkipCount.Value,
+            top.TakeCount.Value),
         ExecutionSkipTable skip => new PortableOrderSliceInstruction(
             skip.Source.Name,
             skip.Target.Name,
             [],
-            skip.Count,
+            skip.Count.Value,
             null),
         ExecutionTakeTable take => new PortableOrderSliceInstruction(
             take.Source.Name,
             take.Target.Name,
             [],
             0,
-            take.Count),
+            take.Count.Value),
         ExecutionSliceTable slice => new PortableOrderSliceInstruction(
             slice.Source.Name,
             slice.Target.Name,
             [],
-            slice.SkipCount,
-            slice.TakeCount),
+            slice.SkipCount.Value,
+            slice.TakeCount.Value),
         ExecutionReturnTable result => new PortableReturnInstruction(result.Table.Name),
         _ => throw new InvalidOperationException(
             $"Operation capability admitted execution node '{node.GetType().Name}', but the portable subset lowerer has no implementation.")
@@ -133,6 +133,8 @@ internal static class PortableSubsetLowerer
     {
         ExecutionLiteral literal => new PortableLiteralExpression(LowerConstant(literal.Value)),
         ExecutionFieldRead field => new PortableFieldExpression(field.Alias, field.FieldName),
+        ExecutionUnionMemberRead union => throw new PortableSubsetLoweringException(
+            $"Portable subset does not support closed interpretation member '{union.MemberName}'."),
         ExecutionMemberRead member => throw new PortableSubsetLoweringException(
             $"Portable subset does not support runtime member '{member.MemberName}'."),
         ExecutionScriptParameterRead parameter => new PortableParameterExpression(parameter.Name),

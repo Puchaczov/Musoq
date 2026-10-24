@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -204,8 +204,8 @@ internal static class InterpretationPropertyTypeNameResolver
         TextFieldDefinitionNode field,
         SchemaRegistry schemaRegistry)
     {
-        if (field.RepeatElement != null)
-            return InterpretationTextFieldTypeResolver.Resolve(text.Name, field).IntendedTypeName;
+        if (field.RepeatElement != null || field.FieldType == TextFieldType.Switch)
+            return new TextResultShapeBinding(schemaRegistry).Field(text.Name, field).TypeName;
 
         return field.FieldType switch
         {
@@ -228,37 +228,28 @@ internal static class InterpretationPropertyTypeNameResolver
         if (field is not FieldDefinitionNode definition)
             return null;
 
-        return definition.TypeAnnotation switch
+        return ResolveBinaryTypeName(field.Name, definition.TypeAnnotation, bindings, schemaRegistry);
+    }
+
+    private static string? ResolveBinaryTypeName(string fieldName, TypeAnnotationNode type,
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings, SchemaRegistry? registry)
+    {
+        var composed = Musoq.Evaluator.Visitors.BinaryCompositionTypes.IntendedTypeName(fieldName, type);
+        if (composed != null) return composed;
+        return type switch
         {
-            SchemaReferenceTypeNode reference =>
-                CreateGeneratedTypeName(
-                    BinarySchemaGenericResolver.ResolveReference(reference, bindings),
-                    schemaRegistry),
-            ArrayTypeNode { ElementType: SchemaReferenceTypeNode reference } =>
-                $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
-            RepeatUntilTypeNode { ElementType: SchemaReferenceTypeNode reference } =>
-                $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
-            ArrayTypeNode { ElementType: SubstreamTypeNode { Target: SchemaReferenceTypeNode reference } } =>
-                $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
-            RepeatUntilTypeNode { ElementType: SubstreamTypeNode { Target: SchemaReferenceTypeNode reference } } =>
-                $"{CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), schemaRegistry)}[]",
-            InlineSchemaTypeNode => CreateInlineTypeName(field.Name),
-            ArrayTypeNode { ElementType: InlineSchemaTypeNode } => $"{CreateInlineTypeName(field.Name)}[]",
-            RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode } => $"{CreateInlineTypeName(field.Name)}[]",
-            StringTypeNode { AsTextSchemaName: { } textSchemaName } =>
-                CreateGeneratedTypeName(new SchemaReferenceTypeNode(textSchemaName), schemaRegistry),
-            BinarySwitchTypeNode => $"Musoq.Generated.Interpreters.Switch_{field.Name}",
-            SubstreamTypeNode { Target: InlineSchemaTypeNode } => CreateInlineTypeName(field.Name),
-            SubstreamTypeNode { Target: SchemaReferenceTypeNode reference } =>
-                CreateGeneratedTypeName(reference, schemaRegistry),
+            SchemaReferenceTypeNode reference => CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), registry),
+            StringTypeNode { AsTextSchemaName: { } name } => CreateGeneratedTypeName(new SchemaReferenceTypeNode(name), registry),
+            SubstreamTypeNode { Target: { } target } => ResolveBinaryTypeName(fieldName, target, bindings, registry),
+            ArrayTypeNode array => ResolveBinaryElementTypeName(fieldName, array.ElementType, bindings, registry),
+            RepeatUntilTypeNode repeat => ResolveBinaryElementTypeName(fieldName, repeat.ElementType, bindings, registry),
             _ => null
         };
     }
 
-    private static string CreateInlineTypeName(string fieldName)
-    {
-        return $"Musoq.Generated.Interpreters.Inline_{fieldName}";
-    }
+    private static string? ResolveBinaryElementTypeName(string fieldName, TypeAnnotationNode element,
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings, SchemaRegistry? registry) =>
+        ResolveBinaryTypeName(fieldName, element, bindings, registry) is { } name ? $"{name}[]" : null;
 
     private static SchemaReferenceTypeNode ParseSchemaReference(string typeName)
     {

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -16,14 +15,18 @@ internal sealed partial class PhysicalLoweringImplementation
         string? sourceRowsScope,
         LoweringScope scope)
     {
+        if (source is PhysicalCteRefNode reference)
+        {
+            foreach (var binding in scope.SubqueryCtes)
+                if (string.Equals(reference.CteName, binding.Name, StringComparison.OrdinalIgnoreCase))
+                    return new ExecutionVariableRead(new ExecutionVariable(binding.ParameterName, typeof(object),
+                        $"IReadOnlyList<{binding.Shape.TypeName}>"));
+        }
         return source switch
         {
             PhysicalSchemaScanNode scan => CreateSchemaScanRowsExpression(scan.Alias, sourceRowsScope),
-            PhysicalInterpretSourceNode interpret when IsScalarInterpretSourceKind(interpret.Kind) =>
+            PhysicalInterpretSourceNode interpret =>
                 new ExecutionScalarRowStream(new ExecutionVariable(CreateSourceRowsName(interpret.Alias, sourceRowsScope), typeof(object))),
-            PhysicalInterpretSourceNode interpret => new ExecutionRowStream(
-                new ExecutionVariable(CreateSourceRowsName(interpret.Alias, sourceRowsScope), typeof(object)),
-                ExecutionRowStreamKind.Chunks),
             PhysicalPropertySourceNode property => CreateEnumerableRowsExpression(property.Alias, sourceShape, sourceRowsScope),
             PhysicalAccessMethodSourceNode accessMethod => CreateEnumerableRowsExpression(accessMethod.Alias, sourceShape, sourceRowsScope),
             PhysicalValuesScanNode values when sourceShape is ValuesRowShape valuesShape =>
@@ -92,10 +95,5 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool IsDirectScalarSource(RowShape sourceShape)
     {
         return sourceShape is SourceEntityShape { Fields: [{ AccessStrategy: DirectScalarValueAccess }] };
-    }
-
-    private static bool IsScalarInterpretSourceKind(InterpretSourceKind kind)
-    {
-        return kind is not (InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse);
     }
 }

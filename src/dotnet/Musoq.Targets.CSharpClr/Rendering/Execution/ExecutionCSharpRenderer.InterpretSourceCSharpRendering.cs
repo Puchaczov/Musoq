@@ -8,34 +8,18 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderInterpretSource(ExecutionInterpretSource interpret)
+    private IEnumerable<StatementSyntax> RenderInterpretSource(ExecutionInterpretSource interpret, ExecutionRenderContext context)
     {
         var interpreterVariableName = CreateInterpreterVariableName(interpret.SchemaName);
-        var invocation = CreateInterpretInvocation(interpret, interpreterVariableName);
-
-        if (IsScalarInterpretSourceKind(interpret.Kind))
-        {
-            return
-            [
-                CreateInterpreterDeclaration(interpreterVariableName, interpret.InterpreterTypeName),
-                CreateLocalDeclaration(
-                    SyntaxFactory.IdentifierName("var"),
-                    interpret.Rows.Name,
-                    invocation)
-            ];
-        }
-
-        var wrappedExpression = CreateScalarToArrayWrapper(
-            invocation,
-            ResolveInterpretResultTypeName(interpret));
+        var invocation = CreateInterpretInvocation(interpret, interpreterVariableName, context);
 
         return
         [
             CreateInterpreterDeclaration(interpreterVariableName, interpret.InterpreterTypeName),
-            CreateEnumerableChunksDeclaration(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
                 interpret.Rows.Name,
-                wrappedExpression,
-                SyntaxFactory.ParseTypeName(ResolveInterpretResultTypeName(interpret)))
+                invocation)
         ];
     }
 
@@ -94,30 +78,19 @@ public sealed partial class ExecutionCSharpRenderer
 
     private InvocationExpressionSyntax CreateInterpretInvocation(
         ExecutionInterpretSource interpret,
-        string interpreterVariableName)
+        string interpreterVariableName,
+        ExecutionRenderContext context)
     {
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(interpreterVariableName),
                     SyntaxFactory.IdentifierName(ResolveInterpretMethodName(interpret.Kind))))
-            .WithArgumentList(CreateArgumentList(interpret.Arguments.Select(RenderExpression)));
+            .WithArgumentList(CreateArgumentList(interpret.Arguments.Select(argument => RenderExpression(argument, context))));
 
         return interpret.Kind is InterpretSourceKind.TryInterpret or InterpretSourceKind.TryParse
             ? WrapInTryCatchReturningNull(invocation, interpret.InterpreterTypeName)
             : invocation;
-    }
-
-    private static string ResolveInterpretResultTypeName(ExecutionInterpretSource interpret)
-    {
-        return interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
-            ? $"Musoq.Schema.Interpreters.PartialInterpretResult<{interpret.InterpreterTypeName}>"
-            : interpret.InterpreterTypeName;
-    }
-
-    private static bool IsScalarInterpretSourceKind(InterpretSourceKind kind)
-    {
-        return kind is not (InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse);
     }
 
     private static LocalDeclarationStatementSyntax CreateInterpreterDeclaration(

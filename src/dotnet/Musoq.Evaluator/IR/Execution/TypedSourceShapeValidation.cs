@@ -31,7 +31,7 @@ internal static class TypedSourceShapeValidation
                 if (!reads.Any(read => read.Alias == source.Alias &&
                     (read.FieldName == field.Name || read.FieldName.StartsWith(field.Name + ".", StringComparison.Ordinal))))
                     continue;
-                if (field.GeneratedTypeName is not null)
+                if (field.GeneratedTypeName is not null || field.InterpretationShape != null)
                     continue;
                 var unresolved = ConcreteValueShape.FindUnresolvedValueType(field.Type.ResolveClrType()) ??
                                  ConcreteValueShape.FindUnresolvedValueType(field.SourceReadType.ResolveClrType());

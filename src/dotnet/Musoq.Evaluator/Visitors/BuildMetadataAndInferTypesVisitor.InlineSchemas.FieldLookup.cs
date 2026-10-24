@@ -5,70 +5,20 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private SchemaFieldNode[]? FindInlineSchemaFields(string fieldName)
+    private SchemaFieldNode[]? FindInlineSchemaFields(string fieldName) =>
+        FindBinaryCompositionType<InlineSchemaTypeNode>(fieldName)?.Fields;
+
+    private BinarySwitchTypeNode? FindSwitchSchemaType(string fieldName) =>
+        FindBinaryCompositionType<BinarySwitchTypeNode>(fieldName);
+
+    private T? FindBinaryCompositionType<T>(string fieldName) where T : TypeAnnotationNode
     {
         if (SchemaRegistry == null) return null;
-
         foreach (var registration in SchemaRegistry.Schemas)
-            if (registration.Node is BinarySchemaNode binaryNode)
-            {
-                var allFields = GetAllBinarySchemaFields(binaryNode);
-                foreach (var field in allFields)
-                {
-                    if (field is FieldDefinitionNode
-                        {
-                            TypeAnnotation: SubstreamTypeNode { Target: InlineSchemaTypeNode substreamInlineSchema }
-                        } && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
-                        return substreamInlineSchema.Fields;
-
-                    if (field is FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode inlineSchema }
-                        && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return inlineSchema.Fields;
-                    }
-
-                    if (field is FieldDefinitionNode
-                        {
-                            TypeAnnotation: ArrayTypeNode
-                            {
-                                ElementType: InlineSchemaTypeNode arrayInlineSchema
-                            }
-                        } && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return arrayInlineSchema.Fields;
-                    }
-
-                    if (field is FieldDefinitionNode
-                        {
-                            TypeAnnotation: RepeatUntilTypeNode
-                            {
-                                ElementType: InlineSchemaTypeNode repeatInlineSchema
-                            }
-                        } && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return repeatInlineSchema.Fields;
-                    }
-                }
-            }
-
-        return null;
-    }
-
-    private BinarySwitchTypeNode? FindSwitchSchemaType(string fieldName)
-    {
-        if (SchemaRegistry == null) return null;
-
-        foreach (var registration in SchemaRegistry.Schemas)
-        {
-            if (registration.Node is not BinarySchemaNode binaryNode)
-                continue;
-
-            foreach (var field in GetAllBinarySchemaFields(binaryNode))
-                if (field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode switchType }
-                    && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
-                    return switchType;
-        }
-
+            if (registration.Node is BinarySchemaNode binary)
+                foreach (var (name, type) in BinaryCompositionTypes.EnumerateFields(GetAllBinarySchemaFields(binary)))
+                    if (type is T matching && string.Equals(name, fieldName, StringComparison.OrdinalIgnoreCase))
+                        return matching;
         return null;
     }
 
@@ -108,9 +58,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         return ApplyBinaryFieldIntendedTypeName(field, (type, intendedTypeName));
     }
-
-    private static string CreateInlineSchemaIntendedTypeName(string fieldName) =>
-        $"Musoq.Generated.Interpreters.Inline_{fieldName}";
 
     private static string CreateSwitchSchemaIntendedTypeName(string fieldName) =>
         $"Musoq.Generated.Interpreters.Switch_{fieldName}";

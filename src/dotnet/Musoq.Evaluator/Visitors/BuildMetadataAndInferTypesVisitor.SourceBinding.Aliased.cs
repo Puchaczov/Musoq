@@ -237,12 +237,15 @@ public partial class BuildMetadataAndInferTypesVisitor
             aliasedSchemaFromNode.Parameters,
             _scriptParameters.DefinitionsByName,
             _scriptVariables.DefinitionsByName,
-            boundInvocation);
+            boundInvocation,
+            _compilationOptions.UseConstantFolding);
+        var hasUnavailableMetadataArguments = staticSchemaArguments.Length <
+            (boundInvocation?.Arguments.Length ?? aliasedSchemaFromNode.Parameters.Args.Length);
         if (boundInvocation?.Signature.SourceConstructionType != null)
             staticSchemaArguments = [];
         aliasedSchemaFromNode.SetStaticMetadataArguments(
             staticSchemaArguments,
-            _scriptParameters.HasRequiredSourceParameter(aliasedSchemaFromNode.Parameters));
+            hasUnavailableMetadataArguments);
         var metadataColumns = table?.Columns ?? GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey);
         var sourceRuntimeSettings = isArgumentInventory
             ? new Dictionary<string, string>()

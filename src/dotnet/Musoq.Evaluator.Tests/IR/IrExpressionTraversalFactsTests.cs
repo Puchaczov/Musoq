@@ -71,6 +71,10 @@ public sealed class IrExpressionTraversalFactsTests
 
         return new Dictionary<Type, IrExpression>
         {
+            [typeof(SubqueryExpression)] = new SubqueryExpression("inner", SubqueryResultKind.Scalar,
+                new Musoq.Evaluator.IR.Logical.Nodes.ProjectNode([], new Musoq.Evaluator.IR.Logical.Nodes.MultiStatementNode([])),
+                [column], null, typeof(int?)),
+            [typeof(SubqueryParameterRef)] = new SubqueryParameterRef(0, typeof(int)),
             [typeof(AggregateRef)] = new AggregateRef("p.Count", typeof(long)),
             [typeof(ArrayAccess)] = new ArrayAccess(new Literal(new[] { 1 }, typeof(int[])), literal, typeof(int), typeof(int)),
             [typeof(Between)] = new Between(column, new Literal(0, typeof(int)), new Literal(10, typeof(int)), typeof(bool)),

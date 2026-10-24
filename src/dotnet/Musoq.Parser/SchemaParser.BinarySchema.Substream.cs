@@ -51,18 +51,6 @@ public partial class SchemaParser
 
         var target = ComposeTypeAnnotation(fieldName);
 
-        if (Current.TokenType == TokenType.Repeat)
-        {
-            if (fieldName == null)
-                throw new SyntaxException(
-                    "A repeat-until substream target requires a named field.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ4015_InvalidSubstreamTarget,
-                    Current.Span);
-
-            target = ComposeRepeatUntilType(target, fieldName);
-        }
-
         var mode = ComposeSubstreamMode();
         return new SubstreamTypeNode(sizeExpr, mode, target);
     }

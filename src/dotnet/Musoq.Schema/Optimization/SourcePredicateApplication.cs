@@ -2,14 +2,14 @@ using System.Collections.Generic;
 
 namespace Musoq.Schema.Optimization;
 
-/// <summary>Records where a source applies an accepted typed string-match predicate.</summary>
+/// <summary>Records where a source applies an accepted typed pattern predicate.</summary>
 public sealed record SourcePredicateApplication
 {
     /// <summary>Initializes an application record.</summary>
     /// <param name="predicate">The exact accepted typed predicate being applied.</param>
     /// <param name="phase">The phase at which the source applies it.</param>
     public SourcePredicateApplication(
-        SourcePredicateStringMatch predicate,
+        SourcePredicatePatternMatch predicate,
         SourcePredicateEvaluationPhase phase)
     {
         ArgumentNullException.ThrowIfNull(predicate);
@@ -21,12 +21,12 @@ public sealed record SourcePredicateApplication
     }
 
     /// <summary>Gets the exact accepted typed predicate being applied.</summary>
-    public SourcePredicateStringMatch Predicate { get; }
+    public SourcePredicatePatternMatch Predicate { get; }
 
     /// <summary>Gets the phase at which the source applies the predicate.</summary>
     public SourcePredicateEvaluationPhase Phase { get; }
 
-    /// <summary>Creates row-filtering applications for direct top-level <c>AND</c> string-match conjuncts.</summary>
+    /// <summary>Creates row-filtering applications for direct top-level <c>AND</c> pattern conjuncts.</summary>
     /// <param name="predicate">The accepted predicate tree.</param>
     /// <returns>An immutable list preserving direct-conjunct order and multiplicity.</returns>
     public static IReadOnlyList<SourcePredicateApplication> ForRowFiltering(
@@ -48,7 +48,7 @@ public sealed record SourcePredicateApplication
             return;
         }
 
-        if (predicate is SourcePredicateStringMatch stringMatch)
-            applications.Add(new SourcePredicateApplication(stringMatch, SourcePredicateEvaluationPhase.RowFiltering));
+        if (predicate is SourcePredicatePatternMatch patternMatch)
+            applications.Add(new SourcePredicateApplication(patternMatch, SourcePredicateEvaluationPhase.RowFiltering));
     }
 }

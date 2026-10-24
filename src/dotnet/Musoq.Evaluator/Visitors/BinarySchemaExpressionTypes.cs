@@ -46,9 +46,15 @@ internal static class BinarySchemaExpressionTypes
                 return BinarySchemaStrictCasts.Resolve(cast).ReturnType;
             case NotNode not:
                 RequireBoolean(not.Expression, fields, registry);
-                return Lift(typeof(bool), IsNullable(Resolve(not.Expression, fields, registry)));
+                return Lift(typeof(bool), MayBeNull(not.Expression, fields, registry));
             case DotNode dot:
                 return ResolvePath(dot, fields, registry);
+            case StringConcatenationNode concatenation:
+                RequireStringOperand(concatenation.Left, fields, registry);
+                RequireStringOperand(concatenation.Right, fields, registry);
+                return typeof(string);
+            case CoalesceNode coalesce:
+                return SchemaCoalesceExpression.Resolve(coalesce, fields, registry);
             case BinaryNode binary:
                 return ResolveBinary(binary, fields, registry);
             case AccessMethodNode method when method.Name.Equals("ToString", StringComparison.OrdinalIgnoreCase):
@@ -171,10 +177,13 @@ internal static class BinarySchemaExpressionTypes
         var receiverFields = annotation is null ? null : RecordFields(annotation, registry);
         var nullable = MayBeNull(expression.Root, fields, registry);
         if (receiverFields is not null)
-            return Lift(ResolveField(expression.Name, receiverFields, registry), nullable);
+            return Lift(ResolveField(IndexedMemberName(expression), receiverFields, registry), nullable);
         var receiverType = Unwrap(Resolve(expression.Root, fields, registry));
-        return Lift(receiverType.GetProperty(expression.Name)?.PropertyType ?? typeof(object), nullable);
+        return Lift(receiverType.GetProperty(IndexedMemberName(expression))?.PropertyType ?? typeof(object), nullable);
     }
+
+    private static string IndexedMemberName(DotNode expression) =>
+        expression.Expression is IdentifierNode identifier ? identifier.Name : expression.Name;
 
     private static TypeAnnotationNode? ResolveAnnotation(Node expression, IReadOnlyList<SchemaFieldNode> fields, SchemaRegistry? registry)
     {
@@ -189,7 +198,7 @@ internal static class BinarySchemaExpressionTypes
         {
             var receiver = ResolveAnnotation(dot.Root, fields, registry);
             var members = receiver is null ? null : RecordFields(receiver, registry);
-            return members is null ? null : ResolveAnnotation(new IdentifierNode(dot.Name), members, registry);
+            return members is null ? null : ResolveAnnotation(new IdentifierNode(IndexedMemberName(dot)), members, registry);
         }
         if (expression is not IdentifierNode identifier)
             return null;
@@ -200,6 +209,14 @@ internal static class BinarySchemaExpressionTypes
             ComputedFieldNode computed => ResolveAnnotation(computed.Expression, fields.TakeWhile(candidate => candidate != field).ToArray(), registry),
             _ => null
         };
+    }
+
+    private static void RequireStringOperand(Node operand, IReadOnlyList<SchemaFieldNode> fields, SchemaRegistry? registry)
+    {
+        if (operand is not NullNode && Resolve(operand, fields, registry) != typeof(string))
+            throw new Musoq.Evaluator.Exceptions.QuerySyntaxException(
+                "The || operator accepts strings or contextual NULL only.", operand.SpanOrEmpty(),
+                Musoq.Parser.Diagnostics.DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     private static void RequireCompatibleNumericOperands(Type left, Type right, Node expression)
@@ -262,6 +279,7 @@ internal static class BinarySchemaExpressionTypes
                     current = annotation is null ? null : RecordFields(annotation, registry);
                 }
                 return false;
+            case CoalesceNode coalesce: return MayBeNull(coalesce.Left, fields, registry) && MayBeNull(coalesce.Right, fields, registry);
             case BinaryNode binary: return MayBeNull(binary.Left, fields, registry) || MayBeNull(binary.Right, fields, registry);
             case CastNode cast: return IsNullable(Resolve(cast, fields, registry)) || MayBeNull(cast.Expression, fields, registry);
             case UnaryNode unary: return MayBeNull(unary.Expression, fields, registry);

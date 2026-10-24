@@ -22,7 +22,7 @@ public sealed record ExecutionMethodCall : ExecutionExpression
         : base(returnType)
     {
         Method = method;
-        Arguments = ExecutionIrCollections.Freeze(arguments);
+        Arguments = arguments;
         Alias = alias;
         ReturnType = returnType;
         InjectedSource = injectedSource;

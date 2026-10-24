@@ -9,6 +9,8 @@ public abstract class IrExpressionVisitor<T>
         return expression switch
         {
             ColumnRef node => VisitColumnRef(node),
+            SubqueryExpression node => VisitSubquery(node),
+            SubqueryParameterRef node => VisitSubqueryParameter(node),
             ScriptParameterRef node => VisitScriptParameterRef(node),
             ScriptVariableRef node => VisitScriptVariableRef(node),
             Literal node => VisitLiteral(node),
@@ -38,6 +40,8 @@ public abstract class IrExpressionVisitor<T>
     }
 
     protected abstract T VisitColumnRef(ColumnRef node);
+    protected virtual T VisitSubquery(SubqueryExpression node) => throw UnsupportedShape.Of("IR subquery expression");
+    protected virtual T VisitSubqueryParameter(SubqueryParameterRef node) => throw UnsupportedShape.Of("IR outer reference");
     protected abstract T VisitScriptParameterRef(ScriptParameterRef node);
     protected abstract T VisitScriptVariableRef(ScriptVariableRef node);
     protected abstract T VisitLiteral(Literal node);

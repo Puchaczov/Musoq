@@ -29,13 +29,6 @@ internal static class SetOperationStrategyPlanner
                 $"Set operation key type '{FormatType(nanSensitiveType)}' uses NaN-sensitive equality semantics, so Execution IR emits an explicit generated equality loop instead of HashSet lowering.");
         }
 
-        if (node.Kind == SetOpKind.Intersect && SetOperationEqualityTypes.FindNanSensitiveType(
-                node.OutputSchema.Columns.Select(static column => column.Type)) is { } nanSensitiveOutputType)
-        {
-            return SetOperationStrategyDecision.GeneratedEqualityLoop(
-                $"INTERSECT removes identical complete output rows; output type '{FormatType(nanSensitiveOutputType)}' requires NaN-sensitive generated equality for both membership and duplicate removal.");
-        }
-
         if (CanUseHashSetSetOperation(node.FieldIndexes))
         {
             return SetOperationStrategyDecision.HashSet(

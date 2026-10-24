@@ -5,15 +5,24 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 
-internal sealed partial class LogicalConstantExpressionFolder(DiagnosticContext? diagnostics) : IrExpressionVisitor<IrExpression>
+internal sealed partial class LogicalConstantExpressionFolder(
+    DiagnosticContext? diagnostics,
+    IReadOnlyDictionary<string, ScriptVariableDefinition>? knownValues = null) : IrExpressionVisitor<IrExpression>
 {
     public int FoldedExpressions { get; private set; }
 
     protected override IrExpression VisitColumnRef(ColumnRef node) => node;
 
-    protected override IrExpression VisitScriptParameterRef(ScriptParameterRef node) => node;
+    protected override IrExpression VisitScriptParameterRef(ScriptParameterRef node) => ResolveKnownValue(node.Name, node);
 
-    protected override IrExpression VisitScriptVariableRef(ScriptVariableRef node) => node;
+    protected override IrExpression VisitScriptVariableRef(ScriptVariableRef node) => ResolveKnownValue(node.Name, node);
+
+    private IrExpression ResolveKnownValue(string name, IrExpression node)
+    {
+        if (knownValues != null && knownValues.TryGetValue(name, out var definition))
+            return new Literal(definition.Value, node.ReturnType) { EnumType = node.EnumType };
+        return node;
+    }
 
     protected override IrExpression VisitLiteral(Literal node) => node;
 
@@ -22,6 +31,12 @@ internal sealed partial class LogicalConstantExpressionFolder(DiagnosticContext?
     protected override IrExpression VisitBinaryOp(BinaryOp node)
     {
         var left = Visit(node.Left);
+        if (left is Literal { Value: bool value } &&
+            (node.Kind == BinaryOpKind.And && !value || node.Kind == BinaryOpKind.Or && value))
+        {
+            FoldedExpressions++;
+            return CreateFoldedLiteral(value, node);
+        }
         var right = Visit(node.Right);
         var rewritten = ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
             ? node

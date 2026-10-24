@@ -1,4 +1,3 @@
-using System.Linq;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -49,12 +48,13 @@ public partial class CloneQueryVisitor
     public override void Visit(TextFieldDefinitionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var arms = new TextSwitchCaseNode[node.SwitchCases.Length];
+        for (var index = arms.Length - 1; index >= 0; index--)
+            arms[index] = new TextSwitchCaseNode(node.SwitchCases[index].Pattern, (TextFieldDefinitionNode)Nodes.Pop());
         var clone = node.FieldType == TextFieldType.Switch
             ? new TextFieldDefinitionNode(
                 node.Name,
-                node.SwitchCases
-                    .Select(static switchCase => new TextSwitchCaseNode(switchCase.Pattern, switchCase.TypeName))
-                    .ToArray(),
+                arms,
                 node.Modifiers)
             : new TextFieldDefinitionNode(
                 node.Name,

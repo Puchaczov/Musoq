@@ -1,4 +1,3 @@
-// ReSharper disable InconsistentNaming
 namespace Musoq.Parser.Diagnostics;
 /// <summary>Enumeration of all diagnostic codes used in Musoq.</summary>
 public enum DiagnosticCode
@@ -162,7 +161,7 @@ public enum DiagnosticCode
     MQ3114_EnumSourceCapabilityRequired = 3114,
     MQ3115_EnumDescriptorMismatch = 3115,
     MQ3116_AmbiguousRelationArgument = 3116,
-    MQ3117_UnsupportedColumnInstanceMethod = 3117,
+    MQ3117_UnsupportedColumnInstanceMethod = 3117, MQ3118_InvalidPagingCount = 3118,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,
@@ -202,6 +201,7 @@ public enum DiagnosticCode
     MQ7015_InvalidRuntimeRegex = 7015,
     MQ7016_ScalarSubqueryCardinalityViolation = 7016,
     MQ7017_RegexMatchTimeout = 7017,
+    MQ7018_NumericOverflow = 7018, MQ7019_InvalidRuntimePagingCount = 7019,
     MQ7014_MalformedRuntimeInput = 7014, MQ7101_InterpretationInsufficientData = 7101, MQ7102_InterpretationValidationFailed = 7102, MQ7103_InterpretationPatternMismatch = 7103,
     MQ7104_InterpretationLiteralMismatch = 7104, MQ7105_InterpretationDelimiterNotFound = 7105, MQ7106_InterpretationExpectedDelimiter = 7106, MQ7107_InterpretationInvalidSize = 7107,
     MQ7108_InterpretationInvalidPosition = 7108, MQ7109_InterpretationMaxIterationsExceeded = 7109, MQ7110_InterpretationEncodingError = 7110, MQ7111_InterpretationExpectedWhitespace = 7111,

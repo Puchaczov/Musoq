@@ -65,8 +65,8 @@ public partial class SchemaParser
                 seenDefault = true;
                 Consume(Current.TokenType);
                 Consume(TokenType.FatArrow);
-                var defaultTypeName = ComposeIdentifierOrWord();
-                switchCase = new TextSwitchCaseNode(null, defaultTypeName);
+                var body = ComposeTextFieldType($"{name}Arm{cases.Count}");
+                switchCase = new TextSwitchCaseNode(null, body);
             }
             else
             {
@@ -88,8 +88,8 @@ public partial class SchemaParser
                         patternToken.Span);
 
                 Consume(TokenType.FatArrow);
-                var typeName = ComposeIdentifierOrWord();
-                switchCase = new TextSwitchCaseNode(pattern, typeName);
+                var body = ComposeTextFieldType($"{name}Arm{cases.Count}");
+                switchCase = new TextSwitchCaseNode(pattern, body);
             }
 
             cases.Add(switchCase);
@@ -99,7 +99,7 @@ public partial class SchemaParser
 
         Consume(TokenType.RBracket);
 
-        return new TextFieldDefinitionNode(name, cases.ToArray());
+        return new TextFieldDefinitionNode(name, cases.ToArray(), ComposeTextFieldModifiers());
     }
 
     private string[] ComposeOptionalCaptureGroups()

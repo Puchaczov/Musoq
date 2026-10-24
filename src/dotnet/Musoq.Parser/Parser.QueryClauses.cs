@@ -119,40 +119,6 @@ public partial class Parser
         return null;
     }
 
-    private IntegerNode ComposeSliceCount(string clause)
-    {
-        if (Current.TokenType != TokenType.Integer)
-            throw InvalidSliceCount(clause, Current.Span);
-
-        var countToken = Current;
-        var count = ComposeInteger();
-        if (countToken.Value.StartsWith("-", StringComparison.Ordinal) || IsNegativeInteger(count))
-            throw InvalidSliceCount(clause, countToken.Span);
-
-        return count;
-    }
-
-    private static bool IsNegativeInteger(IntegerNode intNode)
-    {
-        return intNode.ObjValue switch
-        {
-            int i => i < 0,
-            long l => l < 0,
-            short s => s < 0,
-            sbyte sb => sb < 0,
-            _ => false
-        };
-    }
-
-    private SyntaxException InvalidSliceCount(string clause, TextSpan span)
-    {
-        return new SyntaxException(
-            $"{clause} count must be a non-negative integer.",
-            _lexer.AlreadyResolvedQueryPart,
-            DiagnosticCode.MQ2038_InvalidSliceCount,
-            span);
-    }
-
     private GroupByNode? ComposeGroupByNode()
     {
         if (Current.TokenType != TokenType.GroupBy) return null;

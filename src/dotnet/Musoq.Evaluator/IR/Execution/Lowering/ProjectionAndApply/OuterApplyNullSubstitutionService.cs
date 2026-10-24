@@ -15,6 +15,8 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionFieldRead fieldRead when string.Equals(fieldRead.Alias, rightAlias, StringComparison.OrdinalIgnoreCase) =>
                 OuterApplyNullSubstitutionResult.Unknown(),
             ExecutionFieldRead => OuterApplyNullSubstitutionResult.Known(expression),
+            ExecutionUnionMemberRead union => SubstituteMember(union, union.Receiver, rightAlias),
+            ExecutionMemberRead member when member.IsNullSafe => SubstituteMember(member, member.Receiver, rightAlias),
             ExecutionLiteral => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionBinary binary => SubstituteBinary(binary, rightAlias),
             ExecutionUnary unary => SubstituteUnary(unary, rightAlias),
@@ -41,6 +43,7 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionBetween between => SubstituteBetween(between, rightAlias),
             ExecutionCaseWhen caseWhen => SubstituteCaseWhen(caseWhen, rightAlias),
             ExecutionCoalesce coalesce => SubstituteCoalesce(coalesce, rightAlias),
+            ExecutionStringConcatenation concatenation => StringConcatenationNullSubstitution.Substitute(concatenation, rightAlias),
             ExecutionRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionScalarRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionStoredTableRows => OuterApplyNullSubstitutionResult.Known(expression),
@@ -51,6 +54,19 @@ internal static class OuterApplyNullSubstitutionService
             _ => OuterApplyNullSubstitutionResult.Unsupported(
                 $"Execution IR outer apply lowering cannot null-substitute expression {expression.GetType().Name}.")
         };
+    }
+
+    private static OuterApplyNullSubstitutionResult SubstituteMember(ExecutionExpression member, ExecutionExpression receiver, string alias)
+    {
+        var value = SubstituteRightAlias(receiver, alias);
+        if (!value.IsBuilt || value.IsUnknown) return value;
+        ExecutionExpression rewritten = member switch
+        {
+            ExecutionUnionMemberRead union => union with { Receiver = value.Expression },
+            ExecutionMemberRead read => read with { Receiver = value.Expression },
+            _ => throw new InvalidOperationException("Expected a bound member read.")
+        };
+        return OuterApplyNullSubstitutionResult.Known(rewritten);
     }
 
     public static LoweringAttempt<ExecutionExpression> NormalizeBooleanOperand(ExecutionExpression expression)
@@ -173,7 +189,7 @@ internal static class OuterApplyNullSubstitutionService
             injectedSource = substitutedSource.Expression;
         }
 
-        return arguments.HasUnknown || injectedSourceIsUnknown
+        return injectedSourceIsUnknown
             ? OuterApplyNullSubstitutionResult.Unknown()
             : OuterApplyNullSubstitutionResult.Known(method with
             {
@@ -529,6 +545,7 @@ internal static class OuterApplyNullSubstitutionService
             if (substituted.IsUnknown)
             {
                 hasUnknown = true;
+                expressions.Add(CreateNullLiteral(argument.ReturnType));
                 continue;
             }
 

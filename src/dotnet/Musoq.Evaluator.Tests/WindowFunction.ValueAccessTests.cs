@@ -8,6 +8,32 @@ namespace Musoq.Evaluator.Tests;
 public class WindowFunctionValueAccessTests : BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("FirstValue(N)")]
+    [DataRow("LastValue(N)")]
+    [DataRow("NthValue(N, 1)")]
+    public void ValueAccess_EmptyFollowingFrame_ShouldReturnNull(string function)
+    {
+        var query = $"select N, {function} over (order by N rows between 1 following and 1 following) as Value from values {{ (N: 1), (N: 2) }} v order by N";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 2], [2, null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("N", typeof(int)), ("Value", typeof(int?)));
+    }
+
+    [TestMethod]
+    public void NthValue_ImplicitPeerFrame_ShouldIncludeSecondPeerForFirstRow()
+    {
+        const string query = "select Id, NthValue(N, 2) over (order by N) as Value from values { (Id: 1, N: 10), (Id: 2, N: 10), (Id: 3, N: 20) } v order by Id";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10], [2, 10], [3, 10]);
+    }
+
+    [TestMethod]
     [TestProperty("CandidateId", "P1-096")]
     public void InlineFirstValue_ShouldAdvertiseNullableResultMetadata()
     {

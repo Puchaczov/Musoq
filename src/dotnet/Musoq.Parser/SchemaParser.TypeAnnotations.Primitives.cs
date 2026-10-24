@@ -19,7 +19,7 @@ public partial class SchemaParser
 
     private TypeAnnotationNode ComposeTypeAnnotation(string? fieldName = null)
     {
-        return Current.TokenType switch
+        var type = Current.TokenType switch
         {
             TokenType.ByteType when PeekNextTokenType() == TokenType.LeftSquareBracket =>
                 ComposeByteArrayType(),
@@ -48,6 +48,7 @@ public partial class SchemaParser
             TokenType.Switch => ComposeBinarySwitchType(),
 
             TokenType.Substream => ComposeSubstreamType(fieldName),
+            TokenType.LeftParenthesis => ComposeGroupedBinaryType(fieldName),
 
             TokenType.Identifier or TokenType.Word => ComposeSchemaReferenceOrArray(),
 
@@ -55,6 +56,20 @@ public partial class SchemaParser
                 $"Expected type annotation but found '{Current.TokenType}' ({Current.Value})",
                 _lexer.AlreadyResolvedQueryPart)
         };
+        while (Current.TokenType is TokenType.LeftSquareBracket or TokenType.Repeat)
+        {
+            if (Current.TokenType == TokenType.Repeat)
+            {
+                if (type is AlignmentNode)
+                    throw InvalidBinarySchemaField("Alignment directives cannot be repetition values.", Current.Span);
+                type = ComposeRepeatUntilType(type, fieldName ?? "Element");
+                continue;
+            }
+            if (type is BinarySwitchTypeNode or AlignmentNode)
+                throw InvalidBinarySchemaField("Direct arrays of binary switches and alignment directives are not supported.", Current.Span);
+            type = ComposeArrayOfType(type);
+        }
+        return type;
     }
 
     private TypeAnnotationNode ComposePrimitiveType(PrimitiveTypeName typeName, bool canHaveEndianness)

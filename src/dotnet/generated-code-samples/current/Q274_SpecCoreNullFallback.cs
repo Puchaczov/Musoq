@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-select Population ?? 'unused' as NonNullableFallback, NullableValue ?? 0 as NullableFallback, Name ?? City ?? 'fallback' as ReferenceFallback, null ?? Name as NullFallback from #A.entities()
+select Population ?? 0d as NonNullableFallback, NullableValue ?? 0 as NullableFallback, Name ?? City ?? 'fallback' as ReferenceFallback, null ?? Name as NullFallback from #A.entities()
 */
 
 // === Logical Plan ===

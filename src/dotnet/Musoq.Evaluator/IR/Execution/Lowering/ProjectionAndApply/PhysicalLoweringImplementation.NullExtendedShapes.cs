@@ -25,7 +25,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
                 sourceReadType: field.ResultType,
                 enumType: field.EnumType)
-            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup) }).ToArray(),
+            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup), InterpretationShape = field.MatchedValue.InterpretationShape }).ToArray(),
             CreateContextBindings(sourceLookup, [nullAlias]));
     }
 
@@ -49,7 +49,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
                 sourceReadType: field.ResultType,
                 enumType: field.EnumType)
-            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup) }).ToArray(),
+            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup), InterpretationShape = field.MatchedValue.InterpretationShape }).ToArray(),
             CreateContextBindings(sourceLookup, [leftAlias, rightAlias]));
     }
 }

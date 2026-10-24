@@ -39,6 +39,8 @@ public partial class MethodsMetadata
 
             var param = rawParam.GetUnderlyingNullable();
             var arg = rawArg.GetUnderlyingNullable();
+            if (!IsParameterTypeCompatible(rawParam, param, rawArg))
+                return int.MaxValue;
 
             if (param == arg)
                 howClosePassedTypesAre += 0;
@@ -74,14 +76,6 @@ public partial class MethodsMetadata
         return parameterType.IsValueType ? int.MaxValue : 100;
     }
 
-    private static int GetMethodResolutionPriority(MethodInfo method)
-    {
-        if (method.GetCustomAttribute<AggregateFunctionAttribute>() != null)
-            return 0;
-
-        return method.GetParameters().Any(static parameter => global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType)) ? 5 : 10;
-    }
-
     private static int GetAssignableConversionCost(Type argument, Type parameter)
     {
         if (parameter == typeof(object))
@@ -107,7 +101,7 @@ public partial class MethodsMetadata
 
     private static bool IsParameterTypeCompatible(Type rawParam, Type param, Type arg)
     {
-        return IsGenericShapeCompatible(param, arg) || IsTypePossibleToConvert(param, arg) ||
+        return (!rawParam.ContainsGenericParameters && SchemaConversionClassifier.TryGetCost(arg, rawParam, out _)) || IsGenericShapeCompatible(param, arg) ||
                CanSafelyPassNull(rawParam, arg) ||
                (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
                ((arg.IsArray || arg.GetInterface("IEnumerable") != null) && param is { IsGenericType: true, Name: "IEnumerable`1" }) ||
@@ -160,20 +154,6 @@ public partial class MethodsMetadata
     {
         return methodArgs.Count > parametersCount;
     }
-    private static bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
-    {
-        var isParamArray = paramType.IsArray;
-
-        if (!isParamArray)
-            return false;
-
-        var paramElementType = paramType.GetElementType()!;
-        var isParamGeneric = paramElementType.IsGenericParameter || paramElementType.IsArray;
-        var isArrayArray = arrayType.IsArray;
-
-        return isParamGeneric && isArrayArray;
-    }
-
     private bool IsMethodCompatibleWithEntityType(MethodInfo methodInfo, Type entityType)
     {
         var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
@@ -6,7 +6,6 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -153,38 +152,6 @@ internal sealed class ScriptParameterMetadataBinder(
         return new ParameterReferenceNode(node.Name, definition.ParameterType, node.Span);
     }
 
-    public void ValidateSchemaArguments(ArgsListNode args, SchemaFromNode schemaFromNode)
-    {
-        foreach (var arg in args.Args)
-        {
-            // Structural literals are evaluated in the normal execution scope. Their
-            // nested parameter/column references are intentional and preserve the
-            // correlation rules for inline record and array inputs.
-            if (arg is ArrayLiteralNode or RecordLiteralNode)
-                continue;
-            if (arg is ParameterReferenceNode)
-                continue;
-
-            if (!ContainsParameterReference(arg))
-                continue;
-
-            var message =
-                $"Script parameters in source arguments for '{schemaFromNode.Schema}.{schemaFromNode.Method}' must be passed directly; computed expressions are not supported.";
-            if (reportScriptParameterError(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, message, arg))
-                continue;
-
-            throw new NotSupportedException(message);
-        }
-    }
-
-    public bool HasRequiredSourceParameter(ArgsListNode args)
-    {
-        return args.Args.Any(arg =>
-            arg is ParameterReferenceNode parameterReference &&
-            _definitionsByName.TryGetValue(parameterReference.Name, out var definition) &&
-            !definition.HasDefaultValue);
-    }
-
     private bool ReportAndSkipParameterBlock(DiagnosticCode code, string message, ParameterBlockNode node)
     {
         if (reportScriptParameterError(code, message, node))
@@ -201,12 +168,4 @@ internal sealed class ScriptParameterMetadataBinder(
         return $"Script parameter '{parameter.Name}' type '{parameter.DeclaredTypeName}' is not supported.";
     }
 
-    private static bool ContainsParameterReference(Node node)
-    {
-        if (node is null || node is ParameterReferenceNode)
-            return node is ParameterReferenceNode;
-
-        return ParserNodeTraversalRegistry.EnumerateChildren(node)
-            .Any(ContainsParameterReference);
-    }
 }

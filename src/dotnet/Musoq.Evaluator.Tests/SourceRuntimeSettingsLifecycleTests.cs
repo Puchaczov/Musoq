@@ -440,6 +440,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
 
         public ConcurrentBag<IReadOnlyDictionary<string, string>> ExecutionSettings { get; } = [];
 
+        public ConcurrentBag<IReadOnlyDictionary<string, string>> RequirementSettings { get; } = [];
+
         public int DescribeRuntimeSettingsCount { get; private set; }
 
         public override ISchemaTable GetTableByName(
@@ -456,6 +458,7 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             SourceRuntimeSettingsDescribeContext context,
             params object?[] parameters)
         {
+            RequirementSettings.Add(context.MetadataContext.SourceRuntimeSettings);
             DescribeRuntimeSettingsCount += 1;
             var requirements = base.DescribeSourceRuntimeSettings(name, context, parameters);
             return DeclarationMode switch

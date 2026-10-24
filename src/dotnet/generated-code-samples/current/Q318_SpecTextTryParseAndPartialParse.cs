@@ -62,6 +62,9 @@ ExecutionPlan [compiled]
       ErrorField: string <- property ErrorField
       ErrorMessage: string <- property ErrorMessage
       BytesConsumed: int <- property BytesConsumed
+      CompletedFields: IReadOnlySet<string> <- property CompletedFields
+      IsSuccess: bool <- property IsSuccess
+      BitOffset: int <- property BitOffset
     Generated [ResultRow0]
       Key: string <- field Key
       Value: string <- field Value
@@ -91,7 +94,7 @@ ExecutionPlan [compiled]
       Let [fttKey: string = ft.t.Key]
       Let [fttValue: string = ft.t.Value]
       InterpretSource [KeyValue.PartialParse(ft.f.Line) -> pRows]
-      ChunkedForEach [p in pRows]
+      ScalarForEach [p in pRows]
         AppendShape [result <- ResultRow0(Key: fttKey, Value: fttValue, ErrorField: p.ErrorField, ErrorMessage: p.ErrorMessage, BytesConsumed: p.BytesConsumed)]
     PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
@@ -190,19 +193,12 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                         string fttKey = ft.t_Key;
                         string fttValue = ft.t_Value;
                         var _interpreter_KeyValue = new Musoq.Generated.Interpreters.KeyValue();
-                        var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.KeyValue>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.KeyValue>>(_interpreter_KeyValue.PartialParse(ft.f_Line)));
-                        foreach (var pChunk in pRows)
+                        var pRows = _interpreter_KeyValue.PartialParse(ft.f_Line);
+                        if (pRows != null)
                         {
-                            for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                            {
-                                if ((pIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var p = pChunk[pIndex];
-                                __musoqFinalShapeRows.Add(new ResultRow0(fttKey, fttValue, p.ErrorField, p.ErrorMessage, p.BytesConsumed));
-                            }
+                            token.ThrowIfCancellationRequested();
+                            var p = pRows;
+                            __musoqFinalShapeRows.Add(new ResultRow0(fttKey, fttValue, p.ErrorField, p.ErrorMessage, p.BytesConsumed));
                         }
                     }
                 }
@@ -268,7 +264,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                                 {
                                     return _interpreter_KeyValue.Parse(f.Line);
                                 }
-                                catch
+                                catch (global::Musoq.Schema.Interpreters.ParseException)
                                 {
                                     return null;
                                 }
@@ -310,7 +306,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                                 {
                                     return _interpreter_KeyValue.Parse(f.Line);
                                 }
-                                catch
+                                catch (global::Musoq.Schema.Interpreters.ParseException)
                                 {
                                     return null;
                                 }
@@ -350,7 +346,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                         {
                             return _interpreter_KeyValue.Parse(f.Line);
                         }
-                        catch
+                        catch (global::Musoq.Schema.Interpreters.ParseException)
                         {
                             return null;
                         }
@@ -469,6 +465,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'KeyValue'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class KeyValue : TextInterpreterBase<KeyValue>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

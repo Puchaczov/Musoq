@@ -37,7 +37,7 @@ public sealed partial class RewriteQueryVisitor
 
         var newFrom = context.LastJoinQuery != null
             ? new Parser.ExpressionFromNode(
-                new InMemoryGroupedFromNode(context.LastJoinQuery.From.Alias)
+                new InMemoryGroupedFromNode(context.LastJoinQuery.From.Alias) { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery) }
             )
             : context.From;
 
@@ -69,9 +69,6 @@ public sealed partial class RewriteQueryVisitor
 
         context.SplitNodes.Add(resultQuery);
 
-        Nodes.Push(
-            new MultiStatementNode(
-                context.SplitNodes.ToArray(),
-                null));
+        Nodes.Push(IntermediateSources.CreateStatements(context.SplitNodes.ToArray(), null));
     }
 }

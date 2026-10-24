@@ -18,13 +18,13 @@ internal static partial class PlanningTextPrinter
         var consumed = new bool[applications.Count];
         foreach (var conjunct in FlattenSourceConjunction(predicate))
         {
-            if (conjunct is SourcePredicateStringMatch directMatch)
+            if (conjunct is SourcePredicatePatternMatch directMatch)
             {
                 var applicationIndex = FindApplication(directMatch, applications, consumed);
                 if (applicationIndex >= 0)
                     consumed[applicationIndex] = true;
 
-                AppendStringMatch(
+                AppendPatternMatch(
                     builder,
                     directMatch,
                     applicationIndex < 0 ? null : applications[applicationIndex].Phase,
@@ -32,27 +32,39 @@ internal static partial class PlanningTextPrinter
                 continue;
             }
 
-            foreach (var nestedMatch in CollectNestedStringMatches(conjunct))
-                AppendStringMatch(builder, nestedMatch, null, "nested-non-conjunct");
+            foreach (var nestedMatch in CollectNestedPatternMatches(conjunct))
+                AppendPatternMatch(builder, nestedMatch, null, "nested-non-conjunct");
         }
     }
 
-    private static void AppendStringMatch(
+    private static void AppendPatternMatch(
         StringBuilder builder,
-        SourcePredicateStringMatch match,
+        SourcePredicatePatternMatch match,
         SourcePredicateEvaluationPhase? phase,
         string fallbackReason)
     {
+        if (match is SourcePredicateRegexMatch regex)
+        {
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"      source regex-match: column={regex.Column.Name}, pattern='{EscapeMatchText(regex.Pattern)}', " +
+                $"semantics={regex.Semantics}, timeoutMilliseconds={regex.MatchTimeout.TotalMilliseconds}, " +
+                $"negated={FormatYesNo(regex.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, " +
+                $"fallback={fallbackReason}");
+            return;
+        }
+
+        var stringMatch = (SourcePredicateStringMatch)match;
         builder.AppendLine(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"      source string-match: column={match.Column.Name}, pattern='{EscapeMatchText(match.OriginalPattern)}', " +
-            $"kind={match.Kind}, needle='{EscapeMatchText(match.Needle)}', comparison={match.Comparison}, " +
-            $"negated={FormatYesNo(match.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, " +
+            $"      source string-match: column={stringMatch.Column.Name}, pattern='{EscapeMatchText(stringMatch.OriginalPattern)}', " +
+            $"kind={stringMatch.Kind}, needle='{EscapeMatchText(stringMatch.Needle)}', comparison={stringMatch.Comparison}, " +
+            $"negated={FormatYesNo(stringMatch.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, " +
             $"fallback={fallbackReason}");
     }
 
     private static string ResolveFallbackReason(
-        SourcePredicateStringMatch match,
+        SourcePredicatePatternMatch match,
         SourcePredicateCapabilities capabilities,
         bool hasApplication)
     {
@@ -61,22 +73,36 @@ internal static partial class PlanningTextPrinter
         if (!capabilities.IsKnownVersion)
             return "unknown-contract-version";
 
+        if (match is SourcePredicateRegexMatch regex)
+        {
+            var regexCapability = capabilities.RegexMatches.FirstOrDefault(candidate =>
+                string.Equals(candidate.Column.Name, regex.Column.Name, StringComparison.OrdinalIgnoreCase));
+            if (regexCapability == null)
+                return "unsupported-column";
+            if (regexCapability.Semantics != regex.Semantics)
+                return "unsupported-semantics";
+            if (regex.IsNegated && !regexCapability.SupportsNegation)
+                return "unsupported-negation";
+            return "provider-residual";
+        }
+
+        var stringMatch = (SourcePredicateStringMatch)match;
         var capability = capabilities.StringMatches.FirstOrDefault(candidate =>
-            string.Equals(candidate.Column.Name, match.Column.Name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.Column.Name, stringMatch.Column.Name, StringComparison.OrdinalIgnoreCase));
         if (capability == null)
             return "unsupported-column";
-        if (capability.Comparison != match.Comparison)
+        if (capability.Comparison != stringMatch.Comparison)
             return "unsupported-comparison";
-        if (match.IsNegated && !capability.SupportsNegation)
+        if (stringMatch.IsNegated && !capability.SupportsNegation)
             return "unsupported-negation";
-        if ((capability.Operations & ToOperation(match.Kind)) == 0)
+        if ((capability.Operations & ToOperation(stringMatch.Kind)) == 0)
             return "unsupported-kind";
 
         return "provider-residual";
     }
 
     private static int FindApplication(
-        SourcePredicateStringMatch match,
+        SourcePredicatePatternMatch match,
         IReadOnlyList<SourcePredicateApplication> applications,
         IReadOnlyList<bool> consumed)
     {
@@ -112,42 +138,42 @@ internal static partial class PlanningTextPrinter
             result.Add(predicate);
     }
 
-    private static IReadOnlyList<SourcePredicateStringMatch> CollectNestedStringMatches(
+    private static IReadOnlyList<SourcePredicatePatternMatch> CollectNestedPatternMatches(
         SourcePredicateExpression predicate)
     {
-        var result = new List<SourcePredicateStringMatch>();
-        AddNestedStringMatches(predicate, result);
+        var result = new List<SourcePredicatePatternMatch>();
+        AddNestedPatternMatches(predicate, result);
         return result;
     }
 
-    private static void AddNestedStringMatches(
+    private static void AddNestedPatternMatches(
         SourcePredicateExpression predicate,
-        ICollection<SourcePredicateStringMatch> result)
+        ICollection<SourcePredicatePatternMatch> result)
     {
         switch (predicate)
         {
-            case SourcePredicateStringMatch match:
+            case SourcePredicatePatternMatch match:
                 result.Add(match);
                 break;
             case SourcePredicateLogical logical:
-                AddNestedStringMatches(logical.Left, result);
-                AddNestedStringMatches(logical.Right, result);
+                AddNestedPatternMatches(logical.Left, result);
+                AddNestedPatternMatches(logical.Right, result);
                 break;
             case SourcePredicateComparison comparison:
-                AddNestedStringMatches(comparison.Left, result);
-                AddNestedStringMatches(comparison.Right, result);
+                AddNestedPatternMatches(comparison.Left, result);
+                AddNestedPatternMatches(comparison.Right, result);
                 break;
             case SourcePredicateIn sourceIn:
-                AddNestedStringMatches(sourceIn.Expression, result);
+                AddNestedPatternMatches(sourceIn.Expression, result);
                 foreach (var value in sourceIn.Values)
-                    AddNestedStringMatches(value, result);
+                    AddNestedPatternMatches(value, result);
                 break;
             case SourcePredicateNullCheck nullCheck:
-                AddNestedStringMatches(nullCheck.Expression, result);
+                AddNestedPatternMatches(nullCheck.Expression, result);
                 break;
             case SourcePredicateFlags flags:
-                AddNestedStringMatches(flags.Expression, result);
-                AddNestedStringMatches(flags.Mask, result);
+                AddNestedPatternMatches(flags.Expression, result);
+                AddNestedPatternMatches(flags.Mask, result);
                 break;
         }
     }

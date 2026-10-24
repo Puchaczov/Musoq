@@ -46,7 +46,7 @@ public class TextInterpretationPlanBuilderTests
 
         var plan = BuildPlan(schema);
 
-        Assert.AreEqual("TextSwitch_Body?", plan.Fields.Single().PropertyClrType);
+        Assert.AreEqual("Numeric?", plan.Fields.Single().PropertyClrType);
     }
 
     [TestMethod]

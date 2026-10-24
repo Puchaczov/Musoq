@@ -32,8 +32,9 @@ internal sealed partial class PhysicalLoweringImplementation
         for (var index = 0; index < outputSchema.Columns.Length; index++)
         {
             var outputColumn = outputSchema.Columns[index];
-            if (outputColumn.EnumType != null &&
-                (index >= leftShape.Fields.Count || !Equals(outputColumn.EnumType, leftShape.Fields[index].EnumType)))
+            if (index >= leftShape.Fields.Count ||
+                outputColumn.Type != leftShape.Fields[index].Type.ResolveClrType() ||
+                outputColumn.EnumType != null && !Equals(outputColumn.EnumType, leftShape.Fields[index].EnumType))
                 return true;
         }
 

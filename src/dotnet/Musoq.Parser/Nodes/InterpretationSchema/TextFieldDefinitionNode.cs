@@ -152,6 +152,17 @@ public class TextFieldDefinitionNode : Node
         return builder.ToString();
     }
 
+    /// <summary>Gets the text type syntax without a field name.</summary>
+    public string TypeDefinition
+    {
+        get
+        {
+            var builder = new StringBuilder();
+            AppendTypeDefinition(builder);
+            return builder.ToString();
+        }
+    }
+
     private void AppendTypeDefinition(StringBuilder builder)
     {
 

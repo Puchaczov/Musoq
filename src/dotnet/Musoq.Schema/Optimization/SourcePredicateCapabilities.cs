@@ -7,10 +7,20 @@ namespace Musoq.Schema.Optimization;
 public sealed record SourcePredicateCapabilities
 {
     /// <summary>The current source predicate capability contract version.</summary>
-    public const int CurrentContractVersion = 1;
+    public const int CurrentContractVersion = 2;
 
     private IReadOnlyList<SourceStringMatchCapability> _stringMatches =
         Array.AsReadOnly(Array.Empty<SourceStringMatchCapability>());
+
+    private IReadOnlyList<SourceRegexMatchCapability> _regexMatches =
+        Array.AsReadOnly(Array.Empty<SourceRegexMatchCapability>());
+
+    /// <summary>Gets the immutable regex capability declarations.</summary>
+    public IReadOnlyList<SourceRegexMatchCapability> RegexMatches
+    {
+        get => _regexMatches;
+        init => _regexMatches = Freeze(value);
+    }
 
     /// <summary>Gets the declared contract version.</summary>
     public int ContractVersion { get; init; } = CurrentContractVersion;
@@ -33,11 +43,16 @@ public sealed record SourcePredicateCapabilities
     /// <param name="phase">The requested application phase.</param>
     /// <returns><see langword="true"/> when a known declaration advertises every required dimension.</returns>
     public bool Supports(
-        SourcePredicateStringMatch predicate,
+        SourcePredicatePatternMatch predicate,
         SourcePredicateEvaluationPhase phase)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        return IsKnownVersion && StringMatches.Any(capability => capability.Supports(predicate, phase));
+        return IsKnownVersion && predicate switch
+        {
+            SourcePredicateStringMatch match => StringMatches.Any(capability => capability.Supports(match, phase)),
+            SourcePredicateRegexMatch match => RegexMatches.Any(capability => capability.Supports(match, phase)),
+            _ => false
+        };
     }
 
     /// <summary>Validates the capability declaration as a well-formed contract.</summary>
@@ -47,6 +62,15 @@ public sealed record SourcePredicateCapabilities
     {
         if (ContractVersion <= 0)
             throw new ArgumentOutOfRangeException(nameof(ContractVersion), ContractVersion, "The contract version must be positive.");
+
+        ArgumentNullException.ThrowIfNull(RegexMatches);
+        var regexColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var capability in RegexMatches)
+        {
+            ArgumentNullException.ThrowIfNull(capability);
+            if (!regexColumns.Add(capability.Column.Name))
+                throw new ArgumentException($"The regex capability for column '{capability.Column.Name}' is declared more than once.", nameof(RegexMatches));
+        }
 
         ArgumentNullException.ThrowIfNull(StringMatches);
         var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -62,8 +86,8 @@ public sealed record SourcePredicateCapabilities
         }
     }
 
-    private static IReadOnlyList<SourceStringMatchCapability> Freeze(
-        IEnumerable<SourceStringMatchCapability> values)
+    private static IReadOnlyList<T> Freeze<T>(
+        IEnumerable<T> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         return Array.AsReadOnly(values.ToArray());

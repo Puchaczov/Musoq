@@ -87,13 +87,10 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     [TestMethod]
     public void TryGetMethod_NullValue_Resolution()
     {
-        Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("NullableMethod", [typeof(NullNode.NullType)], null, out var method),
-            "Should resolve method for null value"
-        );
+        var exception = Assert.Throws<Musoq.Schema.Exceptions.MethodResolutionException>(() =>
+            _methodsMetadata.TryGetMethod("NullableMethod", [typeof(NullNode.NullType)], null, out _));
 
-        method = RequireResolved(method);
-        Assert.AreEqual(typeof(int?), method.GetParameters()[0].ParameterType);
+        Assert.AreEqual("ambiguous-overload", exception.ResolutionReason);
     }
 
     [TestMethod]

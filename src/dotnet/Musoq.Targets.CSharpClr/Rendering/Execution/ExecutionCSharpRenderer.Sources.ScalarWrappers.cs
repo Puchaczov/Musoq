@@ -8,26 +8,14 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static InvocationExpressionSyntax CreateScalarToArrayWrapper(
-        ExpressionSyntax sourceExpression,
-        string typeName)
-    {
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.GenericName(nameof(EvaluationHelper.WrapScalarForCrossApply))
-                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ParseTypeName(typeName))))))
-            .WithArgumentList(CreateArgumentList(sourceExpression));
-    }
-
     private static InvocationExpressionSyntax WrapInTryCatchReturningNull(
         ExpressionSyntax expression,
         string typeName)
     {
         var tryBlock = SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expression));
         var catchClause = SyntaxFactory.CatchClause()
+            .WithDeclaration(SyntaxFactory.CatchDeclaration(
+                SyntaxFactory.ParseTypeName("global::Musoq.Schema.Interpreters.ParseException")))
             .WithBlock(SyntaxFactory.Block(
                 SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))));
         var lambda = SyntaxFactory.ParenthesizedLambdaExpression()

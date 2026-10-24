@@ -16,8 +16,8 @@ public sealed record GeneratedRowShape : RowShape
         : base(typeName, fields)
     {
         TypeName = typeName;
-        Fields = ExecutionIrCollections.Freeze(fields);
-        Contexts = ExecutionIrCollections.Freeze(contexts);
+        Fields = fields;
+        Contexts = contexts;
         SupportsGeneratedFieldAccess = supportsGeneratedFieldAccess;
         RequiresRowBase = requiresRowBase;
     }

@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Nodes.InterpretationSchema;
+namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
 ///     Represents a single case in a text switch field.
@@ -14,7 +14,8 @@ public class TextSwitchCaseNode
     public TextSwitchCaseNode(string? pattern, string typeName)
     {
         Pattern = pattern;
-        TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
+        Body = new TextFieldDefinitionNode("Value", TextFieldType.SchemaReference,
+            typeName ?? throw new ArgumentNullException(nameof(typeName)));
     }
 
     /// <summary>
@@ -26,7 +27,18 @@ public class TextSwitchCaseNode
     /// <summary>
     ///     Gets the type/schema name to parse when this case matches.
     /// </summary>
-    public string TypeName { get; }
+    public string TypeName => Body.FieldType == TextFieldType.SchemaReference
+        ? Body.PrimaryValue! : throw new InvalidOperationException("Only schema-reference arms have a schema name.");
+
+    /// <summary>Gets the complete text type parsed when this arm is selected.</summary>
+    public TextFieldDefinitionNode Body { get; }
+
+    /// <summary>Creates an arm with a complete typed text body.</summary>
+    public TextSwitchCaseNode(string? pattern, TextFieldDefinitionNode body)
+    {
+        Pattern = pattern;
+        Body = body ?? throw new ArgumentNullException(nameof(body));
+    }
 
     /// <summary>
     ///     Gets whether this is the default case.
@@ -37,9 +49,9 @@ public class TextSwitchCaseNode
     public override string ToString()
     {
         if (IsDefault)
-            return $"_ => {TypeName}";
+            return $"_ => {Body.TypeDefinition}";
 
-        return $"pattern '{EscapeString(Pattern!)}' => {TypeName}";
+        return $"pattern '{EscapeString(Pattern!)}' => {Body.TypeDefinition}";
     }
 
     private static string EscapeString(string value)

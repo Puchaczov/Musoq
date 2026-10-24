@@ -68,10 +68,10 @@ internal static class PortableSubsetInterpreter
         PortableExecutionContext? context = null)
     {
         ArgumentNullException.ThrowIfNull(program);
-        if (!program.SemanticsContract.IsEquivalentTo(ExecutionSemanticsContract.Version1))
+        if (!program.SemanticsContract.IsEquivalentTo(ExecutionSemanticsContract.Current))
         {
             throw new NotSupportedException(
-                $"Portable subset interpreter supports semantics fingerprint '{ExecutionSemanticsContract.Version1.Fingerprint}', not '{program.SemanticsFingerprint}'.");
+                $"Portable subset interpreter supports semantics fingerprint '{ExecutionSemanticsContract.Current.Fingerprint}', not '{program.SemanticsFingerprint}'.");
         }
 
         var state = new InterpreterState(context ?? PortableExecutionContext.Empty);
@@ -200,10 +200,7 @@ internal static class PortableSubsetInterpreter
         PortableParameterExpression parameter => GetRequired(state.Context.Parameters, parameter.Name, "parameter"),
         PortableScriptVariableExpression variable => GetRequired(state.Context.ScriptVariables, variable.Name, "script variable"),
         PortableVariableExpression variable => GetRequired(state.Values, variable.Name, "variable"),
-        PortableBinaryExpression binary => EvaluateBinary(
-            binary.Operation,
-            Evaluate(binary.Left, state),
-            Evaluate(binary.Right, state)),
+        PortableBinaryExpression binary => EvaluateBinaryExpression(binary, state),
         PortableUnaryExpression unary => EvaluateUnary(unary.Operation, Evaluate(unary.Operand, state)),
         PortableNullCheckExpression nullCheck => PortableValue.FromBoolean(
             Evaluate(nullCheck.Expression, state).IsNull != nullCheck.IsNegated),
@@ -291,6 +288,17 @@ internal static class PortableSubsetInterpreter
             _ => throw new InvalidOperationException(
                 $"Portable unary operation '{operation}' does not support '{operand.Kind}'.")
         };
+    }
+
+    private static PortableValue EvaluateBinaryExpression(PortableBinaryExpression binary, InterpreterState state)
+    {
+        var left = Evaluate(binary.Left, state);
+        if (!left.IsNull &&
+            (binary.Operation == PortableBinaryOperation.And && !left.Boolean ||
+             binary.Operation == PortableBinaryOperation.Or && left.Boolean))
+            return left;
+
+        return EvaluateBinary(binary.Operation, left, Evaluate(binary.Right, state));
     }
 
     private static PortableValue EvaluateBinary(

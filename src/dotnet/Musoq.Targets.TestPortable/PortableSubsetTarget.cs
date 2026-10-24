@@ -76,7 +76,7 @@ internal static class PortableSubsetTarget
             ExecutionPortableSymbolPortability.ClrOnly
         ],
         SupportedOperations,
-        [ExecutionSemanticsContract.Version1.Version],
+        [ExecutionSemanticsContract.Current.Version],
         [
             ExecutionTargetFeatureKind.ConstantKind,
             ExecutionTargetFeatureKind.BinaryOperation,

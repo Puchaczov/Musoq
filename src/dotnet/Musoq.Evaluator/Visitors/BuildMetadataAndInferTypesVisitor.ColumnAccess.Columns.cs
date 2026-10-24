@@ -39,7 +39,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
         }
 
-        var hasProcessedQueryId = _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+        var hasProcessedQueryId = _semanticState.Subqueries.HasCurrentProcessedQueryId();
         var primaryIdentifier = hasProcessedQueryId
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
             : _sourceBinding.Identifier;
@@ -63,6 +63,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(identifier, out var resolvedTableSymbol)
             ? resolvedTableSymbol
             : null;
+        var isOuterReference = false;
+        if (!string.IsNullOrEmpty(node.Alias) && (tableSymbol is null || !tableSymbol.ContainsAlias(node.Alias)) &&
+            _semanticState.Subqueries.ResolveSubqueryOuterTable(node.Alias) is { } outerTable)
+        {
+            tableSymbol = outerTable;
+            identifier = node.Alias;
+            isOuterReference = true;
+        }
         if (tableSymbol == null)
         {
             var missingAlias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : identifier;
@@ -101,6 +109,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             ? tableSymbol.GetTableByAlias(node.Alias)
             : tableSymbol.GetTableByColumnName(node.Name, node.SpanOrEmpty());
 
+        if (tuple.Table is null && string.IsNullOrEmpty(node.Alias) && _semanticState.Subqueries.ResolveUnqualifiedSubqueryOuterAlias(node) is { } outerAlias)
+        {
+            tuple = _semanticState.Subqueries.ResolveSubqueryOuterTable(outerAlias)!.GetTableByAlias(outerAlias);
+            isOuterReference = true;
+        }
+
         var matchingColumns = tuple.Table?.GetColumnsByName(node.Name) ?? [];
         if (matchingColumns.Length > 1)
             throw new AmbiguousColumnException(node.Name, tuple.TableName ?? identifier, tuple.TableName ?? identifier,
@@ -137,8 +151,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         AddAssembly(column.ColumnType.Assembly);
         node.ChangeReturnType(column.ColumnType);
 
+        var sourceQueryKey = isOuterReference ? _semanticState.Subqueries.ResolveOuterSubquerySourceKey(tuple.TableName) : _sourceBinding.SchemaFromKey;
         var usedColumns = _sourceBinding.UsedColumns
-            .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _sourceBinding.SchemaFromKey)
+            .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == sourceQueryKey)
             .Select(f => f.Value)
             .FirstOrDefault();
 
@@ -151,7 +166,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             : new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span, column.IntendedTypeName);
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);
-        PushSemanticNode(accessColumn);
+        RegisterNullableInterpretationColumn(accessColumn, column);
+        PushSemanticNode(isOuterReference ? _semanticState.Subqueries.CaptureSubqueryOuterColumn(accessColumn) : accessColumn);
     }
 
     public override void Visit(AllColumnsNode node)
@@ -223,6 +239,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (binding.Kind == SemanticIdentifierBindingKind.Identifier)
             {
                 PushSemanticNode(new IdentifierNode(node.Name));
+                return;
+            }
+
+            if (_semanticState.Subqueries.ResolveUnqualifiedSubqueryOuterAlias(new AccessColumnNode(node.Name, string.Empty, node.ReturnType ?? typeof(object), node.Span)) is { } outerAlias)
+            {
+                Visit(new AccessColumnNode(node.Name, outerAlias, node.ReturnType ?? typeof(object), node.Span));
                 return;
             }
 

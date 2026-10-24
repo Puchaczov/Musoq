@@ -60,9 +60,7 @@ public partial class RawTraverseVisitor<TExpressionVisitor>    where TExpression
 
     public virtual void Visit(TextFieldDefinitionNode node)
     {
-        ArgumentNullException.ThrowIfNull(node);
-        node.RepeatElement?.Accept(this);
-        node.Accept(Visitor);
+        VisitChildrenThenNode(node);
     }
 
     public virtual void Visit(FieldConstraintNode node)

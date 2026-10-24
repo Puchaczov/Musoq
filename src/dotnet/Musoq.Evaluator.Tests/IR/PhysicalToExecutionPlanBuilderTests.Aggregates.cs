@@ -112,7 +112,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [
                 new ColumnSchema("p.Name", typeof(string), 0),
                 new ColumnSchema("p.Count", typeof(long), 1)
-            ]));
+            ])) { IntermediateProducerId = new IntermediateProducerId(0) };
         var finalProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
@@ -123,7 +123,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         [
             aggregateProject,
             new PhysicalTakeNode(2, new PhysicalSkipNode(1, finalProject))
-        ]);
+        ]) { IntermediateProducers = [new(new(new(0), "pScore"), 0)] };
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(multiStatement, "Q_FinalAggregateProjection");
@@ -183,7 +183,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [
                 new ColumnSchema("p.Name", typeof(string), 0),
                 new ColumnSchema("p.Count", typeof(long), 1)
-            ]));
+            ])) { IntermediateProducerId = new IntermediateProducerId(0) };
         var bucket = new CaseWhen(
             [
                 new CaseWhenBranch(
@@ -202,7 +202,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 new ProjectedField("Bucket", bucket, 1)
             ],
             cteRef);
-        var multiStatement = new PhysicalMultiStatementNode([aggregateProject, finalProject]);
+        var multiStatement = new PhysicalMultiStatementNode([aggregateProject, finalProject]) { IntermediateProducers = [new(new(new(0), "pScore"), 0)] };
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(multiStatement, "Q_FinalAggregateCaseProjection");

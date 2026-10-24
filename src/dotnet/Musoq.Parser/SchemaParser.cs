@@ -56,13 +56,8 @@ public partial class SchemaParser
     }.ToFrozenSet();
 
     private readonly ILexer _lexer;
-    private bool _hasReplacedToken;
+    private readonly SchemaTokenStream _tokens;
     private int _pendingGenericGreaterTokens;
-    private Token? _peekedToken; // Token peeked ahead but not yet consumed
-
-    // ReSharper disable once NotAccessedField.Local - Reserved for future token replacement support
-    private Token? _replacedToken;
-    private Token? _savedTokenBeforePeek; // Current token saved before peeking
 
     /// <summary>
     ///     Creates a new schema parser.
@@ -71,13 +66,10 @@ public partial class SchemaParser
     public SchemaParser(ILexer lexer)
     {
         _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
+        _tokens = new SchemaTokenStream(_lexer);
     }
 
-    private Token Current =>
-        _pendingGenericGreaterTokens > 0
-            ? new GreaterToken(TextSpan.Empty)
-            : _savedTokenBeforePeek ??
-              (_hasReplacedToken && _replacedToken != null ? _replacedToken : _lexer.Current());
+    private Token Current => _pendingGenericGreaterTokens > 0 ? new GreaterToken(TextSpan.Empty) : _tokens.Current;
 
     private IReadOnlyList<SchemaComment> GetSchemaComments(TextSpan schemaSpan)
     {

@@ -50,6 +50,14 @@ internal sealed partial class SourcePredicateExpressionComparer
                 hash.Add(nullCheck.IsNegated);
                 AddHash(nullCheck.Expression, ref hash);
                 break;
+            case SourcePredicateRegexMatch regexMatch:
+                hash.Add(nameof(SourcePredicateRegexMatch));
+                hash.Add(regexMatch.Column.Name, StringComparer.OrdinalIgnoreCase);
+                hash.Add(regexMatch.Pattern, StringComparer.Ordinal);
+                hash.Add(regexMatch.Semantics);
+                hash.Add(regexMatch.MatchTimeout);
+                hash.Add(regexMatch.IsNegated);
+                break;
             case SourcePredicateStringMatch stringMatch:
                 hash.Add(nameof(SourcePredicateStringMatch));
                 hash.Add(stringMatch.Column.Name, StringComparer.OrdinalIgnoreCase);

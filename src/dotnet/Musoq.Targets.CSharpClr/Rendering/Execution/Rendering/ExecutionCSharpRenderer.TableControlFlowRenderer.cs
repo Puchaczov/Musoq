@@ -13,7 +13,7 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 ExecutionSourceScan sourceScan => renderer.RenderSourceScan(sourceScan, renderContext),
                 ExecutionPrepareStructuralInput structuralInput => [StructuralInputSyntaxFactory.RenderPrepare(structuralInput, renderContext, renderer)],
-               ExecutionInterpretSource interpret => renderer.RenderInterpretSource(interpret),
+                ExecutionInterpretSource interpret => renderer.RenderInterpretSource(interpret, renderContext),
                 ExecutionEnumerableSource enumerable => [renderer.RenderEnumerableSource(enumerable, renderContext)],
                 ExecutionCreateTable createTable => renderer.RenderCreateTable(createTable, renderContext),
                 ExecutionCreateValuesRows valuesRows => [renderer.RenderCreateValuesRows(valuesRows, renderContext)],

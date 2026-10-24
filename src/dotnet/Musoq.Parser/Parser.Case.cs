@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Parser.Diagnostics;
-using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -13,11 +11,7 @@ public partial class Parser
         var caseToken = ConsumeAndGetToken(TokenType.Case);
 
         if (Current.TokenType == TokenType.Comma)
-            throw new SyntaxException(
-                "CASE is reserved and starts a CASE expression here, but no WHEN branch or subject expression follows. Use [case] when the word is intended as an identifier.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2027_MissingWhenClause,
-                caseToken.Span);
+            CaseExpressionSyntax.ThrowMissingWhen(_lexer.AlreadyResolvedQueryPart, caseToken.Span);
 
         Node? subjectExpression = null;
         if (Current.TokenType != TokenType.When)
@@ -25,7 +19,7 @@ public partial class Parser
 
         var whenThenNodes = new List<(Node When, Node Then)>();
 
-        while (Current.TokenType == TokenType.When)
+        do
         {
             Consume(TokenType.When);
             Node whenNode;
@@ -36,16 +30,20 @@ public partial class Parser
             Consume(TokenType.Then);
             var thenNode = ComposeEqualityOperators();
 
-            whenThenNodes.Add((
-                new WhenNode(whenNode),
-                new ThenNode(thenNode)));
-        }
+            whenThenNodes.Add(CaseExpressionSyntax.CreateBranch(whenNode, thenNode));
+        } while (Current.TokenType == TokenType.When);
 
-        Consume(TokenType.Else);
-        var elseNode = ComposeEqualityOperators();
+        Node elseNode;
+        if (Current.TokenType == TokenType.End)
+            elseNode = CaseExpressionSyntax.CreateImplicitElse(Current.Span);
+        else
+        {
+            Consume(TokenType.Else);
+            elseNode = new ElseNode(ComposeEqualityOperators());
+        }
         var endToken = ConsumeAndGetToken(TokenType.End);
 
-        return (whenThenNodes.ToArray(), new ElseNode(elseNode), caseToken.Span.Through(endToken.Span));
+        return (whenThenNodes.ToArray(), elseNode, caseToken.Span.Through(endToken.Span));
     }
 
 }

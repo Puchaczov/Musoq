@@ -328,7 +328,7 @@ public sealed class DiagnosticREC120WarningAwareApiTests
         new("R07", "PRESERVATION", "select d.Dummy from #system.dual() d where d.Dummy = null", "select d.Dummy from #system.dual() d where d.Dummy is null", [DiagnosticCode.MQ5017_NullComparison]),
         new("R08", "PRESERVATION", "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)", "select d.Dummy from #system.dual() d where d.Dummy = '__never__'", [DiagnosticCode.MQ5024_NullSensitiveNotIn]),
         new("R09", "PRESERVATION", "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d", SystemSeed, [DiagnosticCode.MQ5022_UnusedCte]),
-        new("R10", "PRESERVATION", "select 1 ?? 'fallback' from #system.dual() d", "select 1 from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
+        new("R10", "PRESERVATION", "select 1 ?? 2 from #system.dual() d", "select 1 from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         new("R11", "PRESERVATION", "let dead: int = 1; select d.Dummy from #system.dual() d", SystemSeed, [DiagnosticCode.MQ5023_UnusedScriptVariable]),
         new("R12", "PRESERVATION", "select 'C:\\new\\test' from #system.dual() d", null, [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape])
     ];

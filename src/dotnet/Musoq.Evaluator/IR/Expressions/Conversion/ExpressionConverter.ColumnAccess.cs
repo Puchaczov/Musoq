@@ -7,7 +7,7 @@ public sealed partial class ExpressionConverter
     private ColumnRef ConvertColumnAccess(AccessColumnNode node)
     {
         var (alias, name) = NormalizeAccessColumn(node);
-        return new ColumnRef(alias, name, RequireReturnType(node))
+        return new ColumnRef(alias, name, RequireReturnType(node), node.IntendedTypeName)
         {
             Stability = ResolveColumnStability(alias, name),
             EnumType = ResolveColumnEnumType(alias, name),

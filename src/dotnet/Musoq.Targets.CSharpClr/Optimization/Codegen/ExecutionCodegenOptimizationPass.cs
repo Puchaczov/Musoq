@@ -99,7 +99,7 @@ internal sealed class ExecutionCodegenOptimizationPass : ICodegenReadabilityOpti
             var visited = (BlockSyntax)base.VisitBlock(node)!;
             var statements = visited.Statements;
             var removed = RemoveUnusedDeclarations(statements);
-            var rewritten = removed.Count == 0
+            var rewritten = removed is null
                 ? visited
                 : visited.WithStatements(SyntaxFactory.List(
                     statements.Where((_, index) => !removed.Contains(index))));
@@ -120,10 +120,10 @@ internal sealed class ExecutionCodegenOptimizationPass : ICodegenReadabilityOpti
             return extracted;
         }
 
-        private HashSet<int> RemoveUnusedDeclarations(SyntaxList<StatementSyntax> statements)
+        private HashSet<int>? RemoveUnusedDeclarations(SyntaxList<StatementSyntax> statements)
         {
-            var removed = new HashSet<int>();
-            var usedLater = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<int>? removed = null;
+            HashSet<string>? usedLater = null;
 
             for (var index = statements.Count - 1; index >= 0; index--)
             {
@@ -131,12 +131,15 @@ internal sealed class ExecutionCodegenOptimizationPass : ICodegenReadabilityOpti
                 if (statement is LocalDeclarationStatementSyntax local &&
                     CanRemove(local, usedLater))
                 {
-                    removed.Add(index);
+                    (removed ??= new HashSet<int>()).Add(index);
                     RemovedDeclarations++;
                 }
 
-                foreach (var identifier in statement.DescendantNodes().OfType<IdentifierNameSyntax>())
-                    usedLater.Add(identifier.Identifier.ValueText);
+                foreach (var descendant in statement.DescendantNodes())
+                {
+                    if (descendant is IdentifierNameSyntax identifier)
+                        (usedLater ??= new HashSet<string>(StringComparer.Ordinal)).Add(identifier.Identifier.ValueText);
+                }
             }
 
             return removed;
@@ -144,7 +147,7 @@ internal sealed class ExecutionCodegenOptimizationPass : ICodegenReadabilityOpti
 
         private bool CanRemove(
             LocalDeclarationStatementSyntax local,
-            HashSet<string> usedLater)
+            HashSet<string>? usedLater)
         {
             if (local.UsingKeyword.RawKind != 0 ||
                 local.AwaitKeyword.RawKind != 0 ||
@@ -154,18 +157,15 @@ internal sealed class ExecutionCodegenOptimizationPass : ICodegenReadabilityOpti
                 return false;
             }
 
-            var variableNames = local.Declaration.Variables
-                .Select(static variable => variable.Identifier.ValueText)
-                .Where(static name => !string.IsNullOrWhiteSpace(name))
-                .ToArray();
-
-            if (variableNames.Length != local.Declaration.Variables.Count ||
-                local.Declaration.Variables.Any(static variable =>
-                    !CodegenReadabilitySyntaxFacts.IsSafelyRemovableInitializer(variable.Initializer)) ||
-                variableNames.Any(usedLater.Contains))
+            foreach (var variable in local.Declaration.Variables)
             {
-                SkippedDeclarations++;
-                return false;
+                if (string.IsNullOrWhiteSpace(variable.Identifier.ValueText) ||
+                    !CodegenReadabilitySyntaxFacts.IsSafelyRemovableInitializer(variable.Initializer) ||
+                    usedLater?.Contains(variable.Identifier.ValueText) == true)
+                {
+                    SkippedDeclarations++;
+                    return false;
+                }
             }
 
             return true;

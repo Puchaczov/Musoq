@@ -133,22 +133,25 @@ public sealed class SpecDiagnosticQualityTests
     }
 
     [TestMethod]
-    public void CorrelatedSubqueryFallbacks_ReportActionableSourceSpan()
+    public void QuantifiedFallback_ShouldCompileAndEvaluate()
     {
-        var cases = new[]
-        {
-            ("select a.K in (select b.K from values { ( K: 1 ) } b where b.K > a.K) from values { ( K: 1 ) } a", "correlated subquery strategy"),
-            ("select a.K > any (select b.K from values { ( K: 1 ) } b where b.K = a.K) from values { ( K: 1 ) } a", "correlated quantified subquery strategy")
-        };
+        const string query = "select a.K > any (select b.K from values { ( K: 1 ) } b where b.K = a.K) as Matched from values { ( K: 1 ) } a";
+        using var compiled = InstanceCreator.CompileForExecution(query, $"Quantified_{Guid.NewGuid():N}",
+            new SystemSchemaProvider(), new TestsLoggerResolver());
+        using var table = compiled.Run();
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(false, table[0].ReadValue(0));
+    }
 
-        foreach (var (query, operation) in cases)
-        {
-            var diagnostic = Compile(query).Errors.Single();
-
-            Assert.AreEqual(DiagnosticCode.MQ2024_InvalidSubquery, diagnostic.Code, Describe(diagnostic));
-            Assert.IsTrue(diagnostic.Span.Start >= 0 && diagnostic.Span.Length > 0, Describe(diagnostic));
-            StringAssert.Contains(diagnostic.Message, operation, Describe(diagnostic));
-        }
+    [TestMethod]
+    public void CorrelatedMembershipFallback_ShouldCompileAndEvaluate()
+    {
+        const string query = "select a.K in (select b.K from values { ( K: 1 ) } b where b.K > a.K) as Matched from values { ( K: 1 ) } a";
+        using var compiled = InstanceCreator.CompileForExecution(query, $"Fallback_{Guid.NewGuid():N}",
+            new SystemSchemaProvider(), new TestsLoggerResolver());
+        using var table = compiled.Run();
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(false, table[0].ReadValue(0));
     }
 
     private static BuildResult Compile(string query) => InstanceCreator.CompileWithDiagnostics(

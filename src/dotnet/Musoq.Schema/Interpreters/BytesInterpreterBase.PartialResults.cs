@@ -75,8 +75,7 @@ public abstract partial class BytesInterpreterBase<TOut>
         }
         catch (ParseException ex)
         {
-            if (interpreter.BytesConsumed >= ParsePosition)
-                ResumeAfterNested(interpreter);
+            ResumeAfterNested(interpreter);
 
             throw AddNestedFieldContext(ex, fieldName);
         }
@@ -100,13 +99,13 @@ public abstract partial class BytesInterpreterBase<TOut>
 
         try
         {
-            return interpreter.InterpretAt(data, offset);
+            var result = interpreter.InterpretAt(data, offset);
+            ResumeAfterSubstream(interpreter, parentPosition, offset);
+            return result;
         }
         catch (ParseException ex)
         {
-            var nestedConsumed = interpreter.BytesConsumed;
-            if (nestedConsumed >= offset)
-                ParsePosition = parentPosition + (nestedConsumed - offset);
+            ResumeAfterSubstream(interpreter, parentPosition, offset);
 
             var rebasedPosition = (long)parentPosition + ex.Position - offset;
             var position = rebasedPosition switch
@@ -118,6 +117,12 @@ public abstract partial class BytesInterpreterBase<TOut>
 
             throw AddNestedFieldContext(ex, fieldName, position);
         }
+    }
+
+    private void ResumeAfterSubstream<TChild>(IBytesInterpreter<TChild> interpreter, int origin, int offset)
+    {
+        ParsePosition = origin + interpreter.BytesConsumed - offset;
+        BitOffset = interpreter is BytesInterpreterBase<TChild> nested ? nested.BitOffset : 0;
     }
 
     /// <summary>
@@ -156,17 +161,12 @@ public abstract partial class BytesInterpreterBase<TOut>
         {
             var result = Interpret(data);
 
-            return new PartialInterpretResult<TOut>(result, parsedFields, BytesConsumed);
+            return new PartialInterpretResult<TOut>(result, parsedFields, BytesConsumed, BitOffset);
         }
         catch (ParseException ex)
         {
             return new PartialInterpretResult<TOut>(_partialParsedValue, parsedFields, BytesConsumed,
-                ex.FieldName ?? _currentFieldName ?? "Unknown", ex.GetPartialInterpretationMessage());
-        }
-        catch (Exception ex)
-        {
-            return new PartialInterpretResult<TOut>(_partialParsedValue, parsedFields, BytesConsumed,
-                _currentFieldName ?? "Unknown", ex.Message);
+                ex.FieldName ?? _currentFieldName ?? "Unknown", ex.GetPartialInterpretationMessage(), BitOffset);
         }
         finally
         {

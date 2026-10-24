@@ -399,6 +399,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'StringRepeatPacket'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class StringRepeatPacket : BytesInterpreterBase<StringRepeatPacket>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -439,8 +440,9 @@ namespace Musoq.Generated.Interpreters
             var __names_iteration = 0;
             do
             {
-                EnsureRepeatIteration("Names", __names_iteration++);
-                __names_lastElem = ReadString(data, 3, System.Text.Encoding.ASCII);
+                EnsureRepeatIteration("Names", __names_iteration++, 10000);
+                var __names_lastElem_value = ReadString(data, 3, System.Text.Encoding.ASCII);
+                __names_lastElem = __names_lastElem_value;
                 __names_list.Add(__names_lastElem);
             }
             while (((__names_lastElem == "END")) != true);

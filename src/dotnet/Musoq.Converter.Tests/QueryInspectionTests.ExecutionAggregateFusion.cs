@@ -37,7 +37,7 @@ public partial class QueryInspectionTests
             new CompilationOptions().WithStabilityAwareScalarReuse());
 
         AssertGeneratedCSharpContains("var __agg0Input = (int?)population;", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("var __agg1Input = (int?)population1;", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("var __agg1Input = (int?)population;", result.GeneratedCSharpCode);
         Assert.AreEqual(2, CountOccurrences(result.GeneratedCSharpCode, "GetValueOrDefault();"));
     }
 

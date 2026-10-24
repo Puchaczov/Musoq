@@ -224,10 +224,6 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         "params(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3061_InvalidScriptParameterDefault)]
     [DataRow(
-        "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')",
-        "params(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')",
-        DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument)]
-    [DataRow(
         "param(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         "params(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3063_DuplicateScriptSymbolName)]

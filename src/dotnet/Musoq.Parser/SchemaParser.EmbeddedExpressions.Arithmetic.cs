@@ -20,15 +20,13 @@ public partial class SchemaParser
     {
         var left = ComposeMultiplicativeExpression();
 
-        while (Current.TokenType is TokenType.Plus or TokenType.Hyphen)
+        while (Current.TokenType is TokenType.Plus or TokenType.Hyphen or TokenType.StringConcatenation)
         {
             var op = Current.TokenType;
             Consume(op);
             var right = ComposeMultiplicativeExpression();
 
-            left = op == TokenType.Plus
-                ? new AddNode(left, right)
-                : new HyphenNode(left, right);
+            left = ArithmeticExpressionSyntax.Create(op, left, right);
         }
 
         return left;

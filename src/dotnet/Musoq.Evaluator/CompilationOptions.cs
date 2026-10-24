@@ -189,7 +189,8 @@ public partial class CompilationOptions(
         bool? loopInvariantCodeMotion = null,
         bool? stabilityAwareScalarReuse = null,
         RecursiveCteExecutionLimits? recursiveCteLimits = null,
-        TimeSpan? regexMatchTimeout = null)
+        TimeSpan? regexMatchTimeout = null,
+        InterpretationExecutionLimits? interpretationLimits = null)
     {
         return new CompilationOptions(
             ParallelizationMode,
@@ -208,7 +209,8 @@ public partial class CompilationOptions(
             UseLoopInvariantCodeMotion = loopInvariantCodeMotion ?? UseLoopInvariantCodeMotion,
             UseStabilityAwareScalarReuse = stabilityAwareScalarReuse ?? UseStabilityAwareScalarReuse,
             RecursiveCteLimits = recursiveCteLimits ?? RecursiveCteLimits,
-            RegexMatchTimeout = regexMatchTimeout ?? RegexMatchTimeout
+            RegexMatchTimeout = regexMatchTimeout ?? RegexMatchTimeout,
+            InterpretationLimits = interpretationLimits ?? InterpretationLimits
         };
     }
 }

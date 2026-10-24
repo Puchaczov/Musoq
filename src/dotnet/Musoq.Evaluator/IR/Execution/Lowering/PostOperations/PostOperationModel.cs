@@ -24,8 +24,8 @@ internal sealed record TableProjection(
     IReadOnlyList<int> FieldIndexes);
 
 internal sealed record StreamingSlice(
-    int SkipCount,
-    int? TakeCount,
+    PagingCount SkipCount,
+    PagingCount? TakeCount,
     ExecutionVariable? SkipRemaining,
     ExecutionVariable? TakeRemaining);
 
@@ -40,30 +40,30 @@ internal sealed record SortOperation(
 }
 
 internal sealed record TopNOperation(
-    int Count,
+    PagingCount Count,
     OrderField[] Keys,
     IReadOnlyList<ProjectedField> ProjectedFields) : PostOperation
 {
-    public TopNOperation(int count, OrderField[] keys)
+    public TopNOperation(PagingCount count, OrderField[] keys)
         : this(count, keys, [])
     {
     }
 }
 
 internal sealed record TopOffsetOperation(
-    int SkipCount,
-    int TakeCount,
+    PagingCount SkipCount,
+    PagingCount TakeCount,
     OrderField[] Keys,
     IReadOnlyList<ProjectedField> ProjectedFields) : PostOperation
 {
-    public TopOffsetOperation(int skipCount, int takeCount, OrderField[] keys)
+    public TopOffsetOperation(PagingCount skipCount, PagingCount takeCount, OrderField[] keys)
         : this(skipCount, takeCount, keys, [])
     {
     }
 }
 
-internal sealed record SkipOperation(int Count) : PostOperation;
+internal sealed record SkipOperation(PagingCount Count) : PostOperation;
 
-internal sealed record TakeOperation(int Count) : PostOperation;
+internal sealed record TakeOperation(PagingCount Count) : PostOperation;
 
-internal sealed record SliceOperation(int SkipCount, int TakeCount) : PostOperation;
+internal sealed record SliceOperation(PagingCount SkipCount, PagingCount TakeCount) : PostOperation;

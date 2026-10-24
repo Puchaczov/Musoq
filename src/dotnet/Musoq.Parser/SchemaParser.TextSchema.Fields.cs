@@ -20,6 +20,7 @@ public partial class SchemaParser
     private TextFieldDefinitionNode ComposeTextFieldType(string name)
     {
 
+        var typeSpan = Current.Span;
         var isOptionalPrefix = Current.TokenType == TokenType.Optional;
         if (isOptionalPrefix) Consume(TokenType.Optional);
 
@@ -58,7 +59,7 @@ public partial class SchemaParser
                     field.CaptureGroups,
                     field.RepeatElement);
 
-        return field;
+        return (TextFieldDefinitionNode)field.WithSpan(typeSpan);
     }
 
     private TextFieldDefinitionNode ComposePatternField(string name)

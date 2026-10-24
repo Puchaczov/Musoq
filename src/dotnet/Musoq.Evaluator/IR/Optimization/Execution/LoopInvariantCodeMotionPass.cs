@@ -195,7 +195,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             {
                 var variable = new ExecutionVariable(
                     CreateVariableName(candidate.Expression),
-                    candidate.Expression.ReturnType);
+                    candidate.Expression.ReturnType, candidate.Expression.InterpretationShape?.TypeName);
                 variables.Add(candidate.Signature, variable);
             }
 
@@ -366,6 +366,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 ExecutionKeySetAdd keySetAdd => [keySetAdd.Key],
                 ExecutionKeySetProbe keySetProbe => [keySetProbe.Key],
                 ExecutionCreateHashPayload payload => payload.Values.Select(static value => value.Value).ToArray(),
+                ExecutionAggregateSet { FilterPredicate: not null } aggregateSet => [aggregateSet.FilterPredicate],
                 ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
                     .Concat(aggregateSet.AccumulatorInput is null
                         ? []
@@ -378,7 +379,15 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
         private static IReadOnlySet<string> GetDependencyNames(ExecutionExpression expression)
         {
             var dependencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var current in ExecutionIrAnalysis.FlattenExpressions(expression))
+            var visitor = new DependencyVisitor(dependencies);
+            ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
+
+            return dependencies;
+        }
+
+        private readonly struct DependencyVisitor(HashSet<string> dependencies) : IExecutionExpressionVisitor
+        {
+            public bool Visit(ExecutionExpression current)
             {
                 switch (current)
                 {
@@ -417,9 +426,8 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                         dependencies.Add(indexRead.IndexedRow.Name);
                         break;
                 }
+                return true;
             }
-
-            return dependencies;
         }
 
         private static LoopFrame? FindDeepestOwner(
@@ -623,7 +631,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                     StringComparison.Ordinal))
             {
                 if (variables.TryGetValue(ExecutionExpressionFingerprint.ForHoist(expression), out var variable))
-                    return new ExecutionVariableRead(variable);
+                    return new ExecutionVariableRead(variable) { InterpretationShape = expression.InterpretationShape };
             }
 
             return base.RewriteExpression(expression);

@@ -11,6 +11,17 @@ namespace Musoq.Parser.Tests;
 public sealed class DiagnosticCore004OperatorTests
 {
     [TestMethod]
+    [DataRow("Name like 'A%' and Flag = true", typeof(LikeNode))]
+    [DataRow("Name rlike '^A' and Flag = true", typeof(RLikeNode))]
+    public void PatternOperand_ShouldEndBeforeLogicalConjunction(string expression, Type patternType)
+    {
+        var conjunction = Assert.IsInstanceOfType<AndNode>(ParseWhereExpression(expression));
+
+        Assert.AreEqual(patternType, conjunction.Left.GetType());
+        Assert.IsInstanceOfType<EqualityNode>(conjunction.Right);
+    }
+
+    [TestMethod]
     public void LogicalOperators_ShouldGiveAndHigherPrecedenceThanOr()
     {
         var expression = ParseWhereExpression("true or false and false");

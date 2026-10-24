@@ -12,7 +12,7 @@ using Musoq.Parser.Tokens;
 namespace Musoq.Evaluator.Tests.Visitors;
 
 [TestClass]
-public class RewriteQueryVisitorTests
+public partial class RewriteQueryVisitorTests
 {
     private Scope _scope = new(null, 0, "test");
     private RewriteQueryVisitor _visitor = new();
@@ -172,32 +172,6 @@ public class RewriteQueryVisitorTests
 
         // Assert
         Assert.AreEqual(1, GetNodesCount(), "Should have one result node after group by processing");
-    }
-
-    [TestMethod]
-    public void Visit_SkipNode_ShouldProcessCorrectly()
-    {
-        // Arrange
-        var skipNode = new SkipNode(new IntegerNode("10"));
-
-        // Act
-        _visitor.Visit(skipNode);
-
-        // Assert
-        Assert.AreEqual(1, GetNodesCount(), "Should have one result node after skip processing");
-    }
-
-    [TestMethod]
-    public void Visit_TakeNode_ShouldProcessCorrectly()
-    {
-        // Arrange
-        var takeNode = new TakeNode(new IntegerNode("20"));
-
-        // Act
-        _visitor.Visit(takeNode);
-
-        // Assert
-        Assert.AreEqual(1, GetNodesCount(), "Should have one result node after take processing");
     }
 
     [TestMethod]

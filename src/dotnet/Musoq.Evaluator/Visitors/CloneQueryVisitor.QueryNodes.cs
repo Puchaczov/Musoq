@@ -33,14 +33,17 @@ public partial class CloneQueryVisitor
         var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)Nodes.Pop();
         var exp = Nodes.Pop();
         var from = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType, tieBreak: tieBreak));
+        var bound = node as Parser.JoinInMemoryWithSourceTableFromNode;
+        Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType,
+            bound?.InMemoryTableVariableName, tieBreak) { IntermediateSource = bound?.IntermediateSource });
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var from = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType, node.WithOrdinality));
+        Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType, node.WithOrdinality)
+        { IntermediateSource = (node as Parser.ApplyInMemoryWithSourceTableFromNode)?.IntermediateSource });
     }
 
     public override void Visit(InternalQueryNode node)
@@ -76,7 +79,7 @@ public partial class CloneQueryVisitor
         for (var i = node.Nodes.Length - 1; i >= 0; --i)
             items[i] = Nodes.Pop();
 
-        Nodes.Push(new MultiStatementNode(items, node.ReturnType));
+        Nodes.Push(SemanticNodeCloneSupport.CloneStatements(node, items));
     }
 
     public override void Visit(BinarySchemaNode node)

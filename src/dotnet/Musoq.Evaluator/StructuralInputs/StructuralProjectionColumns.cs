@@ -16,9 +16,14 @@ internal sealed class StructuralProjectionColumn(string name, int index, Structu
 
 internal static class StructuralProjectionColumns
 {
-    internal static ISchemaColumn Rename(ISchemaColumn column, string name) => column is StructuralProjectionColumn structural
-        ? new StructuralProjectionColumn(name, column.ColumnIndex, structural.Shape)
-        : new SchemaColumn(name, column.ColumnIndex, column.ColumnType, column.SourceReadType, column.EnumType);
+    internal static ISchemaColumn Rename(ISchemaColumn column, string name)
+    {
+        ISchemaColumn renamed = column is StructuralProjectionColumn structural
+            ? new StructuralProjectionColumn(name, column.ColumnIndex, structural.Shape)
+            : new SchemaColumn(name, column.ColumnIndex, column.ColumnType, column.SourceReadType, column.EnumType,
+                column.IntendedTypeName, column.ReadModifiers, column.Stability);
+        return NullableInterpretationColumn.Preserve(renamed, column is NullableInterpretationColumn);
+    }
 
     internal static StructuralTypeDescriptor? Describe(Node node) => node switch
     {

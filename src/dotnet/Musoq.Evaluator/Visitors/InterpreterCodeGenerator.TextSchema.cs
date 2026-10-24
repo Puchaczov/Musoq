@@ -17,6 +17,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("/// <summary>");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated interpreter for text schema '{className}'.");
         builder.AppendLine("/// </summary>");
+        builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : TextInterpreterBase<{className}>, global::Musoq.Plugins.IJsonPayload");
         builder.AppendLine("{");
         builder.Append(PartialPayloadCodeEmitter.Members(className));
@@ -50,7 +51,7 @@ public partial class InterpreterCodeGenerator
 
         foreach (var field in plan.Fields)
         {
-            AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeCSharpString(field.Name)}\");");
+            AppendGeneratedLine(builder, $"        SetCurrentField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");");
 
             var readCode = GenerateTextFieldReadCode(field.Source);
             builder.Append(Indent(readCode, 2));
@@ -58,7 +59,7 @@ public partial class InterpreterCodeGenerator
             if (field.EmitsProperty)
             {
                 AppendGeneratedLine(builder, $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};");
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeCSharpString(field.Name)}\");");
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");");
             }
         }
 
@@ -77,10 +78,6 @@ public partial class InterpreterCodeGenerator
             builder.AppendLine("    }");
         }
 
-        foreach (var field in EnumerateBoundTextFields(plan.Fields))
-            if (field.Source.FieldType == TextFieldType.Switch)
-                builder.Append(Indent(TextSwitchClassEmitter.Generate(field.Source, RequireTextSwitchSchema, GetAllTextSchemaFields, GetTextFieldPropertyClrType, EscapeCSharpIdentifier), 1));
-
         builder.AppendLine("}");
 
         return builder.ToString();
@@ -91,6 +88,9 @@ public partial class InterpreterCodeGenerator
         foreach (var field in fields)
         {
             yield return field;
+            foreach (var arm in field.SwitchArms)
+                foreach (var nested in EnumerateBoundTextFields([arm.Body]))
+                    yield return nested;
             if (field.RepeatElement is { } element)
                 foreach (var nested in EnumerateBoundTextFields([element]))
                     yield return nested;

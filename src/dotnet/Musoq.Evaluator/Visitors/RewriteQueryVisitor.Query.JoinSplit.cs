@@ -141,6 +141,7 @@ public sealed partial class RewriteQueryVisitor
 
         var targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 
+        IntermediateSources.Register(joinedQuery, targetTableName);
         context.SplitNodes.Add(targetTable);
         context.SplitNodes.Add(joinedQuery);
 
@@ -267,7 +268,7 @@ public sealed partial class RewriteQueryVisitor
                 var whereNode = new WhereNode(joinFromNode.Expression);
 
                 whereNode.Accept(expressionUpdaterTraverser);
-                var tieBreak = RewriteTieBreak(joinFromNode.TieBreak, usedTables);
+                var tieBreak = JoinTieBreakRewriter.Rewrite(joinFromNode.TieBreak, usedTables);
 
                 joinedQuery = new InternalQueryNode(
                     new SelectNode(bothForSelect),
@@ -278,7 +279,8 @@ public sealed partial class RewriteQueryVisitor
                             expressionUpdater.Where.Expression,
                             joinFromNode.JoinType,
                             (joinFromNode.Source as InMemoryTableFromNode)?.VariableName,
-                            tieBreak)),
+                            tieBreak)
+                        { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery!) }),
                     null,
                     null,
                     null,
@@ -299,7 +301,8 @@ public sealed partial class RewriteQueryVisitor
                             current.Source.Alias,
                             expressionUpdater.From,
                             applyFromNode.ApplyType,
-                            applyFromNode.WithOrdinality)),
+                            applyFromNode.WithOrdinality)
+                        { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery!) }),
                     null,
                     null,
                     null,
@@ -316,6 +319,7 @@ public sealed partial class RewriteQueryVisitor
 
             targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 
+            IntermediateSources.Register(joinedQuery, targetTableName);
             context.SplitNodes.Add(targetTable);
             context.SplitNodes.Add(joinedQuery);
 
@@ -343,23 +347,4 @@ public sealed partial class RewriteQueryVisitor
         indexBasedContextsPositionsSymbol.Add(previousAliases.ToArray());
     }
 
-    private static FieldOrderedNode? RewriteTieBreak(
-        FieldOrderedNode? tieBreak,
-        IReadOnlyDictionary<string, string> usedTables)
-    {
-        if (tieBreak == null)
-            return null;
-
-        var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
-        var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
-        new WhereNode(tieBreak.Expression).Accept(expressionUpdaterTraverser);
-
-        return new FieldOrderedNode(
-            expressionUpdater.Where.Expression,
-            tieBreak.FieldOrder,
-            tieBreak.FieldName,
-            tieBreak.HasExplicitFieldName,
-            tieBreak.Order,
-            tieBreak.NullOrdering);
-    }
 }

@@ -10,7 +10,7 @@ public partial class SetsOperatorsTests
 {
     [TestMethod]
     [TestProperty("CandidateId", "P1-045")]
-    public void IntersectIdenticalLeftRows_ShouldReturnOneMatchingRow()
+    public void IntersectIdenticalLeftRows_ShouldPreserveBothMatchingRows()
     {
         const string query = "select Name from values { (Name: 'A'), (Name: 'B'), (Name: 'B') } leftSource intersect select Name from values { (Name: 'B'), (Name: 'C') } rightSource";
 
@@ -18,19 +18,19 @@ public partial class SetsOperatorsTests
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["B"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["B"], ["B"]);
     }
     [TestMethod]
-    public void IntersectSubsetKey_ShouldRetainDistinctNonKeyValues()
+    public void IntersectSubsetKey_ShouldRetainEveryMatchingLeftPayload()
     {
         const string query = "select Id, Name from values { (Id: 1, Name: 'first'), (Id: 1, Name: 'first'), (Id: 1, Name: 'second') } l intersect (Id) select OtherId as Id, OtherName as Name from values { (OtherId: 1, OtherName: 'right'), (OtherId: 1, OtherName: 'right') } r";
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var result = compiled.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, "first"], [1, "second"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, "first"], [1, "first"], [1, "second"]);
     }
 
     [TestMethod]
-    public void IntersectNullableRows_ShouldRemoveIdenticalNulls()
+    public void IntersectNullableRows_ShouldPreserveIdenticalNulls()
     {
         const string query = "select NullableValue from #A.Entities() intersect select NullableValue from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -40,23 +40,22 @@ public partial class SetsOperatorsTests
         };
         using var compiled = CreateAndRunVirtualMachine(query, sources);
         using var result = compiled.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { null });
+        TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { null }, new object?[] { null });
     }
 
     [TestMethod]
-    [DataRow("intersect", 1)]
-    [DataRow("intersect (Id)", 1)]
-    public void IntersectDoubleOutput_ShouldUseGeneratedEqualityForDuplicateRemoval(string operation, int expectedCount)
+    [DataRow("intersect", "GeneratedEqualityLoop")]
+    [DataRow("intersect (Id)", "HashSet")]
+    public void IntersectDoubleOutput_ShouldSelectEqualityOnlyForMembershipKeys(string operation, string strategy)
     {
         var query = $"select Id, Value::double as Value from values {{ (Id: 1, Value: 2.0d), (Id: 1, Value: 2.0d) }} l {operation} select Id, Value::double as Value from values {{ (Id: 1, Value: 2.0d) }} r";
         var provider = new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>());
         var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString(), provider,
             LoggerResolver, TestCompilationOptions);
-        Assert.Contains("GeneratedEqualityLoop", inspection.PlanningText);
+        Assert.Contains(strategy, inspection.PlanningText);
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var result = compiled.Run(TestContext.CancellationToken);
-        Assert.AreEqual(expectedCount, result.Count);
-        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, 2d]);
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, 2d], [1, 2d]);
     }
 
     [TestMethod]

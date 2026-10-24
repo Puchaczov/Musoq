@@ -96,7 +96,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("Payload.InterpretAt", safeAndOffset);
 
         var partial = ReadSample("Q311_SpecBinaryPartialInterpret.cs").Content;
-        Assert.Contains("PartialInterpretResult", partial);
+        Assert.Contains("ScalarForEach", partial);
+        Assert.DoesNotContain("ConvertEnumerableOutputToChunks", partial);
         Assert.Contains(".PartialInterpret", partial);
 
         var textPartial = ReadSample("Q318_SpecTextTryParseAndPartialParse.cs").Content;

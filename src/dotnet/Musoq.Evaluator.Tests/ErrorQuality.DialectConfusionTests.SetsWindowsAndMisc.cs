@@ -221,17 +221,23 @@ SELECT Name FROM #B.Entities()";
     }
 
     [TestMethod]
-    public void P_MISC_03_PipePipeConcatenation()
+    public void P_MISC_03_PipePipeConcatenation_ShouldExecuteSqlSyntax()
     {
-        // Arrange — || for concatenation (PostgreSQL/SQLite)
-        var analyzer = CreateAnalyzer();
-        var query = "SELECT 'hello' || ' ' || 'world' FROM #A.Entities()";
+        const string query = "SELECT 'hello' || ' ' || 'world' AS A FROM #A.Entities()";
+        AssertNoErrors(CreateAnalyzer().Analyze(query));
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: CreateSchemaProvider());
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        // Act
-        var result = analyzer.Analyze(query);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["hello world"]);
+    }
 
-        // Assert — Should suggest Concat() function
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2019_InvalidOperator, "|| should suggest Concat()");
+    [TestMethod]
+    public void P_MISC_03_TriplePipe_ShouldRemainAnInvalidOperator()
+    {
+        const string query = "SELECT 'hello' ||| 'world' FROM #A.Entities()";
+        var result = CreateAnalyzer().ValidateSyntax(query);
+
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2019_InvalidOperator, "consecutive concatenation/bitwise operators");
     }
 
     [TestMethod]

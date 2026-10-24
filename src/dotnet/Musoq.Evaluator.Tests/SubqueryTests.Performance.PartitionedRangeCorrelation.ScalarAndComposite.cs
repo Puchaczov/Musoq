@@ -43,12 +43,12 @@ public partial class SubqueryTests
     {
         const string query = @"
             SELECT a.Name,
-                   CASE WHEN EXISTS (
+                   EXISTS (
                        SELECT b.Name FROM #B.entities() b
                        WHERE b.Country = a.Country
                          AND b.City = a.City
                          AND b.NullableValue < a.NullableValue
-                   ) THEN 'Y' ELSE 'N' END AS HasEarlier
+                   ) AS HasEarlier
             FROM #A.entities() a
             ORDER BY a.Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -72,13 +72,13 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("HasEarlier", typeof(string)));
+            ("HasEarlier", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["MATCH", "Y"],
-            ["NULL_PART", "N"],
-            ["NULL_RANGE", "N"],
-            ["WRONG_COMPOSITE", "N"]);
+            ["MATCH", true],
+            ["NULL_PART", false],
+            ["NULL_RANGE", false],
+            ["WRONG_COMPOSITE", false]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("ValueTuple<string, string>?", inspection.GeneratedCSharpCode);

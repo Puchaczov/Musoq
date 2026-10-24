@@ -34,6 +34,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative substream size: {length}");
 
+        AlignToBits(data, 8);
         PrepareByteRead(data, length);
         return data.Slice(ParsePosition, length);
     }
@@ -48,6 +49,14 @@ public abstract partial class BytesInterpreterBase<TOut>
         if (consumed < length)
             throw ParseException.ForBytes(ParseErrorCode.ValidationFailed, SchemaName, fieldName, ParsePosition,
                 $"Substream '{fieldName}' declared {length} bytes but nested parser consumed only {consumed}.");
+    }
+
+    protected void EnsureSubstreamFullyConsumed<TChild>(string fieldName, int length, IBytesInterpreter<TChild> interpreter)
+    {
+        var bitOffset = interpreter is BytesInterpreterBase<TChild> nested ? nested.BitOffset : 0;
+        if (interpreter.BytesConsumed != length || bitOffset != 0)
+            throw ParseException.ForBytes(ParseErrorCode.ValidationFailed, SchemaName, fieldName, ParsePosition,
+                $"Substream '{fieldName}' declared {length} bytes but nested parser stopped at byte {interpreter.BytesConsumed}, bit {bitOffset}.");
     }
 
     /// <summary>
@@ -231,12 +240,20 @@ public abstract partial class BytesInterpreterBase<TOut>
     ///     element size is unexpectedly very small.
     /// </summary>
     /// <exception cref="ParseException">Thrown when the implementation-defined repeat limit is reached.</exception>
-    protected void EnsureRepeatIteration(string fieldName, int iteration)
-    {
-        const int maxIterations = 10_000;
-        if (iteration < maxIterations)
-            return;
+    protected void EnsureRepeatIteration(string fieldName, int iteration) =>
+        EnsureRepeatIteration(fieldName, iteration, 10_000);
 
+    /// <summary>Guards a repeat using a positive maximum supplied by the compiled interpreter.</summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    protected void EnsureRepeatIteration(string fieldName, int iteration, int maxIterations)
+    {
+        if (iteration >= maxIterations)
+            ThrowRepeatIterationLimit(fieldName, maxIterations);
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private void ThrowRepeatIterationLimit(string fieldName, int maxIterations)
+    {
         throw ParseException.ForBytes(
             ParseErrorCode.MaxIterationsExceeded,
             SchemaName,
@@ -254,9 +271,9 @@ public abstract partial class BytesInterpreterBase<TOut>
     /// </exception>
     protected void EnsureRepeatMadeProgress(string fieldName, int startPosition, int startBitOffset)
     {
-        if (ParsePosition == startPosition && BitOffset == startBitOffset)
+        if (ParsePosition < startPosition || ParsePosition == startPosition && BitOffset <= startBitOffset)
             throw ParseException.ForBytes(ParseErrorCode.MaxIterationsExceeded, SchemaName, fieldName, ParsePosition,
-                $"Repeat-until-eof field '{fieldName}' made no progress reading an element; the element type consumes zero bytes.");
+                $"Repeat-until-eof field '{fieldName}' made no progress reading an element; its byte-and-bit cursor did not advance.");
     }
 
     /// <summary>

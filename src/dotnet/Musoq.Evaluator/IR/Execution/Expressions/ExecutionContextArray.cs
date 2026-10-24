@@ -9,7 +9,7 @@ public sealed record ExecutionContextArray : ExecutionExpression
     public ExecutionContextArray(IReadOnlyList<ExecutionContextSegment> segments)
         : base(ExecutionClrBindingFactory.FromClr(typeof(object[])))
     {
-        Segments = ExecutionIrCollections.Freeze(segments);
+        Segments = segments;
     }
 
     public IReadOnlyList<ExecutionContextSegment> Segments

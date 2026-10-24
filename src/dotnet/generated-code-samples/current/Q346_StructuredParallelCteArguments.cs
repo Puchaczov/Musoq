@@ -85,7 +85,7 @@ ExecutionPlan [compiled]
     [0] GeneratedRowList; row=Cte0Row0; ownership=ConstructFresh; lifetime=Execution
     [1] GeneratedRowList; row=Cte1Row0; ownership=Copy; lifetime=Execution
   StructuralPreparation
-    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { ReturnType = string, Value = string:006C00690074006500720061006C }
+    Musoq.Examples.DataSources.StructuredInputs.PatternInput; constructor=constructor:clr:Musoq.Examples.DataSources.StructuredInputs.PatternInput@Musoq.Examples.DataSources.StructuredInputs(primitive:string,primitive:string,primitive:string); shape=(Id: string?, Pattern: string?); origin=Cte; lifetime=Inline; metrics=TypedPrepass; ownership=ConstructFresh; limits=depth=32;nodes=100000;strings=67108864; defaults=-,-,ExecutionLiteral { InterpretationShape = , ReturnType = string, Value = string:006C00690074006500720061006C }
 
   Body
     PhaseBoundary [Begin]
@@ -221,7 +221,7 @@ namespace GeneratedSample_Q346_StructuredParallelCteArguments
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> mRowsSource;
                     try
                     {
-                        Musoq.Examples.DataSources.StructuredInputs.MatchSource mRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_bf092b5d455e98b0("TODO FIXME", token), __musoqPrepareCte_58d3d7af1e4c1fc9(_cteRowResults.Slot0, token), mRowsSourceContext);
+                        Musoq.Examples.DataSources.StructuredInputs.MatchSource mRowsSourceInstance = new Musoq.Examples.DataSources.StructuredInputs.MatchSource(__musoqCheckStructural_bf092b5d455e98b0("TODO FIXME", token), __musoqPrepareCte_a9103b3702484884(_cteRowResults.Slot0, token), mRowsSourceContext);
                         mRowsSource = DataSourceLifecycle.OpenTypedRowSource<Musoq.Examples.DataSources.StructuredInputs.MatchSource, Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(__mSchema, "match", mRowsSourceInstance, mRowsSourceContext, "#inputs", "m", "m:3");
                     }
                     catch (OperationCanceledException)
@@ -480,7 +480,7 @@ namespace GeneratedSample_Q346_StructuredParallelCteArguments
             return result;
         }
 
-        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_58d3d7af1e4c1fc9(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
+        private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqPrepareCte_a9103b3702484884(IReadOnlyList<Cte0Row0>? rows, CancellationToken token)
         {
             {
                 token.ThrowIfCancellationRequested();

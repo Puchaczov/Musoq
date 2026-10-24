@@ -17,7 +17,8 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<FieldBinding> shapeFields,
         bool useQueryRunContext = false,
         bool includeProfileRecorderParameter = false,
-        FinalOutputPlan? outputPlan = null)
+        FinalOutputPlan? outputPlan = null,
+        bool isSubqueryHelper = false)
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
@@ -32,6 +33,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
         var context = InitializeRenderContext(plan);
         var session = context.Session;
+        session.IsSubqueryHelper = isSubqueryHelper;
         session.QueryIdentifier = queryIdentifier;
         session.ReuseStoredRows = outputPlan.ReuseStoredRows;
         var previousUseQueryRunContext = session.UseQueryRunContext;
@@ -123,16 +125,20 @@ public sealed partial class ExecutionCSharpRenderer
         session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
             var statements = new List<StatementSyntax>();
-            statements.AddRange(CreateQueryRunContextAliasStatements(
-                session.UseQueryRunContext,
-                queryIdentifier: queryIdentifier));
+            if (!session.IsSubqueryHelper)
+                statements.AddRange(CreateQueryRunContextAliasStatements(
+                    session.UseQueryRunContext,
+                    queryIdentifier: queryIdentifier));
 
             statements.AddRange(CreateOpeningPhaseStatements(block, queryIdentifier));
 
             var tryStatements = new List<StatementSyntax>();
             tryStatements.AddRange(CreateExecutionStateDeclarations(plan, context));
-            tryStatements.AddRange(CreateScriptParameterBindingStatements(plan));
-            tryStatements.AddRange(CreateScriptVariableBindingStatements());
+            if (!session.IsSubqueryHelper)
+            {
+                tryStatements.AddRange(CreateScriptParameterBindingStatements(plan));
+                tryStatements.AddRange(CreateScriptVariableBindingStatements());
+            }
             tryStatements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
             tryStatements.AddRange(CollectMethodCallCaches(block)
                 .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));

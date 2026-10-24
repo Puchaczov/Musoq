@@ -8,7 +8,7 @@ internal sealed record StoredTableBuild(
     ExecutionVariable Table,
     IReadOnlyList<CapturedLocal> Captures)
 {
-    public IReadOnlyList<ExecutionNode> EnclosingPhaseNodes { get; init; } = [];
+    public IReadOnlyList<ExecutionNode> EnclosingNodes { get; init; } = [];
 
     public IReadOnlyList<ExecutionNode> TrailingPhaseNodes { get; init; } = [];
 }

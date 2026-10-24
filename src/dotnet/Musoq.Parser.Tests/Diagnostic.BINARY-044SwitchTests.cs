@@ -79,15 +79,15 @@ public sealed class DiagnosticBinary044SwitchTests : SchemaParserTestsBase
     }
 
     [TestMethod]
-    public void BinarySwitch_UnsupportedBranchType_ShouldReportMq4013AtType()
+    public void BinarySwitch_AlignmentBranch_ShouldReportMq4013AtType()
     {
-        const string schema = "binary Packet { Type: byte, Payload: switch Type { 1 => Flags: bits[4] } }";
-        var typeStart = schema.IndexOf("bits", StringComparison.Ordinal);
+        const string schema = "binary Packet { Type: byte, Payload: switch Type { 1 => Flags: align[8] } }";
+        var typeStart = schema.IndexOf("align", StringComparison.Ordinal);
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
 
         Assert.AreEqual(DiagnosticCode.MQ4013_InvalidSwitchCaseLabel, exception.Code);
-        Assert.AreEqual(new TextSpan(typeStart, 4), exception.Span!.Value);
+        Assert.AreEqual(new TextSpan(typeStart, 5), exception.Span!.Value);
     }
 
     [TestMethod]

@@ -59,7 +59,7 @@ public partial class SchemaParser
         Consume(TokenType.Colon);
 
         var branchTypeStart = Current.Span;
-        var branchType = ComposeTypeAnnotation();
+        var branchType = ComposeTypeAnnotation(branchAlias);
         var branchTypeSpan = branchType.HasSpan ? branchType.Span : branchTypeStart;
 
         return new BinarySwitchCaseNode(

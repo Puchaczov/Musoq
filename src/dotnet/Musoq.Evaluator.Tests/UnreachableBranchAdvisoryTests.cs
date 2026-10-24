@@ -56,7 +56,7 @@ public sealed class UnreachableBranchAdvisoryTests : BasicEntityTestBase
     [TestMethod]
     public void NonNullLiteralAndConstantScriptCoalesce_ReportUnreachableFallbacks()
     {
-        var literal = Analyze("select 1 ?? 'unused' from #A.Entities()");
+        var literal = Analyze("select 1 ?? 2 from #A.Entities()");
         var script = Analyze("let value: int = 1; select $value ?? 2 from #A.Entities()");
 
         AssertCode(literal);
@@ -79,7 +79,7 @@ public sealed class UnreachableBranchAdvisoryTests : BasicEntityTestBase
     public void WarningAnalysis_DoesNotChangeCoalesceRuntimeValue()
     {
         var table = CreateAndRunVirtualMachine(
-            "select 1 ?? 'unused' as Value from #A.Entities()",
+            "select 1 ?? 2 as Value from #A.Entities()",
             new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 ["#A"] = [new BasicEntity()]

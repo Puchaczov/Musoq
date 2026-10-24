@@ -46,12 +46,15 @@ public sealed partial class ExecutionCSharpRendererTests
     }
 
     [TestMethod]
-    public void RenderMethod_WhenBoundOverloadReceivesNull_ShouldPreserveParameterType()
+    [DataRow(false)]
+    [DataRow(true)]
+    public void RenderMethod_WhenBoundOverloadReceivesNull_ShouldPreserveParameterType(bool nullableOverload)
     {
         var resultType = typeof(CorrelatedScalarSubqueryResult<decimal?>?);
+        var parameterType = nullableOverload ? resultType : typeof(CorrelatedScalarSubqueryResult<decimal?>);
         var method = typeof(LibraryBase).GetMethod(
             "__CorrelatedScalarSubqueryResult",
-            [resultType])!;
+            [parameterType])!;
         var target = new ExecutionVariable("libraryBase0", typeof(LibraryBase));
         var call = new ExecutionMethodCall(
             method,

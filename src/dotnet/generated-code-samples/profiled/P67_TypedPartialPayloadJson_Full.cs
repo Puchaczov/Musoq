@@ -39,6 +39,9 @@ ExecutionPlan [compiled]
       ErrorField: string <- property ErrorField
       ErrorMessage: string <- property ErrorMessage
       BytesConsumed: int <- property BytesConsumed
+      CompletedFields: IReadOnlySet<string> <- property CompletedFields
+      IsSuccess: bool <- property IsSuccess
+      BitOffset: int <- property BitOffset
     Generated [Statement0Row0]
       s.Position: int <- field s_Position
       s.Data: byte[] <- field s_Data
@@ -60,7 +63,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [s in statement0_sRows]
       Let [sPosition: int = s.Position]
       InterpretSource [Packet.PartialInterpret(s.Data) -> statement0_pRows]
-      ChunkedForEach [p in statement0_pRows]
+      ScalarForEach [p in statement0_pRows]
         AppendRow [statement0 <- Statement0Row0(s.Position: sPosition, s.Data: s.Data, p.ParsedFields: p.ParsedFields)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -216,34 +219,34 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
                     var __musoqFinalShapeRows = new List<ResultShape0>();
-                    var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op34Handle = profileRecorder?.GetOperatorHandle("op34", "CreateShapeRows") ?? OperatorProfileHandle.None;
-                    var __op35Handle = profileRecorder?.GetOperatorHandle("op35", "CreateObject") ?? OperatorProfileHandle.None;
-                    var __op36Handle = profileRecorder?.GetOperatorHandle("op36", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op37Handle = profileRecorder?.GetOperatorHandle("op37", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op38Handle = profileRecorder?.GetOperatorHandle("op38", "SortShapeRows") ?? OperatorProfileHandle.None;
-                    long __op37OutputRows = 0L;
-                    var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
+                    var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op37Handle = profileRecorder?.GetOperatorHandle("op37", "CreateShapeRows") ?? OperatorProfileHandle.None;
+                    var __op38Handle = profileRecorder?.GetOperatorHandle("op38", "CreateObject") ?? OperatorProfileHandle.None;
+                    var __op39Handle = profileRecorder?.GetOperatorHandle("op39", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op40Handle = profileRecorder?.GetOperatorHandle("op40", "AppendShape") ?? OperatorProfileHandle.None;
+                    var __op41Handle = profileRecorder?.GetOperatorHandle("op41", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    long __op40OutputRows = 0L;
+                    var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
-                    __op23Scope.Dispose();
-                    var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
-                    OnPhaseChanged("compiled", QueryPhase.From);
-                    __op24Scope.Dispose();
+                    __op26Scope.Dispose();
                     var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
-                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    OnPhaseChanged("compiled", QueryPhase.From);
                     __op27Scope.Dispose();
+                    var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    __op30Scope.Dispose();
                     _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, profileRecorder, _cteRowResults);
-                    var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
+                    var __op37Scope = profileRecorder?.BeginOperatorValue(__op37Handle) ?? OperatorProfileValueScope.None;
                     var result = new List<ResultShape0>();
-                    __op34Scope.Dispose();
-                    var __op35Scope = profileRecorder?.BeginOperatorValue(__op35Handle) ?? OperatorProfileValueScope.None;
+                    __op37Scope.Dispose();
+                    var __op38Scope = profileRecorder?.BeginOperatorValue(__op38Handle) ?? OperatorProfileValueScope.None;
                     var __resultLibraryBase0 = new Musoq.Plugins.LibraryBase();
-                    __op35Scope.Dispose();
-                    long __op36InputRows = 0L;
-                    long __op36OutputRows = 0L;
-                    var __op36Scope = profileRecorder?.BeginOperatorValue(__op36Handle) ?? OperatorProfileValueScope.None;
+                    __op38Scope.Dispose();
+                    long __op39InputRows = 0L;
+                    long __op39OutputRows = 0L;
+                    var __op39Scope = profileRecorder?.BeginOperatorValue(__op39Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         var __storedTable0Rows = _cteRowResults.Slot0;
@@ -255,21 +258,21 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                             }
 
                             Statement0Row0 sp = __storedTable0Rows[__storedTable0Index];
-                            __op36InputRows++;
-                            __op36OutputRows++;
+                            __op39InputRows++;
+                            __op39OutputRows++;
                             result.Add(new ResultShape0(sp.s_Position, (string)__resultLibraryBase0.ToJson<Musoq.Generated.Interpreters.Packet>(sp.p_ParsedFields)));
-                            __op37OutputRows += 1;
+                            __op40OutputRows += 1;
                         }
                     }
                     finally
                     {
-                        __op36Scope.AddInputRows(__op36InputRows);
-                        __op36Scope.AddOutputRows(__op36OutputRows);
-                        __op36Scope.Dispose();
+                        __op39Scope.AddInputRows(__op39InputRows);
+                        __op39Scope.AddOutputRows(__op39OutputRows);
+                        __op39Scope.Dispose();
                     }
 
-                    var __op38Scope = profileRecorder?.BeginOperatorValue(__op38Handle) ?? OperatorProfileValueScope.None;
-                    __op38Scope.AddInputRows(result.Count);
+                    var __op41Scope = profileRecorder?.BeginOperatorValue(__op41Handle) ?? OperatorProfileValueScope.None;
+                    __op41Scope.AddInputRows(result.Count);
                     var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
@@ -282,10 +285,10 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                         __musoqFinalShapeRows.Add(resultSortedRowsRow);
                     }
 
-                    __op38Scope.AddOutputRows(__musoqFinalShapeRows.Count);
-                    __op38Scope.Dispose();
-                    if (__op37OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op37Handle, __op37OutputRows);
+                    __op41Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op41Scope.Dispose();
+                    if (__op40OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op40Handle, __op40OutputRows);
                     return __musoqFinalShapeRows;
                 }
                 finally
@@ -343,19 +346,12 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                             var s = sChunkViewArray[sChunkViewOffset + sIndex];
                             int sPosition = s.Position;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                            var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                            foreach (var pChunk in statement0_pRows)
+                            var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                            if (statement0_pRows != null)
                             {
-                                for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                {
-                                    if ((pIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var p = pChunk[pIndex];
-                                    statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                }
+                                token.ThrowIfCancellationRequested();
+                                var p = statement0_pRows;
+                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
                             }
                         }
 
@@ -375,19 +371,12 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                             var s = sChunkViewList[sChunkViewOffset + sIndex];
                             int sPosition = s.Position;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                            var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                            foreach (var pChunk in statement0_pRows)
+                            var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                            if (statement0_pRows != null)
                             {
-                                for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                {
-                                    if ((pIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var p = pChunk[pIndex];
-                                    statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                }
+                                token.ThrowIfCancellationRequested();
+                                var p = statement0_pRows;
+                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
                             }
                         }
 
@@ -405,19 +394,12 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                     var s = sChunk[sIndex];
                     int sPosition = s.Position;
                     var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                    var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                    foreach (var pChunk in statement0_pRows)
+                    var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                    if (statement0_pRows != null)
                     {
-                        for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                        {
-                            if ((pIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var p = pChunk[pIndex];
-                            statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                        }
+                        token.ThrowIfCancellationRequested();
+                        var p = statement0_pRows;
+                        statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
                     }
                 }
             }
@@ -431,25 +413,25 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try
             {
-                var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "SourceScan") ?? OperatorProfileHandle.None;
-                var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "CreateTable") ?? OperatorProfileHandle.None;
-                var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "InterpretSource") ?? OperatorProfileHandle.None;
+                var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "SourceScan") ?? OperatorProfileHandle.None;
+                var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "CreateTable") ?? OperatorProfileHandle.None;
                 var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op32Handle = profileRecorder?.GetOperatorHandle("op32", "AppendRow") ?? OperatorProfileHandle.None;
-                long __op32OutputRows = 0L;
-                var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
+                var __op33Handle = profileRecorder?.GetOperatorHandle("op33", "InterpretSource") ?? OperatorProfileHandle.None;
+                var __op34Handle = profileRecorder?.GetOperatorHandle("op34", "ScalarForEach") ?? OperatorProfileHandle.None;
+                var __op35Handle = profileRecorder?.GetOperatorHandle("op35", "AppendRow") ?? OperatorProfileHandle.None;
+                long __op35OutputRows = 0L;
+                var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_sSchema = provider.GetSchema("#schema");
                 var statement0_sRowsProfile = profileRecorder?.CreateSourceRecorder("s");
                 var statement0_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>.Open(__statement0_sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress, statement0_sRowsProfile == null ? SourceDiagnostics.None : statement0_sRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Empty);
                 var statement0_sRows = statement0_sRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks, statement0_sRowsProfile);
-                __op25Scope.Dispose();
-                var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
+                __op28Scope.Dispose();
+                var __op29Scope = profileRecorder?.BeginOperatorValue(__op29Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
-                __op26Scope.Dispose();
-                long __op28InputRows = 0L;
-                long __op28OutputRows = 0L;
-                var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
+                __op29Scope.Dispose();
+                long __op31InputRows = 0L;
+                long __op31OutputRows = 0L;
+                var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
                 try
                 {
                     foreach (var sChunk in statement0_sRows)
@@ -467,40 +449,33 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                                     }
 
                                     var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                    __op28InputRows++;
-                                    __op28OutputRows++;
+                                    __op31InputRows++;
+                                    __op31OutputRows++;
                                     int sPosition = s.Position;
-                                    var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
+                                    var __op33Scope = profileRecorder?.BeginOperatorValue(__op33Handle) ?? OperatorProfileValueScope.None;
                                     var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                                    var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                                    __op30Scope.Dispose();
-                                    long __op31InputRows = 0L;
-                                    long __op31OutputRows = 0L;
-                                    var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
+                                    var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                                    __op33Scope.Dispose();
+                                    long __op34InputRows = 0L;
+                                    long __op34OutputRows = 0L;
+                                    var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
                                     try
                                     {
-                                        foreach (var pChunk in statement0_pRows)
+                                        if (statement0_pRows != null)
                                         {
-                                            for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                            {
-                                                if ((pIndex & 1023) == 0)
-                                                {
-                                                    token.ThrowIfCancellationRequested();
-                                                }
-
-                                                var p = pChunk[pIndex];
-                                                __op31InputRows++;
-                                                __op31OutputRows++;
-                                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                                __op32OutputRows += 1;
-                                            }
+                                            token.ThrowIfCancellationRequested();
+                                            var p = statement0_pRows;
+                                            __op34InputRows++;
+                                            __op34OutputRows++;
+                                            statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
+                                            __op35OutputRows += 1;
                                         }
                                     }
                                     finally
                                     {
-                                        __op31Scope.AddInputRows(__op31InputRows);
-                                        __op31Scope.AddOutputRows(__op31OutputRows);
-                                        __op31Scope.Dispose();
+                                        __op34Scope.AddInputRows(__op34InputRows);
+                                        __op34Scope.AddOutputRows(__op34OutputRows);
+                                        __op34Scope.Dispose();
                                     }
                                 }
 
@@ -518,40 +493,33 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                                     }
 
                                     var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                    __op28InputRows++;
-                                    __op28OutputRows++;
+                                    __op31InputRows++;
+                                    __op31OutputRows++;
                                     int sPosition = s.Position;
-                                    var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
+                                    var __op33Scope = profileRecorder?.BeginOperatorValue(__op33Handle) ?? OperatorProfileValueScope.None;
                                     var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                                    var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                                    __op30Scope.Dispose();
-                                    long __op31InputRows = 0L;
-                                    long __op31OutputRows = 0L;
-                                    var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
+                                    var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                                    __op33Scope.Dispose();
+                                    long __op34InputRows = 0L;
+                                    long __op34OutputRows = 0L;
+                                    var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
                                     try
                                     {
-                                        foreach (var pChunk in statement0_pRows)
+                                        if (statement0_pRows != null)
                                         {
-                                            for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                            {
-                                                if ((pIndex & 1023) == 0)
-                                                {
-                                                    token.ThrowIfCancellationRequested();
-                                                }
-
-                                                var p = pChunk[pIndex];
-                                                __op31InputRows++;
-                                                __op31OutputRows++;
-                                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                                __op32OutputRows += 1;
-                                            }
+                                            token.ThrowIfCancellationRequested();
+                                            var p = statement0_pRows;
+                                            __op34InputRows++;
+                                            __op34OutputRows++;
+                                            statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
+                                            __op35OutputRows += 1;
                                         }
                                     }
                                     finally
                                     {
-                                        __op31Scope.AddInputRows(__op31InputRows);
-                                        __op31Scope.AddOutputRows(__op31OutputRows);
-                                        __op31Scope.Dispose();
+                                        __op34Scope.AddInputRows(__op34InputRows);
+                                        __op34Scope.AddOutputRows(__op34OutputRows);
+                                        __op34Scope.Dispose();
                                     }
                                 }
 
@@ -567,53 +535,46 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                             }
 
                             var s = sChunk[sIndex];
-                            __op28InputRows++;
-                            __op28OutputRows++;
+                            __op31InputRows++;
+                            __op31OutputRows++;
                             int sPosition = s.Position;
-                            var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
+                            var __op33Scope = profileRecorder?.BeginOperatorValue(__op33Handle) ?? OperatorProfileValueScope.None;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                            var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                            __op30Scope.Dispose();
-                            long __op31InputRows = 0L;
-                            long __op31OutputRows = 0L;
-                            var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
+                            var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                            __op33Scope.Dispose();
+                            long __op34InputRows = 0L;
+                            long __op34OutputRows = 0L;
+                            var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
                             try
                             {
-                                foreach (var pChunk in statement0_pRows)
+                                if (statement0_pRows != null)
                                 {
-                                    for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                    {
-                                        if ((pIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var p = pChunk[pIndex];
-                                        __op31InputRows++;
-                                        __op31OutputRows++;
-                                        statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                        __op32OutputRows += 1;
-                                    }
+                                    token.ThrowIfCancellationRequested();
+                                    var p = statement0_pRows;
+                                    __op34InputRows++;
+                                    __op34OutputRows++;
+                                    statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
+                                    __op35OutputRows += 1;
                                 }
                             }
                             finally
                             {
-                                __op31Scope.AddInputRows(__op31InputRows);
-                                __op31Scope.AddOutputRows(__op31OutputRows);
-                                __op31Scope.Dispose();
+                                __op34Scope.AddInputRows(__op34InputRows);
+                                __op34Scope.AddOutputRows(__op34OutputRows);
+                                __op34Scope.Dispose();
                             }
                         }
                     }
                 }
                 finally
                 {
-                    __op28Scope.AddInputRows(__op28InputRows);
-                    __op28Scope.AddOutputRows(__op28OutputRows);
-                    __op28Scope.Dispose();
+                    __op31Scope.AddInputRows(__op31InputRows);
+                    __op31Scope.AddOutputRows(__op31OutputRows);
+                    __op31Scope.Dispose();
                 }
 
-                if (__op32OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op32Handle, __op32OutputRows);
+                if (__op35OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op35Handle, __op35OutputRows);
                 return statement0;
             }
             catch (Exception __profileException)when (profileRecorder != null && profileRecorder.RecordActiveOperatorException(__profileException, __profileScopeDepth))
@@ -709,6 +670,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Packet'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : BytesInterpreterBase<Packet>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

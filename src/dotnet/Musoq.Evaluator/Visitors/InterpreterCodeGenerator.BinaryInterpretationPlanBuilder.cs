@@ -24,6 +24,13 @@ public partial class InterpreterCodeGenerator
 
         var allFields = GetAllFieldsIncludingInherited(schema);
         _expressionFields = allFields;
+        foreach (var (name, type) in BinaryCompositionTypes.EnumerateFields(allFields))
+        {
+            if (type is InlineSchemaTypeNode inline)
+                GetOrRegisterInlineSchemaClassName(name, inline, null);
+            if (type is BinarySwitchTypeNode choice)
+                GetOrRegisterSwitchClassName(name, choice);
+        }
         var boundFields = new List<BoundBinaryField>(allFields.Count);
         foreach (var field in allFields)
             boundFields.Add(BindBinaryField(field, allFields));

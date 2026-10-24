@@ -99,8 +99,8 @@ internal sealed class PostOperationPlanner
             return null;
         }
 
-        var skipCount = 0;
-        int? takeCount = null;
+        PagingCount skipCount = 0;
+        PagingCount? takeCount = null;
 
         switch (postOperations[0])
         {
@@ -118,13 +118,13 @@ internal sealed class PostOperationPlanner
                 return null;
         }
 
-        if (skipCount <= 0 && takeCount == null)
+        if (skipCount.Constant is <= 0 && takeCount == null)
         {
             remainingPostOperations = [];
             return null;
         }
 
-        var skipRemaining = skipCount > 0
+        var skipRemaining = skipCount.Constant is not 0
             ? new ExecutionVariable(_createIdentifierCandidate($"__{resultTableName}SkipRemaining", 0), typeof(int))
             : null;
         var takeRemaining = takeCount != null
@@ -153,14 +153,14 @@ internal sealed class PostOperationPlanner
         {
             yield return new ExecutionLet(
                 streamingSlice.SkipRemaining,
-                new ExecutionLiteral(streamingSlice.SkipCount, typeof(int)));
+                PagingCountExecution.Read(streamingSlice.SkipCount));
         }
 
         if (streamingSlice is { TakeRemaining: not null, TakeCount: { } takeCount })
         {
             yield return new ExecutionLet(
                 streamingSlice.TakeRemaining,
-                new ExecutionLiteral(takeCount, typeof(int)));
+                PagingCountExecution.Read(takeCount));
         }
     }
 

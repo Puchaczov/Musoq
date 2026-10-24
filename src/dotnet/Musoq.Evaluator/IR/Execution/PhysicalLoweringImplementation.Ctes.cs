@@ -20,14 +20,16 @@ internal sealed partial class PhysicalLoweringImplementation
         var cteDefinitionNames = cte.Definitions.Select(static definition => definition.Name).ToArray();
         var containsRecursiveDefinition = cte.Definitions.Any(static definition =>
             definition.Plan is PhysicalRecursiveCteNode);
-        var cteShapesByName = new Dictionary<string, GeneratedRowShape>(StringComparer.OrdinalIgnoreCase);
+        var cteShapesByName = scope.SubqueryCtes.ToDictionary(static binding => binding.Name,
+            static binding => binding.Shape, StringComparer.OrdinalIgnoreCase);
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
         var schemaFromIndexes = CreateCteDefinitionSchemaFromIndexes(cte);
         var querySchemaFromIndex = schemaFromIndexes.Count == 0
             ? DefaultSchemaFromIndex
             : schemaFromIndexes.Values.Max() + CountSchemaScans(cte.Definitions[^1].Plan);
-        var fusedHashBuildSources = containsRecursiveDefinition
+        var hasSubqueryFallback = NativeSubqueryBindings.Contains(cte.Query);
+        var fusedHashBuildSources = containsRecursiveDefinition || hasSubqueryFallback
             ? new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase)
             : TryPlanFusedCteHashBuildSources(
                 cte,
@@ -41,16 +43,16 @@ internal sealed partial class PhysicalLoweringImplementation
             : null;
         if (containsRecursiveDefinition && !CanUseParallelLevelsWithRecursiveDefinitions(parallelLevels))
             parallelLevels = null;
-        var pruningPlan = (containsRecursiveDefinition || _compilationOptions.UseCteSidecarIndexes)
+        var pruningPlan = !hasSubqueryFallback && (containsRecursiveDefinition || _compilationOptions.UseCteSidecarIndexes)
             ? CreateCteDefinitionPruningPlan(cte)
             : CteDefinitionPruningPlan.Empty;
         var cteReferenceClassifications = !containsRecursiveDefinition && _compilationOptions.UseCteSidecarIndexes
             ? ClassifyCteReferences(cte)
             : new Dictionary<string, CteReferenceClassification>(StringComparer.OrdinalIgnoreCase);
-        var readOnceProjection = TryBuildReadOnceCteProjectionTable(
+        var readOnceProjection = hasSubqueryFallback ? null : TryBuildReadOnceCteProjectionTable(
             cte,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             cteIndexes,
             cteDefinitionNames,
             cteShapesByName,
@@ -66,12 +68,12 @@ internal sealed partial class PhysicalLoweringImplementation
             return ExecutionPlanBuildResult.CreateSupported(CreateTableResultPlan(identifier, readOnceProjection));
         }
 
-        var readOnceSidecarJoin = containsRecursiveDefinition
+        var readOnceSidecarJoin = containsRecursiveDefinition || hasSubqueryFallback
             ? null
             : TryBuildReadOnceCteSidecarJoinTable(
                 cte,
                 "result",
-                "ResultRow0",
+                scope.GeneratedTypePrefix + "ResultRow0",
                 cteDefinitionNames,
                 cteIndexes,
                 cteShapesByName,
@@ -261,10 +263,11 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var querySession = scope.WithFusedCteHashBuildSources(
             MergeFusedCteHashBuildSources(scope.FusedCteHashBuildSources, fusedHashBuildSources));
+        _shapeResolver.Subqueries.Register(cte.Query, cteIndexes, cteShapesByName, scope.SubqueryCtes);
         var queryResult = BuildPlanTable(
             cte.Query,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             cteIndexes,
             cteShapesByName,
             querySchemaFromIndex,

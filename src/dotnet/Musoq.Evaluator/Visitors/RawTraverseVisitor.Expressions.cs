@@ -106,6 +106,8 @@ public partial class RawTraverseVisitor<TExpressionVisitor>    where TExpression
 
     public virtual void Visit(ModuloNode node) => VisitBinaryNode(node);
 
+    public virtual void Visit(StringConcatenationNode node) => VisitBinaryNode(node);
+
     public virtual void Visit(AddNode node) => VisitBinaryNode(node);
 
     public virtual void Visit(BitwiseAndNode node) => VisitBinaryNode(node);

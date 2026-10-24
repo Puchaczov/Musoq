@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Musoq.Evaluator.IR.Execution.Lowering.Tables;
 
 internal sealed class TableCompletionPlanner(PostOperationPlanner postOperationPlanner)
@@ -11,14 +13,12 @@ internal sealed class TableCompletionPlanner(PostOperationPlanner postOperationP
 
         if (request.IsDistinct)
         {
-            if (request.FinalProjection != null)
-            {
-                return TableBuildResult.Unsupported(
-                    "Execution IR distinct lowering currently cannot combine hidden sort fields with final projection.");
-            }
-
             var distinctTable = new ExecutionVariable($"{currentTable.Name}Distinct", typeof(object));
-            request.Nodes.Add(new ExecutionDistinctTable(currentTable, distinctTable));
+            request.Nodes.Add(new ExecutionDistinctTable(currentTable, distinctTable)
+            {
+                KeyFields = request.FinalProjection is null ? [] :
+                    request.FinalProjection.FieldIndexes.Select(index => resultShape.Fields[index]).ToArray()
+            });
             currentTable = distinctTable;
         }
 

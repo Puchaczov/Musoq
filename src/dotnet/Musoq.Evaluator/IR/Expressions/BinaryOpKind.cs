@@ -20,5 +20,6 @@ public enum BinaryOpKind
     BitwiseXor,
     LeftShift,
     RightShift,
-    StringConcatenate
+    StringConcatenate,
+    SqlStringConcatenate
 }

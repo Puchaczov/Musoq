@@ -331,7 +331,7 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     Cte0Row0 counter = resultWindowRows[windowIndex];
-                    int resultCounts2PartitionKeysValue = (int)(counter.Value % 3);
+                    int resultCounts2PartitionKeysValue = (int)(counter.Value % ((int?)3).GetValueOrDefault());
                     resultCounts2PartitionBuilder.Add(resultCounts2PartitionKeysValue, windowIndex);
                 }
 
@@ -671,7 +671,7 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                     for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                     {
                         Cte0Row0 counter = resultWindowRows[windowIndex];
-                        int resultCounts2PartitionKeysValue = (int)(counter.Value % 3);
+                        int resultCounts2PartitionKeysValue = (int)(counter.Value % ((int?)3).GetValueOrDefault());
                         resultCounts2PartitionBuilder.Add(resultCounts2PartitionKeysValue, windowIndex);
                     }
 

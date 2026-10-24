@@ -113,7 +113,7 @@ public class QueryExecutionException : InvalidOperationException
         // source-open boundary still records the source identity, but must not
         // replace the more specific MQ7013 contract with the generic MQ7010
         // lifecycle envelope.
-        var limit = FindStructuralLimit(innerException);
+        var limit = FindCause<StructuralInputLimitExceededException>(innerException);
         if (limit != null)
         {
             var limitEnvelope = MusoqErrorEnvelope.FromDiagnostic(limit.ToDiagnostic());
@@ -124,7 +124,11 @@ public class QueryExecutionException : InvalidOperationException
                 innerException);
         }
 
-        var envelope = MusoqErrorEnvelope.FromDiagnostic(innerException.ToDiagnostic());
+        var regexTimeout = FindCause<RegexExecutionTimeoutException>(innerException);
+        var diagnostic = innerException.ToDiagnostic();
+        if (regexTimeout != null)
+            diagnostic = RuntimeExpressionFailureDiagnostic.Create(regexTimeout)!;
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
         return new QueryExecutionException(
             "CompiledQuery",
             innerException.Operation,
@@ -132,13 +136,12 @@ public class QueryExecutionException : InvalidOperationException
             innerException);
     }
 
-    private static StructuralInputLimitExceededException? FindStructuralLimit(Exception exception)
+    private static TException? FindCause<TException>(Exception exception) where TException : Exception
     {
         var visited = new HashSet<Exception>();
         for (Exception? current = exception; current != null && visited.Add(current); current = current.InnerException)
-            if (current is StructuralInputLimitExceededException limit)
-                return limit;
-
+            if (current is TException cause)
+                return cause;
         return null;
     }
 

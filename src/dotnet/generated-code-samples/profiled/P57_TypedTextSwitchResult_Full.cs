@@ -77,7 +77,7 @@ namespace GeneratedSample_P57_TypedTextSwitchResult_Full
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
-            new Column("Variant", typeof(Musoq.Generated.Interpreters.Packet.TextSwitch_Variant), 0)
+            new Column("Variant", typeof(Musoq.Generated.Interpreters.Arm), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_s_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Line", typeof(string), 0) });
         public ILogger Logger { get; set; }
@@ -449,26 +449,26 @@ namespace GeneratedSample_P57_TypedTextSwitchResult_Full
 
         private sealed class ResultRow0 : Row
         {
-            public ResultRow0(Musoq.Generated.Interpreters.Packet.TextSwitch_Variant __value0)
+            public ResultRow0(Musoq.Generated.Interpreters.Arm __value0)
             {
                 Variant = __value0;
             }
 
             public override int Count => 1;
-            public Musoq.Generated.Interpreters.Packet.TextSwitch_Variant Variant { get; private set; }
+            public Musoq.Generated.Interpreters.Arm Variant { get; private set; }
 
             public override void AssignValue<T>(int columnNumber, T value)
             {
                 global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
                 {
-                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, Musoq.Generated.Interpreters.Packet.TextSwitch_Variant>(this.Variant = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<Musoq.Generated.Interpreters.Packet.TextSwitch_Variant, T>(value)),
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, Musoq.Generated.Interpreters.Arm>(this.Variant = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<Musoq.Generated.Interpreters.Arm, T>(value)),
                     _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
                 });
             }
 
             public override T GetValue<T>(int columnIndex) => columnIndex switch
             {
-                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, Musoq.Generated.Interpreters.Packet.TextSwitch_Variant>(this.Variant),
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, Musoq.Generated.Interpreters.Arm>(this.Variant),
                 _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
             };
             public override bool HasColumn(string name) => name switch
@@ -496,6 +496,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'Arm'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Arm : TextInterpreterBase<Arm>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -541,6 +542,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'Packet'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : TextInterpreterBase<Packet>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -564,7 +566,7 @@ namespace Musoq.Generated.Interpreters
         }
 
         /// <summary>Gets the Variant field value.</summary>
-        public TextSwitch_Variant? Variant { get; set; }
+        public Arm? Variant { get; set; }
         /// <inheritdoc/>
         public override string SchemaName => "Packet";
 
@@ -576,22 +578,17 @@ namespace Musoq.Generated.Interpreters
             var __parsedValue = new Packet();
             RecordParsedValue(__parsedValue);
             SetCurrentField("Variant");
-            var __variant_switch = new TextSwitch_Variant();
+            Arm? _variant = default;
             {
-                var _interp_Arm = new Arm();
-                var _result_Arm = ParseNested(_interp_Arm, data, "Variant");
-                __variant_switch.Payload = _result_Arm.Payload;
+                var _interp_variant_selected = new Arm();
+                var _result_variant_selected = ParseNested(_interp_variant_selected, data, "Variant");
+                var _variant_selected = _result_variant_selected;
+                _variant = _variant_selected;
             }
 
-            var _variant = __variant_switch;
             __parsedValue.Variant = _variant;
             RecordParsedField("Variant");
             return __parsedValue;
-        }
-
-        public sealed class TextSwitch_Variant
-        {
-            public string? Payload { get; set; }
         }
     }
 }

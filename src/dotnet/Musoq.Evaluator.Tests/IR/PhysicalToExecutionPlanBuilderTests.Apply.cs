@@ -224,7 +224,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [
                 new ColumnSchema("Name", typeof(string), 0),
                 new ColumnSchema("Value", typeof(string), 1)
-            ]));
+            ])) { IntermediateProducerId = new IntermediateProducerId(0) };
         var finalProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0),
@@ -233,7 +233,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             cteRef);
         var builder = CreateBuilder();
 
-        var result = builder.Build(new PhysicalMultiStatementNode([producer, finalProject]), "Q_FinalApplyProjection");
+        var result = builder.Build(new PhysicalMultiStatementNode([producer, finalProject]) { IntermediateProducers = [new(new(new(0), "applyRows"), 0)] }, "Q_FinalApplyProjection");
         var plan = RequireExecutionPlan(result);
         var initialText = ExecutionPlanPrinter.Print(plan);
         var optimizedText = ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan);

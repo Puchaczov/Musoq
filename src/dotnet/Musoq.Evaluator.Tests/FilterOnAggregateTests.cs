@@ -10,6 +10,54 @@ namespace Musoq.Evaluator.Tests;
 public class FilterOnAggregateTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void FilteredAggregateValues_ShouldExcludeRowsRatherThanSubstituteNull()
+    {
+        const string query = "select AggregateValues(Name) filter (where Name = 'a') as Value from values { (Name: 'a'), (Name: 'b') } v";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["a"]);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void FilteredAggregate_ShouldNotEvaluateExcludedFailingArgument(bool stabilityAwareReuse)
+    {
+        const string query = "select Sum(TextValue::int) filter (where Admit) as Value from values { (TextValue: '7', Admit: true), (TextValue: 'invalid', Admit: false) } v";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>(),
+            TestCompilationOptions.WithStabilityAwareScalarReuse(stabilityAwareReuse));
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [7]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+    }
+
+    [TestMethod]
+    public void FilteredAggregate_NullPredicate_ShouldNotEvaluateArgument()
+    {
+        const string query = "select Sum(TextValue::int) filter (where TextValue = null) as Value from values { (TextValue: 'invalid') } v";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
+    }
+
+    [TestMethod]
+    public void FilteredWindowAggregate_ShouldNotEvaluateExcludedFailingArgument()
+    {
+        const string query = "select Sum(TextValue::int) filter (where Admit) over () as Value from values { (TextValue: '7', Admit: true), (TextValue: 'invalid', Admit: false) } v";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [7], [7]);
+    }
+
+    [TestMethod]
     [TestProperty("CandidateId", "P1-090")]
     public void FilteredCount_InlineValues_ShouldCountMatchingRowsAsInt64()
     {
@@ -120,9 +168,11 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void WhenValueAggregateUsesWildcardWithoutArgumentlessOverload_ShouldRemainInvalid()
+    [DataRow("Sum")]
+    [DataRow("ToUpper")]
+    public void WhenCallableWithoutArgumentlessAggregateOverloadUsesWildcard_ShouldRemainInvalid(string function)
     {
-        var query = "select Sum(*) as Total from #A.Entities()";
+        var query = $"select {function}(*) as Total from #A.Entities()";
         var sources = CreateCitySources();
 
         Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));

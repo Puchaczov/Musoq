@@ -70,6 +70,7 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(FSlashNode node) { }
     public void Visit(ModuloNode node) { }
     public void Visit(AddNode node) { }
+    public void Visit(StringConcatenationNode node) { }
     public void Visit(BitwiseAndNode node) { }
     public void Visit(BitwiseOrNode node) { }
     public void Visit(BitwiseXorNode node) { }

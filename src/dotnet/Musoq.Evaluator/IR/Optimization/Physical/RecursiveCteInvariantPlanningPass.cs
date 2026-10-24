@@ -48,11 +48,16 @@ internal sealed class RecursiveCteInvariantPlanningPass : IPhysicalOptimizationP
         {
             var anchor = Rewrite(recursive.Anchor, cteSchemas);
             var member = Rewrite(recursive.RecursiveMember, cteSchemas);
-            return RecursiveCteInvariantPlanner.Plan(recursive with
+            var planned = RecursiveCteInvariantPlanner.Plan(recursive with
             {
                 Anchor = anchor,
                 RecursiveMember = member
             }, cteSchemas);
+            return planned with
+            {
+                RecursiveMember = RecursiveInterpretationPipelinePlanner.Normalize(
+                    planned.RecursiveMember, planned.Name)
+            };
         }
 
         return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, cteSchemas));

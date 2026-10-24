@@ -28,6 +28,8 @@ public abstract partial class NoOpExpressionVisitor : IExpressionVisitor
     {
     }
 
+    public virtual void Visit(StringConcatenationNode node) { }
+
     public virtual void Visit(AddNode node)
     {
     }

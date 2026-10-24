@@ -59,17 +59,9 @@ public partial class SchemaParser
             .Replace("\\t", "\t", StringComparison.Ordinal);
     }
 
-    private TokenType PeekNextTokenType()
-    {
-        _savedTokenBeforePeek = _lexer.Current();
+    private TokenType PeekNextTokenType() => _tokens.Peek(1).TokenType;
 
-        _lexer.Next();
-        var nextToken = _lexer.Current();
-
-        _peekedToken = nextToken;
-
-        return nextToken.TokenType;
-    }
+    private Token PeekSchemaToken(int distance) => _tokens.Peek(distance);
 
     private void Consume(TokenType tokenType)
     {
@@ -84,19 +76,7 @@ public partial class SchemaParser
             return;
         }
 
-        _hasReplacedToken = false;
-        _savedTokenBeforePeek = null;
-
-        if (_peekedToken != null)
-        {
-            _replacedToken = _peekedToken;
-            _hasReplacedToken = true;
-            _peekedToken = null;
-        }
-        else
-        {
-            _lexer.Next();
-        }
+        _tokens.Advance();
     }
 
     private void ConsumeGenericGreater()
@@ -112,19 +92,8 @@ public partial class SchemaParser
                 $"Expected token '{TokenType.Greater}' but found '{Current.TokenType}' ({Current.Value})",
                 _lexer.AlreadyResolvedQueryPart);
 
-        _hasReplacedToken = false;
-        _savedTokenBeforePeek = null;
         _pendingGenericGreaterTokens++;
-
-        if (_peekedToken != null)
-        {
-            _replacedToken = _peekedToken;
-            _hasReplacedToken = true;
-            _peekedToken = null;
-            return;
-        }
-
-        _lexer.Next();
+        _tokens.Advance();
     }
 
     private Token ConsumeAndGetToken(TokenType expected)

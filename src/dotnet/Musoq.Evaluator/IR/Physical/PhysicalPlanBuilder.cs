@@ -44,7 +44,8 @@ public sealed partial class PhysicalPlanBuilder
                 interpret.ResultType,
                 interpret.ApplyKind,
                 interpret.OutputSchema),
-            CteRefNode cteRef => new PhysicalCteRefNode(cteRef.CteName, cteRef.Alias, cteRef.OutputSchema),
+            CteRefNode cteRef => new PhysicalCteRefNode(cteRef.CteName, cteRef.Alias, cteRef.OutputSchema)
+            { IntermediateProducerId = cteRef.IntermediateProducerId },
             PropertySourceNode property => new PhysicalPropertySourceNode(
                 property.SourceAlias,
                 property.PropertiesChain,

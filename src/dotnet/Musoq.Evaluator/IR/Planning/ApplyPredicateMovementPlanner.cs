@@ -28,12 +28,9 @@ internal static partial class ApplyPredicateMovementPlanner
 
     private sealed partial class PlanningState
     {
-        private readonly Dictionary<string, int> _producedAliasCounts;
+        private readonly Dictionary<LogicalNode, QueryScope> _scopes = new(ReferenceComparer<LogicalNode>.Instance);
         private readonly Dictionary<ApplyNode, int> _applyOrdinals = new(ReferenceComparer<ApplyNode>.Instance);
         private readonly Dictionary<ApplyNode, HashSet<string>> _expandedLeftAliases = new(ReferenceComparer<ApplyNode>.Instance);
-        private readonly HashSet<string> _sourceAcceptedPredicateTexts;
-        private readonly IReadOnlyDictionary<string, IReadOnlySet<string>> _sourceAliasesByCteAlias;
-        private readonly IReadOnlyDictionary<string, SourcePlanProperties> _sources;
         private ApplyBoundary[] _allBoundaries = [];
         private readonly List<ApplyPredicateMovementPlan> _plans = [];
         private readonly List<PlanningDecision> _decisions = [];
@@ -45,10 +42,8 @@ internal static partial class ApplyPredicateMovementPlanner
             IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults,
             IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans)
         {
-            _sources = sources;
-            _sourceAcceptedPredicateTexts = CreateSourceAcceptedPredicateTexts(sourcePlanResults, sourcePredicatePlans);
-            _producedAliasCounts = CollectProducedAliasCounts(logicalPlan);
-            _sourceAliasesByCteAlias = CreateSourceAliasesByCteAlias(logicalPlan);
+            CollectScopes(logicalPlan, new QueryScope());
+            InitializeScopes(logicalPlan, sources, sourcePlanResults, sourcePredicatePlans);
 
             var ordinal = 0;
             foreach (var apply in CollectApplyBoundaries(logicalPlan))
@@ -65,7 +60,8 @@ internal static partial class ApplyPredicateMovementPlanner
                 if (boundary.Apply.Left is CteRefNode cteRef)
                 {
                     var producer = rawBoundaries
-                        .Where(previous => previous.Ordinal < boundary.Ordinal)
+                        .Where(previous => previous.Ordinal < boundary.Ordinal &&
+                            ReferenceEquals(_scopes[previous.Apply], _scopes[boundary.Apply]))
                         .LastOrDefault(previous => string.Equals(
                             CreateCteName(previous),
                             cteRef.CteName,
@@ -87,6 +83,13 @@ internal static partial class ApplyPredicateMovementPlanner
                     new HashSet<string>(_expandedLeftAliases[boundary.Apply], StringComparer.OrdinalIgnoreCase),
                     boundary.RightAliases))
                 .ToArray();
+            foreach (var boundary in _allBoundaries)
+            {
+                var scope = _scopes[boundary.Apply];
+                scope.Boundaries.Add(boundary);
+                scope.BoundaryAliases.UnionWith(boundary.LeftAliases);
+                scope.BoundaryAliases.UnionWith(boundary.RightAliases);
+            }
         }
 
         public IReadOnlyList<ApplyPredicateMovementPlan> Plans => _plans;
@@ -104,13 +107,15 @@ internal static partial class ApplyPredicateMovementPlanner
 
         private void PlanFilter(FilterNode filter)
         {
+            var scope = _scopes[filter];
             var boundaries = CollectApplyBoundaries(filter.Input)
+                .Where(apply => ReferenceEquals(_scopes[apply], scope))
                 .Select(CreateBoundary)
                 .Where(static boundary => boundary.Apply.Kind is ApplyKind.Cross or ApplyKind.Outer)
                 .ToArray();
             if (boundaries.Length == 0 && ContainsCteReference(filter.Input))
             {
-                boundaries = _allBoundaries
+                boundaries = scope.Boundaries
                     .Where(static boundary => boundary.Apply.Kind is ApplyKind.Cross or ApplyKind.Outer)
                     .ToArray();
             }
@@ -121,22 +126,23 @@ internal static partial class ApplyPredicateMovementPlanner
             foreach (var predicate in SplitTopLevelConjuncts(filter.Predicate))
             {
                 var ordinal = _predicateOrdinal++;
-                PlanConjunct(predicate, ordinal, boundaries);
+                PlanConjunct(predicate, ordinal, boundaries, scope);
             }
         }
 
         private void PlanConjunct(
             IrExpression predicate,
             int ordinal,
-            IReadOnlyList<ApplyBoundary> boundaries)
+            IReadOnlyList<ApplyBoundary> boundaries,
+            QueryScope scope)
         {
             var originalPredicateText = IrExpressionPrinter.Print(predicate);
-            var movementPredicate = RewriteCteAliases(predicate);
+            var movementPredicate = RewriteCteAliases(predicate, scope);
             var aliases = AliasRefExtractor.Extract(movementPredicate).ToArray();
             if (aliases.Length == 0)
                 return;
 
-            if (_sourceAcceptedPredicateTexts.Contains(originalPredicateText))
+            if (scope.SourceAcceptedPredicateTexts.Contains(originalPredicateText))
             {
                 _decisions.Add(new PlanningDecision(
                     PlanningDecisionCategory.PredicateMovement,
@@ -164,7 +170,7 @@ internal static partial class ApplyPredicateMovementPlanner
                 return;
             }
 
-            if (aliases.Any(IsAmbiguousAlias))
+            if (aliases.Any(alias => IsAmbiguousAlias(alias, scope)))
             {
                 AddResidualDecision(
                     ordinal,

@@ -1,6 +1,6 @@
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -248,53 +248,68 @@ internal static class CSharpClrGeneratedCodeCompatibility
         RenderedQueryArtifact artifact,
         CancellationToken cancellationToken)
     {
+        return CreateStructuralIdentity(artifact, cancellationToken, ArrayPool<char>.Shared);
+    }
+
+    internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken,
+        ArrayPool<char> pool)
+    {
         ArgumentNullException.ThrowIfNull(artifact);
         cancellationToken.ThrowIfCancellationRequested();
-
-        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(
-            artifact,
-            "canonical generated artifact identity");
-        var accessPath = CSharpClrArtifactCompatibility.RequireAccessToClassPath(
-            artifact,
-            "canonical generated artifact identity");
-        var identityParts = accessPath
-            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(artifact, "canonical generated artifact identity");
+        var accessPath = CSharpClrArtifactCompatibility.RequireAccessToClassPath(artifact, "canonical generated artifact identity");
+        var identityParts = accessPath.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Distinct(StringComparer.Ordinal)
             .Select((part, index) => (part, Replacement: $"__generated_identity_{index}__"))
-            .ToDictionary(static item => item.part, static item => item.Replacement, StringComparer.Ordinal);
-        var builder = new StringBuilder();
-        var treeIndex = 0;
-
-        foreach (var syntaxTree in compilation.SyntaxTrees.OrderBy(
-                     static tree => tree.FilePath,
-                     StringComparer.Ordinal))
+            .ToDictionary(item => item.part, item => item.Replacement, StringComparer.Ordinal);
+        var writer = new CanonicalIdentityWriter(pool);
+        var context = new DescriptorContext(identityParts, cancellationToken);
+        try
         {
+            var treeIndex = 0;
+            foreach (var tree in compilation.SyntaxTrees.OrderBy(tree => tree.FilePath, StringComparer.Ordinal))
+                AppendTree(ref writer, tree, treeIndex++, context);
             cancellationToken.ThrowIfCancellationRequested();
-            var root = syntaxTree.GetRoot();
-            builder.Append("tree:").Append(treeIndex++).Append(';');
-            foreach (var token in root.DescendantTokens())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var value = token.IsKind(SyntaxKind.IdentifierToken) &&
-                            identityParts.TryGetValue(token.ValueText, out var replacement)
-                    ? replacement
-                    : token.Text;
-                builder.Append(token.RawKind).Append(':').Append(value.Length).Append(':').Append(value);
-                AppendStructuredTrivia(builder, token.LeadingTrivia, cancellationToken);
-                AppendStructuredTrivia(builder, token.TrailingTrivia, cancellationToken);
-                builder.Append(';');
-            }
+            var descriptor = writer.CreateDescriptor();
+            return new CSharpGeneratedSyntaxIdentity(descriptor, CanonicalIdentityHash.Compute(descriptor, cancellationToken));
         }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
 
-        cancellationToken.ThrowIfCancellationRequested();
-        var descriptor = builder.ToString();
-        return new CSharpGeneratedSyntaxIdentity(
-            descriptor,
-            CompiledQueryArtifactSupport.ComputeHash(descriptor));
+    private static void AppendTree(
+        ref CanonicalIdentityWriter writer,
+        SyntaxTree tree,
+        int treeIndex,
+        DescriptorContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        writer.Append("tree:");
+        writer.Append(treeIndex);
+        writer.Append(';');
+        foreach (var token in tree.GetRoot().DescendantTokens())
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+            var value = token.Text;
+            if (token.IsKind(SyntaxKind.IdentifierToken) && context.IdentityParts.TryGetValue(token.ValueText, out var replacement))
+                value = replacement;
+            writer.Append(token.RawKind);
+            writer.Append(':');
+            writer.Append(value.Length);
+            writer.Append(':');
+            writer.Append(value);
+            AppendStructuredTrivia(ref writer, token.LeadingTrivia, context.CancellationToken);
+            AppendStructuredTrivia(ref writer, token.TrailingTrivia, context.CancellationToken);
+            writer.Append(';');
+        }
     }
 
     private static void AppendStructuredTrivia(
-        StringBuilder builder,
+        ref CanonicalIdentityWriter writer,
         SyntaxTriviaList trivia,
         CancellationToken cancellationToken)
     {
@@ -303,11 +318,20 @@ internal static class CSharpClrGeneratedCodeCompatibility
             cancellationToken.ThrowIfCancellationRequested();
             if (!item.HasStructure)
                 continue;
-
             var text = item.ToFullString();
-            builder.Append("trivia:").Append(item.RawKind).Append(':').Append(text.Length).Append(':').Append(text).Append(';');
+            writer.Append("trivia:");
+            writer.Append(item.RawKind);
+            writer.Append(':');
+            writer.Append(text.Length);
+            writer.Append(':');
+            writer.Append(text);
+            writer.Append(';');
         }
     }
+
+    private readonly record struct DescriptorContext(
+        Dictionary<string, string> IdentityParts,
+        CancellationToken CancellationToken);
 }
 
 internal readonly record struct CSharpGeneratedSyntaxIdentity(string Descriptor, string Hash);

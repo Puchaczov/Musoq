@@ -6,6 +6,8 @@ using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.StructuralInputs;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
+using Musoq.Evaluator.IR.Logical;
 
 namespace Musoq.Evaluator.IR.Expressions;
 
@@ -15,15 +17,22 @@ public sealed partial class ExpressionConverter
     private readonly Func<WindowFunctionNode, WindowFunctionRef> _windowFunctionConverter;
     private readonly Func<string, string, ColumnStability> _columnStabilityResolver;
     private readonly Func<string, string, EnumTypeDescriptor?> _columnEnumTypeResolver;
+    private readonly Func<Node, LogicalNode>? _subqueryPlanBuilder;
+    private readonly Func<string> _subqueryNameGenerator;
+    private int _subqueryIndex;
 
     public ExpressionConverter(
         Func<WindowFunctionNode, WindowFunctionRef>? windowFunctionConverter = null,
         Func<string, string, ColumnStability>? columnStabilityResolver = null,
-        Func<string, string, EnumTypeDescriptor?>? columnEnumTypeResolver = null)
+        Func<string, string, EnumTypeDescriptor?>? columnEnumTypeResolver = null,
+        Func<Node, LogicalNode>? subqueryPlanBuilder = null,
+        Func<string>? subqueryNameGenerator = null)
     {
         _windowFunctionConverter = windowFunctionConverter ?? ConvertWindowFunctionCore;
         _columnStabilityResolver = columnStabilityResolver ?? ((_, _) => ColumnStability.Stable);
         _columnEnumTypeResolver = columnEnumTypeResolver ?? ((_, _) => null);
+        _subqueryPlanBuilder = subqueryPlanBuilder;
+        _subqueryNameGenerator = subqueryNameGenerator ?? (() => $"Subquery{_subqueryIndex++}");
     }
 
     private ColumnStability ResolveColumnStability(string alias, string columnName) =>
@@ -39,12 +48,15 @@ public sealed partial class ExpressionConverter
         ArgumentNullException.ThrowIfNull(node);
         var expression = node switch
         {
+            SubqueryApplyNode subquery => ConvertSubquery(subquery),
+            SubqueryParameterNode parameter => new SubqueryParameterRef(parameter.Index, RequireReturnType(parameter)),
             AccessColumnNode col => ConvertColumnAccess(col),
             ParameterReferenceNode parameter => StructuralReferenceExpressionFactory.CreateParameter(parameter.Name, RequireReturnType(parameter), expectedType),
             ScriptVariableReferenceNode variable => StructuralReferenceExpressionFactory.CreateVariable(variable.Name, RequireReturnType(variable), expectedType),
             AggregateIdentifierNode n => new Literal(n.ObjValue, RequireReturnType(n), n.DisplayName),
             ConstantValueNode n => new Literal(n.ObjValue, RequireReturnType(n)),
             NullNode n => new Literal(null, expectedType ?? RequireReturnType(n)),
+            StringConcatenationNode n => ConvertBinaryOp(n, BinaryOpKind.SqlStringConcatenate),
             AddNode n => ConvertBinaryOp(n, n.ReturnType == typeof(string) ? BinaryOpKind.StringConcatenate : BinaryOpKind.Add),
             HyphenNode n => ConvertBinaryOp(n, BinaryOpKind.Subtract),
             StarNode n => ConvertBinaryOp(n, BinaryOpKind.Multiply),
@@ -105,6 +117,34 @@ public sealed partial class ExpressionConverter
         return WithSourceSpan(expression, node);
     }
 
+    private SubqueryExpression ConvertSubquery(SubqueryApplyNode node)
+    {
+        var identifier = _subqueryNameGenerator();
+        var builder = _subqueryPlanBuilder ?? BuildStandaloneSubquery;
+        var query = builder(node.Subquery);
+        return new SubqueryExpression(identifier, (SubqueryResultKind)node.Kind, query,
+            node.Bindings.Select(binding => Convert(binding)).ToArray(),
+            node.Operand is null ? null : Convert(node.Operand), node.ReturnType)
+        {
+            Comparison = node.Comparison switch
+            {
+                Musoq.Parser.Tokens.TokenType.Greater => BinaryOpKind.GreaterThan,
+                Musoq.Parser.Tokens.TokenType.GreaterEqual => BinaryOpKind.GreaterOrEqual,
+                Musoq.Parser.Tokens.TokenType.Less => BinaryOpKind.LessThan,
+                Musoq.Parser.Tokens.TokenType.LessEqual => BinaryOpKind.LessOrEqual,
+                Musoq.Parser.Tokens.TokenType.Diff => BinaryOpKind.NotEqual,
+                _ => BinaryOpKind.Equal
+            }
+        };
+    }
+
+    private static LogicalNode BuildStandaloneSubquery(Node node)
+    {
+        var builder = new LogicalPlanBuilder();
+        node.Accept(new LogicalPlanBuildTraverseVisitor(builder));
+        return builder.Result ?? throw new InvalidOperationException("Subquery did not produce a logical plan.");
+    }
+
     private IrExpression ConvertDotAccess(DotNode node)
     {
         if (node.Expression is AccessObjectKeyNode keyAccess && keyAccess.PropertyInfo != null)
@@ -121,7 +161,7 @@ public sealed partial class ExpressionConverter
             if (string.IsNullOrWhiteSpace(indexerAlias))
                 (indexerAlias, indexerName) = SplitLeadingAlias(indexerName, indexerAlias);
 
-            return new ColumnRef(indexerAlias, indexerName, RequireReturnType(node))
+            return new ColumnRef(indexerAlias, indexerName, RequireReturnType(node), node.IntendedTypeName)
             {
                 IsNullSafePath = node.IsNullSafePath,
                 Stability = ResolveColumnStability(indexerAlias, indexerName),
@@ -134,7 +174,7 @@ public sealed partial class ExpressionConverter
         if (string.IsNullOrWhiteSpace(alias))
             (alias, name) = SplitLeadingAlias(name, alias);
 
-        return new ColumnRef(alias, name, RequireReturnType(node))
+        return new ColumnRef(alias, name, RequireReturnType(node), node.IntendedTypeName)
         {
             IsNullSafePath = node.IsNullSafePath,
             Stability = ResolveColumnStability(alias, name),
@@ -149,7 +189,8 @@ public sealed partial class ExpressionConverter
         if (string.IsNullOrWhiteSpace(alias))
             (alias, name) = SplitLeadingAlias(name, alias);
 
-        var arrayExpr = new ColumnRef(alias, name, indexableType)
+        var arrayExpr = new ColumnRef(alias, name, indexableType,
+            ResolveIndexedArrayTypeName(node.IntendedTypeName, indexableType))
         {
             IsNullSafePath = node.IsNullSafePath,
             Stability = ResolveColumnStability(alias, name)

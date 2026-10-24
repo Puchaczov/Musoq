@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Components;
+using Musoq.Converter.Exceptions;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -11,33 +13,27 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void NullCoalescingNonNullableValueType_WhenCompiledForInspection_ShouldPruneFallback()
     {
         var result = CompileBasicQueryForInspection(
-            "select Population ?? 'unused' as Value from #A.entities()");
+            "select Population ?? 0d as Value from #A.entities()");
 
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("??", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("unused", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("unused", StringComparison.Ordinal), result.ExecutionPlanText);
     }
 
     [TestMethod]
     public void NullCoalescingLiteralNonNullableValueType_WhenCompiledForInspection_ShouldPruneFallback()
     {
         var result = CompileBasicQueryForInspection(
-            "select 1 ?? 'unused' as Value from #A.entities()");
+            "select 1 ?? 2 as Value from #A.entities()");
 
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("??", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("unused", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("unused", StringComparison.Ordinal), result.ExecutionPlanText);
     }
 
     [TestMethod]
-    public void NullCoalescingNonNullableColumn_WhenCompiledForInspection_ShouldPruneMissingFallbackColumn()
+    public void NullCoalescingNonNullableColumn_WhenCompiledForInspection_ShouldRejectMissingFallbackColumn()
     {
-        var result = CompileBasicQueryForInspection(
-            "select Population ?? MissingColumn as Value from #A.entities()");
+        var exception = Assert.Throws<MusoqQueryException>(() => CompileBasicQueryForInspection(
+            "select Population ?? MissingColumn as Value from #A.entities()"));
 
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("??", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("MissingColumn", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("MissingColumn", StringComparison.Ordinal), result.ExecutionPlanText);
+        Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, exception.PrimaryEnvelope.Code);
     }
 
     [TestMethod]

@@ -205,7 +205,7 @@ public sealed class ExecutionTargetPhaseDispatchTests
         public ExecutionTargetId TargetId => TestExecutionTargetIds.TestOnlyNonClr;
 
         public ExecutionTargetCapabilities Capabilities { get; } =
-            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Version1.Version]);
+            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version]);
 
         public TargetRenderResult Render(TargetRenderRequest request) =>
             TargetRenderResult.Succeeded(new TestRenderedArtifact(ExecutionTargetIds.CSharpClr));
@@ -216,7 +216,7 @@ public sealed class ExecutionTargetPhaseDispatchTests
         public ExecutionTargetId TargetId => TestExecutionTargetIds.TestOnlyNonClr;
 
         public ExecutionTargetCapabilities Capabilities { get; } =
-            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Version1.Version]);
+            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version]);
 
         public bool WasCalled { get; private set; }
 
@@ -232,7 +232,7 @@ public sealed class ExecutionTargetPhaseDispatchTests
         public ExecutionTargetId TargetId => TestExecutionTargetIds.TestOnlyNonClr;
 
         public ExecutionTargetCapabilities Capabilities { get; } =
-            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Version1.Version]);
+            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version]);
 
         public TargetRenderResult Render(TargetRenderRequest request) =>
             TargetRenderResult.Failed(

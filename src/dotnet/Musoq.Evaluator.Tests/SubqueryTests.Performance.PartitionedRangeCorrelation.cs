@@ -72,7 +72,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenNestedExistsContainsPartitionedRangeCorrelation_ShouldDecorrelateBothLevels()
+    public void WhenNestedExistsContainsPartitionedRangeCorrelation_ShouldRetainOuterRangeStrategyAndGuardInnerQuery()
     {
         const string query = @"
             SELECT a.Name FROM #A.entities() a
@@ -96,7 +96,7 @@ public partial class SubqueryTests
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalSortMergeJoin [LeftSemi]", inspection.PhysicalPlanText);
         Assert.Contains("PredicateRangeSemiJoin", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftSemi]", inspection.PhysicalPlanText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
         AssertNoPerRowSubqueryExecution(inspection);
     }
 

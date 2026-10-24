@@ -31,7 +31,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         ReconcileFieldTypesForSetOperation(leftFields, rightFields);
 
-        _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, ResolveFieldsForCache(leftFields, rightFields));
+        _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, [..leftFields]);
     }
 
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, string cachedSetOperatorKey,
@@ -51,7 +51,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         ReconcileFieldTypesForSetOperation(leftFields, rightFields);
 
-        _queryState.CachedSetFields.TryAdd(currentSetOperatorKey, ResolveFieldsForCache(leftFields, rightFields));
+        _queryState.CachedSetFields.TryAdd(currentSetOperatorKey, [..leftFields]);
     }
 
     private void ReconcileFieldTypesForSetOperation(FieldNode[] leftFields, FieldNode[] rightFields)
@@ -130,34 +130,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (leftType == rightType)
                 continue;
 
-            if (TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i]))
+            if (TryReconcileNullSetFields(ref leftFields[i], ref rightFields[i]) ||
+                TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i]))
                 continue;
-
-            var leftIsNull = leftType is NullNode.NullType;
-            var rightIsNull = rightType is NullNode.NullType;
-
-            if (leftIsNull && rightIsNull)
-                continue;
-
-            if (leftIsNull)
-            {
-                leftFields[i] = new FieldNode(
-                    new NullNode(rightType, leftFields[i].Expression.Span),
-                    leftFields[i].FieldOrder,
-                    leftFields[i].FieldName,
-                    leftFields[i].Span);
-                continue;
-            }
-
-            if (rightIsNull)
-            {
-                rightFields[i] = new FieldNode(
-                    new NullNode(leftType, rightFields[i].Expression.Span),
-                    rightFields[i].FieldOrder,
-                    rightFields[i].FieldName,
-                    rightFields[i].Span);
-                continue;
-            }
 
             if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i]))
                 continue;

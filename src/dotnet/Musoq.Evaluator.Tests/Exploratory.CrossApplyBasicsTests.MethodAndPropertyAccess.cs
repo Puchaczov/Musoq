@@ -249,7 +249,7 @@ public partial class ExploratoryCrossApplyBasicsTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)), ("TagOrDefault", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", null]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "NoTag"]);
     }
 
     #endregion

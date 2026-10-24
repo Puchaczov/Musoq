@@ -15,14 +15,23 @@ internal sealed class LoweringScope
     private LoweringScope(
         PhysicalLoweringFacts facts,
         CteLoweringContext cte,
-        DirectTableLoweringContext directTable)
+        DirectTableLoweringContext directTable,
+        string generatedTypePrefix = "",
+        IReadOnlyList<SubqueryCteBinding>? subqueryCtes = null)
     {
         Facts = facts ?? throw new ArgumentNullException(nameof(facts));
         Cte = cte ?? throw new ArgumentNullException(nameof(cte));
         DirectTable = directTable ?? throw new ArgumentNullException(nameof(directTable));
+        GeneratedTypePrefix = generatedTypePrefix;
+        SubqueryCtes = ExecutionIrCollections.Freeze(subqueryCtes ?? []);
     }
 
     public PhysicalLoweringFacts Facts { get; }
+    public string GeneratedTypePrefix { get; }
+    internal IReadOnlyList<SubqueryCteBinding> SubqueryCtes { get; }
+    internal LoweringScope WithSubqueryCtes(IReadOnlyList<SubqueryCteBinding> bindings) =>
+        new(Facts, Cte, DirectTable, GeneratedTypePrefix, bindings);
+    public LoweringScope WithGeneratedTypePrefix(string prefix) => new(Facts, Cte, DirectTable, prefix, SubqueryCtes);
 
     public CteLoweringContext Cte { get; }
 
@@ -118,5 +127,5 @@ internal sealed class LoweringScope
     private LoweringScope Create(
         CteLoweringContext cte,
         DirectTableLoweringContext? directTable = null) =>
-        new(Facts, cte, directTable ?? DirectTable);
+        new(Facts, cte, directTable ?? DirectTable, GeneratedTypePrefix, SubqueryCtes);
 }

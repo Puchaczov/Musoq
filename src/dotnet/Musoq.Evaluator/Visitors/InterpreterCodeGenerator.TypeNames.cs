@@ -39,69 +39,25 @@ public partial class InterpreterCodeGenerator
         };
     }
 
-    private string GetClrTypeNameForFieldDefinition(FieldDefinitionNode field)
-    {
-        if (field.TypeAnnotation is InlineSchemaTypeNode inlineSchema)
-            return GetOrRegisterInlineSchemaClassName(field.Name, inlineSchema, null);
-        if (field.TypeAnnotation is ArrayTypeNode { ElementType: InlineSchemaTypeNode } arrayType)
-            return GetArrayClrTypeName(field.Name, arrayType);
-        if (field.TypeAnnotation is RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode repeatInlineSchema })
-            return GetRepeatUntilClrTypeName(field.Name, repeatInlineSchema);
-        if (field.TypeAnnotation is BinarySwitchTypeNode switchType)
-            return GetOrRegisterSwitchClassName(field.Name, switchType);
-        if (field.TypeAnnotation is SubstreamTypeNode { Target: InlineSchemaTypeNode substreamInline })
-            return GetOrRegisterInlineSchemaClassName(field.Name, substreamInline, null);
-        return GetClrTypeName(field.TypeAnnotation);
-    }
+    private string GetClrTypeNameForFieldDefinition(FieldDefinitionNode field) =>
+        GetBinaryValueClrTypeName(field.Name, field.TypeAnnotation);
 
-    private string GetClrTypeNameForFieldWithContext(SchemaFieldNode field, List<SchemaFieldNode> contextFields)
+    private string GetBinaryValueClrTypeName(string fieldName, TypeAnnotationNode type) => type switch
     {
-        return field switch
-        {
-            FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode inlineSchema } parsedField => GetOrRegisterInlineSchemaClassName(parsedField.Name, inlineSchema, null),
-            FieldDefinitionNode { TypeAnnotation: ArrayTypeNode
-                {
-                    ElementType: InlineSchemaTypeNode
-                } arrayType
-            } parsedField => GetArrayClrTypeName(parsedField.Name, arrayType),
-            FieldDefinitionNode { TypeAnnotation: RepeatUntilTypeNode
-                {
-                    ElementType: InlineSchemaTypeNode inlineSchema
-                }
-            } parsedField => GetRepeatUntilClrTypeName(parsedField.Name, inlineSchema),
-            FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode switchType } parsedField =>
-                GetOrRegisterSwitchClassName(parsedField.Name, switchType),
-            FieldDefinitionNode { TypeAnnotation: SubstreamTypeNode { Target: InlineSchemaTypeNode substreamInline } } parsedField =>
-                GetOrRegisterInlineSchemaClassName(parsedField.Name, substreamInline, null),
-            FieldDefinitionNode parsedField => GetClrTypeName(parsedField.TypeAnnotation),
-            ComputedFieldNode computedField => InferComputedFieldTypeName(computedField.Expression, contextFields),
-            _ => "object"
-        };
-    }
+        InlineSchemaTypeNode inline => GetOrRegisterInlineSchemaClassName(fieldName, inline, null),
+        BinarySwitchTypeNode choice => GetOrRegisterSwitchClassName(fieldName, choice),
+        ArrayTypeNode array => $"{GetBinaryValueClrTypeName(fieldName, array.ElementType)}[]",
+        RepeatUntilTypeNode repeat => $"{GetBinaryValueClrTypeName(fieldName, repeat.ElementType)}[]",
+        SubstreamTypeNode { Target: { } target } => GetBinaryValueClrTypeName(fieldName, target),
+        _ => GetClrTypeName(type)
+    };
 
-    private string GetArrayClrTypeName(string fieldName, ArrayTypeNode arrayType)
+    private string GetClrTypeNameForFieldWithContext(SchemaFieldNode field, List<SchemaFieldNode> contextFields) => field switch
     {
-        return $"{GetArrayElementClrTypeName(fieldName, arrayType.ElementType)}[]";
-    }
-
-    private string GetArrayElementClrTypeName(string fieldName, TypeAnnotationNode elementType)
-    {
-        return elementType is InlineSchemaTypeNode inlineSchema
-            ? GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null)
-            : GetClrTypeName(elementType);
-    }
-
-    private string GetRepeatUntilClrTypeName(string fieldName, InlineSchemaTypeNode inlineSchema)
-    {
-        return $"{GetRepeatUntilElementClrTypeName(fieldName, inlineSchema)}[]";
-    }
-
-    private string GetRepeatUntilElementClrTypeName(string fieldName, TypeAnnotationNode elementType)
-    {
-        return elementType is InlineSchemaTypeNode inlineSchema
-            ? GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null)
-            : GetClrTypeName(elementType);
-    }
+        FieldDefinitionNode parsed => GetClrTypeNameForFieldDefinition(parsed),
+        ComputedFieldNode computed => InferComputedFieldTypeName(computed.Expression, contextFields),
+        _ => "object"
+    };
 
     private string InferComputedFieldTypeName(Node expression, List<SchemaFieldNode>? contextFields = null) =>
         BinarySchemaRecordAliases.Resolve(expression, contextFields ?? []) is { } record

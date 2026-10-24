@@ -33,24 +33,18 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void Spec_Error_CaseWhenWithoutElse_ShouldFail()
+    public void Spec_CaseWhenWithoutElse_ShouldReturnMatchingValue()
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("test") { Population = 100m }] }
         };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select case when Population > 0 then 'positive' end from #A.Entities()",
-                sources));
+        using var query = CreateAndRunVirtualMachine(
+            "select case when Population > 0 then 'positive' end as Category from #A.Entities()", sources);
+        using var table = query.Run(TestContext.CancellationToken);
 
-        AssertErrorEnvelope(
-            ex,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticPhase.Parse,
-            "Expected token is Else but received End");
-        AssertHasGuidance(ex);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["positive"]);
     }
 
     [TestMethod]

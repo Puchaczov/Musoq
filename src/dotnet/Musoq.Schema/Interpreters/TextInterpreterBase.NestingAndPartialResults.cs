@@ -54,8 +54,7 @@ public abstract partial class TextInterpreterBase<TOut>
         }
         catch (ParseException ex)
         {
-            if (interpreter.CharsConsumed >= ParsePosition)
-                ParsePosition = interpreter.CharsConsumed;
+            ParsePosition = interpreter.CharsConsumed;
 
             throw AddNestedFieldContext(ex, fieldName);
         }

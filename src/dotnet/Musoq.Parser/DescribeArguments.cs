@@ -26,6 +26,9 @@ public partial class Parser
                 DescForType.Arguments);
         }
 
+        if (Current is FunctionToken)
+            return new DescNode(ComposeDescriptionAliasCall(), DescForType.Arguments);
+
         var targetToken = Current;
         var name = ComposeSchemaName();
         var startToken = targetToken;

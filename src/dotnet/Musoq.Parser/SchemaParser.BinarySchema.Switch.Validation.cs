@@ -27,7 +27,7 @@ public partial class SchemaParser
                     GetBranchAliasSpan(switchCase));
 
         foreach (var switchCase in cases)
-            if (switchCase.BranchType is not (PrimitiveTypeNode or ByteArrayTypeNode or SchemaReferenceTypeNode))
+            if (switchCase.BranchType is AlignmentNode)
                 throw new SyntaxException(
                     $"Switch branch '{switchCase.BranchAlias}' uses unsupported binary type '{switchCase.BranchType}'.",
                     _lexer.AlreadyResolvedQueryPart,

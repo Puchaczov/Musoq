@@ -4,6 +4,22 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.14-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.14-alpha.1](release-notes/v17.0.14-alpha.1.md).
+
+### Language, interpretation, and coupling
+
+- Implement language and interpretation specifications 2.0.0, including lazy Boolean and null semantics, correlated subqueries, numeric binding, aggregate/window/set behavior, computed source arguments, and parameterized paging.
+- Correct binary/text composition, repetition limits, partial-result state, typed result shapes, and query-boundary behavior; reconcile TABLE/COUPLE and settings contracts.
+- Add capability-negotiated constant RLIKE pushdown and streamline compiler identities, traversal, and generated execution.
+
+### Compatibility, coverage, and documentation
+
+- This intentionally breaking alpha advances predicate capability contract version to 2; rebuild datasource providers and upgrade all five Core packages together. Recompile incompatible stored artifacts.
+- Expand regression coverage and provider-independent examples; advance the specifications and refresh generated samples.
+- Reset benchmarks to one self-contained query-execution case, removing the old suites and qualification drivers for later redesign.
+
 ## 17.0.13-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.13-alpha.1](release-notes/v17.0.13-alpha.1.md).

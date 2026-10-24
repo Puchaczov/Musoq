@@ -49,12 +49,10 @@ ExecutionPlan [compiled]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
     ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]
       ParallelAccumulate
-        Let [name: string = ko3iko.Name]
         Let [id: int = ko3iko.Id]
         Let [country: string = ko3iko.Country]
-        TypedAggregateSet [Set(group.__agg0, name) filter ((id = 0) AND country IS NULL)]
-        Let [name1: string = ko3iko.Name]
-        TypedAggregateSet [Set(group.__agg1, name1) filter ((id = 2000) AND (country = 'NL'))]
+        TypedAggregateSet [Set(group.__agg0, ko3iko.Name) filter ((id = 0) AND country IS NULL)]
+        TypedAggregateSet [Set(group.__agg1, ko3iko.Name) filter ((id = 2000) AND (country = 'NL'))]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
@@ -218,18 +216,22 @@ namespace GeneratedSample_Q289_SpecCorePivotTupleNullDistinct
                     group = nullGroup;
                 }
 
-                string name = ko3iko.Name;
                 int id = ko3iko.Id;
                 string country = ko3iko.Country;
                 if (((id == 0) && (country == null)))
                 {
-                    Musoq.Plugins.CountDistinctReferenceAggregateKernel<string>.Set(ref group.__agg0, (string)name);
+                    Musoq.Plugins.CountDistinctReferenceAggregateKernel<string>.Set(ref group.__agg0, (string)ko3iko.Name);
                 }
 
-                string name1 = ko3iko.Name;
-                if ((((id == 2000) & Operators.SqlCompare<string, string>(country, "NL", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                if (((((bool?)(id == 2000)) switch
                 {
-                    Musoq.Plugins.CountDistinctReferenceAggregateKernel<string>.Set(ref group.__agg1, (string)name1);
+                    false => (bool?)false,
+                    true => (bool?)Operators.SqlCompare<string, string>(country, "NL", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                    _ => (bool?)Operators.SqlCompare<string, string>(country, "NL", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+
+                })) == true)
+                {
+                    Musoq.Plugins.CountDistinctReferenceAggregateKernel<string>.Set(ref group.__agg1, (string)ko3iko.Name);
                 }
             }
         }

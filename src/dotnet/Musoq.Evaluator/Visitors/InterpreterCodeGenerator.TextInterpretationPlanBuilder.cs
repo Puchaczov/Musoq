@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -35,7 +36,8 @@ public partial class InterpreterCodeGenerator
         var bound = BindTextFieldCore(field);
         return bound with
         {
-            RepeatElement = field.RepeatElement is { } element ? BindTextField(element) : null
+            RepeatElement = field.RepeatElement is { } element ? BindTextField(element) : null,
+            SwitchArms = field.SwitchCases.Select(arm => new BoundTextSwitchArm(arm.Pattern, BindTextField(arm.Body))).ToArray()
         };
     }
 
@@ -89,10 +91,16 @@ public partial class InterpreterCodeGenerator
         return field.FieldType switch
         {
             TextFieldType.Repeat => $"{field.PrimaryValue ?? "object"}[]?",
-            TextFieldType.Switch => $"TextSwitch_{field.Name}?",
+            TextFieldType.Switch => GetTextSwitchResultClrType(field),
             TextFieldType.SchemaReference => $"{field.PrimaryValue ?? "object"}?",
             _ => "string?"
         };
+    }
+
+    private static string GetTextSwitchResultClrType(TextFieldDefinitionNode field)
+    {
+        var types = field.SwitchCases.Select(arm => GetTextFieldPropertyClrType(arm.Body)).Distinct(StringComparer.Ordinal).ToArray();
+        return types.Length == 1 ? types[0] : "object?";
     }
 
     private List<TextFieldDefinitionNode> GetAllTextSchemaFields(TextSchemaNode textSchema)
