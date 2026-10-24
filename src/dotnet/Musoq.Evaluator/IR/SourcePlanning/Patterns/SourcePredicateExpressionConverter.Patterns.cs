@@ -6,18 +6,27 @@ namespace Musoq.Evaluator.IR.SourcePlanning;
 
 internal static partial class SourcePredicateExpressionConverter
 {
-    private static bool TryConvertStringMatch(
+    private static bool TryConvertPatternMatch(
         PatternMatch patternMatch,
         string sourceAlias,
         bool isNegated,
         [NotNullWhen(true)] out SourcePredicateExpression? predicate)
     {
-        if (patternMatch.Expression is not ColumnRef column ||
+        if (patternMatch.Kind is not (PatternKind.Like or PatternKind.RLike) ||
+            patternMatch.Expression is not ColumnRef column ||
             !string.Equals(column.Alias, sourceAlias, StringComparison.OrdinalIgnoreCase) ||
             patternMatch.Pattern is not Literal { Value: string pattern })
         {
             predicate = null;
             return false;
+        }
+
+        if (patternMatch.Kind == PatternKind.RLike)
+        {
+            predicate = new SourcePredicateRegexMatch(
+                new SourceColumnRef(column.ColumnName), pattern,
+                Runtime.RuntimeCacheOptions.DefaultRegexTimeout, isNegated: isNegated);
+            return true;
         }
 
         var classification = LikePatternClassifier.Classify(pattern);

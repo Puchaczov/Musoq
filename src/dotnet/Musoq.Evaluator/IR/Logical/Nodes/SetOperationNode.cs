@@ -9,7 +9,7 @@ public sealed record SetOperationNode(
     LogicalNode Right,
     string[] Keys) : LogicalNode(OutputSchemaFactory.ForSetOperation(Left.OutputSchema, Right.OutputSchema))
 {
-    public bool ResultIsDistinct => Kind is SetOpKind.Union or SetOpKind.Intersect;
+    public bool ResultIsDistinct => Kind is SetOpKind.Union;
 
     public override IReadOnlyList<LogicalNode> Children { get; } = [Left, Right];
 }

@@ -73,7 +73,7 @@ internal static class SourcePredicateGraphValidator
             SourcePredicateNullCheck check => new(true, [new(check.Expression, depth, false, false)]),
             SourcePredicateFlags flags => new(true, [new(flags.Mask, depth, false, false), new(flags.Expression, depth, false, false)]),
             SourcePredicateColumn { Column: { Name: { } name } } when !string.IsNullOrWhiteSpace(name) => new(true, []),
-            SourcePredicateLiteral or SourcePredicateEnumLiteral or SourcePredicateStringMatch => new(true, []),
+            SourcePredicateLiteral or SourcePredicateEnumLiteral or SourcePredicateStringMatch or SourcePredicateRegexMatch => new(true, []),
             _ => new(false, [])
         };
     }

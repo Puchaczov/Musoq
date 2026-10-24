@@ -90,7 +90,7 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
         var result = new QueryAnalyzer(new ContextSchemaProvider()).Analyze(
             "select 1 from #ambiguous.files('some\\text')");
 
-        Assert.IsFalse(result.HasErrors, string.Join("\n", result.Errors));
+        Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, result.Errors.Single().Code);
         Assert.AreEqual(0, result.Warnings.Count());
     }
 

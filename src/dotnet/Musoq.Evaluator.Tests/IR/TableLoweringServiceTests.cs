@@ -69,7 +69,7 @@ public sealed class TableLoweringServiceTests
     }
 
     [TestMethod]
-    public void TableCompletionPlanner_WhenDistinctCombinesWithFinalProjection_ShouldReturnUnsupportedReason()
+    public void TableCompletionPlanner_WhenDistinctCombinesWithFinalProjection_ShouldDistinctOnlyVisibleFields()
     {
         var planner = new TableCompletionPlanner(new PostOperationPlanner());
         var rowShape = CreateGeneratedShape("ResultRow", ProjectedFields(), RowShapeLookup.EmptySourceShapeLookup());
@@ -85,9 +85,10 @@ public sealed class TableLoweringServiceTests
             IsDistinct: true,
             FinalProjection: finalProjection));
 
-        Assert.IsFalse(result.IsBuilt);
-        StringAssert.Contains(result.UnsupportedReason, "distinct lowering");
-        StringAssert.Contains(result.UnsupportedReason, "hidden sort fields");
+        Assert.IsTrue(result.IsBuilt);
+        var distinct = result.Nodes.OfType<ExecutionDistinctTable>().Single();
+        CollectionAssert.AreEqual(new[] { rowShape.Fields[0] }, distinct.KeyFields.ToArray());
+        Assert.AreEqual("result", result.Table.Name);
     }
 
     private static ProjectedField[] ProjectedFields() =>

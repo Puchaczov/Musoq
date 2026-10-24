@@ -18,7 +18,7 @@ public sealed record ExecutionAggregateCall : ExecutionExpression
     {
         Group = group;
         Method = method;
-        Arguments = ExecutionIrCollections.Freeze(arguments);
+        Arguments = arguments;
         ReturnType = returnType;
         Accumulator = accumulator;
         DisplayName = displayName;

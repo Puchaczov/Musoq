@@ -11,6 +11,8 @@ internal static class SubqueryDiagnosticFactory
 {
     private const string VisitorName = "SubqueryToCteRewriteVisitor";
 
+    internal static bool IsInvalidSubquery(VisitorException exception) => exception.Code == DiagnosticCode.MQ2024_InvalidSubquery;
+
     public static VisitorException InvalidSubquery(
         string operation,
         string message,

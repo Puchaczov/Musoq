@@ -22,19 +22,6 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         return new DynamicTable([]);
     }
 
-    internal static FieldNode[] ResolveFieldsForCache(FieldNode[] leftFields, FieldNode[] rightFields)
-    {
-        var resolved = new FieldNode[leftFields.Length];
-
-        for (var i = 0; i < leftFields.Length; i++)
-            resolved[i] = leftFields[i].Expression is NullNode ||
-                          leftFields[i].Expression.ReturnType is NullNode.NullType
-                ? rightFields[i]
-                : leftFields[i];
-
-        return resolved;
-    }
-
     internal static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns,
         TextSpan span = default)
     {

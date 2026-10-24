@@ -4,81 +4,76 @@
 
 **Musoq — an investigation runtime that uses SQL.**
 
-Search code, inspect logs, follow dependencies, and decode binary records. Combine these steps in SQL to explore your data and return structured results you can inspect.
+Decode binary records, parse structured text, search code, inspect logs, and follow dependencies. Combine these steps in SQL to explore your data and return structured results you can inspect.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 ![Tests](https://raw.githubusercontent.com/puchaczov/musoq/badges/assets/tests-badge.svg)
 
-### Find source files · Search
+Declare a binary or text format beside your query to turn bytes or text into fields you can select, filter, and combine in SQL.
 
-List five C# files from this repository, ordered by path.
+### Decode a binary record
+
+Declare field widths and a length-dependent payload, then select the interpreted fields.
 
 ```sql
-param(root: string = './src/dotnet/Musoq.Parser')
+binary Header {
+    Kind: byte,
+    Size: short le,
+    Payload: byte[Size]
+};
 
-select p.Path as Path
-from search.paths($root, options: (scope: (
-    include: array { '*.cs', '**/*.cs' },
-    exclude: array { '**/obj/**', '**/bin/**' }
-))) p
-order by p.Path
-take 5
+with input as (
+    select FromHexToBytes('010300AABBCC') as Data
+    from system.dual()
+)
+select
+    h.Kind as Kind,
+    h.Size as Size,
+    Length(h.Payload) as PayloadBytes
+from input i
+cross apply Interpret<Header>(i.Data) h
 ```
 
-**Result for this checkout:**
+**Result:** `Kind = 1`, `Size = 3`, `PayloadBytes = 3`.
 
-| Path |
-|---|
-| BinarySchemaParser.FieldValidation.cs |
-| BinarySchemaParser.FieldValidationLiterals.cs |
-| BinarySchemaParser.Schema.cs |
-| BinarySchemaParser.SizedTypes.cs |
-| BinarySchemaParser.Validation.cs |
+Requires the **System provider**.
 
-Pass your input directory as `$root`; the [companion](docs/examples/readme/README.md#running-search-queries) shows absolute-root execution commands. Paths are relative to the selected source directory.
+[Binary format specification](specs/musoq-binary-text-spec.md#4-binary-schema-syntax) · [More format examples](#more-format-examples-and-source-contracts).
 
-Requires the **Search provider**.
+### Parse structured text
 
-A datasource provider makes a source available as rows and columns that your query can use.
-
-These 28 examples have [runnable files, inputs, prerequisites, and expected results](docs/examples/readme/README.md). Run file-based examples from the repository root; inline examples include their own data.
-
-[Query files](#query-files) · [Select and calculate](#select-and-calculate) · [Group and rank](#group-and-rank) · [Combine data](#combine-data) · [Reuse queries](#reuse-queries-and-follow-links) · [Input formats](#input-formats-and-source-contracts)
-
-## Query files
-
-Search exposes file paths, lines, and matches as rows; SQL filters and combines those rows. These four queries read the [same six sample log records](docs/examples/readme/README.md#search-inputs).
-
-### Find matching lines · Search
-
-Search the [sample logs](docs/examples/readme/README.md#search-inputs) and keep the matching line beside its location.
+Describe the input format beside the query; its fields become available to the rest of the SQL.
 
 ```sql
-param(root: string = './docs/examples/readme/fixtures')
+text Entry {
+    Level: token,
+    _: whitespace,
+    Message: rest
+};
 
-select s.Path as Path, s.LineNumber as Line, s.LineText as Text
-from search.lines($root, 'ERROR',
-    options: (scope: (include: array { '*.log' }))) s
-order by s.Path, s.LineNumber
+select e.Level as Level, e.Message as Message
+from values {
+    (Line: 'INFO ready'),
+    (Line: 'ERROR retry failed')
+} s
+cross apply Parse<Entry>(s.Line) e
+order by Level
 ```
 
 **Result:**
 
-| Path | Line | Text |
-|---|---|---|
-| app.log | 2 | ERROR service=checkout code=E42 message=retry failed |
-| app.log | 3 | ERROR service=checkout code=E42 message=timeout |
-| worker.log | 2 | ERROR service=payments code=E17 message=payment failed |
+| Level | Message |
+|---|---|
+| ERROR | retry failed |
+| INFO | ready |
 
-LineText includes each line's ending; the table omits it, while the companion records exact JSON.
+[Text format specification](specs/musoq-binary-text-spec.md#5-text-schema-syntax) · [More format examples](#more-format-examples-and-source-contracts).
 
-Requires the **Search provider**.
+### Search and summarize logs
 
-### Count labeled matches · Search and GROUP BY
-
-Search for several patterns and count each label separately.
+Search the [sample logs](docs/examples/readme/README.md#search-inputs) for several patterns and count each label separately.
 
 ```sql
 param(root: string = './docs/examples/readme/fixtures')
@@ -101,63 +96,13 @@ order by Level
 
 Requires the **Search provider**.
 
-### Find files containing both patterns · CTE and HAVING
-
-Count distinct pattern labels so repeated errors alone cannot qualify a file.
-
-```sql
-param(root: string = './docs/examples/readme/fixtures')
-
-with topics as (
-    select m.Path as Path, m.PatternId as Level
-    from search.many($root, patterns: array {
-        (id: 'ERROR', pattern: 'ERROR'),
-        (id: 'WARN', pattern: 'WARN')
-    }, options: (scope: (include: array { '*.log' }))) m
-    group by m.Path, m.PatternId
-)
-select t.Path as Path, Count(*) as Levels
-from topics t
-group by t.Path
-having Count(*) = 2
-order by Path
-```
-
-**Result:** `Path = worker.log`, `Levels = 2`.
-
-Requires the **Search provider**.
-
-### Extract values from matches · Captures and APPLY
-
-Turn named regex captures into rows, then count records by service.
-
-```sql
-param(root: string = './docs/examples/readme/fixtures')
-
-select c.Text as Service, Count(*) as Records
-from search.matches($root,
-    'service=(?<service>[a-z]+)', options: (
-        text: (mode: 'regex'),
-        records: (mode: 'physical-line', maxBytes: 1048576),
-        scope: (include: array { '*.log' })
-    )) m
-cross apply m.Captures c
-where c.GroupName = 'service' and c.Success = true
-group by c.Text
-order by Service
-```
-
-**Result:**
-
-| Service | Records |
-|---|---|
-| auth | 1 |
-| checkout | 3 |
-| payments | 2 |
-
-Requires the **Search provider**.
+A datasource provider makes a source available as rows and columns that your query can use. The companion shows [additional Search recipes](docs/examples/readme/README.md#search-paths) and [absolute-root execution commands](docs/examples/readme/README.md#running-search-queries).
 
 [Search provider reference](https://github.com/Puchaczov/Musoq.DataSources/tree/master/Musoq.DataSources.Search) · [Grouping and HAVING](specs/musoq-core-language-spec.md#10-group-by-and-aggregation).
+
+These 24 examples are part of a [collection of 28 runnable examples with inputs, prerequisites, and expected results](docs/examples/readme/README.md). Run file-based examples from the repository root; inline examples include their own data.
+
+[Binary decoding](#decode-a-binary-record) · [Text parsing](#parse-structured-text) · [Search](#search-and-summarize-logs) · [Select and calculate](#select-and-calculate) · [Group and rank](#group-and-rank) · [Combine data](#combine-data) · [Reuse queries](#reuse-queries-and-follow-links) · [More formats](#more-format-examples-and-source-contracts)
 
 ## Select and calculate
 
@@ -519,36 +464,9 @@ Depth 0 is the starting service. The edge back to checkout adds no new identity,
 
 [Script parameters](specs/musoq-core-language-spec.md#43-script-parameters) · [CTEs and recursion](specs/musoq-core-language-spec.md#14-common-table-expressions-ctes).
 
-## Input formats and source contracts
+## More format examples and source contracts
 
-Describe a text or binary format beside the query, then use its fields in SQL.
-
-### Describe text fields · Inline text formats
-
-Describe the input format beside the query; its fields become available to the rest of the SQL.
-
-```sql
-text Entry {
-    Level: token,
-    _: whitespace,
-    Message: rest
-};
-
-select e.Level as Level, e.Message as Message
-from values {
-    (Line: 'INFO ready'),
-    (Line: 'ERROR retry failed')
-} s
-cross apply Parse<Entry>(s.Line) e
-order by Level
-```
-
-**Result:**
-
-| Level | Message |
-|---|---|
-| ERROR | retry failed |
-| INFO | ready |
+Build on the opening format examples with tolerant parsing, nested records, arrays, tagged payloads, and source contracts.
 
 ### Keep malformed text rows · TryParse
 
@@ -577,33 +495,6 @@ order by s.Id
 | 2 | NULL |
 
 [Detailed semantics](specs/musoq-binary-text-spec.md#75-safe-interpretation).
-
-### Describe binary fields · Inline binary formats
-
-Declare field widths and a length-dependent payload, then select the interpreted fields.
-
-```sql
-binary Header {
-    Kind: byte,
-    Size: short le,
-    Payload: byte[Size]
-};
-
-with input as (
-    select FromHexToBytes('010300AABBCC') as Data
-    from system.dual()
-)
-select
-    h.Kind as Kind,
-    h.Size as Size,
-    Length(h.Payload) as PayloadBytes
-from input i
-cross apply Interpret<Header>(i.Data) h
-```
-
-**Result:** `Kind = 1`, `Size = 3`, `PayloadBytes = 3`.
-
-Requires the **System provider**.
 
 ### Read a record inside a record · Nested binary formats
 

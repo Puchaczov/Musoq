@@ -10,6 +10,7 @@ namespace Musoq.Evaluator.Visitors;
 public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpressionVisitor
 {
     private readonly Func<Node, EnumTypeDescriptor?>? _enumTypeResolver;
+    private readonly Func<Node, bool>? _nullableInterpretationResolver;
     private readonly List<ISchemaColumn> _collectedFieldNames = [];
     private ISchemaColumn[] _cachedFieldNames = [];
     private bool _fieldNamesCacheValid;
@@ -18,6 +19,12 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
     public GetSelectFieldsVisitor(Func<Node, EnumTypeDescriptor?>? enumTypeResolver = null)
     {
         _enumTypeResolver = enumTypeResolver;
+    }
+
+    internal GetSelectFieldsVisitor(Func<Node, EnumTypeDescriptor?> enumTypeResolver,
+        Func<Node, bool> nullableInterpretationResolver) : this(enumTypeResolver)
+    {
+        _nullableInterpretationResolver = nullableInterpretationResolver;
     }
 
     public ISchemaColumn[] CollectedFieldNames
@@ -62,20 +69,26 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
 
         var returnType = ResolveOutputType(node);
         var enumType = _enumTypeResolver?.Invoke(node.Expression);
+        var intendedTypeName = InterpretationPropertyBinding.GetIntendedTypeName(node.Expression);
         if (StructuralProjectionColumns.Describe(node.Expression) is { Kind: not Musoq.Schema.StructuralInputs.StructuralTypeKind.Scalar } structuralShape)
         {
             _collectedFieldNames.Add(new StructuralProjectionColumn(GetCteOutputColumnName(node), node.FieldOrder, structuralShape));
             _fieldNamesCacheValid = false;
             return;
         }
-        _collectedFieldNames.Add(enumType == null
-            ? new SchemaColumn(GetCteOutputColumnName(node), node.FieldOrder, returnType)
+        ISchemaColumn outputColumn = enumType == null
+            ? new SchemaColumn(GetCteOutputColumnName(node), node.FieldOrder, returnType, intendedTypeName)
             : new SchemaColumn(
                 GetCteOutputColumnName(node),
                 node.FieldOrder,
                 returnType,
                 returnType,
-                enumType));
+                enumType,
+                intendedTypeName,
+                null,
+                ColumnStability.Stable);
+        _collectedFieldNames.Add(NullableInterpretationColumn.Preserve(outputColumn,
+            intendedTypeName != null && _nullableInterpretationResolver?.Invoke(node.Expression) == true));
         _fieldNamesCacheValid = false;
     }
 

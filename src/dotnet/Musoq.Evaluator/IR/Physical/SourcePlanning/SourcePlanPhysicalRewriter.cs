@@ -224,8 +224,8 @@ internal static class SourcePlanPhysicalRewriter
         return true;
     }
 
-    private static bool CanRemoveSkip(SourcePlanResult sourcePlan, int count) => sourcePlan.AcceptedSkip == count && !sourcePlan.ResidualSkip.HasValue;
-    private static bool CanRemoveTake(SourcePlanResult sourcePlan, int count) => sourcePlan.AcceptedTake == count && !sourcePlan.ResidualTake.HasValue;
+    private static bool CanRemoveSkip(SourcePlanResult sourcePlan, PagingCount count) => count.IsConstant && sourcePlan.AcceptedSkip == count.Value && !sourcePlan.ResidualSkip.HasValue;
+    private static bool CanRemoveTake(SourcePlanResult sourcePlan, PagingCount count) => count.IsConstant && sourcePlan.AcceptedTake == count.Value && !sourcePlan.ResidualTake.HasValue;
     private static string RequireSourceContextId(PhysicalSchemaScanNode scan) => scan.SourceContextId ?? throw new InvalidOperationException("Source planning rewrite requires a source context id.");
 
     private static void AcceptOrder(

@@ -137,12 +137,24 @@ namespace GeneratedSample_Q270_SpecCoreMembershipPredicates
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string name = ko3iko.Name;
-                                if (((Musoq.Evaluator.Operators.SqlIn(name, membershipValue => (membershipValue switch
+                                if (((((bool?)((((bool?)Musoq.Evaluator.Operators.SqlIn(name, membershipValue => (membershipValue switch
                                 {
                                     "Alice" or "Bob" or "Cara" or "Dora" or "Eve" or "Fay" or "Gina" or "Hana" or "Ivy" or "Jill" or "Kara" or "Liam" or "Mona" or "Nora" or "Owen" or "Pia" or "Quin" or "Rita" or "Sara" or "Tara" => true,
                                     _ => false
 
-                                }), false) & EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames)) & (Array.IndexOf(__inSet_compiled_0, name) >= 0)) == true)
+                                }), false)) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames),
+                                    _ => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames) & (bool?)null
+
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(Array.IndexOf(__inSet_compiled_0, name) >= 0),
+                                    _ => (bool?)(Array.IndexOf(__inSet_compiled_0, name) >= 0) & (bool?)null
+
+                                })) == true)
                                 {
                                     yield return new ResultRow0(name);
                                 }
@@ -163,12 +175,24 @@ namespace GeneratedSample_Q270_SpecCoreMembershipPredicates
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string name = ko3iko.Name;
-                                if (((Musoq.Evaluator.Operators.SqlIn(name, membershipValue => (membershipValue switch
+                                if (((((bool?)((((bool?)Musoq.Evaluator.Operators.SqlIn(name, membershipValue => (membershipValue switch
                                 {
                                     "Alice" or "Bob" or "Cara" or "Dora" or "Eve" or "Fay" or "Gina" or "Hana" or "Ivy" or "Jill" or "Kara" or "Liam" or "Mona" or "Nora" or "Owen" or "Pia" or "Quin" or "Rita" or "Sara" or "Tara" => true,
                                     _ => false
 
-                                }), false) & EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames)) & (Array.IndexOf(__inSet_compiled_0, name) >= 0)) == true)
+                                }), false)) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames),
+                                    _ => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames) & (bool?)null
+
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(Array.IndexOf(__inSet_compiled_0, name) >= 0),
+                                    _ => (bool?)(Array.IndexOf(__inSet_compiled_0, name) >= 0) & (bool?)null
+
+                                })) == true)
                                 {
                                     yield return new ResultRow0(name);
                                 }
@@ -187,12 +211,24 @@ namespace GeneratedSample_Q270_SpecCoreMembershipPredicates
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         string name = ko3iko.Name;
-                        if (((Musoq.Evaluator.Operators.SqlIn(name, membershipValue => (membershipValue switch
+                        if (((((bool?)((((bool?)Musoq.Evaluator.Operators.SqlIn(name, membershipValue => (membershipValue switch
                         {
                             "Alice" or "Bob" or "Cara" or "Dora" or "Eve" or "Fay" or "Gina" or "Hana" or "Ivy" or "Jill" or "Kara" or "Liam" or "Mona" or "Nora" or "Owen" or "Pia" or "Quin" or "Rita" or "Sara" or "Tara" => true,
                             _ => false
 
-                        }), false) & EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames)) & (Array.IndexOf(__inSet_compiled_0, name) >= 0)) == true)
+                        }), false)) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames),
+                            _ => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames) & (bool?)null
+
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(Array.IndexOf(__inSet_compiled_0, name) >= 0),
+                            _ => (bool?)(Array.IndexOf(__inSet_compiled_0, name) >= 0) & (bool?)null
+
+                        })) == true)
                         {
                             yield return new ResultRow0(name);
                         }

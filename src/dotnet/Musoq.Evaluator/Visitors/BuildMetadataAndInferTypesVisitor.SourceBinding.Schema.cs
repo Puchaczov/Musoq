@@ -22,38 +22,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         ThrowIfCancellationRequested();
         var sourceSpan = node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
-        ISchema schema;
-        try
-        {
-            schema = _provider.GetSchema(node.Schema);
-            ThrowIfCancellationRequested();
-        }
-        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedSchemaLookupFailure(ex))
-        {
-            var span = node.SchemaSpan ?? sourceSpan;
-            throw new UnknownInterpretationSchemaException(
-                node.Schema,
-                $"Unknown schema '{node.Schema}'.",
-                span);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (DataSourceLifecycleException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw DataSourceLifecycleException.ForProviderOperation(
-                node.Schema,
-                node.Method,
-                node.Alias,
-                node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                "construct",
-                ex);
-        }
+        var schema = ResolveSourceSchema(node);
 
         const bool hasExternallyProvidedTypes = false;
 
@@ -66,7 +35,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
         var schemaArgsNode = (ArgsListNode)PopSemanticNode();
-        _scriptParameters.ValidateSchemaArguments(schemaArgsNode, node);
         var queryId = node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         BoundSchemaInvocation? boundInvocation = null;
         var isArgumentInventory = IsDescribingArguments && node.Parameters.Args.Length == 0;
@@ -133,7 +101,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             schemaArgsNode,
             _scriptParameters.DefinitionsByName,
             _scriptVariables.DefinitionsByName,
-            boundInvocation);
+            boundInvocation,
+            _compilationOptions.UseConstantFolding);
+        var hasUnavailableMetadataArguments = staticSchemaArguments.Length <
+            (boundInvocation?.Arguments.Length ?? schemaArgsNode.Args.Length);
         if (boundInvocation?.Signature.SourceConstructionType != null)
             staticSchemaArguments = [];
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, schemaArgsNode,
@@ -144,7 +115,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
         aliasedSchemaFromNode.SetStaticMetadataArguments(
             staticSchemaArguments,
-            _scriptParameters.HasRequiredSourceParameter(schemaArgsNode));
+            hasUnavailableMetadataArguments);
         if (!sourceSpan.IsEmpty)
             aliasedSchemaFromNode.WithSpan(sourceSpan);
 
@@ -190,6 +161,49 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.UsedSchemasQuantity += 1;
 
         PushSemanticNode(aliasedSchemaFromNode);
+    }
+
+    private ISchema ResolveSourceSchema(SchemaFromNode node)
+    {
+        if (SourceArgumentContext is { Schema: { } boundSchema } context && ReferenceEquals(context.Source, node))
+            return boundSchema;
+        ISchema schema;
+        var sourceSpan = node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
+        try
+        {
+            schema = _provider.GetSchema(node.Schema);
+            ThrowIfCancellationRequested();
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedSchemaLookupFailure(ex))
+        {
+            var span = node.SchemaSpan ?? sourceSpan;
+            throw new UnknownInterpretationSchemaException(
+                node.Schema,
+                $"Unknown schema '{node.Schema}'.",
+                span);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (DataSourceLifecycleException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw DataSourceLifecycleException.ForProviderOperation(
+                node.Schema,
+                node.Method,
+                node.Alias,
+                node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                "construct",
+                ex);
+        }
+
+        if (SourceArgumentContext is { } pending && ReferenceEquals(pending.Source, node))
+            SourceArgumentContext = pending with { Schema = schema };
+        return schema;
     }
 
     public override void Visit(SchemaMethodFromNode node)

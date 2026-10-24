@@ -46,7 +46,7 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests : BasicEnti
     }
 
     [TestMethod]
-    public void WhenRLikeExpressionIsRewritten_ShouldPass()
+    public void WhenRLikeExpressionIsPreservedForSourcePlanning_ShouldPass()
     {
         var query = "select 1 from #A.entities() a where a.City rlike '%abc%'";
 
@@ -61,7 +61,7 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests : BasicEnti
 
         var firstWhereNode = firstWhereNodePair.First().Value;
 
-        Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
+        Assert.AreEqual("a.City rlike '%abc%'", firstWhereNode.Expression.ToString());
     }
 
     [TestMethod]

@@ -77,13 +77,13 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new SkipNode((IntegerNode)node.Expression).CopySpansFrom(node));
+        Nodes.Push(new SkipNode(Nodes.Pop()).CopySpansFrom(node));
     }
 
     public void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new TakeNode((IntegerNode)node.Expression).CopySpansFrom(node));
+        Nodes.Push(new TakeNode(Nodes.Pop()).CopySpansFrom(node));
     }
 
     public void Visit(OrderByNode node)

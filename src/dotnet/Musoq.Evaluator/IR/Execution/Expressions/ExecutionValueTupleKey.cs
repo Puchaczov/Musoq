@@ -11,7 +11,7 @@ public sealed record ExecutionValueTupleKey : ExecutionExpression
         ExecutionTypeRef returnType)
         : base(returnType)
     {
-        Parts = ExecutionIrCollections.Freeze(parts);
+        Parts = parts;
         ReturnType = returnType;
     }
 

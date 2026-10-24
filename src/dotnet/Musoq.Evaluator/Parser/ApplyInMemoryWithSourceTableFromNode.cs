@@ -5,4 +5,7 @@ namespace Musoq.Evaluator.Parser;
 
 public class ApplyInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, ApplyType applyType, bool withOrdinality = false)
     : Musoq.Parser.Nodes.From.ApplyInMemoryWithSourceTableFromNode(inMemoryTableAlias, sourceTable, applyType,
-        typeof(RowSource<>), withOrdinality);
+        typeof(RowSource<>), withOrdinality)
+{
+    internal IntermediateSourceBinding? IntermediateSource { get; init; }
+}

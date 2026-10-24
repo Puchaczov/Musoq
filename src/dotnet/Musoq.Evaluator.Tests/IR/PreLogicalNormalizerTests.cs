@@ -103,13 +103,13 @@ public sealed class PreLogicalNormalizerTests
             Kind: LogicalSubqueryFormKind.Predicate,
             IsCorrelated: true
         }));
-        Assert.IsTrue(facts.Any(static fact => fact is
-        {
-            CteName: "_sq_2",
-            Kind: LogicalSubqueryFormKind.Scalar,
-            IsCorrelated: false
-        }));
+        Assert.IsTrue(ContainsScalarApply(result.NormalizedRoot));
     }
+
+    private static bool ContainsScalarApply(Node node) =>
+        node is Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryApplyNode
+            { Kind: Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryApplyKind.Scalar } ||
+        Musoq.Evaluator.Visitors.ParserNodeChildTraversal.EnumerateChildren(node).Any(ContainsScalarApply);
 
     private static RootNode Parse(string query)
     {

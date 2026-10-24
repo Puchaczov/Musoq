@@ -88,6 +88,10 @@ internal sealed partial class PhysicalLoweringImplementation
                     ? null
                     : ReplaceExecutionAliasCore(caseWhen.ElseExpression, fromAlias, toAlias)
             },
+            ExecutionStringConcatenation concatenation => concatenation with
+            {
+                Expressions = concatenation.Expressions.Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias)).ToArray()
+            },
             ExecutionCoalesce coalesce => coalesce with
             {
                 Expressions = coalesce.Expressions

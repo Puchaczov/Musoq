@@ -138,7 +138,13 @@ namespace GeneratedSample_K48_TypedNullableArithmeticFilter
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 long? value = ko3iko.Value;
-                                if (((Operators.SqlCompare<long?, int>((long?)(value * 2), 100, (long? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight)) | Operators.SqlCompare<long?, int>((long?)(value % 3), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                                if (((((bool?)(Operators.SqlCompare<long?, int>((long?)(value * 2), 100, (long? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight)))) switch
+                                {
+                                    true => (bool?)true,
+                                    false => (bool?)Operators.SqlCompare<long?, int>((long?)(value % ((int?)3).GetValueOrDefault()), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<long?, int>((long?)(value % ((int?)3).GetValueOrDefault()), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                })) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, value, resultOrderRecords.Count));
                                 }
@@ -159,7 +165,13 @@ namespace GeneratedSample_K48_TypedNullableArithmeticFilter
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 long? value = ko3iko.Value;
-                                if (((Operators.SqlCompare<long?, int>((long?)(value * 2), 100, (long? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight)) | Operators.SqlCompare<long?, int>((long?)(value % 3), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                                if (((((bool?)(Operators.SqlCompare<long?, int>((long?)(value * 2), 100, (long? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight)))) switch
+                                {
+                                    true => (bool?)true,
+                                    false => (bool?)Operators.SqlCompare<long?, int>((long?)(value % ((int?)3).GetValueOrDefault()), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<long?, int>((long?)(value % ((int?)3).GetValueOrDefault()), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                })) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, value, resultOrderRecords.Count));
                                 }
@@ -178,7 +190,13 @@ namespace GeneratedSample_K48_TypedNullableArithmeticFilter
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         long? value = ko3iko.Value;
-                        if (((Operators.SqlCompare<long?, int>((long?)(value * 2), 100, (long? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight)) | Operators.SqlCompare<long?, int>((long?)(value % 3), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                        if (((((bool?)(Operators.SqlCompare<long?, int>((long?)(value * 2), 100, (long? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight)))) switch
+                        {
+                            true => (bool?)true,
+                            false => (bool?)Operators.SqlCompare<long?, int>((long?)(value % ((int?)3).GetValueOrDefault()), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<long?, int>((long?)(value % ((int?)3).GetValueOrDefault()), 1, (long? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                        })) == true)
                         {
                             resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, value, resultOrderRecords.Count));
                         }

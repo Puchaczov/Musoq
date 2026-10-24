@@ -52,6 +52,7 @@ internal static class ExpressionStabilityAnalyzer
         {
             ExecutionLiteral or ExecutionVariableRead or ExecutionScriptVariableRead => true,
             ExecutionFieldRead field => field.Stability == ColumnStability.Stable,
+            ExecutionUnionMemberRead union => IsStable(union.Receiver),
             ExecutionMemberRead member => IsStableMember(member),
             ExecutionMethodTargetReuseCandidate candidate => IsStable(candidate.MethodCall),
             ExecutionMethodCall call => call.InjectedSource == null &&
@@ -80,6 +81,7 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch => IsStable(branch.Condition) && IsStable(branch.Result)) &&
                                           (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
             ExecutionCoalesce coalesce => coalesce.Expressions.All(IsStable),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.All(IsStable),
 
             ExecutionValueTupleKey key => key.Parts.All(IsStable),
             ExecutionRowPresence presence => IsStable(presence.PresenceSource),

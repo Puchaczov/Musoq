@@ -265,7 +265,13 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                     string city = b.City;
-                                    if (((Operators.SqlCompare<string, string>(city, "KRAKOW", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                                    if (((((bool?)(Operators.SqlCompare<string, string>(city, "KRAKOW", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                    {
+                                        true => (bool?)true,
+                                        false => (bool?)Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                        _ => (bool?)Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                    })) == true)
                                     {
                                         cte0Left.AddDirect(new Cte0LeftRow0(b.Country, city));
                                     }
@@ -286,7 +292,13 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
                                     string city = b.City;
-                                    if (((Operators.SqlCompare<string, string>(city, "KRAKOW", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                                    if (((((bool?)(Operators.SqlCompare<string, string>(city, "KRAKOW", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                    {
+                                        true => (bool?)true,
+                                        false => (bool?)Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                        _ => (bool?)Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                    })) == true)
                                     {
                                         cte0Left.AddDirect(new Cte0LeftRow0(b.Country, city));
                                     }
@@ -305,7 +317,13 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
 
                             var b = bChunk[bIndex];
                             string city = b.City;
-                            if (((Operators.SqlCompare<string, string>(city, "KRAKOW", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                            if (((((bool?)(Operators.SqlCompare<string, string>(city, "KRAKOW", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                            {
+                                true => (bool?)true,
+                                false => (bool?)Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                _ => (bool?)Operators.SqlCompare<string, string>(city, "PARIS", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                            })) == true)
                             {
                                 cte0Left.AddDirect(new Cte0LeftRow0(b.Country, city));
                             }

@@ -91,7 +91,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var content = ReadSample("K15_TypedNumericScalarTypeName.cs").Content;
 
         Assert.Contains("GetTypeName<int>(position)", content);
-        Assert.Contains("GetTypeName<int>(ko3iko.Integral)", content);
+        Assert.Contains("GetTypeName<int>((ko3iko.Integral ?? 0))", content);
         Assert.DoesNotContain("GetTypeName<int?>", content);
     }
 

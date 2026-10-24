@@ -25,6 +25,22 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
         new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
+    [DataRow("desc Data(PAGESIZE: 5, SOURCEPATH: 'named')")]
+    [DataRow("desc settings Data(PAGESIZE: 5, SOURCEPATH: 'named')")]
+    [DataRow("desc arguments Data(PAGESIZE: 5, SOURCEPATH: 'named')")]
+    public void ConcreteDescriptions_ShouldBindCoupledNamedArgumentsWithoutOpeningRows(string description)
+    {
+        var provider = new Couple037SchemaProvider();
+        var table = Run(
+            "table Published { DisplayName: string, RankValue: int };" +
+            "couple couple037.items with table Published as Data;" + description,
+            provider);
+
+        Assert.IsNotNull(table);
+        Assert.AreEqual(0, provider.RuntimeArguments.Count);
+    }
+
+    [TestMethod]
     public void CoupledAlias_WithoutArguments_UsesNoArgumentConstructorAndCaseInsensitiveAlias()
     {
         var provider = new Couple037SchemaProvider();

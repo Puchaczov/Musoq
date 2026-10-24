@@ -46,7 +46,7 @@ public class CompiledQueryArtifactApiTests
             RuntimeV2Contract.ContractSignature,
             result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]);
         Assert.AreEqual(
-            "1",
+            "2",
             result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
         Assert.AreEqual(
             ExecutionTargetIds.CSharpClr.ToString(),
@@ -300,7 +300,7 @@ public class CompiledQueryArtifactApiTests
         const string query = "select i.Value from #artifact.items() i";
         var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
         var metadata = CopyMetadata(artifact);
-        metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion] = "2";
+        metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion] = "1";
         var tampered = CopyArtifact(artifact, metadata: metadata);
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
@@ -466,7 +466,7 @@ public class CompiledQueryArtifactApiTests
             new CompilationOptions());
 
         StringAssert.Contains(signature, RuntimeV2Contract.ContractSignature);
-        StringAssert.Contains(signature, ExecutionSemanticsContract.Version1.Fingerprint);
+        StringAssert.Contains(signature, ExecutionSemanticsContract.Current.Fingerprint);
         StringAssert.Contains(signature, "ExecutionTarget = CSharpClr");
     }
 

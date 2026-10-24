@@ -2,7 +2,7 @@ namespace Musoq.Targets.Abstractions;
 
 internal static class TargetContractVersions
 {
-    public const int ExecutionIr = 10;
+    public const int ExecutionIr = 11;
 
     public const int HostAbi = 8;
 

@@ -25,7 +25,7 @@ internal static partial class SourcePredicateCapabilityNegotiator
             return new SourcePredicateCapabilityNegotiation(request, null, false);
         }
 
-        if (!ContainsStringMatch(request.Predicate))
+        if (!SourcePredicatePatternMatchFacts.ContainsPatternMatch(request.Predicate))
         {
             return new SourcePredicateCapabilityNegotiation(request, null, false);
         }
@@ -43,13 +43,13 @@ internal static partial class SourcePredicateCapabilityNegotiator
         var deferred = new List<SourcePredicateExpression>();
         foreach (var conjunct in FlattenConjunction(request.Predicate))
         {
-            if (!ContainsStringMatch(conjunct))
+            if (!SourcePredicatePatternMatchFacts.ContainsPatternMatch(conjunct))
             {
                 accepted.Add(conjunct);
                 continue;
             }
 
-            if (SupportsTopLevelStringMatch(conjunct, capabilities))
+            if (SupportsTopLevelPatternMatch(conjunct, capabilities))
                 accepted.Add(conjunct);
             else
                 deferred.Add(conjunct);

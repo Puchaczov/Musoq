@@ -16,8 +16,9 @@ internal static class TargetRuntimeContractBuilder
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(compatibilityReport);
 
-        var nodes = ExecutionIrAnalysis.FlattenNodes(plan.Body).ToArray();
-        var expressions = ExecutionIrAnalysis.FlattenExpressions(plan.Body).ToArray();
+        var scopes = ExecutionSubqueryPlans.SelfAndDescendants(plan).ToArray();
+        var nodes = scopes.SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body)).ToArray();
+        var expressions = scopes.SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body)).ToArray();
         var sourceAccess = CreateSourceAccess(nodes, sourceRuntimeMetadata);
         var queryRowSourceAccess = CreateQueryRowSourceAccess(nodes);
         var pluginInvocations = compatibilityReport.Requirements
@@ -176,8 +177,8 @@ internal static class TargetRuntimeContractBuilder
 
     private static IReadOnlyList<TargetRowShapeContract> CreateRowShapes(ExecutionPlan plan)
     {
-        var shapes = plan.Shapes
-            .Concat(plan.FinalResult != null ? [plan.FinalResult.Shape] : [])
+        var shapes = ExecutionSubqueryPlans.SelfAndDescendants(plan)
+            .SelectMany(static scope => scope.Shapes.Concat(scope.FinalResult != null ? [scope.FinalResult.Shape] : []))
             .Select(CreateRowShape)
             .GroupBy(static shape => (shape.Kind, shape.Name))
             .Select(static group => group.First())

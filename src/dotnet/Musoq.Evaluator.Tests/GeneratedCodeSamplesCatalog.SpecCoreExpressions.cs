@@ -42,7 +42,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             Basic(
                 "Q274_SpecCoreNullFallback",
                 "Scalar",
-                "select Population ?? 'unused' as NonNullableFallback, " +
+                "select Population ?? 0d as NonNullableFallback, " +
                 "NullableValue ?? 0 as NullableFallback, " +
                 "Name ?? City ?? 'fallback' as ReferenceFallback, null ?? Name as NullFallback " +
                 "from #A.entities()"),

@@ -83,7 +83,7 @@ public sealed class CompileTimeCancellationTargetTests
                     new CooperativeRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
                     new CooperativeExecutableArtifact(TestExecutionTargetIds.TestOnlyNonClr),
                     TargetArtifactSemanticFacts.Empty,
-                    ExecutionSemanticsContract.Version1)));
+                    ExecutionSemanticsContract.Current)));
 
         Assert.AreEqual(token, observedToken);
     }
@@ -213,7 +213,7 @@ public sealed class CompileTimeCancellationTargetTests
         public ExecutionTargetId TargetId => TestExecutionTargetIds.TestOnlyNonClr;
 
         public ExecutionTargetCapabilities Capabilities { get; } =
-            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Version1.Version]);
+            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version]);
 
         public CancellationToken? ObservedToken { get; private set; }
 

@@ -140,7 +140,7 @@ internal static partial class SourcePredicatePlanContractValidator
             case SourcePredicateNullCheck nullCheck:
                 CollectEnumFingerprints(nullCheck.Expression, fingerprints);
                 break;
-            case SourcePredicateStringMatch:
+            case SourcePredicatePatternMatch:
                 break;
             case SourcePredicateFlags flags:
                 CollectEnumFingerprints(flags.Expression, fingerprints);
@@ -158,7 +158,7 @@ internal static partial class SourcePredicatePlanContractValidator
             SourcePredicateLogical logical => FindFirstColumn(logical.Left) ?? FindFirstColumn(logical.Right),
             SourcePredicateIn sourceIn => FindFirstColumn(sourceIn.Expression),
             SourcePredicateNullCheck nullCheck => FindFirstColumn(nullCheck.Expression),
-            SourcePredicateStringMatch stringMatch => stringMatch.Column.Name,
+            SourcePredicatePatternMatch patternMatch => patternMatch.Column.Name,
             SourcePredicateFlags flags => FindFirstColumn(flags.Expression),
             _ => null
         };

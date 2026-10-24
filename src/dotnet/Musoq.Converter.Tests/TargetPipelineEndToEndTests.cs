@@ -38,7 +38,7 @@ public sealed class TargetPipelineEndToEndTests
             CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
             artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutableArtifactKind]);
         Assert.AreEqual(
-            "1",
+            "2",
             artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
 
         var packageResult = InstanceCreator.CompileTargetPackageWithDiagnostics(
@@ -54,7 +54,7 @@ public sealed class TargetPipelineEndToEndTests
         Assert.IsNotNull(packageResult.BuildItems.TargetRuntimeContract);
         Assert.IsNotNull(packageResult.BuildItems.ExecutionTargetReadinessReport);
         Assert.IsNotNull(packageResult.Package);
-        Assert.AreEqual(1, packageResult.Package.SemanticsContract.Version);
+        Assert.AreEqual(2, packageResult.Package.SemanticsContract.Version);
 
         var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,

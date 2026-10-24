@@ -36,10 +36,26 @@ internal static class ExecutionBooleanSemantics
     internal static ExpressionSyntax RenderNullableLogical(
         this ExecutionCSharpRenderer renderer,
         ExecutionBinary binary,
-        ExecutionRenderContext context) =>
-        SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(
-            binary.Kind == BinaryOpKind.And ? SyntaxKind.BitwiseAndExpression : SyntaxKind.BitwiseOrExpression,
-            renderer.RenderNullableOperand(binary.Left, context), renderer.RenderNullableOperand(binary.Right, context)));
+        ExecutionRenderContext context)
+    {
+        var isAnd = binary.Kind == BinaryOpKind.And;
+        var left = renderer.RenderNullableOperand(binary.Left, context);
+        var right = renderer.RenderNullableOperand(binary.Right, context);
+        var nullableRight = SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), right);
+        var decisiveValue = SyntaxFactory.LiteralExpression(isAnd ? SyntaxKind.FalseLiteralExpression : SyntaxKind.TrueLiteralExpression);
+        var otherValue = SyntaxFactory.LiteralExpression(isAnd ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+        var unknown = SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+        var nullableLeft = SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), SyntaxFactory.ParenthesizedExpression(left));
+        return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.SwitchExpression(SyntaxFactory.ParenthesizedExpression(nullableLeft))
+            .WithArms(SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>([
+                SyntaxFactory.SwitchExpressionArm(SyntaxFactory.ConstantPattern(decisiveValue),
+                    SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), decisiveValue)),
+                SyntaxFactory.SwitchExpressionArm(SyntaxFactory.ConstantPattern(otherValue), nullableRight),
+                SyntaxFactory.SwitchExpressionArm(SyntaxFactory.DiscardPattern(),
+                    SyntaxFactory.BinaryExpression(isAnd ? SyntaxKind.BitwiseAndExpression : SyntaxKind.BitwiseOrExpression,
+                        nullableRight, unknown))
+            ])));
+    }
 
     internal static ExpressionSyntax RenderSqlNullComparison(
         this ExecutionCSharpRenderer renderer,

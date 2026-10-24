@@ -82,14 +82,9 @@ internal sealed partial class PhysicalLoweringImplementation
         ISet<string> validatedSchemas,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
     {
-        if (branchType is PrimitiveTypeNode or ByteArrayTypeNode)
-            return InterpretSourceValidationResult.Success();
-
-        if (branchType is SchemaReferenceTypeNode reference)
-            return ValidateSchemaReferenceType(reference, branchName, validatedSchemas, genericBindings);
-
-        return InterpretSourceValidationResult.Unsupported(
-            $"Execution IR binary interpret-source lowering currently supports primitive, byte-array, and non-generic or closed-generic schema-reference switch branches. Found {branchType.GetType().Name} on branch '{branchName}'.");
+        if (branchType is AlignmentNode)
+            return InterpretSourceValidationResult.Unsupported("Alignment directives cannot be binary switch values.");
+        return ValidateBinaryType(branchType, branchName, validatedSchemas, genericBindings);
     }
 
     private InterpretSourceValidationResult ValidateInlineSchemaType(
@@ -117,20 +112,9 @@ internal sealed partial class PhysicalLoweringImplementation
         ISet<string> validatedSchemas,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
     {
-        if (arrayType.ElementType is PrimitiveTypeNode or StringTypeNode or ByteArrayTypeNode)
-            return InterpretSourceValidationResult.Success();
-
-        if (arrayType.ElementType is SubstreamTypeNode arraySubstream)
-            return ValidateSubstreamType(arraySubstream, fieldName, validatedSchemas, genericBindings);
-
-        if (arrayType.ElementType is SchemaReferenceTypeNode reference)
-            return ValidateSchemaReferenceType(reference, fieldName, validatedSchemas, genericBindings);
-
-        if (arrayType.ElementType is InlineSchemaTypeNode inlineSchema)
-            return ValidateInlineSchemaType(inlineSchema, fieldName, validatedSchemas, genericBindings);
-
-        return InterpretSourceValidationResult.Unsupported(
-            $"Execution IR binary interpret-source lowering currently supports primitive arrays, string arrays, inline-schema arrays, and non-generic or closed-generic schema-reference arrays. Found {arrayType.ElementType.GetType().Name} on field '{fieldName}'.");
+        if (arrayType.ElementType is BinarySwitchTypeNode or AlignmentNode)
+            return InterpretSourceValidationResult.Unsupported("Direct arrays of binary switches and alignment directives are not supported.");
+        return ValidateBinaryType(arrayType.ElementType, fieldName, validatedSchemas, genericBindings);
     }
 
     private InterpretSourceValidationResult ValidateRepeatUntilType(
@@ -139,23 +123,9 @@ internal sealed partial class PhysicalLoweringImplementation
         ISet<string> validatedSchemas,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
     {
-        if (repeatUntilType.ElementType is PrimitiveTypeNode or ByteArrayTypeNode or StringTypeNode or BitsTypeNode)
-            return InterpretSourceValidationResult.Success();
-
-        if (repeatUntilType.ElementType is ArrayTypeNode arrayType)
-            return ValidateArrayType(arrayType, fieldName, validatedSchemas, genericBindings);
-
-        if (repeatUntilType.ElementType is SubstreamTypeNode repeatSubstream)
-            return ValidateSubstreamType(repeatSubstream, fieldName, validatedSchemas, genericBindings);
-
-        if (repeatUntilType.ElementType is SchemaReferenceTypeNode reference)
-            return ValidateSchemaReferenceType(reference, fieldName, validatedSchemas, genericBindings);
-
-        if (repeatUntilType.ElementType is InlineSchemaTypeNode inlineSchema)
-            return ValidateInlineSchemaType(inlineSchema, fieldName, validatedSchemas, genericBindings);
-
-        return InterpretSourceValidationResult.Unsupported(
-            $"Execution IR binary interpret-source lowering currently supports primitive, byte-array, primitive-array, string, bits, inline-schema, and non-generic or closed-generic schema-reference repeat-until fields. Found {repeatUntilType.ElementType.GetType().Name} on field '{fieldName}'.");
+        if (repeatUntilType.ElementType is AlignmentNode)
+            return InterpretSourceValidationResult.Unsupported("Alignment directives cannot be repetition elements.");
+        return ValidateBinaryType(repeatUntilType.ElementType, fieldName, validatedSchemas, genericBindings);
     }
 
     private InterpretSourceValidationResult ValidateSchemaReferenceType(

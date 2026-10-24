@@ -104,7 +104,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
 
         Assert.IsFalse(source.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
         Assert.Contains("ValueTuple<", source);
-        Assert.Contains("ValueTuple<int?, int?>", source);
+        Assert.Contains("ValueTuple<int?>", source);
     }
 
     [TestMethod]

@@ -146,71 +146,38 @@ public partial class BinaryOrTextualAdvancedFormatsTests
     }
 
     [TestMethod]
-    public void Query_SelectInterpret_StorageHeader_WithComputedFlags_ShouldExtractBits()
+    public void Query_SelectInterpret_ToySettings_WithComputedOptions_ShouldExtractBits()
     {
-        // Arrange: Storage header with computed boolean flags from bit fields
-        var query = @"
-            binary StorageHeader {
-                Magic: int le check Magic = 0x53544F52,
-                Version: short le,
-                Flags: short le,
-
-                IsCompressed: (Flags & 0x01) <> 0,
-                HasIndex: (Flags & 0x02) <> 0,
-                IsEncrypted: (Flags & 0x04) <> 0,
-
-                RecordCount: int le
+        const string query = """
+            binary ToySettings {
+                Revision: short le,
+                Options: byte,
+                UsesFirstValue: (Options & 0x04) <> 0,
+                UsesSecondValue: (Options & 0x20) <> 0,
+                UsesThirdValue: (Options & 0x80) <> 0,
+                SampleCount: int le
             };
-            select
-                h.Version,
-                h.Flags,
-                h.IsCompressed,
-                h.HasIndex,
-                h.IsEncrypted,
-                h.RecordCount
-            from #test.files() f
-            cross apply Interpret<StorageHeader>(f.Content) h";
-
-        // Header: Magic='STOR', Version=1, Flags=0x03 (compressed+indexed), RecordCount=100
-        var testData = new byte[14];
-        BitConverter.GetBytes(0x53544F52).CopyTo(testData, 0); // Magic
-        BitConverter.GetBytes((short)1).CopyTo(testData, 4); // Version
-        BitConverter.GetBytes((short)0x03).CopyTo(testData, 6); // Flags (compressed + has index)
-        BitConverter.GetBytes(100).CopyTo(testData, 8); // RecordCount (wrong offset, fixing)
-
-        testData = new byte[14];
-        var offset = 0;
-        BitConverter.GetBytes(0x53544F52).CopyTo(testData, offset);
-        offset += 4;
-        BitConverter.GetBytes((short)1).CopyTo(testData, offset);
-        offset += 2;
-        BitConverter.GetBytes((short)0x03).CopyTo(testData, offset);
-        offset += 2;
-        BitConverter.GetBytes(100).CopyTo(testData, offset);
-
-        var entities = new[] { new BinaryEntity { Name = "storage.dat", Content = testData } };
-
+            select settings.Revision, settings.Options, settings.UsesFirstValue,
+                settings.UsesSecondValue, settings.UsesThirdValue, settings.SampleCount
+            from #test.files() input
+            cross apply Interpret<ToySettings>(input.Content) settings
+            """;
+        var entities = new[] { new BinaryEntity { Name = "invented-options", Content = [3, 0, 0x24, 3, 0, 0, 0] } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
-        // Act
-        var vm = CompileGeneratedQuery(
-            query,
-            Guid.NewGuid().ToString(),
-            schemaProvider,
-            LoggerResolver, TestCompilationOptions);
-
-        var table = vm.Run(CancellationToken.None);
+        using var queryResult = CompileGeneratedQuery(
+            query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver, TestCompilationOptions);
+        using var table = queryResult.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Version", typeof(short)),
-            ("Flags", typeof(short)),
-            ("IsCompressed", typeof(bool)),
-            ("HasIndex", typeof(bool)),
-            ("IsEncrypted", typeof(bool)),
-            ("RecordCount", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, [(short)1, (short)0x03, true, true, false, 100]);
+            ("Revision", typeof(short)),
+            ("Options", typeof(byte)),
+            ("UsesFirstValue", typeof(bool)),
+            ("UsesSecondValue", typeof(bool)),
+            ("UsesThirdValue", typeof(bool)),
+            ("SampleCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(short)3, (byte)0x24, true, true, false, 3]);
     }
 
     [TestMethod]

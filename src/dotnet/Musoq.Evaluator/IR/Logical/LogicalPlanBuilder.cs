@@ -26,65 +26,37 @@ public sealed partial class LogicalPlanBuilder : IExpressionVisitor
     private bool _selectIsDistinct;
 
     private readonly IReadOnlyDictionary<string, ISchemaColumn[]> _inferredColumns;
+    private readonly Func<string> _subqueryNameGenerator;
+    private int _subqueryIndex;
 
     private IrExpression? _havingPredicate;
     private IrExpression? _qualifyPredicate;
-    private int? _skipValue;
-    private int? _takeValue;
+    private PagingCount? _skipValue;
+    private PagingCount? _takeValue;
 
     public LogicalPlanBuilder(IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
+        : this(inferredColumns, null)
+    {
+    }
+
+    private LogicalPlanBuilder(IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns, Func<string>? subqueryNameGenerator)
     {
         _inferredColumns = inferredColumns ?? throw new ArgumentNullException(nameof(inferredColumns));
-        _converter = new ExpressionConverter(RegisterWindowFunction, ResolveColumnStability, ResolveColumnEnumType);
+        _subqueryNameGenerator = subqueryNameGenerator ?? (() => $"Subquery{_subqueryIndex++}");
+        var metadata = new LogicalColumnMetadata(inferredColumns);
+        _converter = new ExpressionConverter(RegisterWindowFunction, metadata.ResolveColumnStability, metadata.ResolveColumnEnumType,
+            BuildSubquery, _subqueryNameGenerator);
     }
 
-    public LogicalPlanBuilder()
+    public LogicalPlanBuilder() : this(new Dictionary<string, ISchemaColumn[]>())
     {
-        _inferredColumns = new Dictionary<string, ISchemaColumn[]>();
-        _converter = new ExpressionConverter(RegisterWindowFunction);
     }
 
-    private ColumnStability ResolveColumnStability(string alias, string columnName)
+    private LogicalNode BuildSubquery(Node node)
     {
-        if (!string.IsNullOrWhiteSpace(alias) && _inferredColumns.TryGetValue(alias, out var aliasedColumns))
-            return FindColumnStability(aliasedColumns, columnName);
-
-        var matches = _inferredColumns.Values
-            .SelectMany(static columns => columns)
-            .Where(column => string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        return matches.Length == 1 ? matches[0].Stability : ColumnStability.Stable;
-    }
-
-    private static ColumnStability FindColumnStability(
-        IEnumerable<ISchemaColumn> columns,
-        string columnName)
-    {
-        return columns.FirstOrDefault(column =>
-                   string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))?.Stability
-               ?? ColumnStability.Stable;
-    }
-
-    private EnumTypeDescriptor? ResolveColumnEnumType(string alias, string columnName)
-    {
-        if (!string.IsNullOrWhiteSpace(alias) && _inferredColumns.TryGetValue(alias, out var aliasedColumns))
-            return FindColumnEnumType(aliasedColumns, columnName);
-
-        var matches = _inferredColumns.Values
-            .SelectMany(static columns => columns)
-            .Where(column => string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        return matches.Length == 1 ? matches[0].EnumType : null;
-    }
-
-    private static EnumTypeDescriptor? FindColumnEnumType(
-        IEnumerable<ISchemaColumn> columns,
-        string columnName)
-    {
-        return columns.FirstOrDefault(column =>
-            string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))?.EnumType;
+        var builder = new LogicalPlanBuilder(_inferredColumns, _subqueryNameGenerator);
+        node.Accept(new LogicalPlanBuildTraverseVisitor(builder));
+        return builder.Result ?? throw new InvalidOperationException("Subquery did not produce a logical plan.");
     }
 
     public LogicalNode? Result => _nodeStack.Count > 0 ? _nodeStack.Peek() : null;

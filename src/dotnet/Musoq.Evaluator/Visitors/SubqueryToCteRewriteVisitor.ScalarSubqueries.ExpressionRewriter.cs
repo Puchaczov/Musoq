@@ -38,6 +38,11 @@ public partial class SubqueryToCteRewriteVisitor
 
         public override void Visit(ScalarSubqueryNode node)
         {
+            if (node is SubqueryApplyNode)
+            {
+                Nodes.Push(node);
+                return;
+            }
             if (!_preparedSubqueries.TryGetValue(node.Id, out var rewrite))
             {
                 rewrite = owner.PrepareScalarSubquery(node, analysis, cteInnerExpressions);
@@ -48,28 +53,7 @@ public partial class SubqueryToCteRewriteVisitor
             Nodes.Push(rewrite.Replacement);
         }
 
-        public override void Visit(WindowFunctionNode node)
-        {
-            var specification = node.WindowSpecification != null
-                ? (WindowSpecificationNode)Nodes.Pop()
-                : null;
-            var functionCall = (AccessMethodNode)Nodes.Pop();
-            var rewritten = node.IsNamedWindowReference
-                ? new WindowFunctionNode(
-                    functionCall,
-                    node.WindowName ?? throw new InvalidOperationException("Named window reference requires a window name."))
-                : new WindowFunctionNode(
-                    functionCall,
-                    specification ?? throw new InvalidOperationException("Window function requires a window specification."));
-
-            rewritten.WithSpan(node.Span);
-            rewritten.WithFullSpan(node.FullSpan);
-
-            if (node.ReturnType is { } returnType && returnType != typeof(void))
-                rewritten.SetReturnType(returnType);
-
-            Nodes.Push(rewritten);
-        }
+        public override void Visit(WindowFunctionNode node) => Nodes.Push(SubqueryWindowCloner.Clone(node, Nodes));
 
         public override void Visit(WindowSpecificationNode node)
         {

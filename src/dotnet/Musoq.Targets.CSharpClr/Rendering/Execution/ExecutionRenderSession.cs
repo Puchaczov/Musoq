@@ -15,6 +15,7 @@ internal sealed class ExecutionRenderSession
     internal Dictionary<string, string> ParallelSingleKeyAggregateFunctionNames { get; } = new(StringComparer.Ordinal);
     internal ExecutionPlanOperatorCatalog OperatorCatalog { get; set; } = ExecutionPlanOperatorCatalog.Create(string.Empty);
     internal bool ProfileRecorderInScope { get; set; }
+    internal bool IsSubqueryHelper { get; set; }
     internal IReadOnlyDictionary<int, string> StoredRowsCacheNames { get; set; } = new Dictionary<int, string>();
     internal HashSet<int> DeclaredStoredRowsCaches { get; set; } = [];
     internal IReadOnlyDictionary<string, GeneratedRowShape> TableRowShapesByVariableName { get; set; } =
@@ -41,6 +42,10 @@ internal sealed class ExecutionRenderSession
     internal int ChunkedLoopBreakTargetCount { get; set; }
     internal int EnumIntrinsicPatternCount { get; set; }
     internal int StringMatchPatternCount { get; set; }
+    internal int StringPredicateCaptureCount { get; set; }
+    internal ExecutionBlock? ValueCaptureScope { get; set; }
+    internal HashSet<string>? ValueCaptureNames { get; set; }
+    internal Musoq.Evaluator.Visitors.StringConcatenationCodeEmitter StringConcatenation { get; } = new("__MusoqQueryConcat");
     internal bool IncludeCteIndexResults { get; set; }
     internal bool IncludeCteRowResults { get; set; }
     internal bool IncludeTableResults { get; set; } = true;

@@ -33,7 +33,10 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(methodName)))
             .WithArgumentList(CreateArgumentList(source));
 
-        return CastExpressionIfNeeded(invocation, targetType, targetType);
+        var invocationType = targetType.IsValueType && Nullable.GetUnderlyingType(targetType) is null
+            ? typeof(Nullable<>).MakeGenericType(targetType)
+            : targetType;
+        return CastExpressionIfNeeded(invocation, targetType, invocationType);
     }
 
     private static ExpressionSyntax CastExpressionIfNeeded(

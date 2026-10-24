@@ -16,6 +16,7 @@ internal sealed class SemanticAnalysisState
     public SemanticAnalysisState()
     {
         Traversal = new SemanticTraversalFrame(_nodes, _methods);
+        Subqueries = new SubqueryBindingScope(this);
     }
 
     public DiagnosticState Diagnostics { get; } = new();
@@ -31,6 +32,7 @@ internal sealed class SemanticAnalysisState
     public SourceBindingState SourceBinding { get; } = new();
 
     public SemanticTraversalFrame Traversal { get; }
+    internal SubqueryBindingScope Subqueries { get; }
 }
 
 internal sealed partial record SourceBindingState

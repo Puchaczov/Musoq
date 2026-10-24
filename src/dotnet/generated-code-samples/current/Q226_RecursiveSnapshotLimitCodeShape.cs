@@ -395,7 +395,13 @@ namespace GeneratedSample_Q226_RecursiveSnapshotLimitCodeShape
                                 {
                                     eHasMatch = true;
                                     int? sourceId = e.SourceId;
-                                    if ((((sourceId == null) | Operators.SqlCompare<int?, int>(sourceId, r.Id, (int? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
+                                    if (((((bool?)(sourceId == null)) switch
+                                    {
+                                        true => (bool?)true,
+                                        false => (bool?)Operators.SqlCompare<int?, int>(sourceId, r.Id, (int? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)),
+                                        _ => (bool?)Operators.SqlCompare<int?, int>(sourceId, r.Id, (int? __sqlLeft, int __sqlRight) => (__sqlLeft == __sqlRight)) | (bool?)null
+
+                                    })) == true)
                                     {
                                         int? targetId = e.TargetId;
                                         ++__cte0CancellationCounter;
@@ -420,7 +426,13 @@ namespace GeneratedSample_Q226_RecursiveSnapshotLimitCodeShape
 
                                 if ((!eHasMatch))
                                 {
-                                    if (((true | (bool?)null) == true))
+                                    if (((((bool?)true) switch
+                                    {
+                                        true => (bool?)true,
+                                        false => (bool?)(bool?)null,
+                                        _ => (bool?)(bool?)null | (bool?)null
+
+                                    }) == true))
                                     {
                                         ++__cte0CancellationCounter;
                                         if ((__cte0CancellationCounter & 1023) == 0)

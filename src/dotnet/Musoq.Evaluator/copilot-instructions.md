@@ -375,8 +375,9 @@ dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build 
 
 ### Impact of Changes
 
-Evaluator changes can affect the entire query pipeline. After modifications:
-- Always run evaluator tests: `dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"`
+Production evaluator changes can affect the entire query pipeline. For documentation, tests, tooling, or other non-runtime changes, select checks using the shared [Validation by Change Impact policy](../../../.claude/rules/validation.md#validation-by-change-impact). For production evaluator modifications:
+
+- Run evaluator tests: `dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"`
 - For code generation changes, regenerate samples and review
 - For planner or Execution IR changes, add or update tests under `src/dotnet/Musoq.Evaluator.Tests/IR`
 - For performance-sensitive changes, run benchmarks

@@ -28,6 +28,15 @@ public partial class SubqueryToCteRewriteVisitor
         var analysis = AnalyzeSubqueries(sourceQuery);
         ValidateSubqueryAnalysis(analysis);
         RegisterRewriteRequests(CorrelatedSubqueryRewriteRequestBuilder.Build(sourceQuery, analysis));
+        sourceQuery = SelectSubqueryFallbacks(sourceQuery, analysis);
+        select = sourceQuery.Select;
+        from = sourceQuery.From;
+        where = sourceQuery.Where;
+        groupBy = sourceQuery.GroupBy;
+        orderBy = sourceQuery.OrderBy;
+        window = sourceQuery.Window;
+        qualify = sourceQuery.Qualify;
+        analysis = AnalyzeSubqueries(sourceQuery);
         var (remainingExpr, subqueries) = where != null
             ? AttachCorrelation(ExtractPredicateSubqueries(where.Expression), analysis)
             : (null, []);

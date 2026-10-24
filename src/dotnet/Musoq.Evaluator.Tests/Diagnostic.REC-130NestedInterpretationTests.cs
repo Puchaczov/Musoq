@@ -300,7 +300,7 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
                     binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body exact, Tail: byte }",
                 [0xAA, 0x02, 0x01, 0x02, 0xBB],
                 [0xAA, 0x03, 0x01, 0x02, 0xCC, 0xBB],
-                "Payload", "ISE0002", 2, ["Prefix", "Length"]),
+                "Payload", "ISE0002", 4, ["Prefix", "Length"], 4),
             "SP-08" => new PartialBinaryCase(
                 @"
                     binary Root { Prefix: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }",

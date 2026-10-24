@@ -38,10 +38,17 @@ public sealed partial class ExecutionCSharpRenderer
         var statements = new List<StatementSyntax>();
         statements.AddRange(CreateTypedSinkEntryStatements(plan, context));
         var entryStatementCount = statements.Count;
-        foreach (var sourceScan in sourceScans)
-            statements.AddRange(RenderSourceScanForTypedSink(sourceScan, context));
-        foreach (var setupNode in setupNodes)
-            statements.AddRange(RenderSetupNodeForTypedSink(setupNode, context));
+        var selectedNodes = new HashSet<ExecutionNode>(sourceScans, ReferenceEqualityComparer.Instance);
+        selectedNodes.UnionWith(setupNodes);
+        foreach (var node in plan.Body.Nodes)
+        {
+            if (!selectedNodes.Contains(node))
+                continue;
+            if (node is ExecutionSourceScan sourceScan)
+                statements.AddRange(RenderSourceScanForTypedSink(sourceScan, context));
+            else
+                statements.AddRange(RenderSetupNodeForTypedSink(node, context));
+        }
 
         return new ExecutionRenderArtifacts(context, statements, entryStatementCount);
     }

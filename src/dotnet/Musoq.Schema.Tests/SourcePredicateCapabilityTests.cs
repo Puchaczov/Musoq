@@ -198,7 +198,7 @@ public sealed class SourcePredicateCapabilityTests
     }
 
     [TestMethod]
-    public void StringMatchPublicApi_ShouldExposeStronglyTypedVersionOneShape()
+    public void StringMatchPublicApi_ShouldUseSharedPatternApplicationShape()
     {
         var constructor = typeof(SourcePredicateStringMatch).GetConstructors().Single();
         var parameterTypes = constructor.GetParameters().Select(static parameter => parameter.ParameterType).ToArray();
@@ -211,7 +211,7 @@ public sealed class SourcePredicateCapabilityTests
             },
             parameterTypes);
         Assert.AreEqual(
-            typeof(SourcePredicateStringMatch),
+            typeof(SourcePredicatePatternMatch),
             typeof(SourcePredicateApplication).GetProperty(nameof(SourcePredicateApplication.Predicate))!.PropertyType);
         Assert.IsNull(typeof(SourcePredicateStringMatch).GetProperty("Literal"));
         CollectionAssert.AreEqual(new[] { "LikeIgnoreCase" }, Enum.GetNames<SourceStringComparison>());

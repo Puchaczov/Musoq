@@ -112,7 +112,22 @@ namespace GeneratedSample_Q104_RuntimeV2StringFilter
             this.OnPhaseChanged("compiled", QueryPhase.Select);
             if (__musoqTableSourceRows is not IReadOnlyList<IReadOnlyList<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>> _)
             {
-                return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) => (((Operators.SqlCompare<bool?, bool>((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (Operators.SqlCompare<bool?, bool>((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) == true, (ko3iko) => new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email), token), token, onCompleted: () =>
+                return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) => ((((bool?)((Operators.SqlCompare<bool?, bool>((ko3iko.Email switch
+                {
+                    var __musoqStringPredicate1Value => __musoqStringPredicate1Value is null || "gmail" is null ? (bool?)null : __musoqStringPredicate1Value.Contains("gmail", StringComparison.OrdinalIgnoreCase)
+                }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) switch
+                {
+                    false => (bool?)false,
+                    true => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                    {
+                        var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                    }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))),
+                    _ => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                    {
+                        var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                    }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (bool?)null
+
+                })) == true, (ko3iko) => new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email), token), token, onCompleted: () =>
                 {
                     try
                     {
@@ -146,7 +161,22 @@ namespace GeneratedSample_Q104_RuntimeV2StringFilter
             }
 
             var __musoqTableParallelRows = EvaluationHelper.GetParallelProjectionRowsOrEmpty<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>(__musoqTableSourceRows, 4096);
-            return new QueryTableEnumerable<ResultRow0>((_) => QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableParallelRows, 24, (ko3iko) => (((Operators.SqlCompare<bool?, bool>((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (Operators.SqlCompare<bool?, bool>((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) == true, (ko3iko) => new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email), token)), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableParallelRows, 24, (ko3iko) => ((((bool?)((Operators.SqlCompare<bool?, bool>((ko3iko.Email switch
+            {
+                var __musoqStringPredicate3Value => __musoqStringPredicate3Value is null || "gmail" is null ? (bool?)null : __musoqStringPredicate3Value.Contains("gmail", StringComparison.OrdinalIgnoreCase)
+            }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) switch
+            {
+                false => (bool?)false,
+                true => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                {
+                    var __musoqStringPredicate4Value => __musoqStringPredicate4Value is null || "A" is null ? (bool?)null : __musoqStringPredicate4Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))),
+                _ => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                {
+                    var __musoqStringPredicate4Value => __musoqStringPredicate4Value is null || "A" is null ? (bool?)null : __musoqStringPredicate4Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (bool?)null
+
+            })) == true, (ko3iko) => new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email), token)), token, onCompleted: () =>
             {
                 try
                 {

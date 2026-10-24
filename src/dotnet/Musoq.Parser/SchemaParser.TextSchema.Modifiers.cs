@@ -31,6 +31,18 @@ public partial class SchemaParser
 
             if (hasGreedy && hasLazy)
                 ThrowInvalidModifier(field, "greedy and lazy", "cannot be combined");
+
+            const TextFieldModifier stringModifiers = TextFieldModifier.Trim | TextFieldModifier.LTrim |
+                TextFieldModifier.RTrim | TextFieldModifier.Lower | TextFieldModifier.Upper;
+            if (field.FieldType is TextFieldType.SchemaReference or TextFieldType.Repeat or TextFieldType.Switch &&
+                (modifiers & stringModifiers) != 0)
+                ThrowInvalidModifier(field, "string processing", "only applies to strings and captured strings");
+
+            foreach (var arm in field.SwitchCases)
+                ValidateTextFieldModifiers([arm.Body]);
+
+            if (field.RepeatElement is { } element)
+                ValidateTextFieldModifiers([element]);
         }
     }
 

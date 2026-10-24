@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes.InterpretationSchema;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -24,6 +26,7 @@ internal static class ParserNodeTraversalRegistry
         Children<SingleSetNode>(static node => Optional(node.Query)),
         Children<RefreshNode>(static node => node.Nodes),
         Children<MultiStatementNode>(static node => node.Nodes),
+        Children<Parser.IntermediateStatementsNode>(static node => node.Nodes),
         Leaf<DiagnosticCommandNode>(),
         Special<CteExpressionNode>(CteChildren),
         Children<CteInnerExpressionNode>(static node => Optional(node.Value)),
@@ -85,7 +88,12 @@ internal static class ParserNodeTraversalRegistry
         Children<ShortCircuitingNodeRight>(static node => Optional(node.Expression)),
         Children<NotNode>(static node => Optional(node.Expression)),
         Children<InQueryNode>(static node => Optional(node.Left, node.Subquery)),
+        Children<QuantifiedSubqueryNode>(static node => Optional(node.Left, node.Subquery)),
         Children<ExistsQueryNode>(static node => Optional(node.Subquery)),
+        Children<SubqueryApplyNode>(static node => node.IsBound
+            ? Optional(node.Operand).Concat(node.Bindings)
+            : Optional(node.Operand, node.Subquery)),
+        Leaf<SubqueryParameterNode>(),
         Children<ScalarSubqueryNode>(static node => Optional(node.Subquery)),
         Children<BetweenNode>(static node => Optional(node.Expression, node.Min, node.Max)),
         Children<CastNode>(static node => Optional(node.Expression)),
@@ -108,7 +116,7 @@ internal static class ParserNodeTraversalRegistry
         Leaf<SchemaReferenceTypeNode>(),
         Leaf<StringTypeNode>(),
         Leaf<SubstreamTypeNode>(),
-        Children<TextFieldDefinitionNode>(static node => Optional(node.RepeatElement)),
+        Children<TextFieldDefinitionNode>(static node => Optional(node.RepeatElement).Concat(node.SwitchCases.Select(arm => (Node)arm.Body))),
         Leaf<TextSchemaNode>(),
         Leaf<PutTrueNode>(),
         Children<EnumDeclarationNode>(static node => node.Members),
@@ -121,9 +129,9 @@ internal static class ParserNodeTraversalRegistry
         Leaf<RenameTableNode>(),
         Leaf<ScriptVariableReferenceNode>(),
         Leaf<ShouldBePresentInTheTable>(),
-        Leaf<SkipNode>(),
+        Children<SkipNode>(node => [node.Expression]),
         Leaf<StarReplaceItemNode>(),
-        Leaf<TakeNode>(),
+        Children<TakeNode>(node => [node.Expression]),
         Leaf<AccessRawIdentifierNode>(),
         Leaf<AccessColumnNode>(),
         Leaf<AccessObjectArrayNode>(),

@@ -9,13 +9,16 @@ namespace Musoq.Evaluator.Tests.Schema.SourcePlanning;
 public sealed class SourcePlanningRowSource(
     IReadOnlyList<SourcePlanningEntity> rows,
     SourceExecutionPlan plan,
-    SourcePlanningRecorder recorder)
+    SourcePlanningRecorder recorder,
+    Func<Exception>? failureFactory = null)
     : RowSourceBase<SourcePlanningEntity>
 {
     private const string StrategyProperty = "TestSourcePlanningStrategy";
 
     protected override void CollectChunks(IChunkWriter<SourcePlanningEntity> writer)
     {
+        if (failureFactory != null)
+            throw failureFactory();
         var chunk = ApplyPlan(rows, plan, recorder).ToArray();
         recorder.RecordRowsProduced(chunk.Length);
         writer.Write(chunk);
@@ -26,14 +29,45 @@ public sealed class SourcePlanningRowSource(
         SourceExecutionPlan executionPlan,
         SourcePlanningRecorder recorder)
     {
+        foreach (var application in executionPlan.PredicateApplications)
+        {
+            if (application.Predicate is not SourcePredicateRegexMatch regex)
+                continue;
+            var matcher = Operators.PrepareRLike(regex.Pattern, regex.MatchTimeout);
+            var selector = CreateKeySelector(regex.Column.Name);
+            sourceRows = sourceRows.Where(row =>
+                Operators.RLikePrepared((string?)selector(row), matcher) != regex.IsNegated);
+        }
+
+        var remainingPlan = executionPlan with
+        {
+            AcceptedPredicate = RemoveRegexConjuncts(executionPlan.AcceptedPredicate),
+            PredicateApplications = executionPlan.PredicateApplications
+                .Where(application => application.Predicate is not SourcePredicateRegexMatch).ToArray()
+        };
         return SourcePlanningRowExecution.ApplyPlan(
             sourceRows,
-            executionPlan,
+            remainingPlan,
             new SourcePlanningRowExecutionOptions<SourcePlanningEntity>(
                 StrategyProperty,
                 CreateKeySelector,
                 static row => row.Id,
                 (rows, plan) => RecordSourceComputations(rows, plan, recorder)));
+    }
+
+    private static SourcePredicateExpression? RemoveRegexConjuncts(SourcePredicateExpression? predicate)
+    {
+        if (predicate is SourcePredicateRegexMatch)
+            return null;
+        if (predicate is not SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical)
+            return predicate;
+        var left = RemoveRegexConjuncts(logical.Left);
+        var right = RemoveRegexConjuncts(logical.Right);
+        if (left == null)
+            return right;
+        if (right == null)
+            return left;
+        return logical with { Left = left, Right = right };
     }
 
     private static IEnumerable<SourcePlanningEntity> RecordSourceComputations(

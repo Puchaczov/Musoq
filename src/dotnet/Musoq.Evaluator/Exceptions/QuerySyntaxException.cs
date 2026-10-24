@@ -10,14 +10,14 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 internal sealed class QuerySyntaxException : Exception, IDiagnosticException
 {
-    public QuerySyntaxException(string message, TextSpan span, Exception? innerException = null)
+    public QuerySyntaxException(string message, TextSpan? span, Exception? innerException = null)
         : this(message, span, DiagnosticCode.MQ2030_UnsupportedSyntax, innerException)
     {
     }
 
     public QuerySyntaxException(
         string message,
-        TextSpan span,
+        TextSpan? span,
         DiagnosticCode code,
         Exception? innerException = null)
         : base(message, innerException)
@@ -32,6 +32,6 @@ internal sealed class QuerySyntaxException : Exception, IDiagnosticException
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText);
     }
 }

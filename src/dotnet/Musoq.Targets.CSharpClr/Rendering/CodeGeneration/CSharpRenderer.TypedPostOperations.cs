@@ -1,3 +1,4 @@
+using Musoq.Evaluator.IR;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -223,7 +224,7 @@ public sealed partial class CSharpRenderer
     private static InvocationExpressionSyntax CreateTypedRowsMethodExpression(
         ExpressionSyntax sourceRows,
         string methodName,
-        int count)
+        PagingCount count)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -231,9 +232,7 @@ public sealed partial class CSharpRenderer
                     sourceRows,
                     SyntaxFactory.IdentifierName(methodName)))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(count))))));
+                SyntaxFactory.Argument(PagingCountSyntax.Read(count)))));
     }
 
 }

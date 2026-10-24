@@ -64,8 +64,8 @@ public sealed class TargetArtifactHardeningTests
         Assert.AreEqual(firstManifest, secondManifest);
         StringAssert.Contains(firstManifest, $"package-format={TargetContractVersions.PackageFormat}");
         StringAssert.Contains(firstManifest, $"execution-ir={TargetContractVersions.ExecutionIr}");
-        StringAssert.Contains(firstManifest, $"execution-semantics={ExecutionSemanticsContract.Version1.Version}");
-        StringAssert.Contains(firstManifest, $"execution-semantics-fingerprint={ExecutionSemanticsContract.Version1.Fingerprint}");
+        StringAssert.Contains(firstManifest, $"execution-semantics={ExecutionSemanticsContract.Current.Version}");
+        StringAssert.Contains(firstManifest, $"execution-semantics-fingerprint={ExecutionSemanticsContract.Current.Fingerprint}");
         StringAssert.Contains(firstManifest, $"host-abi={TargetContractVersions.HostAbi}");
     }
 
@@ -75,7 +75,7 @@ public sealed class TargetArtifactHardeningTests
         var package = CreatePackage(reverse: false);
 
         Assert.AreEqual(TargetContractVersions.ExecutionIr, package.ExecutionIrVersion);
-        Assert.AreEqual(ExecutionSemanticsContract.Version1.Version, package.SemanticsContract.Version);
+        Assert.AreEqual(ExecutionSemanticsContract.Current.Version, package.SemanticsContract.Version);
         Assert.AreEqual(TargetContractVersions.HostAbi, package.HostAbiVersion);
         Assert.AreEqual(TargetContractVersions.PackageFormat, package.PackageFormatVersion);
     }
@@ -256,7 +256,7 @@ public sealed class TargetArtifactHardeningTests
             TestExecutionTargetIds.TestOnlyNonClr,
             "PortableManifest",
             export,
-            ExecutionSemanticsContract.Version1,
+            ExecutionSemanticsContract.Current,
             metadata);
     }
 
@@ -281,6 +281,6 @@ public sealed class TargetArtifactHardeningTests
             TestExecutionTargetIds.TestOnlyNonClr,
             "PortableManifest",
             export,
-            ExecutionSemanticsContract.Version1);
+            ExecutionSemanticsContract.Current);
     }
 }

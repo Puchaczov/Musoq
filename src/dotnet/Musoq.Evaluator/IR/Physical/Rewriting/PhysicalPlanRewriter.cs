@@ -287,6 +287,6 @@ internal static class PhysicalPlanRewriter
             changed |= !ReferenceEquals(statements[index], multiStatement.Statements[index]);
         }
 
-        return changed ? new PhysicalMultiStatementNode(statements) : multiStatement;
+        return changed ? new PhysicalMultiStatementNode(statements) { IntermediateProducers = multiStatement.IntermediateProducers } : multiStatement;
     }
 }

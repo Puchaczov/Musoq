@@ -121,7 +121,7 @@ internal static partial class SourcePlanningPlanner
                     [
                         .. result.Diagnostics,
                         OptimizationDiagnostic.Warning(
-                                $"Source predicate capability contract version {descriptor.PredicateCapabilities.ContractVersion} is not understood; typed string predicates remain residual.")
+                                $"Source predicate capability contract version {descriptor.PredicateCapabilities.ContractVersion} is not understood; typed pattern predicates remain residual.")
                             with { Origin = "SourcePredicateCapabilityNegotiation" }
                     ]
                 };

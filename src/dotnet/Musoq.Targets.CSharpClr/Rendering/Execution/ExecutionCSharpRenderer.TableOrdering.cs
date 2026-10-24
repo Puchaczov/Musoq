@@ -1,3 +1,4 @@
+using Musoq.Evaluator.IR;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,6 +21,15 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ToDistinctTable))))
             .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(distinct.Source.Name)));
+
+        if (distinct.KeyFields.Count > 0)
+        {
+            var fields = distinct.KeyFields.Select(field =>
+                $"row.GetValue<{CreateTypeSyntax(field.Type)}>({field.OutputIndex})").ToArray();
+            var key = fields.Length == 1 ? fields[0] : $"({string.Join(", ", fields)})";
+            invocation = invocation.AddArgumentListArguments(SyntaxFactory.Argument(
+                SyntaxFactory.ParseExpression($"static row => {key}")));
+        }
 
         if (TryRenderDistinctFinalShapeRows(distinct, invocation, context, out var finalShapeRows))
             return finalShapeRows;
@@ -162,8 +172,8 @@ public sealed partial class ExecutionCSharpRenderer
             nameof(EvaluationHelper.AppendTopOffsetRowsDirect),
             CreateTableRowsRead(topOffset.Source.Name),
             SyntaxFactory.IdentifierName(topOffset.Target.Name),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(topOffset.SkipCount)),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(topOffset.TakeCount)),
+            PagingCountSyntax.Read(topOffset.SkipCount),
+            PagingCountSyntax.Read(topOffset.TakeCount),
             CreateArrayCreation(nameof(RowOrderKey), topOffset.Keys.Select(CreateRowOrderKeyCreation)));
     }
 
@@ -190,8 +200,8 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper.SelectTopOffsetRows))))
             .WithArgumentList(CreateArgumentList(
                 CreateTableRowsRead(topOffset.Source.Name),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(topOffset.SkipCount)),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(topOffset.TakeCount)),
+                PagingCountSyntax.Read(topOffset.SkipCount),
+                PagingCountSyntax.Read(topOffset.TakeCount),
                 CreateArrayCreation(nameof(RowOrderKey), topOffset.Keys.Select(CreateRowOrderKeyCreation))));
     }
 
@@ -272,7 +282,7 @@ public sealed partial class ExecutionCSharpRenderer
     private IEnumerable<StatementSyntax> RenderTableSlice(
         ExecutionNode node,
         string methodName,
-        int count,
+        PagingCount count,
         ExecutionRenderContext context)
     {
         var operation = GetTablePostOperation(node);
@@ -341,15 +351,13 @@ public sealed partial class ExecutionCSharpRenderer
     private static InvocationExpressionSyntax CreateRowsMethodExpression(
         ExpressionSyntax sourceRows,
         string methodName,
-        int count)
+        PagingCount count)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     sourceRows,
                     SyntaxFactory.IdentifierName(methodName)))
-            .WithArgumentList(CreateArgumentList(SyntaxFactory.LiteralExpression(
-                SyntaxKind.NumericLiteralExpression,
-                SyntaxFactory.Literal(count))));
+            .WithArgumentList(CreateArgumentList(PagingCountSyntax.Read(count)));
     }
 }

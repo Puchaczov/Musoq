@@ -23,7 +23,7 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         var countExpr = GenerateSizeExpression(arrayType.SizeExpression);
         var countVar = $"_{localVar}_count";
-        var elementTypeName = GetArrayElementClrTypeName(fieldName, arrayType.ElementType);
+        var elementTypeName = GetBinaryValueClrTypeName(fieldName, arrayType.ElementType);
         var loopVar = $"_{localVar}_i";
         var tempVar = $"_{localVar}_list";
 
@@ -32,85 +32,14 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVar} = 0; {loopVar} < {countVar}; {loopVar}++)");
         builder.AppendLine("{");
 
-        if (arrayType.ElementType is PrimitiveTypeNode primitiveElement)
-        {
-            var readMethod = GetPrimitiveReadMethod(primitiveElement);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({readMethod}(data));");
-        }
-        else if (arrayType.ElementType is StringTypeNode stringElement)
-        {
-            var elemVar = $"_{localVar}_elem";
-            builder.Append(Indent(GenerateStringDeclarationCode(elemVar, stringElement, fieldName), 1));
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elemVar});");
-        }
-        else if (arrayType.ElementType is SchemaReferenceTypeNode schemaRefElement)
-        {
-            var typeName = schemaRefElement.FullTypeName;
-            var tempInterpreter = $"_{localVar}_elemInterpreter";
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {tempInterpreter} = {CreateNestedInterpreter(typeName)};");
-            AppendGeneratedLine(builder, $"    var _elem = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add(_elem);");
-        }
-        else if (arrayType.ElementType is InlineSchemaTypeNode inlineSchemaElement)
-        {
-            AppendInlineArrayElementRead(
-                builder,
-                inlineSchemaElement,
-                fieldName,
-                tempVar,
-                1);
-            var elemVar = GetInlineArrayElementVariable(tempVar);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elemVar});");
-        }
-        else if (arrayType.ElementType is ByteArrayTypeNode or SubstreamTypeNode)
-        {
-            var elementVar = $"_{localVar}_elem";
-            builder.Append(Indent(GenerateCollectionPayloadRead(elementVar, fieldName, arrayType.ElementType), 1));
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elementVar});");
-        }
-        else
-        {
-            throw CreateUnsupportedCodeGenerationException(
-                fieldName,
-                arrayType.ElementType,
-                "array element type");
-        }
+        var elementVar = $"_{localVar}_elem";
+        builder.Append(Indent(GenerateBinaryValueRead(elementVar, fieldName, arrayType.ElementType), 1));
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elementVar});");
 
         builder.AppendLine("}");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar} = {tempVar}.ToArray();");
 
         return builder.ToString();
-    }
-
-    private void AppendInlineArrayElementRead(
-        StringBuilder builder,
-        InlineSchemaTypeNode inlineSchema,
-        string fieldName,
-        string localVar,
-        int indentationLevel)
-    {
-        var indent = new string(' ', indentationLevel * 4);
-        var inlineClassName = GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null);
-        var tempInterpreter = GetInlineArrayElementInterpreterVariable(localVar);
-        var elemVar = GetInlineArrayElementVariable(localVar);
-
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{indent}var {tempInterpreter} = {CreateNestedInterpreter(inlineClassName)};");
-
-        var outerAssignments = GenerateOuterRefAssignments(tempInterpreter, inlineSchema);
-        if (!string.IsNullOrEmpty(outerAssignments))
-            builder.AppendLine(Indent(outerAssignments, indentationLevel));
-
-        AppendGeneratedLine(builder, $"{indent}var {elemVar} = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
-    }
-
-    private static string GetInlineArrayElementInterpreterVariable(string localVar)
-    {
-        return $"_{localVar}_elemInterpreter";
-    }
-
-    private static string GetInlineArrayElementVariable(string localVar)
-    {
-        return $"_{localVar}_elem";
     }
 
     private static string GenerateAlignmentCode(AlignmentNode alignmentNode)

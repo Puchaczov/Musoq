@@ -80,6 +80,7 @@ public partial class TransformTree
                 return null;
             context.CancellationToken.ThrowIfCancellationRequested();
             var planningScope = semantic.ScopeArtifact.CreateScope();
+            var executionShapes = ExecutionShapeResolverFactory.Create(semantic, context.SchemaRegistry);
             var planningContext = new PlanningContext(
                 logicalArtifacts,
                 context.CompilationOptions,
@@ -91,7 +92,7 @@ public partial class TransformTree
                 semantic.PipelineUsedColumns ?? new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
                 planningScope,
                 context.SchemaRegistry,
-                ExecutionPlanningShapeResolverAdapter.Create(planningScope, semantic.PipelineInferredColumns ?? aliasKeyedColumns, schemaRegistry: context.SchemaRegistry),
+                new ExecutionPlanningShapeResolverAdapter(executionShapes),
                 semantic.CteExecutionPlan)
             {
                 CancellationToken = context.CancellationToken,

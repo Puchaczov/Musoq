@@ -136,23 +136,14 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void NumericScalar_WhenTypeNameIsRequested_ShouldPreserveNullableTypeSemantics()
+    public void NumericScalar_WhenNullableTypeNameOverloadsAreEqual_ShouldReportAmbiguity()
     {
-        const string query = "select Position, GetTypeName(Position) as PositionType, GetTypeName(Integral) as IntegralType from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
-        var result = compiled.Run(TestContext.CancellationToken);
-        var rows = result.ToArray();
+        const string query = "select GetTypeName(Integral) from #schema.first()";
+        var error = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+                query, LibraryExecutionFixture.CreateRows()));
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("Position", typeof(int)), ("PositionType", typeof(string)), ("IntegralType", typeof(string)));
-        Assert.HasCount(5, rows);
-        for (var index = 0; index < rows.Length; index++)
-        {
-            Assert.AreEqual(index + 1, rows[index].GetValue<int>(0));
-            Assert.AreEqual("System.Int32", rows[index].GetValue<string>(1));
-            Assert.AreEqual(index == 2 ? null : "System.Int32", rows[index].GetValue<string>(2));
-        }
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3089_AmbiguousCallableOverload, error.PrimaryEnvelope.Code);
     }
 
     [TestMethod]

@@ -112,11 +112,11 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
     }
 
     [TestMethod]
-    public void CoreAppendixCaseNegative_ShouldAssertDiagnosticAndRunPrescribedElseCorrection()
+    public void CoreAppendixCaseNegative_ShouldAssertMissingResultAndRunCorrectedCase()
     {
         var provider = CreateCoreProvider([new BasicEntity("fixture") { Population = 1m }]);
         const string invalidQuery =
-            "select case when Population > 0 then 'positive' end from #A.entities()";
+            "select case when Population > 0 then end from #A.entities()";
         var invalid = new QueryAnalyzer(provider).Analyze(invalidQuery);
 
         Assert.IsTrue(invalid.HasErrors, Format(invalid.Diagnostics));
@@ -703,28 +703,23 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
     }
 
     [TestMethod]
-    public void BinaryStoragePublishedExample_ShouldExecuteWithExplicitFixtureProviderMapping()
+    public void InventedMixedSamplesExample_ShouldPreserveDefinitionAndOffsetDiagnostics()
     {
-        var data = new byte[20 + 12];
-        BitConverter.GetBytes(0x53544F52).CopyTo(data, 0);
-        BitConverter.GetBytes((short)1).CopyTo(data, 4);
-        BitConverter.GetBytes((short)0).CopyTo(data, 6);
-        BitConverter.GetBytes(1).CopyTo(data, 8);
-        BitConverter.GetBytes(20L).CopyTo(data, 12);
-        data[20] = 1;
-        BitConverter.GetBytes(7).CopyTo(data, 21);
-        BitConverter.GetBytes((short)5).CopyTo(data, 25);
-        "hello"u8.CopyTo(data.AsSpan(27));
+        byte[] data =
+        [
+            3, 0, 0, 1, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0,
+            7, 3, 0, 116, 111, 121
+        ];
 
         var provider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                ["#test"] = [new BinaryEntity { Name = "storage.dat", Content = data }]
+                ["#test"] = [new BinaryEntity { Name = "invented-samples", Content = data }]
             });
 
         var publishedException = Assert.ThrowsExactly<MusoqQueryException>(() =>
             CompileGeneratedQuery(
-                StoragePublishedQuery,
+                ToySamplesPublishedQuery,
                 Guid.NewGuid().ToString(),
                 provider,
                 LoggerResolver,
@@ -733,9 +728,9 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
 
         var offsetException = Assert.ThrowsExactly<MusoqQueryException>(() =>
             CompileGeneratedQuery(
-                StorageCorrectedQuery.Replace(
-                    "ToInt32(h.DataOffset) ?? 0",
-                    "h.DataOffset",
+                ToySamplesCorrectedQuery.Replace(
+                    "ToInt32(parameters.SampleStart) ?? 0",
+                    "parameters.SampleStart",
                     StringComparison.Ordinal),
                 Guid.NewGuid().ToString(),
                 provider,
@@ -744,7 +739,7 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, offsetException.PrimaryEnvelope.Code);
 
         var compiled = CompileGeneratedQuery(
-            StorageCorrectedQuery,
+            ToySamplesCorrectedQuery,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
@@ -752,10 +747,10 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)3, table[0].ReadValue(0));
         Assert.AreEqual(1, table[0].ReadValue(1));
-        Assert.AreEqual((byte)1, table[0].ReadValue(2));
-        Assert.AreEqual("hello", table[0].ReadValue(3));
+        Assert.AreEqual((byte)7, table[0].ReadValue(2));
+        Assert.AreEqual("toy", table[0].ReadValue(3));
     }
 
     private const string MixedPublishedQuery = """
@@ -830,98 +825,86 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         WHERE frame.MsgType IN (0x01, 0x02)
         """;
 
-    private const string StoragePublishedQuery = """
-        binary StorageHeader {
-            Magic:          int le check Magic = 0x53544F52,
-            Version:        short le,
-            Flags:          short le,
-
-            IsCompressed: (Flags & 0x01) <> 0,
-            HasIndex:     (Flags & 0x02) <> 0,
-
-            RecordCount:    int le,
-            IndexOffset:    long le when HasIndex,
-            DataOffset:     long le
+    private const string ToySamplesPublishedQuery = """
+        binary ToyParameters {
+            Revision:       short le,
+            Options:        byte,
+            HasHint:        (Options & 0x20) <> 0,
+            UsesAlternateValues: (Options & 0x04) <> 0,
+            SampleCount:    int le,
+            Hint:           long le when HasHint,
+            SampleStart:    long le
         }
 
-        binary StorageRecord {
-            RecordType:     byte,
-            RecordLength:   int le,
-
-            StringLen:      short le when RecordType = 1,
-            StringData:     string[StringLen] utf8 when RecordType = 1,
-
-            BlobData:       byte[RecordLength - 1] when RecordType = 2,
-
-            NestedCount:    int le when RecordType = 3,
-            Nested:         SubRecord[NestedCount] when RecordType = 3
+        binary ToySample {
+            Choice:         byte,
+            TextCount:      short le when Choice = 7,
+            TextValue:      string[TextCount] utf8 when Choice = 7,
+            ByteCount:      byte when Choice = 9,
+            ByteValues:     byte[ByteCount] when Choice = 9,
+            LabelCount:     byte when Choice = 11,
+            Labels:         ToyLabel[LabelCount] when Choice = 11
         }
 
-        binary SubRecord {
-            Key:    string[32] utf8 nullterm,
-            Value:  string[64] utf8 nullterm
+        binary ToyLabel {
+            Name: string[5] ascii nullterm,
+            Note: string[9] utf8 nullterm
         }
 
         SELECT
-            h.Version,
-            h.RecordCount,
-            r.RecordType,
-            CASE r.RecordType
-                WHEN 1 THEN r.StringData
-                WHEN 2 THEN ToHex(r.BlobData)
-                WHEN 3 THEN 'Nested: ' + ToString(r.NestedCount) + ' items'
-                ELSE 'Unknown record type'
+            parameters.Revision,
+            parameters.SampleCount,
+            sample.Choice,
+            CASE sample.Choice
+                WHEN 7 THEN sample.TextValue
+                WHEN 9 THEN ToHex(sample.ByteValues)
+                WHEN 11 THEN 'Labels: ' + ToString(sample.LabelCount)
+                ELSE 'Other sample'
             END AS Content
-        FROM #test.files() f
-        CROSS APPLY Interpret<StorageHeader>(f.Content) h
-        CROSS APPLY InterpretAt<StorageRecord>(f.Content, h.DataOffset) r
+        FROM #test.files() input
+        CROSS APPLY Interpret<ToyParameters>(input.Content) parameters
+        CROSS APPLY InterpretAt<ToySample>(input.Content, parameters.SampleStart) sample
         """;
 
-    private const string StorageCorrectedQuery = """
-        binary StorageHeader {
-            Magic:          int le check Magic = 0x53544F52,
-            Version:        short le,
-            Flags:          short le,
-
-            IsCompressed: (Flags & 0x01) <> 0,
-            HasIndex:     (Flags & 0x02) <> 0,
-
-            RecordCount:    int le,
-            IndexOffset:    long le when HasIndex,
-            DataOffset:     long le
+    private const string ToySamplesCorrectedQuery = """
+        binary ToyParameters {
+            Revision:       short le,
+            Options:        byte,
+            HasHint:        (Options & 0x20) <> 0,
+            UsesAlternateValues: (Options & 0x04) <> 0,
+            SampleCount:    int le,
+            Hint:           long le when HasHint,
+            SampleStart:    long le
         }
 
-        binary SubRecord {
-            Key:    string[32] utf8 nullterm,
-            Value:  string[64] utf8 nullterm
+        binary ToyLabel {
+            Name: string[5] ascii nullterm,
+            Note: string[9] utf8 nullterm
         }
 
-        binary StorageRecord {
-            RecordType:     byte,
-            RecordLength:   int le,
-
-            StringLen:      short le when RecordType = 1,
-            StringData:     string[StringLen] utf8 when RecordType = 1,
-
-            BlobData:       byte[RecordLength - 1] when RecordType = 2,
-
-            NestedCount:    int le when RecordType = 3,
-            Nested:         SubRecord[NestedCount] when RecordType = 3
+        binary ToySample {
+            Choice:         byte,
+            TextCount:      short le when Choice = 7,
+            TextValue:      string[TextCount] utf8 when Choice = 7,
+            ByteCount:      byte when Choice = 9,
+            ByteValues:     byte[ByteCount] when Choice = 9,
+            LabelCount:     byte when Choice = 11,
+            Labels:         ToyLabel[LabelCount] when Choice = 11
         }
 
         SELECT
-            h.Version,
-            h.RecordCount,
-            r.RecordType,
-            CASE r.RecordType
-                WHEN 1 THEN r.StringData
-                WHEN 2 THEN ToHex(r.BlobData)
-                WHEN 3 THEN 'Nested: ' + ToString(r.NestedCount) + ' items'
-                ELSE 'Unknown record type'
+            parameters.Revision,
+            parameters.SampleCount,
+            sample.Choice,
+            CASE sample.Choice
+                WHEN 7 THEN sample.TextValue
+                WHEN 9 THEN ToHex(sample.ByteValues)
+                WHEN 11 THEN 'Labels: ' + ToString(sample.LabelCount)
+                ELSE 'Other sample'
             END AS Content
-        FROM #test.files() f
-        CROSS APPLY Interpret<StorageHeader>(f.Content) h
-        CROSS APPLY InterpretAt<StorageRecord>(f.Content, ToInt32(h.DataOffset) ?? 0) r
+        FROM #test.files() input
+        CROSS APPLY Interpret<ToyParameters>(input.Content) parameters
+        CROSS APPLY InterpretAt<ToySample>(input.Content, ToInt32(parameters.SampleStart) ?? 0) sample
         """;
 
     private const string CobolPublishedQuery = """

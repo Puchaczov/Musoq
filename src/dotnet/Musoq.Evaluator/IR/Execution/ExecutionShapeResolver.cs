@@ -12,6 +12,7 @@ public sealed partial class ExecutionShapeResolver
     private readonly IReadOnlySet<string> _explicitEntityTypeAliases;
     private readonly SchemaRegistry? _schemaRegistry;
     internal NativeScriptValueTypes ScriptValues { get; }
+    internal NativeSubqueryBindings Subqueries { get; } = new();
     internal NativeInlineRecordBindings InlineRecords => ScriptValues.InlineRecords;
 
     public ExecutionShapeResolver(

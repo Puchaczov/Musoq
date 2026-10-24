@@ -4,7 +4,7 @@ using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-internal static class GeneratedRowContextPruner
+internal static partial class GeneratedRowContextPruner
 {
     public static ExecutionPlan Prune(ExecutionPlan plan)
     {
@@ -182,12 +182,9 @@ internal static class GeneratedRowContextPruner
     {
         var result = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var expression in FlattenNonContextWriteExpressions(block))
-            AddDirectContextConsumer(
-                expression,
-                variableTypeNamesByName,
-                contextCarryingTypeNames,
-                result);
+        var visitor = new NonContextWriteVisitor(new ContextConsumerState(
+            variableTypeNamesByName, contextCarryingTypeNames, result));
+        ExecutionIrTraversal.VisitNodes(block, ref visitor);
 
         return result;
     }
@@ -295,34 +292,6 @@ internal static class GeneratedRowContextPruner
         }
     }
 
-    private static IEnumerable<ExecutionExpression> FlattenNonContextWriteExpressions(ExecutionBlock block)
-    {
-        foreach (var node in ExecutionIrAnalysis.FlattenNodes(block))
-        {
-            foreach (var expression in GetNonContextWriteLocalExpressions(node))
-            {
-                foreach (var childExpression in ExecutionIrAnalysis.FlattenExpressions(expression))
-                    yield return childExpression;
-            }
-        }
-    }
-
-    private static IEnumerable<ExecutionExpression> GetNonContextWriteLocalExpressions(ExecutionNode node)
-    {
-        return node switch
-        {
-            ExecutionAppendRow appendRow => appendRow.Values.Select(static value => value.Value),
-            ExecutionCreateGeneratedRow createRow => createRow.Values.Select(static value => value.Value),
-            ExecutionParallelFilterProjectLoop parallelProject => new[]
-                {
-                    parallelProject.SourceRows
-                }
-                .Concat(parallelProject.Predicate == null ? [] : [parallelProject.Predicate])
-                .Concat(parallelProject.AppendRow.Values.Select(static value => value.Value)),
-            _ => ExecutionIrAnalysis.GetNodeExpressions(node)
-        };
-    }
-
     private static void AddContextExpressionConsumers(
         IReadOnlyList<ExecutionExpression> contexts,
         ExecutionContextLayout? contextLayout,
@@ -347,23 +316,9 @@ internal static class GeneratedRowContextPruner
         IReadOnlySet<string> contextCarryingTypeNames,
         HashSet<string> result)
     {
-        foreach (var childExpression in ExecutionIrAnalysis.FlattenExpressions(expression))
-        {
-            if (childExpression is ExecutionVariableRead variableRead)
-            {
-                TryAddVariableGeneratedRowTypes(
-                    variableRead.Variable,
-                    variableTypeNamesByName,
-                    contextCarryingTypeNames,
-                    result);
-            }
-
-            AddDirectContextConsumer(
-                childExpression,
-                variableTypeNamesByName,
-                contextCarryingTypeNames,
-                result);
-        }
+        var visitor = new ContextExpressionVisitor(new ContextConsumerState(
+            variableTypeNamesByName, contextCarryingTypeNames, result), ContextReadPolicy.IncludeVariables);
+        ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
     }
 
     private static bool TryAddAliasGeneratedRowTypes(

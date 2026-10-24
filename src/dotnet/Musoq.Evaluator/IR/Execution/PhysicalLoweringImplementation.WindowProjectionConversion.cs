@@ -38,6 +38,7 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         switch (expression)
         {
+            case SubqueryExpression subquery: return SubqueryInputBinding.Convert(subquery, value => ConvertWindowExpression(value, sourceLookup, aggregateSourceFields, windowResults, windowIndex));
             case WindowFunctionRef windowRef: return ConvertWindowFunctionRef(windowRef, windowResults, windowIndex);
             case AggregateRef:
                 var aggregateRead = ResolveWindowAggregateSourceRead(expression, sourceLookup, aggregateSourceFields);
@@ -54,14 +55,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 if (!right.IsBuilt)
                     return LoweringAttempt<ExecutionExpression>.Unsupported(right.UnsupportedReason);
 
-                return LoweringAttempt<ExecutionExpression>.Built(new ExecutionBinary(
-                    binary.Kind,
-                    left.Value,
-                    right.Value,
-                    binary.ReturnType)
-                {
-                    UsesSqlNullSemantics = binary.UsesSqlNullSemantics
-                });
+                return LoweringAttempt<ExecutionExpression>.Built(ExecutionBinaryLowering.Create(binary, left.Value, right.Value));
             case UnaryOp unary:
                 var operand = ConvertWindowExpression(unary.Operand, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
                 if (!operand.IsBuilt)

@@ -18,7 +18,7 @@ PhysicalMultiStatement
   PhysicalSort [ko3iko.Id]
     PhysicalProject [ko3iko.Id as Id, ko3iko.Name as Name]
       PhysicalFilter [ko3iko.Name RLIKE '\A[A-Z][a-z]+\z']
-        PhysicalSchemaScan [#A.entities() as ko3iko]
+        PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: ko3iko.Name RLIKE '\A[A-Z][a-z]+\z']
 */
 
 // === Execution Plan ===

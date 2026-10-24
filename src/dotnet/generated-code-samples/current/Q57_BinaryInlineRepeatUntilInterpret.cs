@@ -372,6 +372,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'InlineRepeatPacket'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class InlineRepeatPacket : BytesInterpreterBase<InlineRepeatPacket>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -412,9 +413,10 @@ namespace Musoq.Generated.Interpreters
             var __items_iteration = 0;
             do
             {
-                EnsureRepeatIteration("Items", __items_iteration++);
-                var __items_lastElem_interpreter = new Inline_Items();
-                __items_lastElem = InterpretNested(__items_lastElem_interpreter, data, "Items");
+                EnsureRepeatIteration("Items", __items_iteration++, 10000);
+                var ___items_lastElem_value_interpreter = new Inline_Items();
+                var __items_lastElem_value = InterpretNested(___items_lastElem_value_interpreter, data, "Items");
+                __items_lastElem = __items_lastElem_value;
                 __items_list.Add(__items_lastElem);
             }
             while (((__items_lastElem.Tag == 0)) != true);
@@ -428,6 +430,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated nested interpreter for inline schema 'Inline_Items'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Inline_Items : BytesInterpreterBase<Inline_Items>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

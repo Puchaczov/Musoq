@@ -23,7 +23,7 @@ public class DynamicTable : ISchemaTable
         Columns = distinctColumnsGroups.Select(group =>
         {
             var firstColumn = group.First();
-            return new SchemaColumn(
+            var merged = new SchemaColumn(
                 group.Key.ColumnName,
                 group.Key.ColumnIndex,
                 group.Key.ColumnType,
@@ -34,7 +34,9 @@ public class DynamicTable : ISchemaTable
                 group.Any(static column => column.Stability == ColumnStability.Volatile)
                     ? ColumnStability.Volatile
                     : ColumnStability.Stable);
-        }).Cast<ISchemaColumn>().ToArray();
+            return NullableInterpretationColumn.Preserve(merged,
+                group.Any(static column => column is NullableInterpretationColumn));
+        }).ToArray();
         Metadata = new SchemaTableMetadata(metadata ?? typeof(object)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 

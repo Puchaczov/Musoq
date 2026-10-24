@@ -160,7 +160,13 @@ namespace GeneratedSample_Q376_FullOuterJoinVolatilePredicate
                             Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b = bRowsBuffer[bIndex];
                             int? id = a.Id;
                             int? id1 = b.Id;
-                            if (((Operators.SqlCompare<int?, int?>(id, id1, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft < __sqlRight)) & ((int)__resultLibrary0.NextValue() == 1))) == true)
+                            if (((((bool?)(Operators.SqlCompare<int?, int?>(id, id1, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft < __sqlRight)))) switch
+                            {
+                                false => (bool?)false,
+                                true => (bool?)((int)__resultLibrary0.NextValue() == 1),
+                                _ => (bool?)((int)__resultLibrary0.NextValue() == 1) & (bool?)null
+
+                            })) == true)
                             {
                                 resultLeftHasMatch = true;
                                 resultRightMatched[bIndex] = (bool)true;

@@ -10,7 +10,7 @@ Every time you generate a plan for a task, the **penultimate step** (second-to-l
 
 > **Re-read `copilot-instructions.md` and verify that all created or modified code follows every rule defined in it** — especially the Code Quality & Maintainability Standards section. If any violations are found, fix them before marking the task complete.
 
-This is non-negotiable. Delivering working code that violates project standards is not acceptable. The final step of any plan should be running the relevant tests; the step immediately before that is the compliance check against these instructions.
+This is non-negotiable. Delivering working code that violates project standards is not acceptable. The final step of any plan should be running the relevant validation selected by the Validation by Change Impact policy; the step immediately before that is the compliance check against these instructions. Documentation and instruction-only changes can finish with diff, link, formatting, and consistency checks without running tests.
 
 ## What is Musoq?
 
@@ -55,7 +55,7 @@ When two files appear to disagree, the more specific one wins for its scope: per
 - **Package Management**: Packages are generated explicitly with `dotnet pack`; release package versions live in [scripts/Versions.props](scripts/Versions.props). Publishing is tag-driven only; see the [Publish workflow](.github/workflows/publish.yml) and [release scripts](scripts/release/).
 
 ### Core Development Workflow
-Bootstrap, build, and test the repository:
+Use this bootstrap/build/test workflow when required by the Validation by Change Impact policy. For production changes, run focused regression checks before the solution build and full suite. Documentation and other non-runtime changes use the applicable checks from that policy; cleaning and packaging remain conditional on the task.
 ```bash
 # 1. Initial setup - takes ~30 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet

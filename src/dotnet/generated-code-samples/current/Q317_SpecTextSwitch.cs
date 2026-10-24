@@ -44,8 +44,8 @@ ExecutionPlan [compiled]
     SourceEntity [c: object]
       Content: object <- property Content
     Generated [ResultRow0]
-      c.Content.Key: string <- field c_Content_Key
-      c.Content.Text: string <- field c_Content_Text
+      c.Content.Key: object <- field c_Content_Key
+      c.Content.Text: object <- field c_Content_Text
 
   Body
     PhaseBoundary [Begin]
@@ -57,7 +57,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in fRows]
       InterpretSource [ConfigLine.Parse(f.Line) -> cRows]
       ScalarForEach [c in cRows]
-        AppendShape [result <- ResultRow0(c.Content.Key: c.Content.Key, c.Content.Text: c.Content.Text)]
+        Let [content: object = c.Content]
+        AppendShape [result <- ResultRow0(c.Content.Key: UnionMember(Key, 1 cases), c.Content.Text: UnionMember(Text, 1 cases))]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
@@ -85,8 +86,8 @@ namespace GeneratedSample_Q317_SpecTextSwitch
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
-            new Column("c.Content.Key", typeof(string), 0),
-            new Column("c.Content.Text", typeof(string), 1)
+            new Column("c.Content.Key", typeof(object), 0),
+            new Column("c.Content.Text", typeof(object), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Line", typeof(string), 0) });
         public ILogger Logger { get; set; }
@@ -155,7 +156,16 @@ namespace GeneratedSample_Q317_SpecTextSwitch
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var c = cRows;
-                                        yield return new ResultRow0(((Musoq.Generated.Interpreters.ConfigLine.TextSwitch_Content)c.Content).Key, ((Musoq.Generated.Interpreters.ConfigLine.TextSwitch_Content)c.Content).Text);
+                                        object content = c.Content;
+                                        yield return new ResultRow0((content switch
+                                        {
+                                            Musoq.Generated.Interpreters.KeyValue __unionMember => (object)__unionMember.Key,
+                                            _ => (object)null
+                                        }), (content switch
+                                        {
+                                            Musoq.Generated.Interpreters.Comment __unionMember => (object)__unionMember.Text,
+                                            _ => (object)null
+                                        }));
                                     }
                                 }
 
@@ -179,7 +189,16 @@ namespace GeneratedSample_Q317_SpecTextSwitch
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var c = cRows;
-                                        yield return new ResultRow0(((Musoq.Generated.Interpreters.ConfigLine.TextSwitch_Content)c.Content).Key, ((Musoq.Generated.Interpreters.ConfigLine.TextSwitch_Content)c.Content).Text);
+                                        object content = c.Content;
+                                        yield return new ResultRow0((content switch
+                                        {
+                                            Musoq.Generated.Interpreters.KeyValue __unionMember => (object)__unionMember.Key,
+                                            _ => (object)null
+                                        }), (content switch
+                                        {
+                                            Musoq.Generated.Interpreters.Comment __unionMember => (object)__unionMember.Text,
+                                            _ => (object)null
+                                        }));
                                     }
                                 }
 
@@ -201,7 +220,16 @@ namespace GeneratedSample_Q317_SpecTextSwitch
                             {
                                 token.ThrowIfCancellationRequested();
                                 var c = cRows;
-                                yield return new ResultRow0(((Musoq.Generated.Interpreters.ConfigLine.TextSwitch_Content)c.Content).Key, ((Musoq.Generated.Interpreters.ConfigLine.TextSwitch_Content)c.Content).Text);
+                                object content = c.Content;
+                                yield return new ResultRow0((content switch
+                                {
+                                    Musoq.Generated.Interpreters.KeyValue __unionMember => (object)__unionMember.Key,
+                                    _ => (object)null
+                                }), (content switch
+                                {
+                                    Musoq.Generated.Interpreters.Comment __unionMember => (object)__unionMember.Text,
+                                    _ => (object)null
+                                }));
                             }
                         }
                     }
@@ -238,29 +266,29 @@ namespace GeneratedSample_Q317_SpecTextSwitch
 
         private sealed class ResultRow0 : Row
         {
-            public ResultRow0(string __value0, string __value1)
+            public ResultRow0(object __value0, object __value1)
             {
                 c_Content_Key = __value0;
                 c_Content_Text = __value1;
             }
 
             public override int Count => 2;
-            public string c_Content_Key { get; private set; }
-            public string c_Content_Text { get; private set; }
+            public object c_Content_Key { get; private set; }
+            public object c_Content_Text { get; private set; }
 
             public override void AssignValue<T>(int columnNumber, T value)
             {
                 global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
                 {
-                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.c_Content_Key = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
-                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.c_Content_Text = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, object>(this.c_Content_Key = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<object, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, object>(this.c_Content_Text = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<object, T>(value)),
                     _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
             }
 
             public override T GetValue<T>(int columnIndex) => columnIndex switch
             {
-                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.c_Content_Key),
-                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.c_Content_Text),
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, object>(this.c_Content_Key),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, object>(this.c_Content_Text),
                 _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
             public override bool HasColumn(string name) => name switch
             {
@@ -298,6 +326,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'Comment'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Comment : TextInterpreterBase<Comment>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -345,6 +374,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'KeyValue'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class KeyValue : TextInterpreterBase<KeyValue>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -403,6 +433,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'ConfigLine'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class ConfigLine : TextInterpreterBase<ConfigLine>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -426,7 +457,7 @@ namespace Musoq.Generated.Interpreters
         }
 
         /// <summary>Gets the Content field value.</summary>
-        public TextSwitch_Content? Content { get; set; }
+        public object? Content { get; set; }
         /// <inheritdoc/>
         public override string SchemaName => "ConfigLine";
 
@@ -438,32 +469,25 @@ namespace Musoq.Generated.Interpreters
             var __parsedValue = new ConfigLine();
             RecordParsedValue(__parsedValue);
             SetCurrentField("Content");
-            var __content_switch = new TextSwitch_Content();
+            object? _content = default;
             if (LookaheadMatchesPattern(data, @"#", fieldName: "Content"))
             {
-                var _interp_Comment = new Comment();
-                var _result_Comment = ParseNested(_interp_Comment, data, "Content");
-                __content_switch.Text = _result_Comment.Text;
+                var _interp_content_selected = new Comment();
+                var _result_content_selected = ParseNested(_interp_content_selected, data, "Content");
+                var _content_selected = _result_content_selected;
+                _content = _content_selected;
             }
             else
             {
-                var _interp_KeyValue = new KeyValue();
-                var _result_KeyValue = ParseNested(_interp_KeyValue, data, "Content");
-                __content_switch.Key = _result_KeyValue.Key;
-                __content_switch.Value = _result_KeyValue.Value;
+                var _interp_content_selected = new KeyValue();
+                var _result_content_selected = ParseNested(_interp_content_selected, data, "Content");
+                var _content_selected = _result_content_selected;
+                _content = _content_selected;
             }
 
-            var _content = __content_switch;
             __parsedValue.Content = _content;
             RecordParsedField("Content");
             return __parsedValue;
-        }
-
-        public sealed class TextSwitch_Content
-        {
-            public string? Text { get; set; }
-            public string? Key { get; set; }
-            public string? Value { get; set; }
         }
     }
 }

@@ -27,6 +27,9 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
     public override void Visit(ModuloNode node) =>
         CloneBinaryNodeWithSpan(node ?? throw new ArgumentNullException(nameof(node)), VisitorOperationNames.VisitModuloNode, (l, r) => new ModuloNode(l, r));
 
+    public override void Visit(StringConcatenationNode node) =>
+        CloneBinaryNodeWithSpan(node ?? throw new ArgumentNullException(nameof(node)), nameof(Visit), (l, r) => new StringConcatenationNode(l, r));
+
     public override void Visit(AddNode node) =>
         CloneBinaryNodeWithSpan(node ?? throw new ArgumentNullException(nameof(node)), VisitorOperationNames.VisitAddNode, (l, r) => new AddNode(l, r));
 
@@ -57,17 +60,8 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
     public override void Visit(CoalesceNode node) =>
         CloneBinaryNodeWithSpan(node ?? throw new ArgumentNullException(nameof(node)), nameof(Visit), (l, r) => new CoalesceNode(l, r, node.ReturnType));
 
-    public override void Visit(ShortCircuitingNodeLeft node)
-    {
-        ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new ShortCircuitingNodeLeft(Nodes.Pop(), node.UsedFor));
-    }
-
-    public override void Visit(ShortCircuitingNodeRight node)
-    {
-        ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
-    }
+    public override void Visit(ShortCircuitingNodeLeft node) => SemanticNodeCloneSupport.CloneShortCircuit(node, Nodes);
+    public override void Visit(ShortCircuitingNodeRight node) => SemanticNodeCloneSupport.CloneShortCircuit(node, Nodes);
 
     public override void Visit(EqualityNode node) =>
         CloneBinaryNode(node, (l, r) => new EqualityNode(l, r));

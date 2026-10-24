@@ -172,7 +172,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenCorrelatedScalarSubquery_CombinesDistinctAndTake_ShouldKeepExplicitDiagnostic()
+    public void WhenCorrelatedScalarSubquery_CombinesDistinctAndTake_ShouldShapePerBinding()
     {
         const string query = @"
             SELECT a.City, (
@@ -182,10 +182,9 @@ public partial class SubqueryTests
             ) AS MatchCountry
             FROM #A.entities() a";
 
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateScalarSources()));
-
-        Assert.IsTrue(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ2024_InvalidSubquery));
-        Assert.Contains("post-shaping partition stage", exception.Message);
+        using var compiled = CreateAndRunVirtualMachine(query, CreateScalarSources());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            ["WARSAW", "POLAND"], ["BERLIN", null], ["PARIS", "FRANCE"]);
     }
 }

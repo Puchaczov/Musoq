@@ -14,7 +14,7 @@ namespace Musoq.Evaluator.Visitors;
 ///     Visitor that extracts schema definitions from the AST and registers them in a SchemaRegistry.
 ///     This visitor processes the AST before query execution to collect all schema definitions.
 /// </summary>
-public class SchemaDefinitionVisitor : NoOpExpressionVisitor
+public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 {
     /// <summary>
     ///     Creates a new schema definition visitor.
@@ -37,7 +37,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         Registry.Register(node.Name, node);
-
+        _fieldReferenceScope = node;
 
         ValidateGenericParameters(node);
         var typeParameters = new HashSet<string>(node.TypeParameters, StringComparer.OrdinalIgnoreCase);
@@ -94,19 +94,19 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 "base schema");
         }
 
-        foreach (var field in InterpretationTextFieldTypeResolver.EnumerateDefinitions(node.Fields))
+        foreach (var (field, sourceSpan) in InterpretationTextFieldTypeResolver.EnumerateLocatedDefinitions(node.Fields))
         {
             if (field.FieldType == TextFieldType.SchemaReference)
             {
                 if (string.IsNullOrWhiteSpace(field.PrimaryValue))
                     throw InvalidTextSchema(
                         $"Text schema reference field '{field.Name}' must specify a referenced text schema.",
-                        field.SpanOrEmpty());
+                        sourceSpan);
 
                 ValidateTextFieldSchemaReference(
                     field.PrimaryValue!,
                     node.Name,
-                    field.SpanOrEmpty(),
+                    sourceSpan,
                     $"schema reference field '{field.Name}'");
                 continue;
             }
@@ -119,12 +119,12 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 if (string.IsNullOrWhiteSpace(field.PrimaryValue))
                     throw InvalidTextSchema(
                         $"Text repeat field '{field.Name}' must specify a referenced text schema.",
-                        field.SpanOrEmpty());
+                        sourceSpan);
 
                 ValidateTextFieldSchemaReference(
                     field.PrimaryValue!,
                     node.Name,
-                    field.SpanOrEmpty(),
+                    sourceSpan,
                     $"repeat field '{field.Name}'");
                 continue;
             }
@@ -135,7 +135,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             if (field.SwitchCases.Length == 0)
                 throw InvalidTextSchema(
                     $"Text switch field '{field.Name}' must contain at least one case.",
-                    field.SpanOrEmpty());
+                    sourceSpan);
 
             var seenDefault = false;
             foreach (var switchCase in field.SwitchCases)
@@ -145,7 +145,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                     if (seenDefault)
                         throw InvalidTextSchema(
                             $"Text switch field '{field.Name}' may contain only one default case.",
-                            field.SpanOrEmpty());
+                            sourceSpan);
 
                     seenDefault = true;
                 }
@@ -153,14 +153,10 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 {
                     throw InvalidTextSchema(
                         $"Text switch field '{field.Name}' must place the default case after all pattern cases.",
-                        field.SpanOrEmpty());
+                        sourceSpan);
                 }
 
-                ValidateTextFieldSchemaReference(
-                    switchCase.TypeName,
-                    node.Name,
-                    field.SpanOrEmpty(),
-                    $"switch field '{field.Name}'");
+
             }
         }
     }
@@ -168,7 +164,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
     private void ValidateTextFieldSchemaReference(
         string referencedName,
         string referencingName,
-        TextSpan span,
+        TextSpan? span,
         string context)
     {
         if (string.Equals(referencedName, referencingName, StringComparison.OrdinalIgnoreCase))
@@ -200,7 +196,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 DiagnosticCode.MQ4007_InvalidSchemaFieldType);
     }
 
-    private static QuerySyntaxException InvalidTextSchema(string message, TextSpan span)
+    private static QuerySyntaxException InvalidTextSchema(string message, TextSpan? span)
     {
         return new QuerySyntaxException(message, span, DiagnosticCode.MQ4002_InvalidTextSchemaField);
     }
@@ -639,7 +635,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                     GetSwitchCaseLabelSpan(switchCase),
                     DiagnosticCode.MQ4013_InvalidSwitchCaseLabel);
 
-            if (switchCase.BranchType is not (PrimitiveTypeNode or ByteArrayTypeNode or SchemaReferenceTypeNode))
+            if (switchCase.BranchType is AlignmentNode)
                 throw new QuerySyntaxException(
                     $"Switch branch '{switchCase.BranchAlias}' uses unsupported binary type '{switchCase.BranchType}'.",
                     GetSwitchBranchTypeSpan(switchCase),
@@ -754,33 +750,6 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
         return switchCase.BranchTypeSpan.IsEmpty ? switchCase.BranchType.Span : switchCase.BranchTypeSpan;
     }
 
-    private void ValidateInlineFieldReferences(
-        InlineSchemaTypeNode inlineSchema,
-        string fieldName,
-        string schemaName,
-        HashSet<string> outerFields,
-        IReadOnlyDictionary<string, Type?> outerFieldTypes)
-    {
-        var declaredFields = new HashSet<string>(outerFields, StringComparer.OrdinalIgnoreCase);
-        var declaredFieldTypes = new Dictionary<string, Type?>(outerFieldTypes, StringComparer.OrdinalIgnoreCase);
-        var localFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var field in inlineSchema.Fields)
-        {
-            ValidateDuplicateField(field, $"{schemaName}.{fieldName}", localFields);
-
-            if (field is FieldDefinitionNode parsedField)
-                ValidateFieldReferences(parsedField, schemaName, declaredFields, declaredFieldTypes);
-            else if (field is ComputedFieldNode computedField)
-                ValidateExpressionReferences(fieldName, computedField.Expression, schemaName, declaredFields);
-
-            declaredFields.Add(field.Name);
-            declaredFieldTypes[field.Name] = field is ComputedFieldNode computed
-                ? ResolveExpressionType(computed.Expression, declaredFieldTypes)
-                : field.ReturnType;
-        }
-    }
-
     private static void ValidateBooleanConstraint(
         FieldDefinitionNode field,
         IReadOnlyDictionary<string, Type?> fieldTypes)
@@ -872,25 +841,6 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
             return BinarySchemaStrictCasts.Resolve(cast).ReturnType;
 
         return expression.ReturnType;
-    }
-
-    private void ValidateExpressionReferences(
-        string fieldName,
-        Node? expression,
-        string schemaName,
-        HashSet<string> declaredFields)
-    {
-        if (expression == null)
-            return;
-
-        var identifiers = new IdentifierCollector();
-        new IdentifierCollectorTraverse(identifiers).Traverse(expression);
-
-        foreach (var reference in identifiers.References)
-            if (!declaredFields.Contains(reference.Name) && !reference.Name.Equals("parent", StringComparison.OrdinalIgnoreCase))
-                throw new QuerySyntaxException(
-                    $"Binary schema '{schemaName}' field '{fieldName}' references field '{reference.Name}' before it is declared.",
-                    reference.Node.SpanOrEmpty());
     }
 
     private void AddInheritedFields(

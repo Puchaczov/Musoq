@@ -419,6 +419,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'Item'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Item : TextInterpreterBase<Item>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -464,6 +465,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for text schema 'Document'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Document : TextInterpreterBase<Document>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -554,7 +556,7 @@ namespace Musoq.Generated.Interpreters
             var _iteration__items = 0;
             while (!IsAtEnd(data))
             {
-                EnsureRepeatIteration("Items", _iteration__items++);
+                EnsureRepeatIteration("Items", _iteration__items++, 10000);
                 var _startPos__items = ParsePosition;
                 var _item__items = ParseNested(_interp_Item, data, "Items");
                 EnsureRepeatMadeProgress("Items", _startPos__items);

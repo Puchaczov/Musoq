@@ -144,7 +144,13 @@ namespace GeneratedSample_Q120_ScriptParametersWhereSelect
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 decimal population = ko3iko.Population;
-                                if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (population > paramMinPopulation))) == true)
+                                if (((((bool?)(Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(population > paramMinPopulation),
+                                    _ => (bool?)(population > paramMinPopulation) & (bool?)null
+
+                                })) == true)
                                 {
                                     yield return new ResultRow0(ko3iko.Name, population, paramCountry);
                                 }
@@ -165,7 +171,13 @@ namespace GeneratedSample_Q120_ScriptParametersWhereSelect
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 decimal population = ko3iko.Population;
-                                if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (population > paramMinPopulation))) == true)
+                                if (((((bool?)(Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(population > paramMinPopulation),
+                                    _ => (bool?)(population > paramMinPopulation) & (bool?)null
+
+                                })) == true)
                                 {
                                     yield return new ResultRow0(ko3iko.Name, population, paramCountry);
                                 }
@@ -184,7 +196,13 @@ namespace GeneratedSample_Q120_ScriptParametersWhereSelect
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         decimal population = ko3iko.Population;
-                        if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (population > paramMinPopulation))) == true)
+                        if (((((bool?)(Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(population > paramMinPopulation),
+                            _ => (bool?)(population > paramMinPopulation) & (bool?)null
+
+                        })) == true)
                         {
                             yield return new ResultRow0(ko3iko.Name, population, paramCountry);
                         }

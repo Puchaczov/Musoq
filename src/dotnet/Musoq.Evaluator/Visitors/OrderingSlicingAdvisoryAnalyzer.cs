@@ -1,3 +1,4 @@
+using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -28,6 +29,7 @@ internal static class OrderingSlicingAdvisoryAnalyzer
                 return;
 
             case SetOperatorNode setOperator:
+                ReportUnorderedSkip(context, setOperator.ResultSkip, setOperator.ResultOrderBy);
                 Visit(context, setOperator.Left, outerOrdering);
                 Visit(context, setOperator.Right, outerOrdering);
                 return;
@@ -52,18 +54,37 @@ internal static class OrderingSlicingAdvisoryAnalyzer
             Visit(context, child, outerOrdering);
     }
 
+    private static bool MaySkipRows(SemanticAdvisoryContext context, Node operand)
+    {
+        if (operand is IntegerNode integer)
+            return Convert.ToDecimal(integer.ObjValue, System.Globalization.CultureInfo.InvariantCulture) > 0;
+        var name = operand switch
+        {
+            ParameterReferenceNode parameter => parameter.Name,
+            ScriptVariableReferenceNode variable => variable.Name,
+            _ => null
+        };
+        var definition = context.Metadata.ScriptVariableDefinitions.FirstOrDefault(variable => variable.Name == name);
+        return definition == null || Convert.ToDecimal(definition.Value, System.Globalization.CultureInfo.InvariantCulture) != 0;
+    }
+
+    private static void ReportUnorderedSkip(SemanticAdvisoryContext context, SkipNode? skip, OrderByNode? orderBy)
+    {
+        if (skip == null || orderBy != null || !MaySkipRows(context, skip.Expression))
+            return;
+
+        context.Report(
+            DiagnosticCode.MQ5021_UnorderedSkip,
+            ErrorCatalog.GetMessage(DiagnosticCode.MQ5021_UnorderedSkip, skip.Expression.ToString()),
+            skip.SpanOrEmpty());
+    }
+
     private static void VisitQuery(
         SemanticAdvisoryContext context,
         QueryNode query,
         bool outerOrdering)
     {
-        if (query.Skip is { Value: > 0 } skip && query.OrderBy == null)
-        {
-            context.Report(
-                DiagnosticCode.MQ5021_UnorderedSkip,
-                ErrorCatalog.GetMessage(DiagnosticCode.MQ5021_UnorderedSkip, skip.Value),
-                skip.SpanOrEmpty());
-        }
+        ReportUnorderedSkip(context, query.Skip, query.OrderBy);
 
         var childOuterOrdering = outerOrdering || query.OrderBy != null;
 

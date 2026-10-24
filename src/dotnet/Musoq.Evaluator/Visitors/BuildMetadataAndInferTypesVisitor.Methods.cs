@@ -1,5 +1,4 @@
 using System.Reflection;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -25,6 +24,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!TryResolveMethodWithRecovery(node, args, methodContext, out var method, out var canSkipInjectSource))
             return;
 
+        if (methodContext.IsUnopenedSource)
+            SourceArgumentMethodValidation.Validate(node, method);
+
         method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
         SuspiciousOrdinaryStringEscapeDiagnostics.ReportMethodArgumentRisks(DiagnosticContext, args, node.Arguments,
             method, canSkipInjectSource);
@@ -33,14 +35,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         node.ChangeMethod(method);
         FinalizeMethodVisit(method, accessMethod);
-    }
-
-    private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
-    {
-        var nodeFromStack = PopSemanticNode(nameof(GetAndValidateArgs));
-        if (nodeFromStack is not ArgsListNode args)
-            throw CannotResolveMethodException.CreateForNullArguments(node.Name);
-        return args;
     }
 
 }

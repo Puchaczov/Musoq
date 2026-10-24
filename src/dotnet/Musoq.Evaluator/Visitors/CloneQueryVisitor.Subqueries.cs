@@ -1,4 +1,5 @@
 using Musoq.Parser.Nodes;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -11,15 +12,10 @@ public partial class CloneQueryVisitor
         Nodes.Push(new InQueryNode(left, subquery).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
-    public override void Visit(ExistsQueryNode node)
-    {
-        var subquery = Nodes.Pop();
-        Nodes.Push(new ExistsQueryNode(subquery).WithSpan(node.Span).WithFullSpan(node.FullSpan));
-    }
+    public override void Visit(ExistsQueryNode node) => Nodes.Push(PredicateSubqueryCloner.Clone(node, Nodes));
 
     public override void Visit(ScalarSubqueryNode node)
     {
-        var subquery = Nodes.Pop();
-        Nodes.Push(new ScalarSubqueryNode(subquery).WithSpan(node.Span).WithFullSpan(node.FullSpan));
+        Nodes.Push(SubqueryApplyCloner.Clone(node, Nodes));
     }
 }

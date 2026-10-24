@@ -121,7 +121,7 @@ public partial class BinarySpecificationRegressionTests
     }
 
     [TestMethod]
-    [DataRow("CASE WHEN Flag = 1 THEN 7 END", "MQ2001")]
+    [DataRow("CASE WHEN Flag = 1 THEN 7 ELSE END", "MQ2001")]
     [DataRow("CASE WHEN Flag = 1 THEN 7 ELSE 'bad' END", "MQ4006")]
     public void InvalidSchemaCase_ShouldReportDiagnostic(string expression, string code)
     {

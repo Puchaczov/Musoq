@@ -26,7 +26,15 @@ Follow `.editorconfig`: UTF-8, CRLF, spaces, four-space indentation, and no trai
 
 ## Testing Guidelines
 
-Tests use MSTest in `*.Tests` projects. Add regression coverage beside the changed module, use descriptive behavior-based names, and avoid timing- or machine-dependent assertions. Run focused tests first, then the full Release solution test command before submitting.
+Tests use MSTest in `*.Tests` projects. Add regression coverage beside the changed module, use descriptive behavior-based names, and avoid timing- or machine-dependent assertions. Choose validation by change impact using the [validation policy](.claude/rules/validation.md#validation-by-change-impact):
+
+- Prose, formatting, links, agent instructions, and reordered unchanged examples need diff, link/anchor, formatting, and preservation checks; no solution build or tests are required.
+- Added or changed executable examples must be executed and checked against expected results; build only what execution requires.
+- Test-only changes require building affected test projects and running affected tests; broaden to affected projects for shared helpers or fixtures.
+- Tooling, scripts, CI, and build configuration changes require applicable syntax/configuration checks and exercising affected paths; build or test affected projects when compilation or test execution changes.
+- Production code, runtime dependencies, and configuration affecting runtime behavior require focused regression checks, the Release solution build, and full Release solution tests. Preserve release-specific qualification gates.
+
+Classify changes by their effects rather than file extensions or directories. Mixed changes use the combined requirements. Broaden checks when failures or unresolved impact justify it, and report checks performed and any limitations.
 
 ## Commit & Pull Request Guidelines
 

@@ -35,6 +35,12 @@ public static partial class ExecutionPlanPrinter
             builder.AppendLine();
             builder.AppendLine("  Body");
             AppendBlock(builder, plan.Body, 4);
+            foreach (var nested in ExecutionSubqueryPlans.SelfAndDescendants(plan).Skip(1))
+            {
+                builder.AppendLine();
+                builder.AppendLine("  Subquery");
+                builder.AppendLine(Print(nested));
+            }
             return NormalizeLineEndings(builder.ToString().TrimEnd());
         }
         finally

@@ -135,7 +135,7 @@ public partial class SchemaParser
         if (!string.Equals(Current.Value, "eof", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        return PeekNextTokenType() is TokenType.Comma or TokenType.RBracket or TokenType.EndOfFile
+        return PeekNextTokenType() is TokenType.Comma or TokenType.RBracket or TokenType.RightParenthesis or TokenType.EndOfFile
             or TokenType.At or TokenType.When or TokenType.Check
             or TokenType.Identifier or TokenType.Word;
     }

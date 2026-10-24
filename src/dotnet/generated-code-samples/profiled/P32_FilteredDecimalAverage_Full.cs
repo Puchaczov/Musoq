@@ -47,8 +47,7 @@ ExecutionPlan [compiled]
       Let [__expr: bool = (position > 1)]
       EnsureAggregateGroup [group; typed: ResultAggregateGroup]
       TypedAggregateSet [Set(group.__agg0) filter __expr]
-      Let [integral: int? = ko3iko.Integral]
-      TypedAggregateSet [Set(group.__agg1, integral) filter __expr]
+      TypedAggregateSet [Set(group.__agg1, ko3iko.Integral) filter __expr]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
@@ -170,10 +169,9 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
                                 }
 
-                                int? integral = ko3iko.Integral;
                                 if (__expr)
                                 {
-                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                 }
                             }
 
@@ -204,10 +202,9 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
                                 }
 
-                                int? integral = ko3iko.Integral;
                                 if (__expr)
                                 {
-                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                 }
                             }
 
@@ -236,10 +233,9 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                             group.__agg0.Count = checked(group.__agg0.Count + 1L);
                         }
 
-                        int? integral = ko3iko.Integral;
                         if (__expr)
                         {
-                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                         }
                     }
                 }
@@ -287,13 +283,13 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                     var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "ChunkedForEach") ?? OperatorProfileHandle.None;
                     var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "EnsureAggregateGroup") ?? OperatorProfileHandle.None;
                     var __op20Handle = profileRecorder?.GetOperatorHandle("op20", "TypedAggregateSet") ?? OperatorProfileHandle.None;
-                    var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "TypedAggregateSet") ?? OperatorProfileHandle.None;
-                    var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "AppendShape") ?? OperatorProfileHandle.None;
+                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "TypedAggregateSet") ?? OperatorProfileHandle.None;
+                    var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "AppendShape") ?? OperatorProfileHandle.None;
                     long __op20OutputRows = 0L;
-                    long __op22OutputRows = 0L;
-                    long __op26OutputRows = 0L;
+                    long __op21OutputRows = 0L;
+                    long __op25OutputRows = 0L;
                     var __op11Scope = profileRecorder?.BeginOperatorValue(__op11Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
                     __op11Scope.Dispose();
@@ -349,13 +345,12 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                                         }
 
                                         __op20OutputRows += 1;
-                                        int? integral = ko3iko.Integral;
                                         if (__expr)
                                         {
-                                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                         }
 
-                                        __op22OutputRows += 1;
+                                        __op21OutputRows += 1;
                                     }
 
                                     continue;
@@ -390,13 +385,12 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                                         }
 
                                         __op20OutputRows += 1;
-                                        int? integral = ko3iko.Integral;
                                         if (__expr)
                                         {
-                                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                         }
 
-                                        __op22OutputRows += 1;
+                                        __op21OutputRows += 1;
                                     }
 
                                     continue;
@@ -429,13 +423,12 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                                 }
 
                                 __op20OutputRows += 1;
-                                int? integral = ko3iko.Integral;
                                 if (__expr)
                                 {
-                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)integral);
+                                    Musoq.Plugins.AverageKernel<int, decimal>.Set(ref group.__agg1, (int?)ko3iko.Integral);
                                 }
 
-                                __op22OutputRows += 1;
+                                __op21OutputRows += 1;
                             }
                         }
                     }
@@ -447,36 +440,36 @@ namespace GeneratedSample_P32_FilteredDecimalAverage_Full
                     }
 
                     __musoqFinalShapeRows.EnsureCapacity(groupsToFinalize.Count);
-                    var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
+                    var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
-                    __op24Scope.Dispose();
-                    long __op25InputRows = 0L;
-                    long __op25OutputRows = 0L;
-                    var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
+                    __op23Scope.Dispose();
+                    long __op24InputRows = 0L;
+                    long __op24OutputRows = 0L;
+                    var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         foreach (var finalGroup in groupsToFinalize)
                         {
                             token.ThrowIfCancellationRequested();
-                            __op25InputRows++;
-                            __op25OutputRows++;
+                            __op24InputRows++;
+                            __op24OutputRows++;
                             __musoqFinalShapeRows.Add(new ResultRow0(Musoq.Plugins.AverageKernel<int, decimal>.Get(in finalGroup.__agg1), finalGroup.__agg0.Count));
-                            __op26OutputRows += 1;
+                            __op25OutputRows += 1;
                         }
                     }
                     finally
                     {
-                        __op25Scope.AddInputRows(__op25InputRows);
-                        __op25Scope.AddOutputRows(__op25OutputRows);
-                        __op25Scope.Dispose();
+                        __op24Scope.AddInputRows(__op24InputRows);
+                        __op24Scope.AddOutputRows(__op24OutputRows);
+                        __op24Scope.Dispose();
                     }
 
                     if (__op20OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op20Handle, __op20OutputRows);
-                    if (__op22OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op22Handle, __op22OutputRows);
-                    if (__op26OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op26Handle, __op26OutputRows);
+                    if (__op21OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op21Handle, __op21OutputRows);
+                    if (__op25OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op25Handle, __op25OutputRows);
                     return __musoqFinalShapeRows;
                 }
                 finally

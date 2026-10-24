@@ -10,12 +10,14 @@ public sealed partial class ExecutionCSharpRenderer
         public ExpressionSyntax Render(ExecutionExpression expression) =>
             expression switch
             {
+                ExecutionSubquery subquery => renderer.RenderSubquery(subquery, context),
                 ExecutionFieldRead fieldRead => renderer.RenderFieldRead(fieldRead, context),
                 ExecutionStructuralArray structuralArray => StructuralInputSyntaxFactory.RenderArray(structuralArray, context, renderer),
                 ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan => StructuralInputSyntaxFactory.RenderConstruction(structuralRecord, plan, context, renderer),
                 ExecutionStructuralRecord structuralRecord => StructuralLiteralSyntaxFactory.RenderRecord(structuralRecord, context, renderer),
                 ExecutionStructuralConversion conversion => StructuralInputSyntaxFactory.RenderConversion(conversion, context, renderer),
                 ExecutionCteCollectionInput cteCollection => StructuralInputSyntaxFactory.RenderCteCollection(cteCollection, context, renderer),
+                ExecutionUnionMemberRead union => renderer.RenderUnionMemberRead(union, context),
                 ExecutionMemberRead memberRead => renderer.RenderMemberRead(memberRead, context),
                 ExecutionScriptParameterRead parameterRead => CreateIdentifierName(renderer.GetScriptParameterLocalName(parameterRead.Name)),
                 ExecutionScriptVariableRead variableRead => CreateIdentifierName(renderer.GetScriptVariableLocalName(variableRead.Name)),
@@ -38,6 +40,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionBetween between => renderer.RenderBetween(between, context),
                 ExecutionCaseWhen caseWhen => renderer.RenderCaseWhen(caseWhen, context),
                 ExecutionCoalesce coalesce => renderer.RenderCoalesce(coalesce, context),
+                ExecutionStringConcatenation concatenation => renderer.RenderStringConcatenation(concatenation, context),
                 ExecutionRowStream { Kind: ExecutionRowStreamKind.Rows, RowsAccess: ExecutionRowStreamRowsAccess.TableRows } rows =>
                     context.Session.TypedRowBufferVariables.ContainsKey(rows.Variable.Name)
                         ? CreateIdentifierName(rows.Variable.Name)

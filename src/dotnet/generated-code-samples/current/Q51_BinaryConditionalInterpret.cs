@@ -291,6 +291,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'OptionalPacket'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class OptionalPacket : BytesInterpreterBase<OptionalPacket>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -342,7 +343,8 @@ namespace Musoq.Generated.Interpreters
             int? _value = null;
             if (((((int)(_hasValue)) == ((int)(1)))) == true)
             {
-                _value = ReadInt32Le(data);
+                var _value_value = ReadInt32Le(data);
+                _value = _value_value;
             }
 
             __parsedValue.Value = _value;

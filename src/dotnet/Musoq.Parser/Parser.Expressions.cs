@@ -79,26 +79,7 @@ public partial class Parser
                 ReplaceCurrentToken(new ColumnToken(Current.Value, Current.Span));
 
             var right = ComposeArithmeticExpression(nextMinPrecedence, curr.TokenType != TokenType.Dot);
-            left = curr.TokenType switch
-            {
-                TokenType.Plus => new AddNode(left, right),
-                TokenType.Hyphen => new HyphenNode(left, right),
-                TokenType.Star => new StarNode(left, right),
-                TokenType.FSlash => new FSlashNode(left, right),
-                TokenType.Mod => new ModuloNode(left, right),
-                TokenType.Dot => new DotNode(left, right, string.Empty),
-                TokenType.Ampersand => new BitwiseAndNode(left, right),
-                TokenType.Pipe => new BitwiseOrNode(left, right),
-                TokenType.Caret => new BitwiseXorNode(left, right),
-                TokenType.LeftShift => new LeftShiftNode(left, right),
-                TokenType.RightShift => new RightShiftNode(left, right),
-                TokenType.NullCoalescing => new CoalesceNode(left, right),
-                _ => throw new SyntaxException(
-                    $"{curr.TokenType} is not supported while parsing expression.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ2001_UnexpectedToken,
-                    curr.Span)
-            };
+            left = ArithmeticExpressionSyntax.Create(curr.TokenType, left, right);
         }
 
         return left;

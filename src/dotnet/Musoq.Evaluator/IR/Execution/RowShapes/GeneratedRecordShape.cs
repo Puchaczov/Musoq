@@ -13,7 +13,7 @@ public sealed record GeneratedRecordShape : RowShape
         : base(typeName, fields)
     {
         TypeName = typeName;
-        Fields = ExecutionIrCollections.Freeze(fields);
+        Fields = fields;
         EmitAsValueType = emitAsValueType;
     }
 

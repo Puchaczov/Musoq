@@ -101,7 +101,6 @@ public partial class SchemaParser
 
         var typeAnnotation = ComposeTypeAnnotation(name);
 
-        if (Current.TokenType == TokenType.Repeat) typeAnnotation = ComposeRepeatUntilType(typeAnnotation, name);
 
         var valueValidation = ComposeOptionalFieldValueValidation(typeAnnotation, name);
         var atOffset = ComposeOptionalAtOffset();
@@ -120,6 +119,8 @@ public partial class SchemaParser
 
     private bool IsComputedFieldStart()
     {
+        if (Current.TokenType == TokenType.LeftParenthesis && IsGroupedBinaryTypeStart())
+            return false;
         if (Current.TokenType is TokenType.Case or TokenType.Not or TokenType.Null or TokenType.Function)
             return true;
         if (IsTypeKeyword(Current.TokenType))
@@ -144,7 +145,7 @@ public partial class SchemaParser
                 or TokenType.Comma or TokenType.RBracket)
                 return false;
 
-            if (MatchValidationKeyword(_peekedToken) is not null)
+            if (MatchValidationKeyword(_tokens.Peek(1)) is not null)
                 return false;
 
             return true;
@@ -163,7 +164,7 @@ public partial class SchemaParser
                 or TokenType.Comma or TokenType.RBracket)
                 return false;
 
-            if (MatchValidationKeyword(_peekedToken) is not null)
+            if (MatchValidationKeyword(_tokens.Peek(1)) is not null)
                 return false;
 
             return true;
@@ -180,7 +181,6 @@ public partial class SchemaParser
 
         var typeAnnotation = ComposeTypeAnnotation(name);
 
-        if (Current.TokenType == TokenType.Repeat) typeAnnotation = ComposeRepeatUntilType(typeAnnotation, name);
 
         var valueValidation = ComposeOptionalFieldValueValidation(typeAnnotation, name);
         var atOffset = ComposeOptionalAtOffset();

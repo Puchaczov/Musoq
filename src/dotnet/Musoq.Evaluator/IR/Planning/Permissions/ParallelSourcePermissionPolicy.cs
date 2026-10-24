@@ -19,10 +19,9 @@ internal sealed class ParallelSourcePermissionPolicy
             .GroupBy(static definition => definition.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(static group => group.Key, static group => group.Select(definition => definition.Plan).ToArray(),
                 StringComparer.OrdinalIgnoreCase);
-        var declaredNames = _definitions.Keys.ToArray();
         foreach (var statements in Flatten(plan).OfType<PhysicalMultiStatementNode>())
         {
-            foreach (var producer in IntermediateSourceProducers.Resolve(statements, declaredNames))
+            foreach (var producer in IntermediateSourceProducers.Resolve(statements))
             {
                 if (producer.Value >= statements.Statements.Length)
                     continue;

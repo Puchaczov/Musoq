@@ -178,7 +178,7 @@ internal static class CSharpClrCompiledArtifactLoader
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion,
-            ExecutionSemanticsContract.Version1.Version.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ExecutionSemanticsContract.Current.Version.ToString(System.Globalization.CultureInfo.InvariantCulture),
             diagnostics);
         cancellationToken.ThrowIfCancellationRequested();
         ValidateOptionalMetadataValue(

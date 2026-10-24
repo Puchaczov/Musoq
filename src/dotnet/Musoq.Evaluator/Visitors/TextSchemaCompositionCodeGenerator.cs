@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -22,7 +21,7 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {interpreterVar} = new {schemaName}();");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"var {resultVar} = ParseNested({interpreterVar}, data, \"{EscapeCSharpString(field.Name)}\");");
+            $"var {resultVar} = ParseNested({interpreterVar}, data, \"{InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field))}\");");
 
         if (isDiscard)
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"_ = {resultVar};");
@@ -30,11 +29,6 @@ public partial class InterpreterCodeGenerator
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar} = {resultVar};");
 
         return builder.ToString();
-    }
-
-    private TextSchemaNode RequireTextSwitchSchema(TextFieldDefinitionNode field, string schemaName)
-    {
-        return RequireTextSchema(field, schemaName, "switch");
     }
 
     private TextSchemaNode RequireTextSchema(

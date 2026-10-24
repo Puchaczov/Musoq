@@ -10,7 +10,7 @@ Every time you generate a plan for a task, the **penultimate step** (second-to-l
 
 > **Re-read `copilot-instructions.md` and verify that all created or modified code follows every rule defined in it** — especially the Code Quality & Maintainability Standards section. If any violations are found, fix them before marking the task complete.
 
-This is non-negotiable. Delivering working code that violates project standards is not acceptable. The final step of any plan should be running the relevant tests; the step immediately before that is the compliance check against these instructions.
+This is non-negotiable. Delivering working code that violates project standards is not acceptable. The final step of any plan should be running the relevant validation selected by the Validation by Change Impact policy; the step immediately before that is the compliance check against these instructions. Documentation and instruction-only changes can finish with diff, link, formatting, and consistency checks without running tests.
 
 ## What is Musoq?
 
@@ -55,7 +55,7 @@ When two files appear to disagree, the more specific one wins for its scope: per
 - **Package Management**: Packable projects are packaged explicitly with `dotnet pack`; release versions and publication are tag-driven, as defined by the [release guide](../docs/releasing.md), [Publish workflow](workflows/publish.yml), and [release scripts](../scripts/release/).
 
 ### Core Development Workflow
-Bootstrap, build, and test the repository:
+Use this bootstrap/build/test workflow when required by the Validation by Change Impact policy. For production changes, run focused regression checks before the solution build and full suite. Documentation and other non-runtime changes use the applicable checks from that policy; cleaning and packaging remain conditional on the task.
 ```bash
 # 1. Initial setup - takes ~30 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet
@@ -257,8 +257,23 @@ For benchmark commands, result interpretation thresholds, baseline workflow, and
 
 ## Validation
 
+### Validation by Change Impact
+
+Choose validation by the effects of the change, not its file extension or directory. Mixed changes use the combined requirements below. Broaden checks when failures or unresolved impact justify it, and report the checks performed and any limitations.
+
+| Change | Required validation |
+|---|---|
+| Prose, formatting, links, agent instructions, or reordered unchanged examples | Review the diff; check affected links, anchors, formatting, and example preservation. No solution build or tests are required. |
+| Added or changed executable examples | Execute affected examples and compare expected results. Build only what execution requires. |
+| Tests or test fixtures only | Build affected test projects and run affected tests. Broaden to affected projects when shared helpers or fixtures change. |
+| Tooling, scripts, CI, or build configuration | Run applicable syntax/configuration checks and exercise affected paths. Build or test affected projects when compilation or test execution changes. |
+| Production code, dependencies, or configuration affecting runtime behavior | Run focused regression checks, then the Release solution build and full Release solution tests. |
+| Release qualification | Preserve all existing release-specific gates. |
+
+Documentation and test-only changes do not require the full solution suite solely because they are located in a production module. Runtime dependency updates and build/configuration changes affecting runtime behavior follow the production-change requirements.
+
 ### Manual Testing and Validation Scenarios
-- **ALWAYS run the full test suite** after making changes: `dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal" --logger "trx"`
+- **For production changes, run the full Release solution test suite** after focused regression checks and the Release solution build: `dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal" --logger "trx"`
 - **The test suite validates core functionality** across parsing, semantic analysis, logical/physical planning, IR rendering, compilation, execution, plugins, and schema resolution. Test counts change as the planner grows; use the current command output as authoritative.
 - **For targeted testing**, run specific modules:
   ```bash
@@ -346,7 +361,7 @@ After making changes to core components, validate actual SQL functionality:
    -- Should fail with clear error message
    ```
 
-**CRITICAL**: Always test at least one complete query execution after making changes to verify the entire pipeline works.
+**For changes affecting query behavior**, test at least one complete query execution to verify the entire pipeline works. An appropriate existing end-to-end test can satisfy this requirement.
 
 ## Common Development Tasks
 

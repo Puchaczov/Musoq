@@ -78,7 +78,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         _queryState.CachedSetFields.TryAdd(
             cachedSetOperatorKey,
-            ResolveFieldsForCache(anchorFields, memberFields));
+            [..anchorFields]);
         UpdateProvisionalRecursiveColumns(cteName, anchorFields);
     }
 

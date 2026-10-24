@@ -15,11 +15,13 @@ internal sealed partial class PhysicalLoweringImplementation
         string identifier,
         LoweringScope scope)
     {
-        var indexes = CreateMultiStatementIndexes(multiStatement);
+        var indexes = CreateMultiStatementIndexes(multiStatement,
+            existingCteShapesByName: scope.SubqueryCtes.ToDictionary(static binding => binding.Name, static binding => binding.Shape, StringComparer.OrdinalIgnoreCase),
+            statementNamePrefix: string.IsNullOrEmpty(scope.GeneratedTypePrefix) ? null : scope.GeneratedTypePrefix);
         var result = BuildMultiStatementTable(
             multiStatement,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             indexes,
             scopeAggregateVariables: true,
             scope);
@@ -144,6 +146,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     inheritedInputPlans);
             }
 
+            _shapeResolver.Subqueries.Register(effectiveStatement, indexes.CteIndexes, indexes.CteShapesByName, scope.SubqueryCtes);
             var result = BuildStatementTable(
                 effectiveStatement,
                 statementTableName,

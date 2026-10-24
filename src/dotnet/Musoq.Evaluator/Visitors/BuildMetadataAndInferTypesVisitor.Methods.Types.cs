@@ -13,7 +13,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         string Alias,
         TableSymbol TableSymbol,
         (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
-        Type EntityType);
+        Type EntityType,
+        bool IsUnopenedSource = false);
 
     private readonly record struct AggregateResolutionSignature(MethodInfo Method, MethodInfo SetMethod)
     {

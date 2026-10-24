@@ -68,10 +68,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [ko3iko in cte0_ko3ikoRows]
       Let [month: string = ko3iko.Month]
       EnsureAggregateGroup [cte0Group; typed: Cte0AggregateGroup]
-      Let [money: decimal = ko3iko.Money]
-      TypedAggregateSet [Set(cte0Group.__agg0, money) filter (month = 'Feb')]
-      Let [money1: decimal = ko3iko.Money]
-      TypedAggregateSet [Set(cte0Group.__agg1, money1) filter (month = 'Jan')]
+      TypedAggregateSet [Set(cte0Group.__agg0, ko3iko.Money) filter (month = 'Feb')]
+      TypedAggregateSet [Set(cte0Group.__agg1, ko3iko.Money) filter (month = 'Jan')]
     EnsureCapacity [cte0 <- cte0GroupsToFinalize.Count]
     PhaseBoundary [Select:cte0]
     ForEach [cte0FinalGroup in cte0GroupsToFinalize]
@@ -227,11 +225,10 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                                     cte0GroupsToFinalize.Add(cte0Group);
                                 }
 
-                                decimal money = ko3iko.Money;
                                 if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     {
-                                        var __agg0Input = (decimal?)money;
+                                        var __agg0Input = (decimal?)ko3iko.Money;
                                         if (__agg0Input.HasValue)
                                         {
                                             var __agg0Current = __agg0Input.GetValueOrDefault();
@@ -241,11 +238,10 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                                     }
                                 }
 
-                                decimal money1 = ko3iko.Money;
                                 if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     {
-                                        var __agg1Input = (decimal?)money1;
+                                        var __agg1Input = (decimal?)ko3iko.Money;
                                         if (__agg1Input.HasValue)
                                         {
                                             var __agg1Current = __agg1Input.GetValueOrDefault();
@@ -277,11 +273,10 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                                     cte0GroupsToFinalize.Add(cte0Group);
                                 }
 
-                                decimal money = ko3iko.Money;
                                 if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     {
-                                        var __agg0Input = (decimal?)money;
+                                        var __agg0Input = (decimal?)ko3iko.Money;
                                         if (__agg0Input.HasValue)
                                         {
                                             var __agg0Current = __agg0Input.GetValueOrDefault();
@@ -291,11 +286,10 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                                     }
                                 }
 
-                                decimal money1 = ko3iko.Money;
                                 if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     {
-                                        var __agg1Input = (decimal?)money1;
+                                        var __agg1Input = (decimal?)ko3iko.Money;
                                         if (__agg1Input.HasValue)
                                         {
                                             var __agg1Current = __agg1Input.GetValueOrDefault();
@@ -325,11 +319,10 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                             cte0GroupsToFinalize.Add(cte0Group);
                         }
 
-                        decimal money = ko3iko.Money;
                         if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                         {
                             {
-                                var __agg0Input = (decimal?)money;
+                                var __agg0Input = (decimal?)ko3iko.Money;
                                 if (__agg0Input.HasValue)
                                 {
                                     var __agg0Current = __agg0Input.GetValueOrDefault();
@@ -339,11 +332,10 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                             }
                         }
 
-                        decimal money1 = ko3iko.Money;
                         if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                         {
                             {
-                                var __agg1Input = (decimal?)money1;
+                                var __agg1Input = (decimal?)ko3iko.Money;
                                 if (__agg1Input.HasValue)
                                 {
                                     var __agg1Current = __agg1Input.GetValueOrDefault();

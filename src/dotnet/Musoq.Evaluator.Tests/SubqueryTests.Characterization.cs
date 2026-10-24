@@ -42,12 +42,11 @@ public partial class SubqueryTests
             ["WARSAW", "Y"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("-> PredicateHashMark", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
     }
 
     [TestMethod]
-    public void Characterization_CorrelatedScalarAggregateInJoinOn_ShouldDecorrelateBeforeJoiningRightSource()
+    public void Characterization_CorrelatedScalarAggregateInJoinOn_ShouldExecuteOnlyWhenJoinPredicateDemandsIt()
     {
         const string query = @"
             SELECT a.City, b.City
@@ -72,9 +71,8 @@ public partial class SubqueryTests
             ["WARSAW", "KRAKOW"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
-        AssertNoPerRowSubqueryExecution(inspection);
+        Assert.Contains("-> Apply", inspection.PlanningText);
+
     }
 
     [TestMethod]

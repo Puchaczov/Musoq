@@ -4,6 +4,25 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
+    private static bool TryReconcileNullSetFields(ref FieldNode left, ref FieldNode right)
+    {
+        var leftType = left.Expression.ReturnType;
+        var rightType = right.Expression.ReturnType;
+        var leftIsNull = leftType is NullNode.NullType;
+        var rightIsNull = rightType is NullNode.NullType;
+        if (!leftIsNull && !rightIsNull)
+            return false;
+        if (leftIsNull && rightIsNull)
+            return true;
+
+        var type = (leftIsNull ? rightType : leftType)!;
+        if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
+            type = typeof(Nullable<>).MakeGenericType(type);
+        left = PromoteSetFieldToNullable(left, type);
+        right = PromoteSetFieldToNullable(right, type);
+        return true;
+    }
+
     private static bool TryReconcileNullableSetFields(ref FieldNode left, ref FieldNode right)
     {
         var leftType = left.Expression.ReturnType;
@@ -26,6 +45,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         if (field.Expression.ReturnType == nullableType)
             return field;
+
+        if (field.Expression is NullNode)
+            return new FieldNode(new NullNode(nullableType, field.Expression.Span),
+                field.FieldOrder, field.FieldName, field.Span);
 
         var expression = new CastNode(field.Expression, Nullable.GetUnderlyingType(nullableType)!.Name, nullableType)
             .WithSpan(field.Expression.Span);

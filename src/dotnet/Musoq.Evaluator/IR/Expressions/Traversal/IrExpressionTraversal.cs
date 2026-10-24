@@ -12,7 +12,7 @@ internal static class IrExpressionTraversal
 
         return expression switch
         {
-            ColumnRef or Literal or WildcardLiteral or ScriptParameterRef or ScriptVariableRef or RowPresence or
+            SubqueryExpression or SubqueryParameterRef or ColumnRef or Literal or WildcardLiteral or ScriptParameterRef or ScriptVariableRef or RowPresence or
                 AggregateRef or WindowFunctionRef or CteTableRef or CteCollectionInput or BinaryOp or UnaryOp or ArrayAccess or
                 IsNullCheck or InCheck or CollectionInCheck or PatternMatch or Between or CaseWhen or Coalesce or
                 MethodCall or StrictCast or StructuralRecordLiteral or StructuralArrayLiteral or StructuralConversion => true,
@@ -27,6 +27,10 @@ internal static class IrExpressionTraversal
 
         switch (expression)
         {
+            case SubqueryExpression subquery:
+                foreach (var input in subquery.Inputs)
+                    yield return input;
+                yield break;
             case BinaryOp binary:
                 yield return binary.Left;
                 yield return binary.Right;

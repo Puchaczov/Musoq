@@ -17,7 +17,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var table = BuildSetOperationTable(
             pipeline,
             "result",
-            "ResultRow0",
+            scope.GeneratedTypePrefix + "ResultRow0",
             cteIndexes,
             cteShapesByName: null,
             schemaFromIndex: DefaultSchemaFromIndex,
@@ -125,15 +125,7 @@ internal sealed partial class PhysicalLoweringImplementation
             setOperation.Kind,
             setOperation.FieldIndexes,
             setOperation.FieldTypes,
-            ResolveSetOperationStrategy(strategy))
-        {
-            DistinctFieldIndexes = setOperation.Kind == Musoq.Evaluator.IR.Logical.Nodes.SetOpKind.Intersect && setOperation.ResultIsDistinct
-                ? ExecutionIrCollections.Freeze(setOperation.OutputSchema.Columns.Select(static column => column.Index).ToArray())
-                : [],
-            DistinctFieldTypes = setOperation.Kind == Musoq.Evaluator.IR.Logical.Nodes.SetOpKind.Intersect && setOperation.ResultIsDistinct
-                ? ExecutionClrBindingFactory.FromClrTypes(setOperation.OutputSchema.Columns.Select(static column => column.Type).ToArray())
-                : []
-        });
+            ResolveSetOperationStrategy(strategy)));
 
         var requiresResultShape = RequiresSetOperationResultShape(setOperation.OutputSchema, left.RowShape);
         var resultShape = requiresResultShape

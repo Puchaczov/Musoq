@@ -18,7 +18,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     internal static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity,
         [NotNullWhen(true)] out MethodInfo? constructedMethod)
     {
-        if (args.Args.Any(static argument => argument is RecordLiteralNode) || methodInfo.GetGenericArguments().Length > 1 || methodInfo.GetParameters().Any(static parameter => global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType) || parameter.ParameterType.IsGenericType))
+        if (args.Args.Any(static argument => argument is RecordLiteralNode) || methodInfo.GetGenericArguments().Length > 1 || methodInfo.GetParameters().Any(static parameter => global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType) || parameter.ParameterType.IsGenericType || parameter.ParameterType.IsArray))
             return ScalarGenericMethodConstruction.TryConstruct(methodInfo, args, entity, out constructedMethod);
         var genericArguments = methodInfo.GetGenericArguments();
         var genericArgumentsDistinct = new List<Type>();

@@ -200,6 +200,10 @@ internal sealed class CteSourceBackedNodeRewriter
                 return TryRewriteBetween(between, out rewritten);
             case ExecutionCaseWhen caseWhen:
                 return TryRewriteCaseWhen(caseWhen, out rewritten);
+            case ExecutionStringConcatenation concatenation:
+                return TryRewriteExpressionList(concatenation.Expressions, out var concatenationExpressions)
+                    ? Succeed(concatenation with { Expressions = concatenationExpressions }, out rewritten)
+                    : Fail(out rewritten);
             case ExecutionCoalesce coalesce:
                 return TryRewriteExpressionList(coalesce.Expressions, out var coalesceExpressions)
                     ? Succeed(coalesce with { Expressions = coalesceExpressions }, out rewritten)

@@ -8,7 +8,7 @@ public sealed record ExecutionBlock
 
     public ExecutionBlock(IReadOnlyList<ExecutionNode> nodes)
     {
-        Nodes = ExecutionIrCollections.Freeze(nodes);
+        Nodes = nodes;
     }
 
     public IReadOnlyList<ExecutionNode> Nodes

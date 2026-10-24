@@ -1,4 +1,5 @@
 using Musoq.Parser.Nodes;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -95,12 +96,12 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(WindowFunctionNode node)
     {
-        Nodes.Push(node);
+        Nodes.Push(SubqueryWindowCloner.Clone(node, Nodes));
     }
 
     public void Visit(WindowSpecificationNode node)
     {
-        Nodes.Push(node);
+        Nodes.Push(SubqueryWindowCloner.Clone(node, Nodes));
     }
 
     public void Visit(WindowFrameNode node)

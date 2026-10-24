@@ -19,7 +19,7 @@ internal static class TypedExecutionValueValidation
         {
             foreach (var field in shape.Fields)
             {
-                if (field.GeneratedTypeName != null)
+                if (field.GeneratedTypeName != null || field.InterpretationShape != null)
                     continue;
                 var unresolved = ConcreteValueShape.FindUnresolvedValueType(field.Type.ResolveClrType());
                 if (unresolved != null && reportedFields.Add((field.QualifiedName, unresolved)))
@@ -39,6 +39,7 @@ internal static class TypedExecutionValueValidation
         }
         foreach (var member in expressions.OfType<ExecutionMemberRead>())
         {
+            if (member.InterpretationShape != null) continue;
             var unresolved = ConcreteValueShape.FindUnresolvedValueType(member.ReturnType.ResolveClrType());
             if (unresolved != null)
                 Report(diagnostics, $"Nested member '{member.Receiver.ReturnType.ResolveClrType().Name}.{member.MemberName}'", unresolved);
@@ -62,6 +63,7 @@ internal static class TypedExecutionValueValidation
         {
             if (access.Array is ExecutionScriptParameterRead or ExecutionScriptVariableRead)
                 continue;
+            if (access.Array.InterpretationShape?.Element != null) continue;
             var arrayType = access.Array.ReturnType.ResolveClrType();
             if (arrayType.IsArray && arrayType.GetArrayRank() == 1 &&
                 arrayType.GetElementType() == access.ElementType.ResolveClrType() &&
@@ -101,7 +103,9 @@ internal static class TypedExecutionValueValidation
                 : parameter;
             var generatedParameter = definitionParameter.ParameterType.IsGenericParameter &&
                 call.GeneratedGenericArguments.ContainsKey(definitionParameter.ParameterType.GenericParameterPosition);
-            var unresolved = generatedParameter ? null : ConcreteValueShape.FindUnresolvedValueType(parameter.ParameterType);
+            var closedInterpretationArgument = definitionParameter.ParameterType.ContainsGenericParameters &&
+                index < call.Arguments.Count && call.Arguments[index].InterpretationShape != null;
+            var unresolved = generatedParameter || closedInterpretationArgument ? null : ConcreteValueShape.FindUnresolvedValueType(parameter.ParameterType);
             if (unresolved != null)
                 Report(diagnostics, $"Scalar '{method.Name}' parameter '{parameter.Name}'", unresolved);
         }

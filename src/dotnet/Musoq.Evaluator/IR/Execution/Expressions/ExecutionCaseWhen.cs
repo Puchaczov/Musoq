@@ -12,7 +12,7 @@ public sealed record ExecutionCaseWhen : ExecutionExpression
         ExecutionTypeRef returnType)
         : base(returnType)
     {
-        Branches = ExecutionIrCollections.Freeze(branches);
+        Branches = branches;
         ElseExpression = elseExpression;
         ReturnType = returnType;
     }

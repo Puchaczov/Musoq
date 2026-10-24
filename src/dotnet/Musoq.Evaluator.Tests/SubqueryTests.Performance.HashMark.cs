@@ -9,22 +9,22 @@ public partial class SubqueryTests
     {
         const string query = @"
             SELECT a.City,
-                   CASE WHEN EXISTS (
+                   EXISTS (
                        SELECT b.City FROM #B.entities() b
                        WHERE b.Country = a.Country
-                   ) THEN 'Y' ELSE 'N' END AS HasMatch
+                   ) AS HasMatch
             FROM #A.entities() a";
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("HasMatch", typeof(string)));
+            ("HasMatch", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["WARSAW", "Y"],
-            ["BERLIN", "N"],
-            ["PARIS", "Y"]);
+            ["WARSAW", true],
+            ["BERLIN", false],
+            ["PARIS", true]);
 
         var inspection = CompileSubqueryForInspection(query);
 

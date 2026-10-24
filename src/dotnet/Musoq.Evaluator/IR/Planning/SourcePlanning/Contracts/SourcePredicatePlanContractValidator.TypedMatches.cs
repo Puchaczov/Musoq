@@ -41,22 +41,22 @@ internal static partial class SourcePredicatePlanContractValidator
         SourcePredicateCapabilities capabilities,
         TextSpan span)
     {
-        var acceptedMatches = CollectTopLevelStringMatches(result.AcceptedPredicate, span);
+        var acceptedMatches = CollectTopLevelPatternMatches(result.AcceptedPredicate, span);
         var applications = result.ExecutionPlan.PredicateApplications;
         var consumed = new bool[acceptedMatches.Count];
 
         foreach (var application in applications)
         {
-            var stringMatch = application.Predicate;
+            var patternMatch = application.Predicate;
 
-            if (!capabilities.IsKnownVersion || !capabilities.Supports(stringMatch, application.Phase))
+            if (!capabilities.IsKnownVersion || !capabilities.Supports(patternMatch, application.Phase))
             {
                 ThrowContract(
-                    "the execution plan applies a typed string predicate at an unadvertised capability or phase",
+                    "the execution plan applies a typed pattern predicate at an unadvertised capability or phase",
                     span);
             }
 
-            var matchIndex = FindMatch(acceptedMatches, stringMatch, consumed);
+            var matchIndex = FindMatch(acceptedMatches, patternMatch, consumed);
             if (matchIndex < 0)
                 ThrowContract("the execution plan applies a typed predicate that was not accepted", span);
 
@@ -66,28 +66,28 @@ internal static partial class SourcePredicatePlanContractValidator
         if (consumed.Any(static applied => !applied))
         {
             ThrowContract(
-                "the execution plan is missing an evaluation application for an accepted typed string predicate",
+                "the execution plan is missing an evaluation application for an accepted typed pattern predicate",
                 span);
         }
     }
 
-    private static List<SourcePredicateStringMatch> CollectTopLevelStringMatches(
+    private static List<SourcePredicatePatternMatch> CollectTopLevelPatternMatches(
         SourcePredicateExpression? predicate,
         TextSpan span)
     {
-        var result = new List<SourcePredicateStringMatch>();
+        var result = new List<SourcePredicatePatternMatch>();
         foreach (var conjunct in FlattenConjunction(predicate))
         {
-            if (conjunct is SourcePredicateStringMatch stringMatch)
+            if (conjunct is SourcePredicatePatternMatch patternMatch)
             {
-                result.Add(stringMatch);
+                result.Add(patternMatch);
                 continue;
             }
 
-            if (ContainsStringMatch(conjunct))
+            if (SourcePredicatePatternMatchFacts.ContainsPatternMatch(conjunct))
             {
                 ThrowContract(
-                    "the accepted predicate contains a typed string match outside a direct top-level AND conjunct",
+                    "the accepted predicate contains a typed pattern match outside a direct top-level AND conjunct",
                     span);
             }
         }
@@ -95,25 +95,9 @@ internal static partial class SourcePredicatePlanContractValidator
         return result;
     }
 
-    private static bool ContainsStringMatch(SourcePredicateExpression? predicate)
-    {
-        return predicate switch
-        {
-            SourcePredicateStringMatch => true,
-            SourcePredicateLogical logical => ContainsStringMatch(logical.Left) || ContainsStringMatch(logical.Right),
-            SourcePredicateComparison comparison =>
-                ContainsStringMatch(comparison.Left) || ContainsStringMatch(comparison.Right),
-            SourcePredicateIn sourceIn =>
-                ContainsStringMatch(sourceIn.Expression) || sourceIn.Values.Any(ContainsStringMatch),
-            SourcePredicateNullCheck nullCheck => ContainsStringMatch(nullCheck.Expression),
-            SourcePredicateFlags flags => ContainsStringMatch(flags.Expression) || ContainsStringMatch(flags.Mask),
-            _ => false
-        };
-    }
-
     private static int FindMatch(
-        IReadOnlyList<SourcePredicateStringMatch> acceptedMatches,
-        SourcePredicateStringMatch candidate,
+        IReadOnlyList<SourcePredicatePatternMatch> acceptedMatches,
+        SourcePredicatePatternMatch candidate,
         IReadOnlyList<bool> consumed)
     {
         var comparer = SourcePredicateExpressionComparer.Instance;

@@ -14,13 +14,13 @@ internal static class ExecutionTargetFeatureAnalyzer
         ArgumentNullException.ThrowIfNull(plan);
 
         var sink = new FeatureSink();
-        foreach (var shape in plan.Shapes)
+        foreach (var shape in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => scope.Shapes))
             AddShape(shape, sink);
 
-        foreach (var node in ExecutionIrAnalysis.FlattenNodes(plan.Body))
+        foreach (var node in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body)))
             AddNode(node, sink);
 
-        foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(plan.Body))
+        foreach (var expression in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body)))
             AddExpression(expression, sink);
 
         return new ExecutionTargetFeatureReport(sink.Features);
@@ -95,6 +95,9 @@ internal static class ExecutionTargetFeatureAnalyzer
                     sink.AddType(literal.Value.EnumType.Descriptor);
                 if (literal.Value.ClrOnlyType != null)
                     sink.AddType(literal.Value.ClrOnlyType.Descriptor);
+                break;
+            case ExecutionStringConcatenation:
+                sink.Add(ExecutionTargetFeatureKind.BinaryOperation, BinaryId(BinaryOpKind.SqlStringConcatenate), BinaryOpKind.SqlStringConcatenate.ToString());
                 break;
             case ExecutionBinary binary:
                 sink.Add(ExecutionTargetFeatureKind.BinaryOperation, BinaryId(binary.Kind), binary.Kind.ToString());

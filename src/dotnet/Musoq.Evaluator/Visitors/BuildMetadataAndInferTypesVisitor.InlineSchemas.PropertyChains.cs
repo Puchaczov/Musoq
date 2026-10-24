@@ -68,7 +68,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var field = GetAllTextSchemaFields(textNode)
                 .FirstOrDefault(f => string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
-            return field is null ? null : InterpretationTextFieldTypeResolver.Resolve(textNode.Name, field);
+            return field is null ? null : InterpretationTextFieldTypeResolver.Resolve(textNode.Name, field, SchemaRegistry);
         }
 
         return null;
@@ -93,9 +93,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             return (BinarySchemaExpressionTypes.Resolve(computed.Expression, inlineFields!, SchemaRegistry), intended);
         }
 
-        return field is FieldDefinitionNode fieldDefinition
-            ? ResolveBinaryFieldClrTypeWithIntendedName(fieldDefinition)
-            : null;
+        if (field is not FieldDefinitionNode fieldDefinition) return null;
+        var resolved = ResolveBinaryFieldClrTypeWithIntendedName(fieldDefinition);
+        return (resolved.ClrType, BinaryCompositionTypes.IntendedTypeName($"{inlineFieldName}_{field.Name}",
+            fieldDefinition.TypeAnnotation) ?? resolved.IntendedTypeName);
     }
 
     private (Type ClrType, string? IntendedTypeName)? ResolveSwitchSchemaField(
@@ -119,8 +120,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (branch is null)
             return null;
 
-        var resolved = ResolveTypeAnnotationClrTypeWithIntendedName(branch.BranchType);
-        if (branch.BranchType is PrimitiveTypeNode && resolved.ClrType.IsValueType)
+        var resolved = ResolveBinaryFieldClrTypeWithIntendedName(
+            new FieldDefinitionNode($"{switchFieldName}_{branch.BranchAlias}", branch.BranchType));
+        if (branch.BranchType is PrimitiveTypeNode or BitsTypeNode && resolved.ClrType.IsValueType)
             return (typeof(Nullable<>).MakeGenericType(resolved.ClrType), resolved.IntendedTypeName);
 
         return resolved;

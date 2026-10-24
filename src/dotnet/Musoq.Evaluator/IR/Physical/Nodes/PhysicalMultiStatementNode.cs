@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.Generic;
 
 using Musoq.Evaluator.IR.Bindings;
@@ -8,5 +9,7 @@ public sealed record PhysicalMultiStatementNode(
     PhysicalNode[] Statements) : PhysicalNode(
         OutputSchemaFactory.ForStatements(Statements, static statement => statement.OutputSchema))
 {
+    internal ImmutableArray<IntermediateSourceProducer> IntermediateProducers { get; init; } = [];
+
     public override IReadOnlyList<PhysicalNode> Children => Statements;
 }

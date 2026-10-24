@@ -69,6 +69,9 @@ public partial class Parser
             return TryParseColumnClause(fromNode);
         }
 
+        if (Current is FunctionToken)
+            return TryParseColumnClause(ComposeDescriptionAliasCall());
+
         var name = ComposeSchemaName();
         var startToken = Current;
 
@@ -94,6 +97,14 @@ public partial class Parser
         return new DescNode(
             new SchemaFromNode(name, string.Empty, ArgsListNode.Empty, string.Empty, startToken.Span.Start),
             DescForType.Schema);
+    }
+
+    private AliasedFromNode ComposeDescriptionAliasCall()
+    {
+        var token = Current;
+        var method = ComposeAccessMethod(string.Empty, true);
+        return new AliasedFromNode(method.Name, method.Arguments, string.Empty, token.Span.Start)
+            .WithMethodSpan(token.Span);
     }
 
     private DescNode ComposeDescQuery()

@@ -269,7 +269,7 @@ public class TableSymbol : Symbol
 
     private ISchemaColumn ConvertColumnToNullable(ISchemaColumn column)
     {
-        return new SchemaColumn(
+        var converted = new SchemaColumn(
             column.ColumnName,
             column.ColumnIndex,
             ConvertToNullable(column.ColumnType),
@@ -278,6 +278,7 @@ public class TableSymbol : Symbol
             column.IntendedTypeName,
             column.ReadModifiers,
             column.Stability);
+        return NullableInterpretationColumn.Preserve(converted, column is NullableInterpretationColumn);
     }
 
     private static Type ConvertToNullable(Type columnType)

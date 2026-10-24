@@ -18,11 +18,12 @@ internal static class ExecutionFieldAccessResolver
             !sourceRelativeColumnName.Contains('[', StringComparison.Ordinal))
             return null;
 
-        var nestedRoot = FindNestedRootField(column, sourceShape, alias, sourceRelativeColumnName);
+        var boundRoot = BoundNestedFieldPath.Resolve(column, sourceShape, alias);
+        var nestedRoot = boundRoot ?? FindNestedRootField(column, sourceShape, alias, sourceRelativeColumnName);
         if (nestedRoot == null)
             return null;
 
-        if (sourceShape is TableRowShape && IsSelfNestedTransitionAlias(nestedRoot))
+        if (boundRoot is null && sourceShape is TableRowShape && IsSelfNestedTransitionAlias(nestedRoot))
             return new ResolvedExecutionField(alias, nestedRoot.Field);
 
         var fieldName = sourceShape is TableRowShape

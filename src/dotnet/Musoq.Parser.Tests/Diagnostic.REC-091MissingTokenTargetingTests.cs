@@ -199,8 +199,8 @@ public sealed class DiagnosticREC091MissingTokenTargetingTests
         yield return ["REC-091-C04", "case.missing-then-result",
             "select case when 1 = 1 then else 2 end from #system.dual()",
             DiagnosticCode.MQ2001_UnexpectedToken, "else", 4, "else", "else", "", ""];
-        yield return ["REC-091-C05", "case.missing-else-keyword",
-            "select case when 1 = 1 then 1 end from #system.dual()",
+        yield return ["REC-091-C05", "case.missing-when-keyword",
+            "select case 1 end from #system.dual()",
             DiagnosticCode.MQ2001_UnexpectedToken, "end", 3, "end", "end", "", ""];
         yield return ["REC-091-C06", "case.missing-else-result",
             "select case when 1 = 1 then 1 else end from #system.dual()",

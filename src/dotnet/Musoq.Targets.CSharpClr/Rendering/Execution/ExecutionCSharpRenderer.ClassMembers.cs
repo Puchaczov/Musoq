@@ -240,6 +240,11 @@ public sealed partial class ExecutionCSharpRenderer
                     members.Add(CreateGeneratedRowOrderComparerClass(input.RowShape, input.Keys));
             }
 
+            foreach (var concatenation in ExecutionIrAnalysis.CollectExpressions<ExecutionStringConcatenation>(plan.Body))
+                session.StringConcatenation.RegisterArity(concatenation.Expressions.Count);
+            var concatenationCallbacks = session.StringConcatenation.EmitCallbackClass();
+            if (concatenationCallbacks.Length != 0)
+                members.Add(Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseMemberDeclaration(concatenationCallbacks)!);
             return CodegenHelperExtractionMetadata.AnnotateCandidateMembers(members);
     }
 

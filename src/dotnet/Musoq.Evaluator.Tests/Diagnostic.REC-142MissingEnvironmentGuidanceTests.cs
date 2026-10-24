@@ -90,7 +90,7 @@ public sealed class DiagnosticREC142MissingEnvironmentGuidanceTests : BasicEntit
             });
 
         const string syntaxQuery =
-            "select case when Population > 0 then 'positive' end from #known.entities()";
+            "select case when Population > 0 then end from #known.entities()";
         var syntax = new QueryAnalyzer(provider, compilationOptions: CompilationOptions).Analyze(syntaxQuery);
         var syntaxDiagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             syntax,

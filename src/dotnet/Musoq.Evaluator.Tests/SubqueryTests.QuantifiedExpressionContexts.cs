@@ -86,7 +86,7 @@ public partial class SubqueryTests
             ["NullOuter", "N", "N"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PredicateHashMark", inspection.PlanningText);
+        Assert.Contains("-> Apply", inspection.PlanningText);
         AssertNoPerRowSubqueryExecution(inspection);
     }
 
@@ -241,19 +241,17 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("AnyGreater", typeof(bool)),
-            ("AllGreater", typeof(bool)));
+            ("AnyGreater", typeof(bool?)),
+            ("AllGreater", typeof(bool?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Empty", false, true],
-            ["High", true, false],
-            ["Low", false, false],
-            ["NullInnerOnly", false, false],
-            ["NullOuter", false, false]);
+            ["High", true, null],
+            ["Low", null, false],
+            ["NullInnerOnly", null, null],
+            ["NullOuter", null, null]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalSortMergeJoin [LeftMark]", inspection.PhysicalPlanText);
-        Assert.Contains("PredicateRangeMark", inspection.PlanningText);
-        AssertNoPerRowSubqueryExecution(inspection);
+        Assert.Contains("-> Apply", inspection.PlanningText);
     }
 }

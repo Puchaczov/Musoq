@@ -20,7 +20,7 @@ public static class SchemaConversionClassifier
         // Nullable lifting is directional. Passing a nullable value to a
         // non-nullable parameter would require an unchecked .Value access and
         // is therefore never an implicit binding conversion.
-        if (sourceNullable != null && targetNullable == null)
+        if (sourceNullable != null && targetNullable == null && to.IsValueType)
         {
             cost = Incompatible;
             return false;

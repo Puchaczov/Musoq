@@ -61,12 +61,10 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     [TestMethod]
     [DataRow("CV-01")]
     [DataRow("CV-02")]
-    [DataRow("CV-03")]
     [DataRow("CV-04")]
     [DataRow("CV-05")]
     [DataRow("CV-06")]
     [DataRow("CV-07")]
-    [DataRow("CV-08")]
     [DataRow("CV-09")]
     [DataRow("CV-10")]
     [DataRow("CV-11")]
@@ -77,6 +75,16 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
         AssertInternalRuntimeFailure(
             CreateAndRunVirtualMachine(query, CreateSingleSource(row)),
             caseId);
+    }
+
+    [TestMethod]
+    [DataRow("CV-03")]
+    [DataRow("CV-08")]
+    public void StrictNumericConversionOverflow_ShouldReportNumericExecutionFailure(string caseId)
+    {
+        var (query, row) = CreateConversionCase(caseId);
+        AssertRuntimeExpressionFailure(CreateAndRunVirtualMachine(query, CreateSingleSource(row)),
+            DiagnosticCode.MQ7018_NumericOverflow, caseId);
     }
 
     [TestMethod]
@@ -102,6 +110,11 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
             return;
         }
 
+        if (expectedCode != DiagnosticCode.MQ9002_InternalExecutionError)
+        {
+            AssertRuntimeExpressionFailure(CreateAndRunVirtualMachine(query, sources), expectedCode, caseId);
+            return;
+        }
         AssertInternalRuntimeFailure(CreateAndRunVirtualMachine(query, sources), caseId);
     }
 
@@ -237,13 +250,13 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
         {
             "AR-01" => ("select Population / (Population - Population) from #A.Entities()", data, DiagnosticCode.MQ9002_InternalExecutionError, false),
             "AR-02" => ("select Population % (Population - Population) from #A.Entities()", data, DiagnosticCode.MQ9002_InternalExecutionError, false),
-            "AR-03" => ("select Population + Money from #A.Entities()", overflow, DiagnosticCode.MQ9002_InternalExecutionError, false),
+            "AR-03" => ("select Population + Money from #A.Entities()", overflow, DiagnosticCode.MQ7018_NumericOverflow, false),
             "AR-04" => ("select Population - Money from #A.Entities()", new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 ["#A"] = [new BasicEntity { Population = decimal.MinValue, Money = 1m }]
-            }, DiagnosticCode.MQ9002_InternalExecutionError, false),
+            }, DiagnosticCode.MQ7018_NumericOverflow, false),
             "AR-05" => ("select Population / (Population - (Money + 9)) from #A.Entities()", data, DiagnosticCode.MQ9002_InternalExecutionError, false),
-            "AR-06" => ("select Population * Population from #A.Entities()", overflow, DiagnosticCode.MQ9002_InternalExecutionError, false),
+            "AR-06" => ("select Population * Population from #A.Entities()", overflow, DiagnosticCode.MQ7018_NumericOverflow, false),
             "AR-07" => ("select 10 / 0 from #A.Entities()", data, DiagnosticCode.MQ3008_DivisionByZero, true),
             "AR-08" => ("select 10 % 0 from #A.Entities()", data, DiagnosticCode.MQ3008_DivisionByZero, true),
             "AR-09" => ("select 2147483647i + 1i from #A.Entities()", data, DiagnosticCode.MQ3032_ArithmeticOverflow, true),

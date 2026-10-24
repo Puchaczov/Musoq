@@ -60,7 +60,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             CSharpClrTargetPackageFactory.CreateClrAssemblyPackage(
                 CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
                 CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-                ExecutionSemanticsContract.Version1,
+                ExecutionSemanticsContract.Current,
                 CreateCSharpMetadata(),
                 binaryBlobs: [],
                 entrypoints: [CreateTableEntrypoint()],
@@ -81,7 +81,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             CSharpClrTargetPackageFactory.CreateClrAssemblyPackage(
                 CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
                 CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-                ExecutionSemanticsContract.Version1,
+                ExecutionSemanticsContract.Current,
                 metadata,
                 binaryBlobs: [CreateAssemblyBlob()],
                 entrypoints: [CreateTableEntrypoint()],
@@ -99,7 +99,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             CSharpClrTargetPackageFactory.CreateClrAssemblyPackage(
                 CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
                 CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-                ExecutionSemanticsContract.Version1,
+                ExecutionSemanticsContract.Current,
                 CreateCSharpMetadata(),
                 binaryBlobs: [CreateAssemblyBlob()],
                 entrypoints: [],
@@ -124,7 +124,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
                 TestExecutionTargetIds.TestOnlyNonClr,
                 "FakeExport",
                 export,
-                ExecutionSemanticsContract.Version1));
+                ExecutionSemanticsContract.Current));
 
         Assert.Contains("source file or binary blob", exception.Message);
     }
@@ -143,7 +143,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
                 TestExecutionTargetIds.TestOnlyNonClr,
                 "FakeExport",
                 export,
-                ExecutionSemanticsContract.Version1));
+                ExecutionSemanticsContract.Current));
 
         Assert.Contains("table-query or typed-query entrypoint", exception.Message);
     }
@@ -160,7 +160,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             TestExecutionTargetIds.TestOnlyNonClr,
             "FakeExport",
             export,
-            ExecutionSemanticsContract.Version1);
+            ExecutionSemanticsContract.Current);
 
         Assert.IsEmpty(package.RuntimeServices.RequiredServices);
     }
@@ -180,7 +180,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             TestExecutionTargetIds.TestOnlyNonClr,
             "FakeTypedExport",
             export,
-            ExecutionSemanticsContract.Version1);
+            ExecutionSemanticsContract.Current);
 
         Assert.HasCount(1, package.Entrypoints);
         Assert.AreEqual(TargetRuntimeEntrypointKind.TypedQuery, package.Entrypoints[0].Kind);
@@ -202,7 +202,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
                 ExecutionTargetIds.CSharpClr,
                 "FakeExport",
                 export,
-                ExecutionSemanticsContract.Version1));
+                ExecutionSemanticsContract.Current));
 
         Assert.Contains("does not match package target", exception.Message);
     }
@@ -344,7 +344,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             [CompiledQueryArtifactSupport.MetadataArtifactKind] = CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
             [CompiledQueryArtifactSupport.MetadataAssemblyName] = "TestAssembly",
             [CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] = RuntimeV2Contract.ContractSignature,
-            [CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion] = "1",
+            [CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion] = "2",
             [CompiledQueryArtifactSupport.MetadataExecutionTarget] = ExecutionTargetIds.CSharpClr.ToString(),
             [CompiledQueryArtifactSupport.MetadataExecutableArtifactKind] = CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
             [CompiledQueryArtifactSupport.MetadataScriptSha256] = "script",

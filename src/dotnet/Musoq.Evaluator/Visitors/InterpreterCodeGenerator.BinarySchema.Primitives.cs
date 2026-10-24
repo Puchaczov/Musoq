@@ -73,25 +73,6 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GenerateStringAssignmentCode(string targetVar, StringTypeNode stringType, string fieldName)
-    {
-        var builder = new StringBuilder();
-        var rawStringVar = stringType.AsTextSchemaName != null ? $"{targetVar}_raw" : targetVar;
-
-        if (stringType.AsTextSchemaName != null)
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {rawStringVar} = {GenerateStringReadExpression(stringType)};");
-        else
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{targetVar} = {GenerateStringReadExpression(stringType)};");
-
-        if (stringType.AsTextSchemaName == null)
-            return builder.ToString();
-
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"{targetVar} = ParseNested({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\");");
-        return builder.ToString();
-    }
-
     private string GenerateStringReadExpression(StringTypeNode stringType)
     {
         var sizeExpr = GenerateSizeExpression(stringType.SizeExpression);

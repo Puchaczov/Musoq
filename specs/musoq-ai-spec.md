@@ -6,6 +6,45 @@
 
 ---
 
+## Example Inputs and Qualification
+
+This document remains a proposal. AI declarations and `Infer`, `TryInfer`, and
+`PartialInfer` describe proposed behavior; these examples are not a claim that
+the current engine implements inference. Extracted values and classifications
+are illustrative and can depend on the model and its configuration.
+
+Ordinary row inputs use VALUES. Image/document examples declare
+`param(documentBase64: string)` and require the caller to supply a real encoded
+document. The parameter is a value input, not a provider or filesystem dependency.
+Text examples include their complete input text. Code-analysis examples receive
+literal method bodies and metrics rather than an installed code-analysis source.
+No datasource is implicitly registered.
+
+SQL syntax fragments and declaration-only examples are not complete batches.
+Complete inference query illustrations include the AI schemas they reference;
+those declarations are local to each illustration. AI-only schema fragments may
+reference the explicitly defined composition schemas in §8.1 or §12.1.
+
+The following supported SQL illustration starts from already supplied extraction
+results. It does not simulate an AI call. It returns exactly
+`('Example', 120, -120)`; the unrelated payment is excluded:
+
+```sql
+with Invoices as (
+    select VendorName, Total
+    from values { (VendorName: 'Example', Total: 120d) } extracted
+), Payments as (
+    select Amount from values { (Amount: -120d), (Amount: -50d) } supplied
+)
+select i.VendorName, i.Total, p.Amount
+from Invoices i
+inner join Payments p on Abs(i.Total - Abs(p.Amount)) < 0.01
+```
+
+Core SQL and Binary/Text portions can be executed independently of inference.
+AI-specific syntax, model routing, retries, and inferred outputs receive proposal
+consistency review rather than runtime qualification.
+
 ## Quick Start
 
 ```sql
@@ -18,13 +57,16 @@ ai Receipt {
     Currency: enum('USD', 'EUR', 'PLN')
 }
 
+param(documentBase64: string)
 SELECT r.StoreName, r.Total, r.Currency
-FROM os.files('./receipts', true) f
-CROSS APPLY Infer(f.Base64File(), Receipt) r
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Receipt) r
 ORDER BY r.Total DESC
 ```
 
-This query extracts structured data from every receipt image in a folder. The `ai` schema defines what to extract — field names, types, and constraints. The `---` comments guide the LLM on what each field means. The `enum` and `required` constraints are validated after extraction and fed back to the model for correction if they fail. The runtime handles which LLM to call, retries, and rate limiting.
+This proposed query extracts structured data from the receipt image supplied as
+`documentBase64`. The caller provides actual base64-encoded image data; no file
+reader or installed datasource is assumed. The `ai` schema defines what to extract — field names, types, and constraints. The `---` comments guide the LLM on what each field means. The `enum` and `required` constraints are validated after extraction and fed back to the model for correction if they fail. The runtime handles which LLM to call, retries, and rate limiting.
 
 **What makes this different from calling an LLM directly:**
 - The schema compiles to executable code — type checking, JSON Schema generation, and validation are all generated at compile time, not runtime reflection
@@ -35,22 +77,72 @@ This query extracts structured data from every receipt image in a folder. The `a
 **What it composes with:**
 
 ```sql
--- Cross-reference AI-extracted invoices with a bank statement CSV
+ai Vendor {
+    --- Company or individual that issued the invoice
+    Name:    string required,
+    --- Tax identification number (VAT ID, EIN, NIP, etc.)
+    TaxId:   string,
+    --- Full postal address
+    Address: string max(300)
+}
+
+ai InvoiceLineItem {
+    --- Product or service description
+    Description: string required max(200),
+    --- Number of units purchased
+    Quantity:    int range(1, 99999),
+    --- Price per single unit
+    UnitPrice:   decimal range(0, 9999999),
+    --- Line total (should equal Quantity × UnitPrice)
+    Amount:      decimal check Amount = Quantity * UnitPrice
+}
+
+ai Invoice {
+    --- Extract invoice data from a scanned or digital invoice document.
+    --- The invoice may be in any language and any layout.
+
+    Vendor:         Vendor,
+    --- Unique invoice identifier
+    InvoiceNumber:  string required pattern '[A-Za-z0-9/-]+',
+    --- Date the invoice was issued
+    InvoiceDate:    datetime required,
+    --- Date payment is due
+    DueDate:        datetime check DueDate >= InvoiceDate,
+    --- Individual line items
+    LineItems:      InvoiceLineItem[],
+    --- Amount before tax
+    Subtotal:       decimal,
+    --- Tax rate as percentage
+    TaxRate:        decimal range(0, 100),
+    --- Total tax amount
+    TaxAmount:      decimal,
+    --- Total amount due
+    Total:          decimal required check Total = Subtotal + TaxAmount,
+    --- ISO 4217 currency code
+    Currency:       enum('USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'),
+    --- Payment terms if specified
+    PaymentTerms:   string max(200),
+    --- Additional notes or comments on the invoice
+    Notes:          string max(500)
+}
+-- Cross-reference AI-extracted invoices with explicitly supplied payment rows
+param(documentBase64: string)
 with Invoices as (
     SELECT inv.Vendor.Name, inv.Total, inv.InvoiceDate
-    FROM os.files('./invoices') f
-    CROSS APPLY Infer(f.Base64File(), Invoice) inv
+    FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+    CROSS APPLY Infer(f.Content, Invoice) inv
 ),
 Payments as (
-    SELECT ToDecimal(Amount) as Amount, Description
-    FROM separatedvalues.comma('./bank.csv', true, 0)
+    SELECT Amount, Description
+    FROM values { (Amount: -120d, Description: 'Payment INV-1') } payments
 )
 SELECT i.Name, i.Total, p.Amount
 FROM Invoices i
 INNER JOIN Payments p ON Abs(i.Total - Abs(p.Amount)) < 0.01
 ```
 
-No other structured extraction tool can JOIN AI-extracted data with CSV files, git commits, or C# code analysis in a single query. That's what `ai` schemas enable when combined with Musoq's existing data sources.
+The extracted rows compose with other explicitly supplied relations using the
+core SQL operations. The example payments are literal VALUES rows.
 
 ---
 
@@ -267,9 +359,10 @@ ai Receipt {
     Total:     decimal
 }
 
+param(documentBase64: string)
 SELECT r.StoreName, r.Total
-FROM os.files('./receipts', true) f
-CROSS APPLY Infer(f.Base64File(), Receipt) r
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Receipt) r
 ```
 
 ### 3.2 New Interpretation Function: `Infer()`
@@ -913,27 +1006,78 @@ Returns a partial result for debugging extraction issues. Like all inference fun
 **Basic extraction from text:**
 
 ```sql
+ai Receipt { StoreName: string required, Total: decimal required, Currency: enum('USD', 'EUR', 'PLN') }
 SELECT r.StoreName, r.Total
-FROM os.files('./receipts') f
-CROSS APPLY Infer(f.GetFileContent(), Receipt) r
+FROM values { (Name: 'document', Extension: '.png', Content: 'Store: Example Shop; Total: 12.50; Currency: USD.') } f
+CROSS APPLY Infer(f.Content, Receipt) r
 ```
 
 **Extraction from images (vision):**
 
 ```sql
+ai Receipt { StoreName: string required, Total: decimal required, Currency: enum('USD', 'EUR', 'PLN') }
+param(documentBase64: string)
 SELECT r.StoreName, r.Total
-FROM os.files('./scanned-receipts', true) f
-CROSS APPLY Infer(f.Base64File(), Receipt) r
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Receipt) r
 WHERE f.Extension IN ('.jpg', '.png', '.pdf')
 ```
 
 **With extraction hint:**
 
 ```sql
-SELECT r.StoreName, r.Total
-FROM os.files('./invoices') f
+ai Vendor {
+    --- Company or individual that issued the invoice
+    Name:    string required,
+    --- Tax identification number (VAT ID, EIN, NIP, etc.)
+    TaxId:   string,
+    --- Full postal address
+    Address: string max(300)
+}
+
+ai InvoiceLineItem {
+    --- Product or service description
+    Description: string required max(200),
+    --- Number of units purchased
+    Quantity:    int range(1, 99999),
+    --- Price per single unit
+    UnitPrice:   decimal range(0, 9999999),
+    --- Line total (should equal Quantity × UnitPrice)
+    Amount:      decimal check Amount = Quantity * UnitPrice
+}
+
+ai Invoice {
+    --- Extract invoice data from a scanned or digital invoice document.
+    --- The invoice may be in any language and any layout.
+
+    Vendor:         Vendor,
+    --- Unique invoice identifier
+    InvoiceNumber:  string required pattern '[A-Za-z0-9/-]+',
+    --- Date the invoice was issued
+    InvoiceDate:    datetime required,
+    --- Date payment is due
+    DueDate:        datetime check DueDate >= InvoiceDate,
+    --- Individual line items
+    LineItems:      InvoiceLineItem[],
+    --- Amount before tax
+    Subtotal:       decimal,
+    --- Tax rate as percentage
+    TaxRate:        decimal range(0, 100),
+    --- Total tax amount
+    TaxAmount:      decimal,
+    --- Total amount due
+    Total:          decimal required check Total = Subtotal + TaxAmount,
+    --- ISO 4217 currency code
+    Currency:       enum('USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'),
+    --- Payment terms if specified
+    PaymentTerms:   string max(200),
+    --- Additional notes or comments on the invoice
+    Notes:          string max(500)
+}
+SELECT r.Vendor.Name as VendorName, r.Total
+FROM values { (Name: 'document', Extension: '.png', Content: 'Vendor: Example; Invoice: INV-1; Date: 2024-01-02; Subtotal: 100; Tax: 20; Total: 120; Currency: USD; Item: 1 book at 100.') } f
 CROSS APPLY Infer(
-    f.GetFileContent(), 
+    f.Content,
     Invoice, 
     'Polish invoice. Dates in DD.MM.YYYY format. Currency is PLN unless stated.'
 ) r
@@ -942,27 +1086,77 @@ CROSS APPLY Infer(
 **Safe extraction with OUTER APPLY:**
 
 ```sql
+ai Receipt { StoreName: string required, Total: decimal required, Currency: enum('USD', 'EUR', 'PLN') }
 SELECT 
     f.Name,
     CASE WHEN r IS NOT NULL THEN r.Total ELSE NULL END as Total
-FROM os.files('./mixed-documents') f
-OUTER APPLY TryInfer(f.GetFileContent(), Receipt) r
+FROM values { (Name: 'document', Extension: '.png', Content: 'Store: Example Shop; Total: 12.50; Currency: USD.') } f
+OUTER APPLY TryInfer(f.Content, Receipt) r
 ```
 
 **Array expansion with nested CROSS APPLY:**
 
 ```sql
+ai Vendor {
+    --- Company or individual that issued the invoice
+    Name:    string required,
+    --- Tax identification number (VAT ID, EIN, NIP, etc.)
+    TaxId:   string,
+    --- Full postal address
+    Address: string max(300)
+}
+
+ai InvoiceLineItem {
+    --- Product or service description
+    Description: string required max(200),
+    --- Number of units purchased
+    Quantity:    int range(1, 99999),
+    --- Price per single unit
+    UnitPrice:   decimal range(0, 9999999),
+    --- Line total (should equal Quantity × UnitPrice)
+    Amount:      decimal check Amount = Quantity * UnitPrice
+}
+
+ai Invoice {
+    --- Extract invoice data from a scanned or digital invoice document.
+    --- The invoice may be in any language and any layout.
+
+    Vendor:         Vendor,
+    --- Unique invoice identifier
+    InvoiceNumber:  string required pattern '[A-Za-z0-9/-]+',
+    --- Date the invoice was issued
+    InvoiceDate:    datetime required,
+    --- Date payment is due
+    DueDate:        datetime check DueDate >= InvoiceDate,
+    --- Individual line items
+    LineItems:      InvoiceLineItem[],
+    --- Amount before tax
+    Subtotal:       decimal,
+    --- Tax rate as percentage
+    TaxRate:        decimal range(0, 100),
+    --- Total tax amount
+    TaxAmount:      decimal,
+    --- Total amount due
+    Total:          decimal required check Total = Subtotal + TaxAmount,
+    --- ISO 4217 currency code
+    Currency:       enum('USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'),
+    --- Payment terms if specified
+    PaymentTerms:   string max(200),
+    --- Additional notes or comments on the invoice
+    Notes:          string max(500)
+}
+param(documentBase64: string)
 SELECT 
-    inv.VendorName,
+    inv.Vendor.Name as VendorName,
     inv.InvoiceNumber,
     li.Description,
     li.Quantity,
     li.Amount
-FROM os.files('./invoices') f
-CROSS APPLY Infer(f.Base64File(), Invoice) inv
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Invoice) inv
 CROSS APPLY inv.LineItems li
-WHERE inv.TotalAmount > 1000
-ORDER BY inv.TotalAmount DESC
+WHERE inv.Total > 1000
+ORDER BY inv.Total DESC
 ```
 
 ### 7.3 Interaction with CROSS APPLY / OUTER APPLY
@@ -1069,7 +1263,7 @@ binary PdfHeader {
 
 text MetadataLine {
     Key:   until ':',
-    _:     literal ': ',
+    _:     literal ' ',
     Value: rest trim
 }
 
@@ -1082,13 +1276,14 @@ ai DocumentClassification {
     _confidence:  decimal
 }
 
+let headerBytes: byte[] = array { 37ub, 80ub, 68ub, 70ub };
 SELECT 
     f.Name,
     cl.DocumentType,
     cl.Language
-FROM os.files('./documents', true) f
-CROSS APPLY Interpret<PdfHeader>(f.GetBytes()) header
-CROSS APPLY Infer(f.GetFileContent(), DocumentClassification) cl
+FROM values { (Name: 'document', Extension: '.png', Content: 'Store: Example Shop; Total: 12.50; Currency: USD.') } f
+CROSS APPLY Interpret<PdfHeader>($headerBytes) header
+CROSS APPLY Infer(f.Content, DocumentClassification) cl
 WHERE cl.DocumentType = 'invoice'
 ```
 
@@ -1147,12 +1342,61 @@ Whether the runtime retries before reporting failure is entirely the runtime's d
 For debugging extraction issues:
 
 ```sql
+ai Vendor {
+    --- Company or individual that issued the invoice
+    Name:    string required,
+    --- Tax identification number (VAT ID, EIN, NIP, etc.)
+    TaxId:   string,
+    --- Full postal address
+    Address: string max(300)
+}
+
+ai InvoiceLineItem {
+    --- Product or service description
+    Description: string required max(200),
+    --- Number of units purchased
+    Quantity:    int range(1, 99999),
+    --- Price per single unit
+    UnitPrice:   decimal range(0, 9999999),
+    --- Line total (should equal Quantity × UnitPrice)
+    Amount:      decimal check Amount = Quantity * UnitPrice
+}
+
+ai Invoice {
+    --- Extract invoice data from a scanned or digital invoice document.
+    --- The invoice may be in any language and any layout.
+
+    Vendor:         Vendor,
+    --- Unique invoice identifier
+    InvoiceNumber:  string required pattern '[A-Za-z0-9/-]+',
+    --- Date the invoice was issued
+    InvoiceDate:    datetime required,
+    --- Date payment is due
+    DueDate:        datetime check DueDate >= InvoiceDate,
+    --- Individual line items
+    LineItems:      InvoiceLineItem[],
+    --- Amount before tax
+    Subtotal:       decimal,
+    --- Tax rate as percentage
+    TaxRate:        decimal range(0, 100),
+    --- Total tax amount
+    TaxAmount:      decimal,
+    --- Total amount due
+    Total:          decimal required check Total = Subtotal + TaxAmount,
+    --- ISO 4217 currency code
+    Currency:       enum('USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'),
+    --- Payment terms if specified
+    PaymentTerms:   string max(200),
+    --- Additional notes or comments on the invoice
+    Notes:          string max(500)
+}
+param(documentBase64: string)
 SELECT 
     p.ExtractedFields,
     p.ValidationErrors,
     p.RawResponse
-FROM os.file('./problematic-invoice.pdf') f
-CROSS APPLY PartialInfer(f.Base64File(), Invoice) p
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY PartialInfer(f.Content, Invoice) p
 ```
 
 `PartialInfer` returns:
@@ -1395,16 +1639,17 @@ ai Invoice {
     Notes:          string max(500)
 }
 
--- Process all invoices in a directory
+-- Process the explicitly supplied invoice document
+param(documentBase64: string)
 SELECT 
-    f.Name as FileName,
+    f.Name as DocumentName,
     inv.Vendor.Name as VendorName,
     inv.InvoiceNumber,
     inv.InvoiceDate,
     inv.Total,
     inv.Currency
-FROM os.files('./invoices', true) f
-CROSS APPLY Infer(f.Base64File(), Invoice) inv
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Invoice) inv
 WHERE f.Extension IN ('.pdf', '.jpg', '.png')
 ORDER BY inv.InvoiceDate DESC
 ```
@@ -1412,6 +1657,55 @@ ORDER BY inv.InvoiceDate DESC
 **With line item expansion:**
 
 ```sql
+ai Vendor {
+    --- Company or individual that issued the invoice
+    Name:    string required,
+    --- Tax identification number (VAT ID, EIN, NIP, etc.)
+    TaxId:   string,
+    --- Full postal address
+    Address: string max(300)
+}
+
+ai InvoiceLineItem {
+    --- Product or service description
+    Description: string required max(200),
+    --- Number of units purchased
+    Quantity:    int range(1, 99999),
+    --- Price per single unit
+    UnitPrice:   decimal range(0, 9999999),
+    --- Line total (should equal Quantity × UnitPrice)
+    Amount:      decimal check Amount = Quantity * UnitPrice
+}
+
+ai Invoice {
+    --- Extract invoice data from a scanned or digital invoice document.
+    --- The invoice may be in any language and any layout.
+
+    Vendor:         Vendor,
+    --- Unique invoice identifier
+    InvoiceNumber:  string required pattern '[A-Za-z0-9/-]+',
+    --- Date the invoice was issued
+    InvoiceDate:    datetime required,
+    --- Date payment is due
+    DueDate:        datetime check DueDate >= InvoiceDate,
+    --- Individual line items
+    LineItems:      InvoiceLineItem[],
+    --- Amount before tax
+    Subtotal:       decimal,
+    --- Tax rate as percentage
+    TaxRate:        decimal range(0, 100),
+    --- Total tax amount
+    TaxAmount:      decimal,
+    --- Total amount due
+    Total:          decimal required check Total = Subtotal + TaxAmount,
+    --- ISO 4217 currency code
+    Currency:       enum('USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'),
+    --- Payment terms if specified
+    PaymentTerms:   string max(200),
+    --- Additional notes or comments on the invoice
+    Notes:          string max(500)
+}
+param(documentBase64: string)
 SELECT 
     inv.Vendor.Name as Vendor,
     inv.InvoiceNumber,
@@ -1419,8 +1713,8 @@ SELECT
     li.Quantity,
     li.UnitPrice,
     li.Amount
-FROM os.files('./invoices', true) f
-CROSS APPLY Infer(f.Base64File(), Invoice) inv
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Invoice) inv
 CROSS APPLY inv.LineItems li
 WHERE li.Amount > 100
 ORDER BY li.Amount DESC
@@ -1429,38 +1723,65 @@ ORDER BY li.Amount DESC
 **Cross-referencing invoices with bank statements:**
 
 ```sql
-ai Invoice { /* as above */ }
+ai Vendor {
+    --- Company or individual that issued the invoice
+    Name:    string required,
+    --- Tax identification number (VAT ID, EIN, NIP, etc.)
+    TaxId:   string,
+    --- Full postal address
+    Address: string max(300)
+}
 
-table BankTransaction {
-    Date string,
-    Description string,
-    Amount string,
-    Balance string
-};
-couple separatedvalues.comma with table BankTransaction as Transactions;
+ai InvoiceLineItem {
+    --- Product or service description
+    Description: string required max(200),
+    --- Number of units purchased
+    Quantity:    int range(1, 99999),
+    --- Price per single unit
+    UnitPrice:   decimal range(0, 9999999),
+    --- Line total (should equal Quantity × UnitPrice)
+    Amount:      decimal check Amount = Quantity * UnitPrice
+}
 
+ai Invoice {
+    --- Extract invoice data from a scanned or digital invoice document.
+    --- The invoice may be in any language and any layout.
+
+    Vendor:         Vendor,
+    --- Unique invoice identifier
+    InvoiceNumber:  string required pattern '[A-Za-z0-9/-]+',
+    --- Date the invoice was issued
+    InvoiceDate:    datetime required,
+    --- Date payment is due
+    DueDate:        datetime check DueDate >= InvoiceDate,
+    --- Individual line items
+    LineItems:      InvoiceLineItem[],
+    --- Amount before tax
+    Subtotal:       decimal,
+    --- Tax rate as percentage
+    TaxRate:        decimal range(0, 100),
+    --- Total tax amount
+    TaxAmount:      decimal,
+    --- Total amount due
+    Total:          decimal required check Total = Subtotal + TaxAmount,
+    --- ISO 4217 currency code
+    Currency:       enum('USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'),
+    --- Payment terms if specified
+    PaymentTerms:   string max(200),
+    --- Additional notes or comments on the invoice
+    Notes:          string max(500)
+}
+param(documentBase64: string, paymentDate: datetime = '2024-01-03')
 with Invoices as (
-    SELECT 
-        inv.Vendor.Name as VendorName,
-        inv.Total,
-        inv.InvoiceDate,
-        inv.InvoiceNumber
-    FROM os.files('./invoices', true) f
-    CROSS APPLY Infer(f.Base64File(), Invoice) inv
-),
-BankData as (
-    SELECT 
-        ToDecimal(Amount) as Amount,
-        Description,
-        ToDateTime(Date, 'yyyy-MM-dd') as TransactionDate
-    FROM Transactions('./bank-statement.csv', true, 0)
+    SELECT inv.Vendor.Name as VendorName, inv.Total, inv.InvoiceDate, inv.InvoiceNumber
+    FROM values { (Content: $documentBase64) } documents
+    CROSS APPLY Infer(documents.Content, Invoice) inv
+), BankData as (
+    SELECT Amount, Description, TransactionDate
+    FROM values { (Amount: -120d, Description: 'Payment INV-1', TransactionDate: $paymentDate) } payments
 )
-SELECT
-    i.VendorName,
-    i.InvoiceNumber,
-    i.Total as InvoiceAmount,
-    b.Amount as PaidAmount,
-    b.TransactionDate as PaymentDate
+SELECT i.VendorName, i.InvoiceNumber, i.Total as InvoiceAmount,
+       b.Amount as PaidAmount, b.TransactionDate as PaymentDate
 FROM Invoices i
 INNER JOIN BankData b ON Abs(i.Total - Abs(b.Amount)) < 0.01
 ORDER BY i.InvoiceDate
@@ -1500,14 +1821,15 @@ ai Receipt {
     PaymentMethod: enum('cash', 'credit_card', 'debit_card', 'mobile_pay', 'other')
 }
 
+param(documentBase64: string)
 SELECT 
     f.Name,
     r.StoreName,
     r.Date,
     r.Total,
     r.PaymentMethod
-FROM os.files('~/receipts/2025', true) f
-CROSS APPLY Infer(f.Base64File(), Receipt) r
+FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+CROSS APPLY Infer(f.Content, Receipt) r
 WHERE f.Extension IN ('.jpg', '.png')
 ORDER BY r.Date DESC
 ```
@@ -1533,11 +1855,9 @@ ai LogClassification {
 
 text SyslogLine {
     Timestamp: until ' ',
-    _:         literal ' ',
     Host:      until ' ',
-    _:         literal ' ',
     Process:   until ':',
-    _:         literal ': ',
+    _:         literal ' ',
     Message:   rest
 }
 
@@ -1549,9 +1869,8 @@ SELECT
     cl.Component,
     cl.UserImpact,
     cl.Action
-FROM os.file('/var/log/syslog') f
-CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse<SyslogLine>(line.Value) log
+FROM values { (Line: '2024-01-02T03:04:05Z host app: request timeout') } line
+CROSS APPLY Parse<SyslogLine>(line.Line) log
 CROSS APPLY Infer(log.Message, LogClassification) cl
 WHERE cl.UserImpact <> 'none'
 ORDER BY 
@@ -1600,9 +1919,8 @@ SELECT
     bm.IsActive,
     bm.MigrationRisk,
     bm.RiskReason
-FROM os.file('/mainframe/ACCTMAST.DAT') f
-CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse<CobolRecord>(line.Value) r
+FROM values { (Line: '0000000001CKAda                           000000012345A20240102                                     ') } line
+CROSS APPLY Parse<CobolRecord>(line.Line) r
 CROSS APPLY Infer(
     'AccountType=' + r.AccountType + ' StatusCode=' + r.StatusCode + 
     ' LastActivity=' + r.LastActivity + ' Balance=' + r.Balance,
@@ -1645,7 +1963,7 @@ ai SecurityAssessment {
 }
 
 SELECT 
-    c.Name as ClassName,
+    m.ClassName,
     m.Name as MethodName,
     m.LinesOfCode,
     m.CyclomaticComplexity,
@@ -1653,11 +1971,7 @@ SELECT
     smell.Severity,
     smell.Description,
     sec.OverallRisk
-FROM csharp.solution('./MyProject.sln') s
-CROSS APPLY s.Projects p
-CROSS APPLY p.Documents d
-CROSS APPLY d.Classes c
-CROSS APPLY c.Methods m
+FROM values { (ClassName: 'Repository', Name: 'Load', LinesOfCode: 1, CyclomaticComplexity: 1, Body: 'string Load(string sql) { return Execute(sql); }') } m
 CROSS APPLY Infer(m.Body, CodeSmell) smell
 CROSS APPLY Infer(m.Body, SecurityAssessment) sec
 WHERE smell.SmellType <> 'none' OR sec.OverallRisk IN ('high', 'critical')
@@ -1705,15 +2019,15 @@ ai DocumentClassification [tier: 'economy'] {
 }
 
 -- Stage 1: Extract image descriptions (runtime uses local vision model)
+param(documentBase64: string)
 with Descriptions as (
     SELECT 
         f.Name,
-        f.FullName,
-        desc.Description,
-        desc.ContainsText,
-        desc.VisibleText
-    FROM os.files('./incoming-documents', true) f
-    CROSS APPLY Infer(f.Base64File(), ImageDescription) desc
+        description.Description,
+        description.ContainsText,
+        description.VisibleText
+    FROM values { (Name: 'document', Extension: '.png', Content: $documentBase64) } f
+    CROSS APPLY Infer(f.Content, ImageDescription) description
     WHERE f.Extension IN ('.jpg', '.png', '.pdf')
 )
 -- Stage 2: Classify based on text only (runtime uses cheap cloud model)

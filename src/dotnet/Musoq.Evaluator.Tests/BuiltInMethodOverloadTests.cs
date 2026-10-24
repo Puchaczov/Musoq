@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Converter.Exceptions;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -153,23 +155,13 @@ public class BuiltInMethodOverloadTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void WhenConcatenationOfSingleValue_AndStringJoinsEnumerable_ShouldPass()
+    [DataRow("StringsJoin('/', Take(Split('something/is/wrong/here', '/'), 3))")]
+    [DataRow("StringsJoin('/', EnumerableToArray(Take(Split('something/is/wrong/here', '/'), 3)))")]
+    public void SingleStringConcat_WithEqualVariadicConversions_ShouldRemainAmbiguous(string argument)
     {
-        var table = TestResultMethodTemplate(
-            "Concat(StringsJoin('/', Take(Split('something/is/wrong/here', '/'), 3)))");
+        var exception = Assert.Throws<MusoqQueryException>(() => TestResultMethodTemplate($"Concat({argument})"));
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("something/is/wrong", table[0].ReadValues()[0]);
-    }
-
-    [TestMethod]
-    public void WhenConcatenationOfSingleValue_AndStringJoinsArray_ShouldPass()
-    {
-        var table = TestResultMethodTemplate(
-            "Concat(StringsJoin('/', EnumerableToArray(Take(Split('something/is/wrong/here', '/'), 3))))");
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("something/is/wrong", table[0].ReadValues()[0]);
+        Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, exception.PrimaryEnvelope.Code);
     }
 
     [TestMethod]

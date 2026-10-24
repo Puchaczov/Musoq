@@ -244,7 +244,9 @@ namespace GeneratedSample_Q29_Intersect
                 }
 
                 OnPhaseChanged("compiled:right", QueryPhase.End);
-                var resultDistinctRows = new HashSet<string>();
+                {
+                }
+
                 var resultRightKeys = new HashSet<string>(right.Count);
                 foreach (var resultRightRow in right)
                 {
@@ -255,10 +257,7 @@ namespace GeneratedSample_Q29_Intersect
                 {
                     if (resultRightKeys.Contains((string)resultLeftRow.Name))
                     {
-                        if (resultDistinctRows.Add((string)resultLeftRow.Name))
-                        {
-                            __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name));
-                        }
+                        __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name));
                     }
                 }
 

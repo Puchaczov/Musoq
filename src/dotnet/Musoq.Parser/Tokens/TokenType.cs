@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Tokens;
+namespace Musoq.Parser.Tokens;
 
 public enum TokenType : short
 {
@@ -209,5 +209,6 @@ public enum TokenType : short
     CurrentRow, // CURRENT ROW (multi-word keyword)
 
     // Error token for recovery mode
-    Error // Invalid/unrecognized token
+    Error, // Invalid/unrecognized token
+    StringConcatenation // SQL || operator
 }

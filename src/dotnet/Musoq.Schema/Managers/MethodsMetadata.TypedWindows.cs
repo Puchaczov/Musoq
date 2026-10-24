@@ -23,12 +23,7 @@ public partial class MethodsMetadata
             result = null;
             return false;
         }
-        if (candidates.Length > 1 && candidates[0].Cost == candidates[1].Cost)
-            throw Musoq.Schema.Exceptions.MethodResolutionException.ForAmbiguousMethod(name,
-                argumentTypes.Select(static type => type.Name).ToArray(),
-                candidates.Where(candidate => candidate.Cost == candidates[0].Cost)
-                    .Select(static candidate => candidate.Declaration.ToString()!).ToArray());
-        result = candidates[0].Declaration;
+        result = SelectBestMethod(name, argumentTypes, candidates.Select(static candidate => candidate.Declaration).ToArray());
         return true;
     }
 }

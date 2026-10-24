@@ -65,29 +65,32 @@ internal static class CardinalityFactPlanner
                         ? AddFact(sourceFact, scan)
                         : null;
 
-                case PhysicalTakeNode take:
+                case PhysicalTakeNode take when take.Count.IsConstant:
                     return VisitTakeLike(
                         targetId: $"take:{_takeIndex++}",
                         targetKind: "Take",
-                        limit: take.Count,
+                        limit: take.Count.Value,
                         input: take.Input,
                         targetNode: take,
                         reason: $"TAKE limits output to at most {take.Count} row(s).");
 
-                case PhysicalTopNNode topN:
+                case PhysicalTopNNode topN when topN.N.IsConstant:
                     return VisitTakeLike(
                         targetId: $"top-n:{_topNIndex++}",
                         targetKind: "TopN",
-                        limit: topN.N,
+                        limit: topN.N.Value,
                         input: topN.Input,
                         targetNode: topN,
                         reason: $"Top-N limits output to at most {topN.N} row(s).");
 
-                case PhysicalTopOffsetNode topOffset:
+                case PhysicalTopOffsetNode topOffset when topOffset.Skip.IsConstant && topOffset.Take.IsConstant:
                     return VisitTopOffset(topOffset);
 
-                case PhysicalSkipNode skip:
-                    return ApplySkip(Visit(skip.Input), skip.Count);
+                case PhysicalSkipNode skip when skip.Count.IsConstant:
+                    return ApplySkip(Visit(skip.Input), skip.Count.Value);
+
+                case PhysicalTakeNode or PhysicalSkipNode or PhysicalTopNNode or PhysicalTopOffsetNode:
+                    return ApplyReducingBoundary(Visit(node.Children[0]), "Runtime paging may remove rows.");
 
                 case PhysicalProjectNode project:
                     return project.IsDistinct
@@ -164,9 +167,9 @@ internal static class CardinalityFactPlanner
                     targetId,
                     "TopOffset",
                     CardinalityKind.Exact,
-                    ClampSlice(exactRows.Value, topOffset.Skip, topOffset.Take),
-                    ClampSlice(exactRows.Value, topOffset.Skip, topOffset.Take),
-                    ClampSlice(exactRows.Value, topOffset.Skip, topOffset.Take),
+                    ClampSlice(exactRows.Value, topOffset.Skip.Value, topOffset.Take.Value),
+                    ClampSlice(exactRows.Value, topOffset.Skip.Value, topOffset.Take.Value),
+                    ClampSlice(exactRows.Value, topOffset.Skip.Value, topOffset.Take.Value),
                     inputBounds!.Confidence,
                     $"Top-offset skips {topOffset.Skip} row(s) and takes at most {topOffset.Take} row(s).")
                 : new CardinalityFact(
@@ -175,7 +178,7 @@ internal static class CardinalityFactPlanner
                     CardinalityKind.Bounded,
                     null,
                     0,
-                    inputBounds?.UpperBound is { } upper ? ClampSlice(upper, topOffset.Skip, topOffset.Take) : topOffset.Take,
+                    inputBounds?.UpperBound is { } upper ? ClampSlice(upper, topOffset.Skip.Value, topOffset.Take.Value) : topOffset.Take.Value,
                     inputBounds?.Confidence ?? 1d,
                     $"Top-offset skips {topOffset.Skip} row(s) and takes at most {topOffset.Take} row(s).");
 

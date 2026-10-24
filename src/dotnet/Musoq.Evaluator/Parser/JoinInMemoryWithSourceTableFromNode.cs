@@ -14,4 +14,5 @@ public class JoinInMemoryWithSourceTableFromNode(
         typeof(RowSource<>), tieBreak)
 {
     public string? InMemoryTableVariableName { get; } = inMemoryTableVariableName;
+    internal IntermediateSourceBinding? IntermediateSource { get; init; }
 }

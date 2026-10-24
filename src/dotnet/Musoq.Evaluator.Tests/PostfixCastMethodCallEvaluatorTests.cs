@@ -194,7 +194,7 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             CreateSingleSource(new BasicEntity("POLAND", 500)));
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7018_NumericOverflow);
     }
 
     [TestMethod]

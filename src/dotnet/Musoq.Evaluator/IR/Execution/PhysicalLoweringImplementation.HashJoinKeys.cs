@@ -172,6 +172,7 @@ internal sealed partial class PhysicalLoweringImplementation
                                                  ReferencesExecutionAlias(branch.Result, alias)) ||
                                              (caseWhen.ElseExpression != null &&
                                               ReferencesExecutionAlias(caseWhen.ElseExpression, alias)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(expression => ReferencesExecutionAlias(expression, alias)),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(expression => ReferencesExecutionAlias(expression, alias)),
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(part => ReferencesExecutionAlias(part, alias)),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(argument => ReferencesExecutionAlias(argument, alias)),

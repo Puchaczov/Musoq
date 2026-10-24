@@ -103,7 +103,7 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             [],
-            [ExecutionSemanticsContract.Version1.Version],
+            [ExecutionSemanticsContract.Current.Version],
             [ExecutionTargetFeatureKind.ConstantKind]);
         var report = new ExecutionTargetFeatureReport(
         [

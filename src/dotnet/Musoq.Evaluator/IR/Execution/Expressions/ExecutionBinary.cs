@@ -8,6 +8,9 @@ public sealed record ExecutionBinary(
     ExecutionExpression Right,
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
+    /// <summary>Logical right operands are evaluated only when the left value does not determine the result.</summary>
+    public bool IsShortCircuiting => Kind is BinaryOpKind.And or BinaryOpKind.Or;
+
     /// <summary>
     ///     Indicates that this comparison originated from SQL comparison syntax and therefore uses
     ///     three-valued NULL semantics. Synthetic comparisons created by planning and lowering leave

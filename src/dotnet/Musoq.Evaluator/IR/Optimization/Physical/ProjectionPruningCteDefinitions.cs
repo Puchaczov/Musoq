@@ -75,7 +75,7 @@ internal static class ProjectionPruningCteDefinitions
 
             statements[^1] = pruning.Plan;
             return new CteProjectionPruning(
-                new PhysicalMultiStatementNode(statements),
+                new PhysicalMultiStatementNode(statements) { IntermediateProducers = multiStatement.IntermediateProducers },
                 pruning.PrunedFieldCount,
                 IsChanged: true);
         }

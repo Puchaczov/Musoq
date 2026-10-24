@@ -115,34 +115,31 @@ public partial class MalformedQueryErrorTests
     #region CASE WHEN without ELSE
 
     [TestMethod]
-    public void WhenCaseWhenWithoutElse_ShouldThrowParseError()
+    public void WhenCaseWhenWithoutElse_ShouldReturnImplicitNull()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT CASE WHEN Age > 25 THEN 'old' END FROM #test.people()"));
+        using var query = CompileQuery("SELECT CASE WHEN Age > 25 THEN 'old' END AS Category FROM #test.people()");
+        using var table = query.Run(TokenSource.Token);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is Else but received End");
-        AssertHasGuidance(ex);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null], ["old"], ["old"], ["old"], ["old"]);
     }
 
     [TestMethod]
-    public void WhenCaseWhenMultipleBranchesWithoutElse_ShouldThrowParseError()
+    public void WhenCaseWhenMultipleBranchesWithoutElse_ShouldReturnFirstMatchOrNull()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery(
-                "SELECT CASE WHEN Age > 40 THEN 'senior' WHEN Age > 25 THEN 'mid' END FROM #test.people()"));
+        using var query = CompileQuery(
+            "SELECT CASE WHEN Age > 40 THEN 'senior' WHEN Age > 25 THEN 'mid' END AS Category FROM #test.people()");
+        using var table = query.Run(TokenSource.Token);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is Else but received End");
-        AssertHasGuidance(ex);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null], ["mid"], ["mid"], ["senior"], ["mid"]);
     }
 
     [TestMethod]
-    public void WhenSimpleCaseWithoutElse_ShouldThrowParseError()
+    public void WhenSimpleCaseWithoutElse_ShouldReturnMatchOrNull()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT CASE Age WHEN 25 THEN 'young' WHEN 35 THEN 'mid' END FROM #test.people()"));
+        using var query = CompileQuery("SELECT CASE Age WHEN 25 THEN 'young' WHEN 35 THEN 'mid' END AS Category FROM #test.people()");
+        using var table = query.Run(TokenSource.Token);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is Else but received End");
-        AssertHasGuidance(ex);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["young"], ["mid"], [null], [null], [null]);
     }
 
     #endregion

@@ -91,6 +91,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["RuntimeDynamic"] = new() { ContextsAccess = 0 },
         ["Scalar"] = new() { ContextsAccess = 0 },
         ["ScalarReuse"] = new() { ContextsAccess = 0 },
+        ["StringConcatenation"] = new() { ContextsAccess = 0 },
         ["Scan"] = new() { ContextsAccess = 0 },
         ["Set"] = new(),
         ["Subquery"] = new() { ContextsAccess = 0 },

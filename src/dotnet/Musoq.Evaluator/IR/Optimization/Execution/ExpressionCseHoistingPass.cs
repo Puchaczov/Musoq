@@ -459,6 +459,7 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 ExecutionCreateHashPayload payload => payload.Values.Select(static value => value.Value).ToArray(),
                 ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => [getOrAdd.Key],
                 ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
+                ExecutionAggregateSet { FilterPredicate: not null } aggregateSet => [aggregateSet.FilterPredicate],
                 ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
                     .Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
                     .Concat(aggregateSet.AccumulatorInput == null ? [] : [aggregateSet.AccumulatorInput])

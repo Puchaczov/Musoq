@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
@@ -154,6 +154,14 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
         if (TryReplaceWithGroupColumn(node))
             return;
 
+        base.Visit(node);
+    }
+
+    public override void Visit(StringConcatenationNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        if (TryReplaceWithGroupColumn(node))
+            return;
         base.Visit(node);
     }
 

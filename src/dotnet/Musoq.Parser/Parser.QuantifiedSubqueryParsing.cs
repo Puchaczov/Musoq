@@ -31,48 +31,15 @@ public partial class Parser
             .Through(subquery.Span)
             .Through(closingParenthesis.Span);
 
-        if (quantifier is TokenType.Any or TokenType.Some && operatorType == TokenType.Equality)
-            return new InQueryNode(left, subquery).WithSpan(quantifiedSpan);
+        var firstQuery = subquery;
+        while (firstQuery is SetOperatorNode set)
+            firstQuery = set.Left;
+        if (firstQuery is QueryNode { Select.Fields.Length: not 1 } wide)
+            throw new SyntaxException("Quantified subquery must return exactly one column.",
+                _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2024_InvalidSubquery, wide.Select.Span);
 
-        if (subquery is not QueryNode query)
-            throw new SyntaxException(
-                "Quantified subqueries over set operators are not supported yet.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2024_InvalidSubquery,
-                subquery.HasSpan ? subquery.Span : default);
-
-        if (query.Select.Fields.Length != 1)
-            throw new SyntaxException(
-                "Quantified subquery must return exactly one column.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2024_InvalidSubquery,
-                query.Select.Span);
-
-        left = QualifyQuantifiedColumn(left, outerAlias);
-        var value = QualifyQuantifiedColumn(query.Select.Fields[0].Expression,
-            GetSingleQuantifiedSourceAlias(query.From));
-        Node predicate = quantifier is TokenType.Any or TokenType.Some
-            ? CreateAnyQuantifiedPredicate(left, operatorType, value)
-            : CreateAllQuantifiedPredicate(left, operatorType, value);
-        predicate.WithSpan(quantifiedSpan);
-
-        var where = query.Where != null
-            ? new WhereNode(new AndNode(query.Where.Expression, predicate))
-            : new WhereNode(predicate);
-        var existsQuery = new QueryNode(
-            new SelectNode([new FieldNode(new IntegerNode(1), 0, "_quantified_key")]),
-            query.From,
-            where,
-            query.GroupBy,
-            query.OrderBy,
-            query.Skip,
-            query.Take,
-            query.Window,
-            query.Qualify,
-            default);
-
-        var exists = (ExistsQueryNode)new ExistsQueryNode(existsQuery).WithSpan(quantifiedSpan);
-        return quantifier is TokenType.All ? new NotNode(exists) : exists;
+        return new QuantifiedSubqueryNode(QualifyQuantifiedColumn(left, outerAlias), operatorType,
+            quantifier, subquery).WithSpan(quantifiedSpan);
     }
 
     private static Node QualifyQuantifiedColumn(Node node, string? alias)
@@ -92,76 +59,6 @@ public partial class Parser
         return _fromAliasesStack.Peek().Single();
     }
 
-    private static string? GetSingleQuantifiedSourceAlias(FromNode source)
-    {
-        return source switch
-        {
-            Nodes.From.ExpressionFromNode expression => GetSingleQuantifiedSourceAlias(expression.Expression),
-            Nodes.From.JoinNode or Nodes.From.JoinFromNode or Nodes.From.ApplyNode or Nodes.From.ApplyFromNode => null,
-            _ => source.Alias
-        };
-    }
-
-    private static AndNode CreateAnyQuantifiedPredicate(Node left, TokenType operatorType, Node right)
-    {
-        return new AndNode(
-            new AndNode(
-                new IsNullNode(CloneQuantifiedOperand(left), true),
-                new IsNullNode(CloneQuantifiedOperand(right), true)),
-            CreateComparisonPredicate(CloneQuantifiedOperand(left), operatorType, CloneQuantifiedOperand(right)));
-    }
-
-    private static OrNode CreateAllQuantifiedPredicate(Node left, TokenType operatorType, Node right)
-    {
-        return new OrNode(
-            new OrNode(
-                new IsNullNode(CloneQuantifiedOperand(left), false),
-                new IsNullNode(CloneQuantifiedOperand(right), false)),
-            CreateComparisonPredicate(
-                CloneQuantifiedOperand(left),
-                InvertComparisonOperator(operatorType),
-                CloneQuantifiedOperand(right)));
-    }
-
-    private static Node CloneQuantifiedOperand(Node node)
-    {
-        return node switch
-        {
-            AccessColumnNode access => new AccessColumnNode(
-                access.Name,
-                access.Alias,
-                access.ReturnType,
-                access.Span,
-                access.IntendedTypeName),
-            DotNode dot => new DotNode(
-                CloneQuantifiedOperand(dot.Root),
-                CloneQuantifiedOperand(dot.Expression),
-                dot.IsTheMostInner,
-                dot.Name,
-                dot.ReturnType ?? typeof(void),
-                dot.IntendedTypeName),
-            IdentifierNode identifier => new IdentifierNode(
-                identifier.Name,
-                identifier.ReturnType ?? typeof(void),
-                identifier.Span),
-            _ => node
-        };
-    }
-
-    private static TokenType InvertComparisonOperator(TokenType operatorType)
-    {
-        return operatorType switch
-        {
-            TokenType.GreaterEqual => TokenType.Less,
-            TokenType.Greater => TokenType.LessEqual,
-            TokenType.LessEqual => TokenType.Greater,
-            TokenType.Less => TokenType.GreaterEqual,
-            TokenType.Equality => TokenType.Diff,
-            TokenType.Diff => TokenType.Equality,
-            _ => throw new InvalidOperationException($"{operatorType} is not a quantified comparison operator.")
-        };
-    }
-
     private static Node CreateComparisonPredicate(Node left, TokenType operatorType, Node right)
     {
         return operatorType switch
@@ -176,8 +73,6 @@ public partial class Parser
         };
     }
 
-    private static bool IsQuantifiedSubqueryToken(TokenType tokenType)
-    {
-        return tokenType is TokenType.Any or TokenType.Some or TokenType.All;
-    }
+    private static bool IsQuantifiedSubqueryToken(TokenType tokenType) =>
+        tokenType is TokenType.Any or TokenType.Some or TokenType.All;
 }

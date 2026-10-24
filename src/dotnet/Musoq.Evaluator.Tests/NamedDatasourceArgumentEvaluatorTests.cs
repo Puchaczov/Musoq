@@ -26,16 +26,19 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class NamedDatasourceArgumentEvaluatorTests
 {
     [TestMethod]
-    public void NamedArguments_AreCanonicalizedBeforeMetadataInvocation()
+    [DataRow("select 1 from #capture.any(second: 4, first: 'value')", 4)]
+    [DataRow("select 1 from #capture.any(second: 4s, first: 'value')", 4)]
+    [DataRow("let code: char = 'A'; select 1 from #capture.any(second: $code, first: 'value')", 65)]
+    public void NamedArguments_AreCanonicalizedBeforeMetadataInvocation(string query, int expectedSecond)
     {
         object?[]? captured = null;
 
         Analyze(
-            "select 1 from #capture.any(second: 4, first: 'value')",
+            query,
             new NamedCaptureSchemaProvider(arguments => captured = arguments));
 
         Assert.IsNotNull(captured);
-        CollectionAssert.AreEqual(new object?[] { "value", 4 }, captured);
+        CollectionAssert.AreEqual(new object?[] { "value", expectedSecond }, captured);
     }
 
     [TestMethod]
@@ -136,12 +139,16 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     }
 
     [TestMethod]
-    public void NamedArguments_AreCanonicalizedAtRuntime()
+    [DataRow("select 1 from #capture.any(second: 4, first: 'value')", 4)]
+    [DataRow("select 1 from #capture.any(second: 4s, first: 'value')", 4)]
+    [DataRow("select 1 from #capture.any('value', 4s)", 4)]
+    [DataRow("let code: char = 'A'; select 1 from #capture.any(second: $code, first: 'value')", 65)]
+    public void NamedArguments_AreCanonicalizedAtRuntime(string query, int expectedSecond)
     {
         object?[]? captured = null;
         var provider = new NamedCaptureSchemaProvider(arguments => captured = arguments);
         var vm = InstanceCreator.CompileForExecution(
-            "select 1 from #capture.any(second: 4, first: 'value')",
+            query,
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver());
@@ -149,7 +156,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
-        CollectionAssert.AreEqual(new object?[] { "value", 4 }, captured);
+        CollectionAssert.AreEqual(new object?[] { "value", expectedSecond }, captured);
     }
 
     [TestMethod]

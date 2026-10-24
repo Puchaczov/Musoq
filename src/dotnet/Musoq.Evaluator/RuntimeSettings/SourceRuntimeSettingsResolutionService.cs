@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -60,7 +61,8 @@ internal sealed class SourceRuntimeSettingsResolutionService(
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var descriptions = CreateDescriptions(requirements, values, cancellationToken);
+        var snapshot = values.ToFrozenDictionary(StringComparer.Ordinal);
+        var descriptions = CreateDescriptions(requirements, snapshot, cancellationToken);
         var hasMissingRequired = descriptions.Any(static description =>
             description.Status == SourceRuntimeSettingResolutionStatus.Missing);
 
@@ -70,10 +72,10 @@ internal sealed class SourceRuntimeSettingsResolutionService(
         return new ResolvedSourceRuntimeSettings(
             sourceContextId,
             profileName,
-            values,
+            snapshot,
             descriptions,
             requirements.Count > 0,
-            values.Count > 0,
+            snapshot.Count > 0,
             hasMissingRequired);
     }
 
@@ -95,7 +97,7 @@ internal sealed class SourceRuntimeSettingsResolutionService(
                 requirement.Description));
         }
 
-        return descriptions;
+        return descriptions.AsReadOnly();
     }
 
     private static SourceRuntimeSettingResolutionStatus ResolveStatus(

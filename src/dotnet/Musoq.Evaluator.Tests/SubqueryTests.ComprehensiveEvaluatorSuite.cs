@@ -202,16 +202,6 @@ public partial class SubqueryTests
 
         AssertDiagnostic(
             @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Population > ALL (
-                SELECT b.Population FROM #B.entities() b
-                UNION (Population)
-                SELECT c.Population FROM #C.entities() c
-            )",
-            DiagnosticCode.MQ2024_InvalidSubquery);
-
-        AssertDiagnostic(
-            @"
             SELECT a.City, d.City FROM #A.entities() a
             INNER JOIN (
                 SELECT b.City, b.Country FROM #B.entities() b

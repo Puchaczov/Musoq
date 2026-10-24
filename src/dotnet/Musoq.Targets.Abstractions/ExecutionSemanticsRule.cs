@@ -16,7 +16,12 @@ public enum ExecutionSemanticsRuleId
     StringEqualityOrderingHashing,
     TemporalValueSemantics,
     StrictCast,
-    GroupingDistinctJoinSetEquality
+    GroupingDistinctJoinSetEquality,
+    SqlStringConcatenation,
+    ImplicitConversion,
+    Coalesce,
+    SubqueryExecution,
+    InterpretationExpressions
 }
 
 public sealed record ExecutionSemanticsRule(
@@ -30,6 +35,11 @@ public static class ExecutionSemanticsRuleIds
 {
     public static string ToStableId(ExecutionSemanticsRuleId id) => id switch
     {
+        ExecutionSemanticsRuleId.SqlStringConcatenation => "string.sql-concatenation",
+        ExecutionSemanticsRuleId.ImplicitConversion => "binding.implicit-conversion",
+        ExecutionSemanticsRuleId.Coalesce => "binding.coalesce",
+        ExecutionSemanticsRuleId.SubqueryExecution => "subquery.execution",
+        ExecutionSemanticsRuleId.InterpretationExpressions => "interpretation.expressions",
         ExecutionSemanticsRuleId.NullLogic => "null.logic",
         ExecutionSemanticsRuleId.NullOrdering => "null.ordering",
         ExecutionSemanticsRuleId.IntegerRuntimeAddSubtractMultiply => "integer.runtime.add-subtract-multiply",

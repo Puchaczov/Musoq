@@ -14,12 +14,12 @@ public sealed partial class LibraryExecutionProviderQueryTests
         using var compiled = CreateAndRunVirtualMachine<SwitchLine, LibraryBase>(query, input);
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Key", typeof(string)), ("Text", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Key", typeof(object)), ("Text", typeof(object)), ("Value", typeof(object)));
         Assert.HasCount(2, rows);
         CollectionAssert.AreEqual(new[] { 1, 2 }, rows.Select(row => row.GetValue<int>(0)).ToArray());
-        CollectionAssert.AreEqual(new string?[] { null, "x" }, rows.Select(row => row.GetValue<string?>(1)).ToArray());
-        CollectionAssert.AreEqual(new string?[] { "hello", null }, rows.Select(row => row.GetValue<string?>(2)).ToArray());
-        CollectionAssert.AreEqual(new string?[] { null, "42" }, rows.Select(row => row.GetValue<string?>(3)).ToArray());
+        CollectionAssert.AreEqual(new string?[] { null, "x" }, rows.Select(row => (string?)row.GetValue<object?>(1)).ToArray());
+        CollectionAssert.AreEqual(new string?[] { "hello", null }, rows.Select(row => (string?)row.GetValue<object?>(2)).ToArray());
+        CollectionAssert.AreEqual(new string?[] { null, "42" }, rows.Select(row => (string?)row.GetValue<object?>(3)).ToArray());
     }
 
     public sealed record SwitchLine(int Position, string Line);

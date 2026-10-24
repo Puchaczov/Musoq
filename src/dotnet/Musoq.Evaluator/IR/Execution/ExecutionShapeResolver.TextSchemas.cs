@@ -21,27 +21,10 @@ public sealed partial class ExecutionShapeResolver
             if (field.Name.StartsWith('_'))
                 continue;
 
-            var columnType = field.FieldType switch
-            {
-                TextFieldType.Pattern when field.CaptureGroups.Length > 0 => typeof(object),
-                TextFieldType.Repeat => InterpretationTextFieldTypeResolver.Resolve(text.Name, field).ClrType,
-                TextFieldType.Switch => typeof(object),
-                TextFieldType.SchemaReference => typeof(object),
-                _ => typeof(string)
-            };
-
-            var intendedTypeName = field switch
-            {
-                { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 } =>
-                    $"Musoq.Generated.Interpreters.{text.Name}.CaptureResult_{field.Name}",
-                { FieldType: TextFieldType.Switch } =>
-                    InterpretationTextFieldTypeResolver.Resolve(text.Name, field).IntendedTypeName,
-                { FieldType: TextFieldType.Repeat } =>
-                    InterpretationTextFieldTypeResolver.Resolve(text.Name, field).IntendedTypeName,
-                { FieldType: TextFieldType.SchemaReference } =>
-                    $"Musoq.Generated.Interpreters.{field.PrimaryValue ?? "object"}",
-                _ => null
-            };
+            var shape = schemaRegistry == null ? null : new TextResultShapeBinding(schemaRegistry).Field(text.Name, field);
+            var (columnType, intendedTypeName) = shape == null
+                ? InterpretationTextFieldTypeResolver.Resolve(text.Name, field)
+                : (shape.ClrType, shape.TypeName);
 
             columns.Add(new ColumnSchema(field.Name, columnType, columns.Count, intendedTypeName));
         }

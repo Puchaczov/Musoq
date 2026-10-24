@@ -1,5 +1,6 @@
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
@@ -37,6 +38,9 @@ public sealed partial class RewriteQueryVisitor
     {
         BinaryOperationVisitorHelper.ProcessModuloOperation(Nodes, node.Span);
     }
+
+    public void Visit(StringConcatenationNode node) =>
+        BinaryOperationVisitorHelper.ProcessBinaryOperation(Nodes, (left, right) => new StringConcatenationNode(left, right), node.Span);
 
     public void Visit(AddNode node)
     {
@@ -180,7 +184,7 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(ExistsQueryNode node) => throw new InvalidOperationException("ExistsQueryNode should have been rewritten to CTE before this visitor runs.");
 
-    public void Visit(ScalarSubqueryNode node) => throw new InvalidOperationException("ScalarSubqueryNode should have been rewritten to CTE before this visitor runs.");
+    public void Visit(ScalarSubqueryNode node) => Nodes.Push(SubqueryApplyCloner.Rewrite(node, Nodes));
 
     /// <summary>
     ///     Desugars BETWEEN into: expression >= min AND expression <= max

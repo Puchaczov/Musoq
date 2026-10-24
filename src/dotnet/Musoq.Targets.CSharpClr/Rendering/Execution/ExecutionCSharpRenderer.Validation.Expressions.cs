@@ -43,6 +43,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return expression switch
         {
+            ExecutionSubquery subquery => subquery.Plan.FinalResult is not null && CanRenderBlock(subquery.Plan.Body) &&
+                subquery.Bindings.All(CanRenderExpression) && (subquery.Operand is null || CanRenderExpression(subquery.Operand)),
             ExecutionFieldRead fieldRead => CanRenderFieldRead(fieldRead),
             ExecutionStructuralArray structuralArray => structuralArray.Elements.All(CanRenderExpression) && CanReferenceType(structuralArray.ElementType),
             ExecutionStructuralConversion conversion => CanRenderExpression(conversion.Input) && CanReferenceType(conversion.TargetType.RequireClrType()),
@@ -58,6 +60,7 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionStructuralRecord structuralRecord =>
                 structuralRecord.ReturnType.RequireClrType() == typeof(Musoq.Schema.StructuralInputs.StructuralValue) &&
                 structuralRecord.Fields.All(field => CanRenderExpression(field.Value)),
+            ExecutionUnionMemberRead union => CanRenderExpression(union.Receiver),
             ExecutionMemberRead memberRead => CanRenderMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => !string.IsNullOrWhiteSpace(parameterRead.Name) &&
                                                           CanReferenceType(parameterRead.ReturnType),
@@ -93,6 +96,7 @@ public sealed partial class ExecutionCSharpRenderer
                                               CanRenderExpression(branch.Result)) &&
                                           (caseWhen.ElseExpression == null ||
                                            CanRenderExpression(caseWhen.ElseExpression)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Count >= 2 && concatenation.Expressions.All(value => value.ReturnType.RequireClrType() == typeof(string) && CanRenderExpression(value)),
             ExecutionCoalesce coalesce => coalesce.Expressions.Count > 0 &&
                                           coalesce.Expressions.All(CanRenderExpression),
             ExecutionRowStream => true,

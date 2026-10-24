@@ -12,7 +12,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (binary.RequiresSqlNullPropagation())
             return this.RenderSqlNullComparison(binary, context);
 
-        if (binary.Kind is BinaryOpKind.And or BinaryOpKind.Or && binary.RequiresNullableBoolean())
+        if (binary.IsShortCircuiting && binary.RequiresNullableBoolean())
         {
             return this.RenderNullableLogical(binary, context);
         }
@@ -36,12 +36,39 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(
                 GetBinaryExpressionKind(binary.Kind),
                 RenderExpression(binary.Left, context),
-                RenderExpression(binary.Right, context)));
+                RenderBinaryRightOperand(binary, context)));
 
         return RequiresBinaryResultCast(binary)
             ? CastIfNeeded(expression, binary.ReturnType)
             : expression;
     }
+
+    private ExpressionSyntax RenderBinaryRightOperand(ExecutionBinary binary, ExecutionRenderContext context)
+    {
+        var rendered = RenderExpression(binary.Right, context);
+        if (binary.Kind is not (BinaryOpKind.Divide or BinaryOpKind.Modulo) ||
+            !IsConstantNumericExpression(binary.Right))
+            return rendered;
+
+        var type = binary.Right.ReturnType.RequireClrType();
+        if (!type.IsValueType || Nullable.GetUnderlyingType(type) is not null ||
+            type == typeof(float) || type == typeof(double))
+            return rendered;
+
+        var nullable = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+            CreateTypeSyntax(typeof(Nullable<>).MakeGenericType(type)), rendered));
+        return SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression, nullable,
+            SyntaxFactory.IdentifierName(nameof(Nullable<int>.GetValueOrDefault))));
+    }
+
+    private static bool IsConstantNumericExpression(ExecutionExpression expression) => expression switch
+    {
+        ExecutionLiteral { Value.Kind: ExecutionConstantKind.SignedInteger or ExecutionConstantKind.UnsignedInteger or ExecutionConstantKind.Decimal } => true,
+        ExecutionUnary unary => IsConstantNumericExpression(unary.Operand),
+        ExecutionBinary binary => IsConstantNumericExpression(binary.Left) && IsConstantNumericExpression(binary.Right),
+        _ => false
+    };
 
     private static bool RequiresBinaryResultCast(ExecutionBinary binary)
     {

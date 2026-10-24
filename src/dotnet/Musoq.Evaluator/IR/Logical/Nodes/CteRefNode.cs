@@ -8,5 +8,7 @@ public sealed record CteRefNode(
     string Alias,
     OutputSchema OutputSchema) : LogicalNode(OutputSchema)
 {
+    internal IntermediateProducerId? IntermediateProducerId { get; init; }
+
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

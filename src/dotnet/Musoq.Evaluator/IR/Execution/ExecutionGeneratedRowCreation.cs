@@ -16,8 +16,8 @@ public sealed record ExecutionCreateGeneratedRow : ExecutionNode
     {
         Row = row;
         RowShape = rowShape;
-        Values = ExecutionIrCollections.Freeze(values);
-        Contexts = ExecutionIrCollections.Freeze(contexts);
+        Values = values;
+        Contexts = contexts;
         ContextLayout = contextLayout;
     }
 

@@ -21,7 +21,13 @@ public static partial class SafeArrayAccess
     /// <returns>Array element if valid index, default(T) if out-of-bounds or array is null</returns>
     public static T? GetArrayElement<T>(T[]? array, int index)
     {
-        return GetListElement(array, index);
+        if (array == null || array.Length == 0)
+            return default;
+        if (index < 0)
+            return array[NormalizeIndex(index, array.Length)];
+        if (index >= array.Length)
+            return default;
+        return array[index];
     }
 
     /// <summary>

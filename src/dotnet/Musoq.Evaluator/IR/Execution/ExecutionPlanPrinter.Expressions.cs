@@ -19,9 +19,11 @@ public static partial class ExecutionPlanPrinter
                 $"cte-input<{cteCollection.ElementType.DisplayName}>({cteCollection.CteName})" +
                 $" [ownership {cteCollection.Ownership}; lifetime {cteCollection.Lifetime}; metrics {cteCollection.MetricsStrategy}; " +
                 $"limits {FormatLimitBinding(cteCollection.LimitBinding)}]",
+            ExecutionSubquery subquery => FormatSubquery(subquery),
             ExecutionFieldRead fieldRead => string.IsNullOrEmpty(fieldRead.Alias)
                 ? fieldRead.FieldName
                 : $"{fieldRead.Alias}.{fieldRead.FieldName}",
+            ExecutionUnionMemberRead union => $"UnionMember({union.MemberName}, {union.Cases.Count} cases)",
             ExecutionMemberRead memberRead =>
                 $"{FormatExpression(memberRead.Receiver)}{(memberRead.IsNullSafe ? "?." : ".")}{memberRead.MemberName}",
             ExecutionScriptParameterRead parameterRead => $"${parameterRead.Name}",
@@ -70,6 +72,7 @@ public static partial class ExecutionPlanPrinter
             ExecutionBetween between => FormatBetween(between),
             ExecutionCaseWhen caseWhen => FormatCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => FormatCoalesce(coalesce),
+            ExecutionStringConcatenation concatenation => $"({string.Join(" || ", concatenation.Expressions.Select(FormatExpression))})",
             ExecutionRowStream { Kind: ExecutionRowStreamKind.Chunks } rows => rows.Variable.Name,
             ExecutionRowStream { RowsAccess: ExecutionRowStreamRowsAccess.TableRows } rows => TryGetTypedRowBuffer(rows.Variable.Name, out _)
                 ? rows.Variable.Name
@@ -235,8 +238,16 @@ public static partial class ExecutionPlanPrinter
             BinaryOpKind.BitwiseXor => "^",
             BinaryOpKind.LeftShift => "<<",
             BinaryOpKind.RightShift => ">>",
+            BinaryOpKind.SqlStringConcatenate => "||",
             BinaryOpKind.StringConcatenate => "||",
             _ => "?"
         };
+    }
+    private static string FormatSubquery(ExecutionSubquery query)
+    {
+        var comparison = query.Kind is Musoq.Evaluator.IR.Expressions.SubqueryResultKind.Any or Musoq.Evaluator.IR.Expressions.SubqueryResultKind.All
+            ? $"<{query.Comparison}>({FormatExpression(query.Operand!)})"
+            : string.Empty;
+        return $"Apply{query.Kind}{comparison}[{query.Identifier}]({string.Join(", ", query.Bindings.Select(FormatExpression))})";
     }
 }

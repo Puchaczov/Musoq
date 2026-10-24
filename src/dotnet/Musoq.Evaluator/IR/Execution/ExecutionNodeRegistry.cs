@@ -11,7 +11,7 @@ internal static class ExecutionNodeRegistry
                 definition.NodeType,
                 definition.RendererFamily,
                 definition.ChildBlockShape,
-                definition.GetChildBlocks,
+                definition.GetChildRegion,
                 definition.Behavior))
             .ToArray();
 
@@ -45,5 +45,19 @@ internal sealed record ExecutionNodeDescriptor(
     Type NodeType,
     ExecutionRendererNodeFamily RendererFamily,
     ExecutionNodeChildBlockShape ChildBlockShape,
-    Func<ExecutionNode, IReadOnlyList<ExecutionBlock>> GetChildBlocks,
-    ExecutionNodeBehaviorDefinition Behavior);
+    Func<ExecutionNode, int, ExecutionChildRegion> GetChildRegion,
+    ExecutionNodeBehaviorDefinition Behavior)
+{
+    public IReadOnlyList<ExecutionBlock> GetChildBlocks(ExecutionNode node)
+    {
+        var count = 0;
+        while (GetChildRegion(node, count).IsPresent)
+            count++;
+        if (count == 0)
+            return [];
+        var blocks = new ExecutionBlock[count];
+        for (var index = 0; index < count; index++)
+            blocks[index] = GetChildRegion(node, index).AsBlock();
+        return blocks;
+    }
+}

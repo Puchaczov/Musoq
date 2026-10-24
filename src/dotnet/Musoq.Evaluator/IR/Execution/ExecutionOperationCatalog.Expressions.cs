@@ -7,11 +7,13 @@ internal static partial class ExecutionOperationCatalog
 {
     private static IEnumerable<KeyValuePair<Type, ExecutionOperationId>> CreateExpressionOperations()
     {
+        yield return Operation<ExecutionSubquery>("expr.subquery");
         yield return Operation<ExecutionFieldRead>("expr.field-read");
         yield return Operation<ExecutionStructuralRecord>("expr.structural-record");
         yield return Operation<ExecutionStructuralArray>("expr.structural-array");
         yield return Operation<ExecutionStructuralConversion>("expr.structural-conversion");
         yield return Operation<ExecutionCteCollectionInput>("cte.collection-input");
+        yield return Operation<ExecutionUnionMemberRead>("expr.union-member-read");
         yield return Operation<ExecutionMemberRead>("expr.member-read");
         yield return Operation<ExecutionScriptParameterRead>("expr.script-parameter");
         yield return Operation<ExecutionScriptVariableRead>("expr.script-variable");
@@ -42,6 +44,7 @@ internal static partial class ExecutionOperationCatalog
         yield return Operation<ExecutionBetween>("expr.between");
         yield return Operation<ExecutionCaseWhen>("expr.case");
         yield return Operation<ExecutionCoalesce>("expr.coalesce");
+        yield return Operation<ExecutionStringConcatenation>("expr.string-concatenation");
         yield return Operation<ExecutionRowStream>("stream.rows");
         yield return Operation<ExecutionScalarRowStream>("stream.scalar-row");
         yield return Operation<ExecutionStoredTable>("cte.table.read");

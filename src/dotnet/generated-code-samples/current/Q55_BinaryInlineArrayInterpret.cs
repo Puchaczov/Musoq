@@ -391,6 +391,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'InlineArrayPacket'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class InlineArrayPacket : BytesInterpreterBase<InlineArrayPacket>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -443,9 +444,9 @@ namespace Musoq.Generated.Interpreters
             var __items_count = ResolveExpressionSize<byte>(() => checked((byte?)(_count)), ParseErrorCode.InvalidSize);
             for (int __items_i = 0; __items_i < __items_count; __items_i++)
             {
-                var ___items_list_elemInterpreter = new Inline_Items();
-                var ___items_list_elem = InterpretNested(___items_list_elemInterpreter, data, "Items");
-                __items_list.Add(___items_list_elem);
+                var ___items_elem_interpreter = new Inline_Items();
+                var __items_elem = InterpretNested(___items_elem_interpreter, data, "Items");
+                __items_list.Add(__items_elem);
             }
 
             var _items = __items_list.ToArray();
@@ -458,6 +459,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated nested interpreter for inline schema 'Inline_Items'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Inline_Items : BytesInterpreterBase<Inline_Items>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

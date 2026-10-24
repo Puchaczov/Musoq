@@ -6,28 +6,24 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
     [TestMethod]
-    public void CorrelatedCompositeRangeSample_WhenCompiled_ShouldUseTypedPartitionIndex()
+    public void CorrelatedCompositeRangeSample_WhenCompiled_ShouldUseDemandDrivenTypedCaptures()
     {
         var result = CompileSampleForInspection(CorrelatedCompositeRangeMarkSampleFileName);
 
-        Assert.Contains("PredicateRangeMark", result.PlanningText);
-        Assert.Contains("PhysicalSortMergeJoin [LeftMark]", result.PhysicalPlanText);
-        Assert.Contains("[partitions:", result.PhysicalPlanText);
-        Assert.Contains("CreateRangeIndex", result.ExecutionPlanText);
-        Assert.Contains("RangeProbe", result.ExecutionPlanText);
-        Assert.Contains("ValueTuple<string, string>?", result.GeneratedCSharpCode);
+        Assert.Contains("-> Apply", result.PlanningText);
+        Assert.Contains("string __outer0, string __outer1, decimal __outer2", result.GeneratedCSharpCode);
         Assert.DoesNotContain("CreateAsOfEqualityKey", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(SmartForEachPattern, StringComparison.Ordinal));
     }
 
     [TestMethod]
-    public void CorrelatedCompositeRangeSample_WhenCheckedIn_ShouldRetainTypedHotPath()
+    public void CorrelatedCompositeRangeSample_WhenCheckedIn_ShouldRetainDemandDrivenTypedCaptures()
     {
         var sample = ReadSample(CorrelatedCompositeRangeMarkSampleFileName);
 
-        Assert.Contains("PhysicalSortMergeJoin [LeftMark]", sample.Content);
-        Assert.Contains("ValueTuple<string, string>?", sample.Content);
-        Assert.Contains("CreateRangeJoinIndex<", sample.Content);
+        Assert.Contains("ApplyExists[Subquery0]", sample.Content);
+        Assert.Contains("string __outer0, string __outer1, decimal __outer2", sample.Content);
+        Assert.Contains("SubqueryExecution.Exists<", sample.Content);
         Assert.IsFalse(sample.Content.Contains("CreateAsOfEqualityKey", StringComparison.Ordinal));
     }
 

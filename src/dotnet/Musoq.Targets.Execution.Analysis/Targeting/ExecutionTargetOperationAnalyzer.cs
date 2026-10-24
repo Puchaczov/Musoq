@@ -10,10 +10,11 @@ internal static class ExecutionTargetOperationAnalyzer
     {
         ArgumentNullException.ThrowIfNull(plan);
 
-        var operationIds = ExecutionIrAnalysis.FlattenNodes(plan.Body)
+        var scopes = ExecutionSubqueryPlans.SelfAndDescendants(plan).ToArray();
+        var operationIds = scopes.SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body))
             .Where(static node => node is not ExecutionPhaseBoundary)
             .Select(ExecutionOperationCatalog.Resolve)
-            .Concat(ExecutionIrAnalysis.FlattenExpressions(plan.Body)
+            .Concat(scopes.SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body))
                 .Select(ExecutionOperationCatalog.Resolve));
 
         var usages = operationIds

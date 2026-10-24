@@ -30,7 +30,7 @@ public sealed class StringMatchTargetContractTests
         var operations = ExecutionTargetOperationAnalyzer.Analyze(plan);
         var features = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
-        Assert.AreEqual(10, plan.ExecutionIrVersion);
+        Assert.AreEqual(11, plan.ExecutionIrVersion);
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(operations).IsSupported);
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(features).IsSupported);
 

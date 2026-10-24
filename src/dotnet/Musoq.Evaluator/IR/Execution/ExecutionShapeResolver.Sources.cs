@@ -1,3 +1,4 @@
+using System.Linq;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
@@ -53,7 +54,7 @@ public sealed partial class ExecutionShapeResolver
         if (HasGeneratedInterpreterTypeName(interpret.SchemaName))
         {
             _schemaRegistry!.TryGetSchema(interpret.SchemaName, out var registration);
-            return CreateClrMemberSourceShape(
+            var shape = CreateClrMemberSourceShape(
                 interpret.Alias,
                 columns,
                 interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
@@ -66,6 +67,22 @@ public sealed partial class ExecutionShapeResolver
                     interpret.SchemaName,
                     column,
                     _schemaRegistry));
+            if (registration?.Node is not Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode)
+                return shape;
+            var result = new TextResultShapeBinding(_schemaRegistry).Schema(interpret.SchemaName);
+            var partial = interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse;
+            return shape with
+            {
+                Fields = shape.Fields.Select(field =>
+                {
+                    var value = partial && field.Name == "ParsedFields" ? result : result.Member(field.Name);
+                    return value == null ? field : field with
+                    {
+                        InterpretationShape = new ExecutionInterpretationShape(value),
+                        GeneratedTypeName = value.TypeName
+                    };
+                }).ToArray()
+            };
         }
 
         return CreateSourceShape(interpret.Alias, entityType, columns);

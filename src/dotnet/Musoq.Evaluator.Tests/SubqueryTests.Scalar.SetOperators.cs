@@ -109,7 +109,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenCorrelatedScalarSetBranches_UseDifferentOuterKeys_ShouldExplainSharedKeyRequirement()
+    public void WhenCorrelatedScalarSetBranches_UseDifferentOuterKeys_ShouldEnforceRuntimeCardinality()
     {
         const string query = @"
             SELECT a.City, (
@@ -121,10 +121,8 @@ public partial class SubqueryTests
             ) AS MatchCity
             FROM #A.entities() a";
 
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateScalarSources()));
-
-        Assert.IsTrue(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ2024_InvalidSubquery));
-        Assert.Contains("same equality correlation key", exception.Message);
+        using var compiled = CreateAndRunVirtualMachine(query, CreateScalarSources());
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }
 }

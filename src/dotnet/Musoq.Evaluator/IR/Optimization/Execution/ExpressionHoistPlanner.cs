@@ -82,7 +82,7 @@ internal static class ExpressionHoistPlanner
 
         return new ExecutionVariable(
             CreateHoistedVariableName(candidate, usedNames),
-            expression.ReturnType);
+            expression.ReturnType, expression.InterpretationShape?.TypeName);
     }
 
     private static string CreateCastHoistVariableName(ExecutionStrictCast strictCast)

@@ -13,14 +13,9 @@ internal static partial class ApplyPredicateMovementPlanner
 {
     private sealed partial class PlanningState
     {
-        private bool IsAmbiguousAlias(string alias)
-        {
-            if (_producedAliasCounts.TryGetValue(alias, out var count) && count > 1)
-                return true;
-
-            return _sources.Values.Count(source =>
-                       string.Equals(source.Alias, alias, StringComparison.OrdinalIgnoreCase)) > 1;
-        }
+        private static bool IsAmbiguousAlias(string alias, QueryScope scope) =>
+            scope.ProducedAliasCounts.TryGetValue(alias, out var produced) && produced > 1 ||
+            scope.SourceAliasCounts.TryGetValue(alias, out var sources) && sources > 1;
 
         private void AddResidualDecision(
             int ordinal,
@@ -65,24 +60,26 @@ internal static partial class ApplyPredicateMovementPlanner
 
         private static HashSet<string> CreateSourceAcceptedPredicateTexts(
             IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults,
-            IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans)
+            IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans,
+            IReadOnlySet<string> sourceIds)
         {
             var result = new HashSet<string>(StringComparer.Ordinal);
             if (sourcePlanResults == null || sourcePredicatePlans == null)
                 return result;
 
-            foreach (var entry in sourcePlanResults)
+            foreach (var sourceId in sourceIds)
             {
-                if (entry.Value.AcceptedPredicate == null ||
-                    !sourcePredicatePlans.TryGetValue(entry.Key, out var sourcePredicatePlan))
+                if (!sourcePlanResults.TryGetValue(sourceId, out var resultForSource) ||
+                    resultForSource.AcceptedPredicate == null ||
+                    !sourcePredicatePlans.TryGetValue(sourceId, out var sourcePredicatePlan))
                 {
                     continue;
                 }
 
                 foreach (var predicate in SourcePredicateConjunctMatcher.MatchAcceptedConjuncts(
-                             entry.Value.AcceptedPredicate,
+                             resultForSource.AcceptedPredicate,
                              sourcePredicatePlan,
-                             allowWholePredicateMatch: entry.Value.ResidualPredicate == null))
+                             allowWholePredicateMatch: resultForSource.ResidualPredicate == null))
                 {
                     result.Add(IrExpressionPrinter.Print(predicate));
                 }
@@ -112,23 +109,6 @@ internal static partial class ApplyPredicateMovementPlanner
         }
 
         yield return predicate;
-    }
-
-    private static Dictionary<string, int> CollectProducedAliasCounts(LogicalNode node)
-    {
-        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        AddProducedAliasCounts(node, counts);
-        return counts;
-    }
-
-    private static void AddProducedAliasCounts(LogicalNode node, IDictionary<string, int> counts)
-    {
-        var alias = node is CteRefNode ? null : GetProducedAlias(node);
-        if (!string.IsNullOrWhiteSpace(alias))
-            counts[alias] = counts.TryGetValue(alias, out var count) ? count + 1 : 1;
-
-        foreach (var child in node.Children)
-            AddProducedAliasCounts(child, counts);
     }
 
     private static HashSet<string> CollectProducedAliases(LogicalNode node)

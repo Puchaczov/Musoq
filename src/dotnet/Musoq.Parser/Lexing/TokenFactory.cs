@@ -106,6 +106,7 @@ public static class TokenFactory
             { TokenType.End, (pos, text, _) => new EndToken(new TextSpan(pos, text.Length)) },
             { TokenType.Distinct, (pos, text, _) => new DistinctToken(new TextSpan(pos, text.Length)) },
             { TokenType.Ampersand, (pos, text, _) => new AmpersandToken(new TextSpan(pos, text.Length)) },
+            { TokenType.StringConcatenation, (pos, text, _) => new StringConcatenationToken(new TextSpan(pos, text.Length)) },
             { TokenType.Pipe, (pos, text, _) => new PipeToken(new TextSpan(pos, text.Length)) },
             { TokenType.Caret, (pos, text, _) => new CaretToken(new TextSpan(pos, text.Length)) },
             { TokenType.LeftShift, (pos, text, _) => new LeftShiftToken(new TextSpan(pos, text.Length)) },

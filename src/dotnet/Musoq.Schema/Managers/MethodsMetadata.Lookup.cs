@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Musoq.Plugins.Attributes;
 using Musoq.Schema.Helpers;
 
 namespace Musoq.Schema.Managers;
@@ -136,42 +138,23 @@ public partial class MethodsMetadata
         }
 
         var methodCount = methods.Count;
-        Span<(int Score, int Index)> scoredMethods = methodCount <= 32
-            ? stackalloc (int, int)[methodCount]
-            : new (int, int)[methodCount];
-
-        for (var i = 0; i < methodCount; i++)
-            scoredMethods[i] = methodFilter(methods[i])
-                ? (MeasureMethodCloseness(methods[i], methodArgs), i)
-                : (int.MaxValue, i);
-
-        scoredMethods.Sort((a, b) =>
-        {
-            var scoreComparison = a.Score.CompareTo(b.Score);
-            if (scoreComparison != 0)
-                return scoreComparison;
-
-            return GetMethodResolutionPriority(methods[a.Index])
-                .CompareTo(GetMethodResolutionPriority(methods[b.Index]));
-        });
-
-        MethodInfo? firstMatchMethod = null;
+        var candidates = new List<MethodInfo>();
 
         for (var i = 0; i < methodCount; i++)
         {
-            var methodOriginalIndex = scoredMethods[i].Index;
-            var methodInfo = methods[methodOriginalIndex];
+            var methodInfo = methods[i];
 
             if (!methodFilter(methodInfo))
                 continue;
 
             var metadata = GetCachedParameterMetadata(methodInfo);
-            var parameters = metadata.Parameters;
+            var parameters = metadata.Parameters.Where(static parameter => !parameter.IsDefined(typeof(InjectTypeAttribute))).ToArray();
             var optionalParametersCount = metadata.OptionalParametersCount;
             var notAnnotatedParametersCount = metadata.NotAnnotatedParametersCount;
             var paramsParameter = metadata.ParamsParameters;
-            var parametersToInject = metadata.ParametersToInject;
 
+            if (paramsParameter.HasParameters() && methodArgs.Count < notAnnotatedParametersCount - optionalParametersCount - 1)
+                continue;
 
             if (!paramsParameter.HasParameters() &&
                 (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
@@ -182,14 +165,14 @@ public partial class MethodsMetadata
             var hasMatchedArgTypes = true;
             for (int f = 0,
                  g = paramsParameter.HasParameters()
-                     ? Math.Min(methodArgs.Count - (parameters.Length - 1), parameters.Length)
+                     ? Math.Min(methodArgs.Count, notAnnotatedParametersCount - 1)
                      : methodArgs.Count;
                  f < g;
                  ++f)
             {
-                var rawParam = parameters[f + parametersToInject].ParameterType;
+                var rawParam = parameters[f].ParameterType;
                 var param = rawParam.GetUnderlyingNullable();
-                var arg = methodArgs[f].GetUnderlyingNullable();
+                var arg = methodArgs[f];
 
                 if (IsParameterTypeCompatible(rawParam, param, arg))
                     continue;
@@ -201,16 +184,14 @@ public partial class MethodsMetadata
             if (paramsParameter.HasParameters() && methodArgs.Count > notAnnotatedParametersCount - 1)
             {
                 var paramsStartIndex = notAnnotatedParametersCount - 1;
-                var paramsCount = methodArgs.Count - paramsStartIndex;
-                var commonType = paramsCount == 1
-                    ? methodArgs[paramsStartIndex]
-                    : FindCommonBaseType(methodArgs, paramsStartIndex);
-                var arrayType = commonType.MakeArrayType();
-                var paramType = parameters[^1].ParameterType;
-                if (global::Musoq.Plugins.VariadicParameter.IsNativeSpan(paramType))
-                    paramType = global::Musoq.Plugins.VariadicParameter.ElementType(paramType)!.MakeArrayType();
-                hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType.GetUnderlyingNullable() ||
-                                     CanBeAssignedFromGeneric(paramType, arrayType);
+                var elementType = global::Musoq.Plugins.VariadicParameter.ElementType(parameters[^1].ParameterType)!;
+                for (var argumentIndex = paramsStartIndex; argumentIndex < methodArgs.Count; argumentIndex++)
+                {
+                    if (IsParameterTypeCompatible(elementType, elementType.GetUnderlyingNullable(), methodArgs[argumentIndex]))
+                        continue;
+                    hasMatchedArgTypes = false;
+                    break;
+                }
             }
 
             if (!hasMatchedArgTypes)
@@ -219,18 +200,17 @@ public partial class MethodsMetadata
             if (entityType is not null && !IsMethodCompatibleWithEntityType(methodInfo, entityType))
                 continue;
 
-            firstMatchMethod = methodInfo;
-            break;
+            candidates.Add(methodInfo);
         }
 
-        if (firstMatchMethod == null)
+        if (candidates.Count == 0)
         {
             index = -1;
             return false;
         }
 
 
-        index = GetCachedMethodIndex(name, firstMatchMethod);
+        index = GetCachedMethodIndex(name, SelectBestMethod(name, methodArgs, candidates));
         return true;
     }
 }

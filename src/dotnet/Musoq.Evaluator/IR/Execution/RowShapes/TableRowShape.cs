@@ -15,8 +15,8 @@ public sealed record TableRowShape : RowShape
         : base(alias, fields)
     {
         Alias = alias;
-        Fields = ExecutionIrCollections.Freeze(fields);
-        Contexts = ExecutionIrCollections.Freeze(contexts);
+        Fields = fields;
+        Contexts = contexts;
         GeneratedRowTypeName = generatedRowTypeName;
     }
 

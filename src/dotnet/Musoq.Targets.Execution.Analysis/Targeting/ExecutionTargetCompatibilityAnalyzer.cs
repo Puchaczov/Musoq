@@ -15,7 +15,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
 
         var sink = new RequirementSink();
 
-        foreach (var shape in plan.Shapes)
+        foreach (var shape in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => scope.Shapes))
             AnalyzeShape(shape, sink);
 
         if (plan.FinalResult != null)
@@ -24,11 +24,12 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             AnalyzeShape(plan.FinalResult.Shape, sink);
         }
 
-        foreach (var node in ExecutionIrAnalysis.FlattenNodes(plan.Body))
+        foreach (var node in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body)))
             AnalyzeNode(node, sink);
 
-        foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(plan.Body))
-            AnalyzeExpression(expression, plan.Shapes, sink);
+        foreach (var scope in ExecutionSubqueryPlans.SelfAndDescendants(plan))
+            foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(scope.Body))
+                AnalyzeExpression(expression, scope.Shapes, sink);
 
         return new ExecutionTargetCompatibilityReport(sink.ToArray());
     }

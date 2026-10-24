@@ -222,29 +222,16 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
     }
 
     [TestMethod]
-    public void NestedSourceParameter_ShouldExposeExactBindEnvelope()
+    public void NestedSourceParameter_ShouldPassTheComputedRuntimeValue()
     {
-        const string query =
-            "param(key: string = 'KEY_1') select Key from #ParameterRows.Items($key + '_2')";
-        var result = InstanceCreator.CompileWithDiagnostics(
-            query,
-            Guid.NewGuid().ToString(),
-            new CountingParameterSchemaProvider(),
-            LoggerResolver);
-        var envelope = result.ToEnvelopes().Single();
-
-        Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, envelope.Code);
-        Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
-        Assert.AreEqual(DiagnosticPhase.Bind, envelope.Phase);
-        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
-        var expression = "$key + '_2'";
-        Assert.AreEqual(query.IndexOf(expression, StringComparison.Ordinal), envelope.Offset);
-        Assert.AreEqual(expression.Length, envelope.Length);
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Explanation));
-        Assert.IsNotEmpty(envelope.SuggestedFixes);
-        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.DocsReference));
-        StringAssert.Contains(envelope.Message, "must be passed directly");
+        const string query = "param(key: string = 'KEY') select Key from #ParameterRows.Items($key + '_2')";
+        var provider = new CountingParameterSchemaProvider();
+        using var compiled = CompileWithProvider(query, provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("KEY_2", provider.LastKey);
+        Assert.AreEqual(1, provider.OpenCount);
     }
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)

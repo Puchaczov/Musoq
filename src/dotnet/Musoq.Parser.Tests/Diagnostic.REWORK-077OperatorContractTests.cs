@@ -1,3 +1,4 @@
+using Musoq.Parser.Tokens;
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -142,17 +143,17 @@ public sealed class DiagnosticRework077OperatorContractTests
     }
 
     [TestMethod]
-    public void QuantifiedSubqueryOperators_ShouldRetainTheirDocumentedLowering()
+    [DataRow("ANY", TokenType.Any)]
+    [DataRow("SOME", TokenType.Some)]
+    [DataRow("ALL", TokenType.All)]
+    public void QuantifiedSubqueryOperators_ShouldRetainQuantifierComparisonAndBody(string quantifier, TokenType token)
     {
-        var any = ParseWhereExpression("1 = ANY (select 1 from #some.a())");
-        Assert.IsInstanceOfType<InQueryNode>(any);
-
-        var some = ParseWhereExpression("1 = SOME (select 1 from #some.a())");
-        Assert.IsInstanceOfType<InQueryNode>(some);
-
-        var all = ParseWhereExpression("1 > ALL (select 1 from #some.a())");
-        Assert.IsInstanceOfType<NotNode>(all);
-        Assert.IsInstanceOfType<ExistsQueryNode>(((NotNode)all).Expression);
+        var expression = Assert.IsInstanceOfType<QuantifiedSubqueryNode>(
+            ParseWhereExpression($"1 > {quantifier} (select 1 from #some.a())"));
+        Assert.AreEqual(token, expression.Quantifier);
+        Assert.AreEqual(TokenType.Greater, expression.Comparison);
+        Assert.IsInstanceOfType<QueryNode>(expression.Subquery);
+        Assert.AreEqual(typeof(bool?), expression.ReturnType);
     }
 
     [TestMethod]
@@ -163,13 +164,12 @@ public sealed class DiagnosticRework077OperatorContractTests
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
         var statements = (StatementsArrayNode)result.Root!.Expression;
         var outerQuery = ((SingleSetNode)statements.Statements.Single().Node).Query;
-        var innerQuery = (QueryNode)((ExistsQueryNode)outerQuery.Where!.Expression).Subquery;
-        var comparison = (BinaryNode)((BinaryNode)innerQuery.Where!.Expression).Right;
-        var outerColumn = Assert.IsInstanceOfType<AccessColumnNode>(comparison.Left);
-        var innerColumn = Assert.IsInstanceOfType<AccessColumnNode>(comparison.Right);
+        var quantified = Assert.IsInstanceOfType<QuantifiedSubqueryNode>(outerQuery.Where!.Expression);
+        var innerQuery = (QueryNode)quantified.Subquery;
+        var outerColumn = Assert.IsInstanceOfType<AccessColumnNode>(quantified.Left);
+        var innerColumn = Assert.IsInstanceOfType<IdentifierNode>(innerQuery.Select.Fields[0].Expression);
 
         Assert.AreEqual("v", outerColumn.Alias);
-        Assert.AreEqual("t", innerColumn.Alias);
         Assert.AreEqual(new TextSpan(query.IndexOf("where N", StringComparison.Ordinal) + 6, 1), outerColumn.Span);
         Assert.AreEqual(new TextSpan(query.IndexOf("select N", query.IndexOf("where", StringComparison.Ordinal), StringComparison.Ordinal) + 7, 1), innerColumn.Span);
     }

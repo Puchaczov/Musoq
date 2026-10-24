@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -8,47 +9,99 @@ namespace Musoq.Evaluator.Tests;
 public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 {
     [TestMethod]
-    public void WhenLeftIsNonNullableValueType_ShouldIgnoreFallback()
+    [DataRow("select case when true then 1 else MissingColumn end from #A.Entities()", DiagnosticCode.MQ3001_UnknownColumn)]
+    [DataRow("select case when false then MissingMethod() else 1 end from #A.Entities()", DiagnosticCode.MQ3086_UnknownCallable)]
+    public void UnreachableCaseResults_ShouldStillBind(string query, DiagnosticCode expected)
+    {
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity())));
+
+        Assert.AreEqual(expected, exception.PrimaryEnvelope.Code);
+    }
+
+    [TestMethod]
+    public void WhenLeftIsNonNullableValueType_ShouldRejectIncompatibleFallback()
     {
         const string query = "select Population ?? 'unused' from #A.Entities()";
         var sources = CreateSingleSource(new BasicEntity { Population = 42m });
 
-        var table = CreateAndRunVirtualMachine(query, sources).Run();
-
-        Assert.AreEqual(42m, table[0].ReadValue(0));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
     }
 
     [TestMethod]
-    public void WhenLiteralLeftIsNonNullableValueType_ShouldIgnoreIncompatibleFallback()
+    public void WhenLiteralLeftIsNonNullableValueType_ShouldRejectIncompatibleFallback()
     {
         const string query = "select 1 ?? 'unused' as Value from #A.Entities()";
         var sources = CreateSingleSource(new BasicEntity());
 
-        var table = CreateAndRunVirtualMachine(query, sources).Run();
-
-        Assert.AreEqual(1, table[0].ReadValue(0));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
     }
 
     [TestMethod]
-    public void WhenLeftColumnIsNonNullableValueType_ShouldNotBindMissingFallbackColumn()
+    public void WhenLeftColumnIsNonNullableValueType_ShouldRejectMissingFallbackColumn()
     {
         const string query = "select Population ?? MissingColumn as Value from #A.Entities()";
         var sources = CreateSingleSource(new BasicEntity { Population = 42m });
 
-        var table = CreateAndRunVirtualMachine(query, sources).Run();
-
-        Assert.AreEqual(42m, table[0].ReadValue(0));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, exception.PrimaryEnvelope.Code);
     }
 
     [TestMethod]
-    public void WhenLeftColumnIsNonNullableValueType_ShouldNotResolveMissingFallbackMethod()
+    public void WhenLeftColumnIsNonNullableValueType_ShouldRejectMissingFallbackMethod()
     {
         const string query = "select Population ?? MissingMethod() as Value from #A.Entities()";
         var sources = CreateSingleSource(new BasicEntity { Population = 42m });
 
-        var table = CreateAndRunVirtualMachine(query, sources).Run();
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.AreEqual(DiagnosticCode.MQ3086_UnknownCallable, exception.PrimaryEnvelope.Code);
+    }
 
-        Assert.AreEqual(42m, table[0].ReadValue(0));
+    [TestMethod]
+    [DataRow(null, 7L)]
+    [DataRow(5, 5L)]
+    public void MixedIntegralFallback_ShouldWidenBothValuesAndMetadata(int? value, long expected)
+    {
+        const string query = "select NullableValue ?? 7L as Value from #A.Entities()";
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { NullableValue = value }));
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [expected]);
+    }
+
+    [TestMethod]
+    public void NonNullableLeft_ShouldRetainTheCommonWiderType()
+    {
+        const string query = "select 1 ?? 2L as Value from #A.Entities()";
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity()));
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1L]);
+    }
+
+    [TestMethod]
+    public void MixedNullableFallbacks_ShouldPreserveNullAndWidenMetadata()
+    {
+        const string query = "select (NullableValue::long) ?? NullableValue as Value from #A.Entities()";
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { NullableValue = null }));
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
+    }
+
+    [TestMethod]
+    public void PotentiallyLossyLongDoubleFallback_ShouldRequireAnExplicitConversion()
+    {
+        const string query = "select (NullableValue::long) ?? (1::double) as Value from #A.Entities()";
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity())));
+
+        Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
     }
 
     [TestMethod]

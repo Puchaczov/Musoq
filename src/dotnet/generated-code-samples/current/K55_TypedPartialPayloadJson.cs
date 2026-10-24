@@ -39,6 +39,9 @@ ExecutionPlan [compiled]
       ErrorField: string <- property ErrorField
       ErrorMessage: string <- property ErrorMessage
       BytesConsumed: int <- property BytesConsumed
+      CompletedFields: IReadOnlySet<string> <- property CompletedFields
+      IsSuccess: bool <- property IsSuccess
+      BitOffset: int <- property BitOffset
     Generated [Statement0Row0]
       s.Position: int <- field s_Position
       s.Data: byte[] <- field s_Data
@@ -60,7 +63,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [s in statement0_sRows]
       Let [sPosition: int = s.Position]
       InterpretSource [Packet.PartialInterpret(s.Data) -> statement0_pRows]
-      ChunkedForEach [p in statement0_pRows]
+      ScalarForEach [p in statement0_pRows]
         AppendRow [statement0 <- Statement0Row0(s.Position: sPosition, s.Data: s.Data, p.ParsedFields: p.ParsedFields)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -222,19 +225,12 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                             var s = sChunkViewArray[sChunkViewOffset + sIndex];
                             int sPosition = s.Position;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                            var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                            foreach (var pChunk in statement0_pRows)
+                            var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                            if (statement0_pRows != null)
                             {
-                                for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                {
-                                    if ((pIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var p = pChunk[pIndex];
-                                    statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                }
+                                token.ThrowIfCancellationRequested();
+                                var p = statement0_pRows;
+                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
                             }
                         }
 
@@ -254,19 +250,12 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                             var s = sChunkViewList[sChunkViewOffset + sIndex];
                             int sPosition = s.Position;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                            var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                            foreach (var pChunk in statement0_pRows)
+                            var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                            if (statement0_pRows != null)
                             {
-                                for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                                {
-                                    if ((pIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var p = pChunk[pIndex];
-                                    statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                                }
+                                token.ThrowIfCancellationRequested();
+                                var p = statement0_pRows;
+                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
                             }
                         }
 
@@ -284,19 +273,12 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                     var s = sChunk[sIndex];
                     int sPosition = s.Position;
                     var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
-                    var statement0_pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(EvaluationHelper.WrapScalarForCrossApply<Musoq.Schema.Interpreters.PartialInterpretResult<Musoq.Generated.Interpreters.Packet>>(_interpreter_Packet.PartialInterpret(s.Data)));
-                    foreach (var pChunk in statement0_pRows)
+                    var statement0_pRows = _interpreter_Packet.PartialInterpret(s.Data);
+                    if (statement0_pRows != null)
                     {
-                        for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
-                        {
-                            if ((pIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var p = pChunk[pIndex];
-                            statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
-                        }
+                        token.ThrowIfCancellationRequested();
+                        var p = statement0_pRows;
+                        statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
                     }
                 }
             }
@@ -390,6 +372,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Packet'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : BytesInterpreterBase<Packet>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

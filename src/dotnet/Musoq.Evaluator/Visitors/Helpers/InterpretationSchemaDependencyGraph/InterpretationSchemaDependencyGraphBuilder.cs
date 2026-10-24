@@ -100,17 +100,6 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
 
         foreach (var field in InterpretationTextFieldTypeResolver.EnumerateDefinitions(schema.Fields))
         {
-            if (field.FieldType == TextFieldType.Switch)
-            {
-                foreach (var switchCase in field.SwitchCases)
-                {
-                    if (!string.IsNullOrWhiteSpace(switchCase.TypeName))
-                        yield return switchCase.TypeName;
-                }
-
-                continue;
-            }
-
             if (field.FieldType == TextFieldType.Repeat && !string.IsNullOrWhiteSpace(field.PrimaryValue))
                 yield return field.PrimaryValue;
 

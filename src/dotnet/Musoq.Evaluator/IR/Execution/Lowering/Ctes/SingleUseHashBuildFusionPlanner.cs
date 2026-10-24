@@ -262,6 +262,8 @@ internal sealed class SingleUseHashBuildFusionPlanner
                        TryCollectRequiredPayloadFieldNames(between.High, payloadAlias, requiredFields);
             case ExecutionCaseWhen caseWhen:
                 return TryCollectRequiredPayloadFieldNames(caseWhen, payloadAlias, requiredFields);
+            case ExecutionStringConcatenation concatenation:
+                return TryCollectRequiredPayloadFieldNames(concatenation.Expressions, payloadAlias, requiredFields);
             case ExecutionCoalesce coalesce:
                 return TryCollectRequiredPayloadFieldNames(coalesce.Expressions, payloadAlias, requiredFields);
             case ExecutionValueTupleKey valueTupleKey:

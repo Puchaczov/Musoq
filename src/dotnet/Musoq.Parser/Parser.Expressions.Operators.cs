@@ -10,7 +10,7 @@ public partial class Parser
         {
             TokenType.Pipe or TokenType.Caret or TokenType.Ampersand or TokenType.NullCoalescing => 0,
             TokenType.LeftShift or TokenType.RightShift => 1,
-            TokenType.Plus or TokenType.Hyphen => 2,
+            TokenType.Plus or TokenType.Hyphen or TokenType.StringConcatenation => 2,
             TokenType.Star or TokenType.FSlash or TokenType.Mod => 3,
             TokenType.Dot => 4,
             _ => -1

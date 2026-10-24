@@ -1,6 +1,6 @@
 # README executable examples
 
-The repository [README](../../../README.md) contains 28 visible examples, each backed by one SQL file shown verbatim. `binary-default.sql` remains supplemental coverage.
+This collection contains 28 runnable examples, with 24 displayed in the repository [README](../../../README.md). Each example has a SQL file; the four additional Search recipes include their SQL below. `binary-default.sql` remains supplemental coverage.
 
 ## Prerequisites
 
@@ -58,6 +58,18 @@ The root defaults in the SQL files are convenient when the server runs from this
 
 ### Search paths
 
+```sql
+param(root: string = './src/dotnet/Musoq.Parser')
+
+select p.Path as Path
+from search.paths($root, options: (scope: (
+    include: array { '*.cs', '**/*.cs' },
+    exclude: array { '**/obj/**', '**/bin/**' }
+))) p
+order by p.Path
+take 5
+```
+
 ```shell
 musoq run docs/examples/readme/search-paths.sql --from-file --params-json $parserParameters --format json
 ```
@@ -71,6 +83,15 @@ musoq run docs/examples/readme/search-paths.sql --from-file --params-json $parse
 **Provenance:** Adapts the musoq skill paths recipe to the actual parser directory. Source paths are lexical discovery, not symbol analysis; excludes bin/obj and returns an ordered five-row preview.
 
 ### Find matching lines · Search
+
+```sql
+param(root: string = './docs/examples/readme/fixtures')
+
+select s.Path as Path, s.LineNumber as Line, s.LineText as Text
+from search.lines($root, 'ERROR',
+    options: (scope: (include: array { '*.log' }))) s
+order by s.Path, s.LineNumber
+```
 
 ```shell
 musoq run docs/examples/readme/search-lines.sql --from-file --params-json $fixtureParameters --format json
@@ -96,6 +117,24 @@ musoq run docs/examples/readme/search-patterns.sql --from-file --params-json $fi
 
 ### Find files containing both patterns · CTE and HAVING
 
+```sql
+param(root: string = './docs/examples/readme/fixtures')
+
+with topics as (
+    select m.Path as Path, m.PatternId as Level
+    from search.many($root, patterns: array {
+        (id: 'ERROR', pattern: 'ERROR'),
+        (id: 'WARN', pattern: 'WARN')
+    }, options: (scope: (include: array { '*.log' }))) m
+    group by m.Path, m.PatternId
+)
+select t.Path as Path, Count(*) as Levels
+from topics t
+group by t.Path
+having Count(*) = 2
+order by Path
+```
+
 ```shell
 musoq run docs/examples/readme/search-both.sql --from-file --params-json $fixtureParameters --format json
 ```
@@ -107,6 +146,22 @@ musoq run docs/examples/readme/search-both.sql --from-file --params-json $fixtur
 **Provenance:** Adapts the skill search-both recipe. Inner grouping deduplicates (Path, Level); HAVING selects two distinct labels, regardless of repeated ERROR matches.
 
 ### Extract values from matches · Captures and APPLY
+
+```sql
+param(root: string = './docs/examples/readme/fixtures')
+
+select c.Text as Service, Count(*) as Records
+from search.matches($root,
+    'service=(?<service>[a-z]+)', options: (
+        text: (mode: 'regex'),
+        records: (mode: 'physical-line', maxBytes: 1048576),
+        scope: (include: array { '*.log' })
+    )) m
+cross apply m.Captures c
+where c.GroupName = 'service' and c.Success = true
+group by c.Text
+order by Service
+```
 
 ```shell
 musoq run docs/examples/readme/search-captures.sql --from-file --params-json $fixtureParameters --format json

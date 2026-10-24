@@ -15,14 +15,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     private ISchemaTable CreatePartialInterpretTable(string schemaName)
     {
-        return new DynamicTable(
-        [
-            new SchemaColumn("ParsedFields", 0, typeof(object),
-                $"Musoq.Generated.Interpreters.{schemaName}"),
-            new SchemaColumn("ErrorField", 1, typeof(string)),
-            new SchemaColumn("ErrorMessage", 2, typeof(string)),
-            new SchemaColumn("BytesConsumed", 3, typeof(int))
-        ]);
+        return new DynamicTable(Musoq.Evaluator.IR.Bindings.PartialInterpretationShape.CreateColumns(schemaName)
+            .Select(static column => column.ToSchemaColumn()).ToArray());
     }
 
     private ISchemaTable CreateInterpretTable(string? schemaName)
@@ -71,7 +65,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     {
                         if (field.RepeatElement != null)
                         {
-                            var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field);
+                            var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field, SchemaRegistry);
                             columns.Add(new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName));
                             continue;
                         }
@@ -84,7 +78,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
                     if (field.FieldType == TextFieldType.Switch)
                     {
-                        var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field);
+                        var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field, SchemaRegistry);
                         columns.Add(new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName));
                         continue;
                     }
@@ -183,7 +177,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     columnType = typeof(Nullable<>).MakeGenericType(columnType);
                 }
 
-                columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName));
+                columns.Add(NullableInterpretationColumn.Preserve(
+                    new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName), fieldDef.IsConditional));
                 continue;
             }
 
@@ -192,7 +187,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var columnType = BinarySchemaExpressionTypes.Resolve(computedField.Expression, fields, SchemaRegistry);
                 var alias = BinarySchemaRecordAliases.Resolve(computedField.Expression, fields);
                 var intendedTypeName = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias, typeParamMap).IntendedTypeName;
-                columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName));
+                columns.Add(NullableInterpretationColumn.Preserve(
+                    new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName),
+                    intendedTypeName != null && BinarySchemaExpressionTypes.MayBeNull(computedField.Expression, fields, SchemaRegistry)));
                 continue;
             }
 

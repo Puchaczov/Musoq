@@ -41,34 +41,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             _diagnostics.NullSuspiciousTypes.Add(elseNode.ReturnType ?? typeof(object));
         }
 
-        Node result;
-        if (_diagnostics.NullSuspiciousTypes.All(type => type != NullNode.NullType.Instance))
-        {
-            var anyWasNullable = _diagnostics.NullSuspiciousTypes.Any(type => type.GetUnderlyingNullable() != null);
-            var greatestCommonSubtype = SemanticTypeInferenceService.FindGreatestCommonSubtype(_diagnostics.NullSuspiciousTypes);
-            var caseNode = anyWasNullable
-                ? new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype).CopySpansFrom(node)
-                : new CaseNode(whenThenPairs.ToArray(), elseNode,
-                    BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype)).CopySpansFrom(node);
-
-            result = caseNode;
-        }
-        else
-        {
-            var greatestCommonSubtype = SemanticTypeInferenceService.FindGreatestCommonSubtype(_diagnostics.NullSuspiciousTypes);
-            var nullableGreatestCommonSubtype =
-                BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype);
-            var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype).CopySpansFrom(node);
-
-            var rewritePartsWithProperNullHandling =
-                new RewritePartsWithProperNullHandlingVisitor(greatestCommonSubtype);
-            var rewritePartsWithProperNullHandlingTraverser =
-                new RewritePartsWithProperNullHandlingTraverseVisitor(rewritePartsWithProperNullHandling);
-
-            caseNode.Accept(rewritePartsWithProperNullHandlingTraverser);
-
-            result = rewritePartsWithProperNullHandling.RewrittenNode;
-        }
+        var result = CaseExpressionBinding.Bind(node, whenThenPairs, elseNode, _diagnostics.NullSuspiciousTypes);
 
         if (enumType != null)
             MarkEnumExpression(result, enumType);
@@ -113,7 +86,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public void QueryBegins()
     {
         GroupByAllQueryBegins();
-        _sourceBinding.SchemaFromKey += 1;
+        _sourceBinding.SchemaFromKey = _semanticState.Subqueries.NextQueryKey(_sourceBinding.SchemaFromKey);
     }
 
     public void QueryEnds()

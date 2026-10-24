@@ -9,6 +9,7 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolver resolver)
     : IPlanningShapeResolver
 {
+    internal ExecutionShapeResolver ExecutionShapes => resolver;
     public static ExecutionPlanningShapeResolverAdapter Create(
         Scope? scope = null,
         IReadOnlyDictionary<string, ISchemaColumn[]>? inferredColumns = null,

@@ -79,8 +79,10 @@ internal sealed partial class PhysicalLoweringImplementation
             : new Dictionary<string, GeneratedRowShape>(existingCteShapesByName, StringComparer.OrdinalIgnoreCase);
         var nextTableIndex = cteIndexes.Count == 0 ? 0 : cteIndexes.Values.Max() + 1;
 
-        foreach (var producer in IntermediateSourceProducers.Resolve(multiStatement, cteIndexes.Keys))
+        foreach (var producer in IntermediateSourceProducers.Resolve(multiStatement))
         {
+            if (cteIndexes.ContainsKey(producer.Key))
+                throw new InvalidOperationException("An intermediate storage name conflicts with a visible CTE.");
             producerIndexByName[producer.Key] = producer.Value;
             cteIndexes[producer.Key] = nextTableIndex++;
         }

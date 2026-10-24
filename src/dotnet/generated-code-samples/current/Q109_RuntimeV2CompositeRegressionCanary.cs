@@ -162,7 +162,28 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 {
-                                    if (((((Operators.SqlCompare<bool?, bool>((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (Operators.SqlCompare<bool?, bool>((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight)))) & ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50))) == true)
+                                    if (((((bool?)((((bool?)((Operators.SqlCompare<bool?, bool>((ko3iko.Email switch
+                                    {
+                                        var __musoqStringPredicate1Value => __musoqStringPredicate1Value is null || "gmail" is null ? (bool?)null : __musoqStringPredicate1Value.Contains("gmail", StringComparison.OrdinalIgnoreCase)
+                                    }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) switch
+                                    {
+                                        false => (bool?)false,
+                                        true => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                                        {
+                                            var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                                        }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))),
+                                        _ => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                                        {
+                                            var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                                        }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (bool?)null
+
+                                    }))) switch
+                                    {
+                                        false => (bool?)false,
+                                        true => (bool?)((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50),
+                                        _ => (bool?)((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50) & (bool?)null
+
+                                    })) == true)
                                     {
                                         resultWindowRows.Add(ko3iko);
                                     }
@@ -184,7 +205,28 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 {
-                                    if (((((Operators.SqlCompare<bool?, bool>((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (Operators.SqlCompare<bool?, bool>((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight)))) & ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50))) == true)
+                                    if (((((bool?)((((bool?)((Operators.SqlCompare<bool?, bool>((ko3iko.Email switch
+                                    {
+                                        var __musoqStringPredicate1Value => __musoqStringPredicate1Value is null || "gmail" is null ? (bool?)null : __musoqStringPredicate1Value.Contains("gmail", StringComparison.OrdinalIgnoreCase)
+                                    }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) switch
+                                    {
+                                        false => (bool?)false,
+                                        true => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                                        {
+                                            var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                                        }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))),
+                                        _ => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                                        {
+                                            var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                                        }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (bool?)null
+
+                                    }))) switch
+                                    {
+                                        false => (bool?)false,
+                                        true => (bool?)((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50),
+                                        _ => (bool?)((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50) & (bool?)null
+
+                                    })) == true)
                                     {
                                         resultWindowRows.Add(ko3iko);
                                     }
@@ -204,7 +246,28 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         {
-                            if (((((Operators.SqlCompare<bool?, bool>((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (Operators.SqlCompare<bool?, bool>((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight)))) & ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50))) == true)
+                            if (((((bool?)((((bool?)((Operators.SqlCompare<bool?, bool>((ko3iko.Email switch
+                            {
+                                var __musoqStringPredicate1Value => __musoqStringPredicate1Value is null || "gmail" is null ? (bool?)null : __musoqStringPredicate1Value.Contains("gmail", StringComparison.OrdinalIgnoreCase)
+                            }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))))) switch
+                            {
+                                false => (bool?)false,
+                                true => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                                {
+                                    var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                                }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))),
+                                _ => (bool?)(Operators.SqlCompare<bool?, bool>((ko3iko.FirstName switch
+                                {
+                                    var __musoqStringPredicate2Value => __musoqStringPredicate2Value is null || "A" is null ? (bool?)null : __musoqStringPredicate2Value.StartsWith("A", StringComparison.OrdinalIgnoreCase)
+                                }), true, (bool? __sqlLeft, bool __sqlRight) => (__sqlLeft == __sqlRight))) & (bool?)null
+
+                            }))) switch
+                            {
+                                false => (bool?)false,
+                                true => (bool?)((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50),
+                                _ => (bool?)((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50) & (bool?)null
+
+                            })) == true)
                             {
                                 resultWindowRows.Add(ko3iko);
                             }

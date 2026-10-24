@@ -57,7 +57,7 @@ internal static class SemanticTemplateCache
             input.Script,
             ParsedQueryTemplateCache.DefaultParserContract,
             RuntimeV2Contract.ContractSignature,
-            ExecutionSemanticsContract.Version1.Fingerprint,
+            ExecutionSemanticsContract.Current.Fingerprint,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             InstanceCreator.CreateSemanticProviderContractSignatureForCache(
                 input.SchemaProvider,

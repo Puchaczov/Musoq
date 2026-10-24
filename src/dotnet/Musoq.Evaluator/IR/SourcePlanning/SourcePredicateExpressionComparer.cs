@@ -44,6 +44,12 @@ internal sealed partial class SourcePredicateExpressionComparer : IEqualityCompa
             SourcePredicateNullCheck leftNull when right is SourcePredicateNullCheck rightNull =>
                 leftNull.IsNegated == rightNull.IsNegated &&
                 Equals(leftNull.Expression, rightNull.Expression),
+            SourcePredicateRegexMatch leftRegex when right is SourcePredicateRegexMatch rightRegex =>
+                string.Equals(leftRegex.Column.Name, rightRegex.Column.Name, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(leftRegex.Pattern, rightRegex.Pattern, StringComparison.Ordinal) &&
+                leftRegex.Semantics == rightRegex.Semantics &&
+                leftRegex.MatchTimeout == rightRegex.MatchTimeout &&
+                leftRegex.IsNegated == rightRegex.IsNegated,
             SourcePredicateStringMatch leftMatch when right is SourcePredicateStringMatch rightMatch =>
                 string.Equals(leftMatch.Column.Name, rightMatch.Column.Name, StringComparison.OrdinalIgnoreCase) &&
                 leftMatch.Kind == rightMatch.Kind &&

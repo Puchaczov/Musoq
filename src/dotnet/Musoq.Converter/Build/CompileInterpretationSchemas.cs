@@ -31,7 +31,7 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
 
             if (usedRegistry.Count > 0)
             {
-                var sourceCode = GenerateInterpreterSourceCode(usedRegistry, items.CancellationToken);
+                var sourceCode = GenerateInterpreterSourceCode(usedRegistry, items.CompilationOptions.InterpretationLimits, items.CancellationToken);
                 items.InterpreterSourceCode = sourceCode;
             }
 
@@ -52,11 +52,12 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
 
     private static string? GenerateInterpreterSourceCode(
         SchemaRegistry registry,
+        InterpretationExecutionLimits limits,
         CancellationToken cancellationToken)
     {
         const string interpreterNamespace = "Musoq.Generated.Interpreters";
 
-        var codeGenerator = new InterpreterCodeGenerator(registry);
+        var codeGenerator = new InterpreterCodeGenerator(registry, limits);
         var sourceCode = codeGenerator.GenerateAll();
         cancellationToken.ThrowIfCancellationRequested();
 

@@ -14,8 +14,8 @@ public sealed record HashPayloadShape : RowShape
         : base(typeName, fields)
     {
         TypeName = typeName;
-        Fields = ExecutionIrCollections.Freeze(fields);
-        Contexts = ExecutionIrCollections.Freeze(contexts);
+        Fields = fields;
+        Contexts = contexts;
     }
 
     public string TypeName { get; init; }

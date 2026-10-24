@@ -25,10 +25,12 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionFieldRead { Stability: Musoq.Schema.ColumnStability.Volatile } fieldRead =>
                 ParallelExecutionEligibilityCheck.Skipped($"Expression reads volatile field {fieldRead.Alias}.{fieldRead.FieldName}."),
             ExecutionFieldRead fieldRead => fieldReadEligibility(fieldRead),
+            ExecutionUnionMemberRead union => CanUseExpression(union.Receiver, fieldReadEligibility),
             ExecutionMemberRead memberRead when !ExpressionStabilityAnalyzer.IsStable(memberRead) =>
                 ParallelExecutionEligibilityCheck.Skipped($"Expression reads unstable member {memberRead.MemberName}."),
             ExecutionMemberRead memberRead => CanUseExpression(memberRead.Receiver, fieldReadEligibility),
             ExecutionLiteral => ParallelExecutionEligibilityCheck.Enabled,
+            ExecutionStringConcatenation concatenation => Combine(concatenation.Expressions.Select(value => CanUseExpression(value, fieldReadEligibility)).ToArray()),
             ExecutionBinary binary => Combine(
                 CanUseExpression(binary.Left, fieldReadEligibility),
                 CanUseExpression(binary.Right, fieldReadEligibility)),
@@ -113,6 +115,7 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionMethodCall => true,
             ExecutionMethodTargetReuseCandidate => true,
             ExecutionStrictCast strictCast => ContainsMethodCall(strictCast.Expression),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(ContainsMethodCall),
             ExecutionBinary binary => ContainsMethodCall(binary.Left) || ContainsMethodCall(binary.Right),
             ExecutionUnary unary => ContainsMethodCall(unary.Operand),
             ExecutionArrayAccess arrayAccess => ContainsMethodCall(arrayAccess.Array) ||

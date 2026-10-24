@@ -12,6 +12,7 @@ public interface IExpressionVisitor
     void Visit(FSlashNode node);
     void Visit(ModuloNode node);
     void Visit(AddNode node);
+    void Visit(StringConcatenationNode node);
     void Visit(HyphenNode node);
     void Visit(AndNode node);
     void Visit(OrNode node);

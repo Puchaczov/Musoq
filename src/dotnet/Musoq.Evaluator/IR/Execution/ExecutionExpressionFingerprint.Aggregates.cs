@@ -6,27 +6,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class ExecutionExpressionFingerprint
 {
-    internal static void AppendAggregateAccumulator(StringBuilder builder, AggregateAccumulatorField accumulator)
-    {
-        builder
-            .Append(accumulator.FieldName)
-            .Append(':')
-            .Append(ForAggregateType(accumulator.Kernel.KernelType))
-            .Append(':')
-            .Append(ForAggregateType(accumulator.Kernel.StateType))
-            .Append(':')
-            .Append(ForAggregateType(accumulator.InputType))
-            .Append(':')
-            .Append(ForAggregateType(accumulator.ResultType))
-            .Append(':')
-            .Append(accumulator.ParentDepth.ToString(CultureInfo.InvariantCulture))
-            .Append(':')
-            .Append(accumulator.OwnerPrefixLength.ToString(CultureInfo.InvariantCulture))
-            .Append(':')
-            .Append(accumulator.OwnerFieldName ?? string.Empty)
-            .Append(';');
-    }
-
     internal static string ForParallelAggregate(
         ExecutionExpression expression,
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
@@ -34,8 +13,10 @@ internal static partial class ExecutionExpressionFingerprint
         return expression switch
         {
             ExecutionFieldRead fieldRead => $"field:{NormalizeAlias(fieldRead.Alias, parallelAggregate)}:{NormalizeFieldName(fieldRead.FieldName, fieldRead.Alias, parallelAggregate)}:{ForAggregateType(fieldRead.ReturnType)}:{AggregateFieldAccessStrategy(fieldRead.AccessStrategy, fieldRead.Alias, parallelAggregate)}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
+            ExecutionUnionMemberRead union => $"union-member:{union.MemberName}:{string.Join(",", union.Cases.Select(arm => arm.TypeName + "." + arm.MemberName))}:{ForParallelAggregate(union.Receiver, parallelAggregate)}:{union.ReturnType.StableId}",
             ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:null-safe={memberRead.IsNullSafe}:{memberRead.MemberName}:{ForParallelAggregate(memberRead.Receiver, parallelAggregate)}:{ForAggregateType(memberRead.ReturnType)}",
             ExecutionLiteral literal => $"literal:{NormalizeLiteralValue(literal.Value, parallelAggregate)}:{ForAggregateType(literal.ReturnType)}",
+            ExecutionStringConcatenation concatenation => AggregateSequence("sql-concat", concatenation.Expressions, concatenation.ReturnType, parallelAggregate),
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForParallelAggregate(binary.Left, parallelAggregate)}:{ForParallelAggregate(binary.Right, parallelAggregate)}:{ForAggregateType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForParallelAggregate(unary.Operand, parallelAggregate)}:{ForAggregateType(unary.ReturnType)}",
             ExecutionMethodCall methodCall => AggregateMethodCall(methodCall, parallelAggregate),
@@ -59,9 +40,9 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionCaseWhen caseWhen => AggregateCaseWhen(caseWhen, parallelAggregate),
             ExecutionCoalesce coalesce => AggregateSequence("coalesce", coalesce.Expressions, coalesce.ReturnType, parallelAggregate),
             ExecutionRowStream rows => rows.Kind == ExecutionRowStreamKind.Chunks
-                ? $"chunked-rows:{ForAggregateVariable(rows.Variable, parallelAggregate)}"
-                : $"rows:{rows.RowsAccess}:{ForAggregateVariable(rows.Variable, parallelAggregate)}",
-            ExecutionScalarRowStream rows => $"scalar-row:{ForAggregateVariable(rows.Variable, parallelAggregate)}",
+                ? $"chunked-rows:{AggregateVariableFingerprint.Create(rows.Variable, parallelAggregate)}"
+                : $"rows:{rows.RowsAccess}:{AggregateVariableFingerprint.Create(rows.Variable, parallelAggregate)}",
+            ExecutionScalarRowStream rows => $"scalar-row:{AggregateVariableFingerprint.Create(rows.Variable, parallelAggregate)}",
             ExecutionStoredTable storedTable => $"stored-table:{storedTable.TableIndex.ToString(CultureInfo.InvariantCulture)}",
             ExecutionStoredTableRows storedTableRows => $"stored-table-rows:{storedTableRows.TableIndex.ToString(CultureInfo.InvariantCulture)}:{storedTableRows.GeneratedRowShape?.TypeName ?? string.Empty}",
             ExecutionStructuralRecord structuralRecord => ForStructuralRecord(structuralRecord),
@@ -70,15 +51,15 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionCteCollectionInput cteCollection => ForCteCollectionInput(
                 cteCollection,
                 ForParallelAggregate(cteCollection.Rows, parallelAggregate)),
-            ExecutionVariableRead variableRead => $"variable:{ForAggregateVariable(variableRead.Variable, parallelAggregate)}",
-            ExecutionRowContextsRead rowContexts => $"contexts:{ForAggregateVariable(rowContexts.Row, parallelAggregate)}",
+            ExecutionVariableRead variableRead => $"variable:{AggregateVariableFingerprint.Create(variableRead.Variable, parallelAggregate)}",
+            ExecutionRowContextsRead rowContexts => $"contexts:{AggregateVariableFingerprint.Create(rowContexts.Row, parallelAggregate)}",
             ExecutionNullContextArray nullContextArray => $"null-contexts:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
 
             ExecutionValueTupleKey valueTupleKey => AggregateSequence("value-tuple-key", valueTupleKey.Parts, valueTupleKey.ReturnType, parallelAggregate),
-            ExecutionWindowValueRead windowValueRead => $"window:{ForAggregateVariable(windowValueRead.Results, parallelAggregate)}:{ForAggregateVariable(windowValueRead.Index, parallelAggregate)}:{ForAggregateType(windowValueRead.ReturnType)}",
+            ExecutionWindowValueRead windowValueRead => $"window:{AggregateVariableFingerprint.Create(windowValueRead.Results, parallelAggregate)}:{AggregateVariableFingerprint.Create(windowValueRead.Index, parallelAggregate)}:{ForAggregateType(windowValueRead.ReturnType)}",
             ExecutionAggregateCall aggregateCall => AggregateCall(aggregateCall, parallelAggregate),
-            ExecutionGroupKeyRead groupKeyRead => $"group-key:{ForAggregateVariable(groupKeyRead.Group, parallelAggregate)}:{groupKeyRead.Key?.FieldName ?? groupKeyRead.KeyName}:{ForAggregateType(groupKeyRead.ReturnType)}",
-            ExecutionAggregateCapturedValueRead capturedValueRead => $"captured-read:{ForAggregateVariable(capturedValueRead.Group, parallelAggregate)}:{capturedValueRead.CapturedField.FieldName}:{ForAggregateType(capturedValueRead.ReturnType)}",
+            ExecutionGroupKeyRead groupKeyRead => $"group-key:{AggregateVariableFingerprint.Create(groupKeyRead.Group, parallelAggregate)}:{groupKeyRead.Key?.FieldName ?? groupKeyRead.KeyName}:{ForAggregateType(groupKeyRead.ReturnType)}",
+            ExecutionAggregateCapturedValueRead capturedValueRead => $"captured-read:{AggregateVariableFingerprint.Create(capturedValueRead.Group, parallelAggregate)}:{capturedValueRead.CapturedField.FieldName}:{ForAggregateType(capturedValueRead.ReturnType)}",
             ExecutionAggregateResultRef aggregateRef => $"aggregate-ref:{aggregateRef.Identifier}:{aggregateRef.ReturnType.StableId}",
             ExecutionWindowResultRef windowRef => $"window-ref:{windowRef.WindowIndex}:{windowRef.ReturnType.StableId}",
             _ => $"{expression.GetType().FullName}:{expression}"
@@ -143,11 +124,11 @@ internal static partial class ExecutionExpressionFingerprint
         var builder = new StringBuilder();
         builder
             .Append("aggregate-call:")
-            .Append(ForAggregateVariable(aggregateCall.Group, parallelAggregate))
+            .Append(AggregateVariableFingerprint.Create(aggregateCall.Group, parallelAggregate))
             .Append(':')
             .Append(ForAggregateMethod(aggregateCall.Method))
             .Append(':');
-        AppendAggregateAccumulator(builder, aggregateCall.Accumulator);
+        AggregateAccumulatorFingerprint.Append(builder, aggregateCall.Accumulator);
         builder.Append(":args:");
         foreach (var argument in aggregateCall.Arguments)
         {
@@ -270,22 +251,4 @@ internal static partial class ExecutionExpressionFingerprint
         };
     }
 
-    internal static string ForAggregateVariable(
-        ExecutionVariable variable,
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
-    {
-        if (string.Equals(variable.Name, parallelAggregate.Source.Name, StringComparison.Ordinal))
-            return $"$source:{ForAggregateType(variable.Type)}";
-
-        if (string.Equals(variable.Name, parallelAggregate.Group.Name, StringComparison.Ordinal))
-            return $"$group:{ForAggregateType(variable.Type)}";
-
-        if (string.Equals(variable.Name, parallelAggregate.RootGroup.Name, StringComparison.Ordinal))
-            return $"$root:{ForAggregateType(variable.Type)}";
-
-        if (string.Equals(variable.Name, parallelAggregate.GroupsToFinalize.Name, StringComparison.Ordinal))
-            return $"$groupsToFinalize:{ForAggregateType(variable.Type)}";
-
-        return $"{variable.Name}:{ForAggregateType(variable.Type)}";
-    }
 }

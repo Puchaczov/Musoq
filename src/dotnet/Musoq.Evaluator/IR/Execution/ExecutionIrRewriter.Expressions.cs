@@ -7,11 +7,13 @@ internal abstract partial class ExecutionIrRewriter
         ArgumentNullException.ThrowIfNull(expression);
         return expression switch
         {
+            ExecutionSubquery subquery => RewriteSubquery(subquery),
             ExecutionFieldRead fieldRead => RewriteFieldRead(fieldRead),
             ExecutionStructuralRecord structuralRecord => RewriteStructuralRecord(structuralRecord),
             ExecutionStructuralArray structuralArray => RewriteStructuralArray(structuralArray),
             ExecutionStructuralConversion conversion => RewriteStructuralConversion(conversion),
             ExecutionCteCollectionInput cteCollection => RewriteCteCollectionInput(cteCollection),
+            ExecutionUnionMemberRead union => union with { Receiver = RewriteExpression(union.Receiver) },
             ExecutionMemberRead memberRead => RewriteMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => RewriteScriptParameterRead(parameterRead),
             ExecutionScriptVariableRead variableRead => RewriteScriptVariableRead(variableRead),
@@ -37,6 +39,10 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionBetween between => RewriteBetween(between),
             ExecutionCaseWhen caseWhen => RewriteCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => RewriteCoalesce(coalesce),
+            ExecutionStringConcatenation concatenation => concatenation with
+            {
+                Expressions = RewriteExpressionList(concatenation.Expressions)
+            },
             ExecutionRowStream rows => RewriteRowStream(rows),
             ExecutionScalarRowStream rows => RewriteScalarRowStream(rows),
             ExecutionStoredTable storedTable => RewriteStoredTable(storedTable),
@@ -55,6 +61,18 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionAggregateCapturedValueRead capturedValueRead => RewriteAggregateCapturedValueRead(capturedValueRead),
             _ => throw new NotSupportedException($"Execution expression rewriter has no handler for '{expression.GetType().FullName}'.")
         };
+    }
+
+    protected virtual ExecutionExpression RewriteSubquery(ExecutionSubquery expression)
+    {
+        var bindings = RewriteExpressionList(expression.Bindings);
+        var operand = expression.Operand is null ? null : RewriteExpression(expression.Operand);
+        var scripts = RewriteExpressionList(expression.CapturedScriptValues);
+        var tables = RewriteExpressionList(expression.CapturedCteValues);
+        return ReferenceEquals(bindings, expression.Bindings) && ReferenceEquals(operand, expression.Operand) &&
+            ReferenceEquals(scripts, expression.CapturedScriptValues) && ReferenceEquals(tables, expression.CapturedCteValues)
+            ? expression
+            : expression with { Bindings = bindings, Operand = operand, CapturedScriptValues = scripts, CapturedCteValues = tables };
     }
 
     protected virtual ExecutionExpression RewriteStructuralRecord(ExecutionStructuralRecord expression)

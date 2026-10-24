@@ -152,10 +152,10 @@ public sealed partial class ExecutionCSharpRenderer
                 extractedStoredTableIndexes.Add(store.TableIndex) &&
                 TryCreateStoredTableBuild(nodes, index, pending, store, out var storedTableBuild))
             {
-                if (storedTableBuild.EnclosingPhaseNodes.Count > 0)
+                if (storedTableBuild.EnclosingNodes.Count > 0)
                 {
                     statements.AddRange(RenderBlock(
-                        new ExecutionBlock(storedTableBuild.EnclosingPhaseNodes), context).Statements);
+                        new ExecutionBlock(storedTableBuild.EnclosingNodes), context).Statements);
                 }
 
                 storedTableBuild = storedTableBuild with

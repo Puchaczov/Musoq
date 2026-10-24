@@ -17,21 +17,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         FieldDefinitionNode field,
         (Type ClrType, string? IntendedTypeName) resolvedType)
     {
-        var typeAnnotation = field.TypeAnnotation;
-        resolvedType = (BinarySchemaExpressionTypes.Lift(resolvedType.ClrType, field.IsConditional), resolvedType.IntendedTypeName);
-        if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
-            typeAnnotation = substream.Target;
-
-        if (typeAnnotation is InlineSchemaTypeNode)
-            return (resolvedType.ClrType, CreateInlineSchemaIntendedTypeName(field.Name));
-
-        if (typeAnnotation is ArrayTypeNode { ElementType: InlineSchemaTypeNode })
-            return (resolvedType.ClrType, $"{CreateInlineSchemaIntendedTypeName(field.Name)}[]");
-
-        if (typeAnnotation is RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode })
-            return (resolvedType.ClrType, $"{CreateInlineSchemaIntendedTypeName(field.Name)}[]");
-
-        return resolvedType;
+        var intended = BinaryCompositionTypes.IntendedTypeName(field.Name, field.TypeAnnotation) ?? resolvedType.IntendedTypeName;
+        var type = field.TypeAnnotation is BinarySwitchTypeNode ? typeof(object) : resolvedType.ClrType;
+        return (BinarySchemaExpressionTypes.Lift(type, field.IsConditional), intended);
     }
 
     private DynamicTable? TurnTypeIntoTableWithIntendedTypeName(Type type, string? intendedTypeName, Node? node)

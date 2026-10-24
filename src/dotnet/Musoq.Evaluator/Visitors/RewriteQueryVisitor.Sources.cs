@@ -61,8 +61,9 @@ public sealed partial class RewriteQueryVisitor
         var exp = Nodes.Pop();
         var right = (FromNode)Nodes.Pop();
         var left = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.JoinFromNode(left, right, exp, node.JoinType, tieBreak, node.WithOrdinality));
-        _joinedTables.Add(node);
+        var rewritten = new Parser.JoinFromNode(left, right, exp, node.JoinType, tieBreak, node.WithOrdinality);
+        Nodes.Push(rewritten);
+        _joinedTables.Add(rewritten);
     }
 
     public void Visit(ApplyFromNode node)

@@ -21,7 +21,7 @@ public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBas
             "select e.Name from #A.Entities() e where e.Population > 100 order by e.Name take 2");
         var traceText = buildItems.OptimizerTraceText;
 
-        Assert.IsNotNull(traceText);
+        Assert.IsNotNull(traceText, string.Join(Environment.NewLine, buildItems.DiagnosticContext.Diagnostics.Select(static diagnostic => diagnostic.Message)));
         Assert.Contains("OptimizerTrace", traceText);
         Assert.Contains("PreLogicalNormalization [DistinctToGroupByNormalization]", traceText);
         Assert.Contains("PreLogicalNormalization [SubqueryToCteNormalization]", traceText);
@@ -55,11 +55,11 @@ public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBas
             """);
         var traceText = buildItems.OptimizerTraceText;
 
-        Assert.IsNotNull(traceText);
+        Assert.IsNotNull(traceText, string.Join(Environment.NewLine, buildItems.DiagnosticContext.Diagnostics.Select(static diagnostic => diagnostic.Message)));
         Assert.Contains("PreLogicalNormalization [SubqueryToCteNormalization]", traceText);
         Assert.Contains("changed: yes", traceText);
         Assert.Contains("Predicate=1", traceText);
-        Assert.Contains("Scalar=1", traceText);
+        Assert.Contains("Selected 1 typed Apply fallback", traceText);
     }
 
     [TestMethod]

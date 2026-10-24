@@ -9,6 +9,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
+    private RepeatExpressionBinding? _repeatExpressionBinding;
+
     private string GenerateSizeExpression(Node sizeExpression, ParseErrorCode errorCode = ParseErrorCode.InvalidSize)
     {
         if (sizeExpression is IntegerNode integer && int.TryParse(Convert.ToString(integer.ObjValue,
@@ -42,6 +44,8 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateConditionExpression(Node condition)
     {
+        if (_repeatExpressionBinding?.EmitReference(condition, GenerateArrayIndexExpression) is { } reference)
+            return reference;
         if (condition is BinaryNode comparison && comparison is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode or LessNode or LessOrEqualNode &&
             BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(condition, _expressionFields, _registry)))
             return GenerateNullableComparison(comparison);
@@ -51,6 +55,7 @@ public partial class InterpreterCodeGenerator
             CaseNode choice => GenerateCaseExpression(choice),
             CastNode cast => GenerateStrictCastExpression(cast),
             NullNode => "null",
+            NotNode { Expression: NullNode } => "(!((bool?)null))",
             NotNode not => $"(!({GenerateConditionExpression(not.Expression)}))",
             EqualityNode eq => GenerateComparisonExpression(eq, "=="),
             DiffNode diff => GenerateComparisonExpression(diff, "!="),
@@ -58,10 +63,11 @@ public partial class InterpreterCodeGenerator
             GreaterOrEqualNode gte => GenerateComparisonExpression(gte, ">="),
             LessNode lt => GenerateComparisonExpression(lt, "<"),
             LessOrEqualNode lte => GenerateComparisonExpression(lte, "<="),
-            AndNode andNode =>
-                $"({GenerateConditionExpression(andNode.Left)} {(BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(andNode, _expressionFields, _registry)) ? "&" : "&&")} {GenerateConditionExpression(andNode.Right)})",
-            OrNode orNode =>
-                $"({GenerateConditionExpression(orNode.Left)} {(BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(orNode, _expressionFields, _registry)) ? "|" : "||")} {GenerateConditionExpression(orNode.Right)})",
+            AndNode andNode => SchemaLogicalExpression.Emit(andNode, GenerateConditionExpression,
+                BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(andNode, _expressionFields, _registry))),
+            OrNode orNode => SchemaLogicalExpression.Emit(orNode, GenerateConditionExpression,
+                BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(orNode, _expressionFields, _registry))),
+            CoalesceNode coalesce => SchemaCoalesceExpression.Emit(coalesce, _expressionFields, _registry, GenerateConditionExpression, MapClrTypeName),
             IntegerNode intNode => Convert.ToString(intNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0",
             BinaryIntegerNode binaryNode => Convert.ToString(binaryNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0",
             OctalIntegerNode octalNode => Convert.ToString(octalNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0",
@@ -75,6 +81,7 @@ public partial class InterpreterCodeGenerator
             AccessColumnNode acNode => GetLocalVarName(acNode.Name),
             IdentifierNode idNode => GetLocalVarName(idNode.Name),
             AccessMethodNode methodNode => GenerateMethodCallExpression(methodNode),
+            StringConcatenationNode concatenation => _stringConcatenation.Emit(concatenation, GenerateConditionExpression),
             AddNode add => GenerateArithmeticExpression(add, "+"),
             HyphenNode hyp => GenerateArithmeticExpression(hyp, "-"),
             StarNode star => GenerateArithmeticExpression(star, "*"),

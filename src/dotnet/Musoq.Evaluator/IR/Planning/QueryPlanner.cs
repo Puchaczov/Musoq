@@ -10,6 +10,9 @@ internal sealed class QueryPlanner
     {
         ArgumentNullException.ThrowIfNull(context);
         context.CancellationToken.ThrowIfCancellationRequested();
+        var subqueries = new SubqueryFallbackPlanner(context);
+        var logicalPlan = subqueries.Rewrite(context.LogicalPlan);
+        context = context with { LogicalArtifacts = context.LogicalArtifacts with { OptimizedLogicalPlan = logicalPlan } };
         var propertyResult = PlanningPropertyDeriver.Derive(context);
         context.CancellationToken.ThrowIfCancellationRequested();
         var sourceTransferResult = SourceTransferPlanner.Plan(context, propertyResult.Facts.SourcePlanning);
@@ -25,6 +28,7 @@ internal sealed class QueryPlanner
                 "Physical planning is routed through QueryPlanner.")
         };
         decisions.AddRange(sourceTransferResult.Decisions);
+        decisions.AddRange(subqueries.Decisions);
 
         var physicalPlanningResult = new PhysicalPlanningPipeline().Plan(
             context,
@@ -80,7 +84,7 @@ internal sealed class QueryPlanner
             executionStrategies,
             planFacts.SourcePlanning.SourceInteractionPlansBySourceId,
             executionStrategyResult.Decisions,
-            sourceTransferResult.PlansBySourceId);
+            sourceTransferResult.PlansBySourceId) { ShapeBindings = context.ShapeResolver };
         decisions.AddRange(executionPlanningArtifacts.Decisions);
         decisions.AddRange(MaterializationPlanner.Plan(physicalPlan, executionPlanningArtifacts.ExecutionStrategies));
         context.CancellationToken.ThrowIfCancellationRequested();

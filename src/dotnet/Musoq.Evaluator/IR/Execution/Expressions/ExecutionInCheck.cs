@@ -15,7 +15,7 @@ public sealed record ExecutionInCheck : ExecutionExpression
         : base(returnType)
     {
         Expression = expression;
-        Values = ExecutionIrCollections.Freeze(values);
+        Values = values;
         ReturnType = returnType;
         ConstantSet = constantSet;
         IsNegated = isNegated;

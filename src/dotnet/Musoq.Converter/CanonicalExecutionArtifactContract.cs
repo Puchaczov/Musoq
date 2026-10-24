@@ -70,7 +70,7 @@ public static partial class InstanceCreator
             string.Join(
                 "\n",
                 generatedSyntaxIdentity.Hash,
-                ExecutionSemanticsContract.Version1.Fingerprint,
+                ExecutionSemanticsContract.Current.Fingerprint,
                 items.ExecutionTarget.ToString(),
                 renderProfile.ToString(),
                 TargetRenderProfileContract.Version.ToString(),
@@ -87,7 +87,7 @@ public static partial class InstanceCreator
             generatedSyntaxIdentity,
             canonicalSemanticContractFingerprint,
             runtimeContract,
-            ExecutionSemanticsContract.Version1.Fingerprint,
+            ExecutionSemanticsContract.Current.Fingerprint,
             items.ExecutionTarget.ToString(),
             renderProfile.ToString(),
             TargetRenderProfileContract.Version,

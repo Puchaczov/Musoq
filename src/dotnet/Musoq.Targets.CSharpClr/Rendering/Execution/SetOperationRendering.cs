@@ -151,11 +151,15 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private StatementSyntax CreateIntersectDistinctState(ExecutionSetOperation operation, ExecutionRenderContext context) =>
-        new IntersectDistinctSyntax(this, context).CreateState(operation);
+        operation.DistinctFieldIndexes.Count == 0
+            ? SyntaxFactory.Block()
+            : new IntersectDistinctSyntax(this, context).CreateState(operation);
 
     private StatementSyntax CreateIntersectDistinctOutput(ExecutionSetOperation operation, string rowName,
         StatementSyntax output, ExecutionRenderContext context) =>
-        new IntersectDistinctSyntax(this, context).CreateOutput(operation, rowName, output);
+        operation.DistinctFieldIndexes.Count == 0
+            ? output
+            : new IntersectDistinctSyntax(this, context).CreateOutput(operation, rowName, output);
 
     private IEnumerable<StatementSyntax> RenderHashSetIntersect(
         ExecutionSetOperation setOperation,

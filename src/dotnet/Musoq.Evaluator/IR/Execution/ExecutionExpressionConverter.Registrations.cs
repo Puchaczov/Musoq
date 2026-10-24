@@ -7,6 +7,7 @@ namespace Musoq.Evaluator.IR.Execution;
 public static partial class ExecutionExpressionConverter
 {
     internal static FrozenSet<Type> RegisteredExpressionTypes { get; } = new[] {
+        typeof(SubqueryExpression), typeof(SubqueryParameterRef),
         typeof(ColumnRef), typeof(ScriptParameterRef), typeof(ScriptVariableRef), typeof(Literal), typeof(WildcardLiteral), typeof(BinaryOp), typeof(UnaryOp),
         typeof(MethodCall), typeof(StrictCast), typeof(ArrayAccess), typeof(StructuralRecordLiteral), typeof(StructuralArrayLiteral), typeof(StructuralConversion), typeof(RowPresence), typeof(IsNullCheck), typeof(InCheck), typeof(CollectionInCheck),
         typeof(PatternMatch), typeof(Between), typeof(CaseWhen), typeof(Coalesce), typeof(AggregateRef), typeof(WindowFunctionRef), typeof(CteTableRef), typeof(CteCollectionInput)

@@ -143,7 +143,8 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return source switch
         {
-            PhysicalCteRefNode or PhysicalSchemaScanNode or PhysicalValuesScanNode => true,
+            PhysicalCteRefNode or PhysicalSchemaScanNode or PhysicalValuesScanNode or
+                PhysicalInterpretSourceNode or PhysicalPropertySourceNode or PhysicalAccessMethodSourceNode => true,
             PhysicalNestedLoopApplyNode apply =>
                 CanInlineRecursiveCteProjectionInput(apply.Left) &&
                 CanInlineRecursiveCteProjectionInput(apply.Right),

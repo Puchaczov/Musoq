@@ -236,7 +236,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var candidates = new List<string>();
 
-        if (_sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId))
+        if (_semanticState.Subqueries.HasCurrentProcessedQueryId())
             candidates.Add(_sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]);
 
         if (!string.IsNullOrWhiteSpace(_sourceBinding.Identifier))

@@ -458,7 +458,7 @@ public static partial class InstanceCreator
         return new ExecutionCompilationCacheKey(
             script,
             RuntimeV2Contract.ContractSignature,
-            ExecutionSemanticsContract.Version1.Fingerprint,
+            ExecutionSemanticsContract.Current.Fingerprint,
             executionTarget,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             CreateProviderContractSignature(schemaProvider, cancellationToken),

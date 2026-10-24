@@ -59,11 +59,9 @@ ExecutionPlan [compiled]
       Let [__expr1: bool? = (month = 'Jan')]
       GetOrAddSingleKeyAggregateGroup [group = groups[ko3iko.City] by City; typed: ResultAggregateGroup]
       TypedAggregateSet [Set(group.__agg0) filter __expr]
-      Let [money: decimal = ko3iko.Money]
-      TypedAggregateSet [Set(group.__agg1, money) filter __expr]
+      TypedAggregateSet [Set(group.__agg1, ko3iko.Money) filter __expr]
       TypedAggregateSet [Set(group.__agg2) filter __expr1]
-      Let [money1: decimal = ko3iko.Money]
-      TypedAggregateSet [Set(group.__agg3, money1) filter __expr1]
+      TypedAggregateSet [Set(group.__agg3, ko3iko.Money) filter __expr1]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Jan_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Jan_Orders: ko3iko.Count(*) filter (where Month = 'Jan'), Feb_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), Feb_Orders: ko3iko.Count(*) filter (where Month = 'Feb'))]
@@ -162,70 +160,7 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string month = ko3iko.Month;
-                                bool? __expr = Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
-                                bool? __expr1 = Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
-                                string groupKey = ko3iko.City;
-                                ResultAggregateGroup group = null;
-                                if (groupKey != null)
-                                {
-                                    ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                                    if (!groupExists)
-                                    {
-                                        groupRef = new ResultAggregateGroup(groupKey);
-                                        groupsToFinalize.Add(groupRef);
-                                    }
-
-                                    group = groupRef;
-                                }
-                                else
-                                {
-                                    if (nullGroup == null)
-                                    {
-                                        nullGroup = new ResultAggregateGroup(null);
-                                        groupsToFinalize.Add(nullGroup);
-                                    }
-
-                                    group = nullGroup;
-                                }
-
-                                if (__expr == true)
-                                {
-                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
-                                }
-
-                                decimal money = ko3iko.Money;
-                                if (__expr == true)
-                                {
-                                    {
-                                        var __agg1Input = (decimal?)money;
-                                        if (__agg1Input.HasValue)
-                                        {
-                                            var __agg1Current = __agg1Input.GetValueOrDefault();
-                                            group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
-                                            group.__agg1.HasValue = true;
-                                        }
-                                    }
-                                }
-
-                                if (__expr1 == true)
-                                {
-                                    group.__agg2.Count = checked(group.__agg2.Count + 1L);
-                                }
-
-                                decimal money1 = ko3iko.Money;
-                                if (__expr1 == true)
-                                {
-                                    {
-                                        var __agg3Input = (decimal?)money1;
-                                        if (__agg3Input.HasValue)
-                                        {
-                                            var __agg3Current = __agg3Input.GetValueOrDefault();
-                                            group.__agg3.Value = group.__agg3.HasValue ? checked(group.__agg3.Value + __agg3Current) : __agg3Current;
-                                            group.__agg3.HasValue = true;
-                                        }
-                                    }
-                                }
+                                UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                             }
 
                             continue;
@@ -242,70 +177,7 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string month = ko3iko.Month;
-                                bool? __expr = Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
-                                bool? __expr1 = Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
-                                string groupKey = ko3iko.City;
-                                ResultAggregateGroup group = null;
-                                if (groupKey != null)
-                                {
-                                    ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                                    if (!groupExists)
-                                    {
-                                        groupRef = new ResultAggregateGroup(groupKey);
-                                        groupsToFinalize.Add(groupRef);
-                                    }
-
-                                    group = groupRef;
-                                }
-                                else
-                                {
-                                    if (nullGroup == null)
-                                    {
-                                        nullGroup = new ResultAggregateGroup(null);
-                                        groupsToFinalize.Add(nullGroup);
-                                    }
-
-                                    group = nullGroup;
-                                }
-
-                                if (__expr == true)
-                                {
-                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
-                                }
-
-                                decimal money = ko3iko.Money;
-                                if (__expr == true)
-                                {
-                                    {
-                                        var __agg1Input = (decimal?)money;
-                                        if (__agg1Input.HasValue)
-                                        {
-                                            var __agg1Current = __agg1Input.GetValueOrDefault();
-                                            group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
-                                            group.__agg1.HasValue = true;
-                                        }
-                                    }
-                                }
-
-                                if (__expr1 == true)
-                                {
-                                    group.__agg2.Count = checked(group.__agg2.Count + 1L);
-                                }
-
-                                decimal money1 = ko3iko.Money;
-                                if (__expr1 == true)
-                                {
-                                    {
-                                        var __agg3Input = (decimal?)money1;
-                                        if (__agg3Input.HasValue)
-                                        {
-                                            var __agg3Current = __agg3Input.GetValueOrDefault();
-                                            group.__agg3.Value = group.__agg3.HasValue ? checked(group.__agg3.Value + __agg3Current) : __agg3Current;
-                                            group.__agg3.HasValue = true;
-                                        }
-                                    }
-                                }
+                                UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                             }
 
                             continue;
@@ -320,70 +192,7 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        string month = ko3iko.Month;
-                        bool? __expr = Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
-                        bool? __expr1 = Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
-                        string groupKey = ko3iko.City;
-                        ResultAggregateGroup group = null;
-                        if (groupKey != null)
-                        {
-                            ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                            if (!groupExists)
-                            {
-                                groupRef = new ResultAggregateGroup(groupKey);
-                                groupsToFinalize.Add(groupRef);
-                            }
-
-                            group = groupRef;
-                        }
-                        else
-                        {
-                            if (nullGroup == null)
-                            {
-                                nullGroup = new ResultAggregateGroup(null);
-                                groupsToFinalize.Add(nullGroup);
-                            }
-
-                            group = nullGroup;
-                        }
-
-                        if (__expr == true)
-                        {
-                            group.__agg0.Count = checked(group.__agg0.Count + 1L);
-                        }
-
-                        decimal money = ko3iko.Money;
-                        if (__expr == true)
-                        {
-                            {
-                                var __agg1Input = (decimal?)money;
-                                if (__agg1Input.HasValue)
-                                {
-                                    var __agg1Current = __agg1Input.GetValueOrDefault();
-                                    group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
-                                    group.__agg1.HasValue = true;
-                                }
-                            }
-                        }
-
-                        if (__expr1 == true)
-                        {
-                            group.__agg2.Count = checked(group.__agg2.Count + 1L);
-                        }
-
-                        decimal money1 = ko3iko.Money;
-                        if (__expr1 == true)
-                        {
-                            {
-                                var __agg3Input = (decimal?)money1;
-                                if (__agg3Input.HasValue)
-                                {
-                                    var __agg3Current = __agg3Input.GetValueOrDefault();
-                                    group.__agg3.Value = group.__agg3.HasValue ? checked(group.__agg3.Value + __agg3Current) : __agg3Current;
-                                    group.__agg3.HasValue = true;
-                                }
-                            }
-                        }
+                        UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                     }
                 }
 
@@ -431,6 +240,73 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
         private void OnPhaseChanged(string queryId, QueryPhase phase)
         {
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko)
+        {
+            string month = ko3iko.Month;
+            bool? __expr = Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
+            bool? __expr1 = Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
+            string groupKey = ko3iko.City;
+            ResultAggregateGroup group = null;
+            if (groupKey != null)
+            {
+                ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                if (!groupExists)
+                {
+                    groupRef = new ResultAggregateGroup(groupKey);
+                    groupsToFinalize.Add(groupRef);
+                }
+
+                group = groupRef;
+            }
+            else
+            {
+                if (nullGroup == null)
+                {
+                    nullGroup = new ResultAggregateGroup(null);
+                    groupsToFinalize.Add(nullGroup);
+                }
+
+                group = nullGroup;
+            }
+
+            if (__expr == true)
+            {
+                group.__agg0.Count = checked(group.__agg0.Count + 1L);
+            }
+
+            if (__expr == true)
+            {
+                {
+                    var __agg1Input = (decimal?)ko3iko.Money;
+                    if (__agg1Input.HasValue)
+                    {
+                        var __agg1Current = __agg1Input.GetValueOrDefault();
+                        group.__agg1.Value = group.__agg1.HasValue ? checked(group.__agg1.Value + __agg1Current) : __agg1Current;
+                        group.__agg1.HasValue = true;
+                    }
+                }
+            }
+
+            if (__expr1 == true)
+            {
+                group.__agg2.Count = checked(group.__agg2.Count + 1L);
+            }
+
+            if (__expr1 == true)
+            {
+                {
+                    var __agg3Input = (decimal?)ko3iko.Money;
+                    if (__agg3Input.HasValue)
+                    {
+                        var __agg3Current = __agg3Input.GetValueOrDefault();
+                        group.__agg3.Value = group.__agg3.HasValue ? checked(group.__agg3.Value + __agg3Current) : __agg3Current;
+                        group.__agg3.HasValue = true;
+                    }
+                }
+            }
         }
 
         private sealed class ResultAggregateGroup

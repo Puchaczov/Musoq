@@ -26,6 +26,21 @@ public sealed class PortableSubsetConformanceTests
     [DataRow("'x' CONTAINS ('y',NULL)", "bool:False")]
     [DataRow("NOT ('x' CONTAINS ('y',NULL))", "bool:True")]
     [DataRow("1 IN (1L,2L)", "bool:True")]
+    [DataRow("false AND NULL", "bool:False")]
+    [DataRow("true AND NULL", "null")]
+    [DataRow("NULL AND false", "bool:False")]
+    [DataRow("NULL AND true", "null")]
+    [DataRow("NULL AND NULL", "null")]
+    [DataRow("false OR NULL", "null")]
+    [DataRow("true OR NULL", "bool:True")]
+    [DataRow("NULL OR false", "null")]
+    [DataRow("NULL OR true", "bool:True")]
+    [DataRow("NULL OR NULL", "null")]
+    [DataRow("NOT NULL", "null")]
+    [DataRow("d.Dummy = 'yes' AND d.Dummy::int > 0", "bool:False")]
+    [DataRow("d.Dummy <> 'yes' OR d.Dummy::int > 0", "bool:True")]
+    [DataRow("false AND (1 / 0 > 0)", "bool:False")]
+    [DataRow("true OR (1 / 0 > 0)", "bool:True")]
     public void MembershipSemantics_ShouldMatchIndependentExpectedValueOnBothTargets(string expression, string expected)
     {
         var query = $"select {expression} as Value from #system.dual() d";

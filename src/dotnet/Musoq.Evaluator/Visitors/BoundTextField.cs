@@ -36,6 +36,9 @@ public sealed record BoundTextField
     /// <summary>Gets the bound type read for each inline repeated element.</summary>
     public BoundTextField? RepeatElement { get; init; }
 
+    /// <summary>Gets the bound typed switch arms in authored order.</summary>
+    public IReadOnlyList<BoundTextSwitchArm> SwitchArms { get; init; } = [];
+
     /// <summary>Gets whether the field contributes a property to the generated class.</summary>
     public bool EmitsProperty => PropertyName is not null;
 }

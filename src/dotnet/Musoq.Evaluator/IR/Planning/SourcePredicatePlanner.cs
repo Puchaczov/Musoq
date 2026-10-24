@@ -31,6 +31,7 @@ internal static partial class SourcePredicatePlanner
         }
 
         var boundaries = SourcePredicateTransferBoundaryPlanner.Plan(logicalPlan);
+        var regexSources = FindDirectFilterSources(logicalPlan);
         var plans = new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal);
         var pushedPredicates = new Dictionary<string, IrExpression[]>(StringComparer.Ordinal);
         var decisions = new List<PlanningDecision>();
@@ -48,7 +49,8 @@ internal static partial class SourcePredicatePlanner
                 conversionResult = new PredicateConversionResult([], $"{boundary.Origin} predicate remains after null extension on {boundary.JoinKind} {boundary.Side} input.");
             else
                 conversionResult = CreatePushedPredicates(converter, pushedWhereNode.Expression,
-                    rawWhereNode.Expression, sourceNode.Alias, scopedColumns);
+                    rawWhereNode.Expression, new SourcePredicateTransferContext(
+                        sourceNode.Alias, scopedColumns, regexSources.Contains(sourceNode.Id)));
             var reason = CreatePredicateReason(
                 rawWhereNode,
                 pushedWhereNode,
@@ -91,19 +93,18 @@ internal static partial class SourcePredicatePlanner
         ExpressionConverter converter,
         Node expression,
         Node originalExpression,
-        string alias,
-        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
+        SourcePredicateTransferContext context)
     {
         try
         {
-            if (!PredicateMovementPlanner.IsTransferSafe(converter.Convert(originalExpression)))
+            if (!IsSourceTransferSafe(converter.Convert(originalExpression), context))
                 return new PredicateConversionResult([], "The complete WHERE predicate is unstable or potentially throwing; its evaluation boundary is retained.");
             var predicate = converter.Convert(expression);
             return new PredicateConversionResult(ExtractNonNeutralPredicates(predicate).Where(candidate =>
-                PredicateMovementPlanner.IsTransferSafe(candidate) &&
+                IsSourceTransferSafe(candidate, context) &&
                 ColumnRefExtractor.Extract(candidate).All(column =>
-                    string.Equals(column.Alias, alias, StringComparison.OrdinalIgnoreCase) &&
-                    inferredColumns.TryGetValue(alias, out var columns) && columns.Any(binding =>
+                    string.Equals(column.Alias, context.Alias, StringComparison.OrdinalIgnoreCase) &&
+                    context.Columns.TryGetValue(context.Alias, out var columns) && columns.Any(binding =>
                         string.Equals(binding.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)))).ToArray(), null);
         }
         catch (NotSupportedException ex)

@@ -10,7 +10,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     public override void Visit(WhereNode node)
     {
-        var hasProcessedQueryId = _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+        var hasProcessedQueryId = _semanticState.Subqueries.HasCurrentProcessedQueryId();
         var identifier = hasProcessedQueryId
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
             : _sourceBinding.Identifier;
@@ -74,7 +74,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        PushSemanticNode(new SkipNode((IntegerNode)node.Expression)
+        PushSemanticNode(new SkipNode(PagingCounts.Bind(PopSemanticNode(), "SKIP"))
             .WithSpan(node.Span)
             .WithFullSpan(node.FullSpan));
     }
@@ -82,7 +82,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        PushSemanticNode(new TakeNode((IntegerNode)node.Expression)
+        PushSemanticNode(new TakeNode(PagingCounts.Bind(PopSemanticNode(), "TAKE"))
             .WithSpan(node.Span)
             .WithFullSpan(node.FullSpan));
     }

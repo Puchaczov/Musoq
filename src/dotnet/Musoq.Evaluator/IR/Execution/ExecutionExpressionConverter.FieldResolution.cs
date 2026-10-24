@@ -24,6 +24,10 @@ public static partial class ExecutionExpressionConverter
                 }
             };
 
+            var interpretation = InterpretationMemberBinding.TryCreate(column, alias, sourceShapes);
+            if (interpretation != null)
+                return interpretation;
+
             var nested = NativeNestedFieldBinding.TryCreate(column, alias, field, sourceShapes);
             if (nested is not null)
                 return nested;
@@ -58,16 +62,16 @@ public static partial class ExecutionExpressionConverter
                     : ExecutionClrBindingFactory.FromClr(column.ReturnType),
                 field.AccessStrategy,
                 field.GeneratedTypeName ??
-                column.GeneratedTypeName ??
+                InterpretationTypeNames.Executable(column.GeneratedTypeName) ??
                 (field.AccessStrategy as GeneratedRowNestedAccess)?.ValueTypeName)
-            { Stability = field.Stability, SourceReadType = field.SourceReadType, EnumType = field.EnumType };
+            { Stability = field.Stability, SourceReadType = field.SourceReadType, EnumType = field.EnumType, InterpretationShape = field.InterpretationShape };
         }
 
         return new ExecutionFieldRead(
             column.Alias,
             column.ColumnName,
             ExecutionClrBindingFactory.FromClr(column.ReturnType),
-            GeneratedTypeName: column.GeneratedTypeName)
+            GeneratedTypeName: InterpretationTypeNames.Executable(column.GeneratedTypeName))
         {
             Stability = column.Stability
         };
@@ -127,23 +131,21 @@ public static partial class ExecutionExpressionConverter
             sourceShape is not TableRowShape)
             return null;
 
-        var columnName = RemoveSourceAlias(column.ColumnName, column.Alias);
-        var sourceRelativeColumnName = RemoveSourceAlias(columnName, alias);
-        var qualifiedName = $"{alias}.{sourceRelativeColumnName}";
+        var columnName = column.ColumnName;
+        var qualifiedName = $"{alias}.{columnName}";
         var originalQualifiedName = string.IsNullOrWhiteSpace(column.Alias)
             ? columnName
             : $"{column.Alias}.{columnName}";
         var matchingFields = sourceShape.Fields
             .Where(candidate => (column.SourceColumnIndex == null || candidate.OutputIndex == column.SourceColumnIndex) &&
-                !(sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
+                !(columnName.Contains('.', StringComparison.Ordinal) &&
                   candidate.Name.Contains('.', StringComparison.Ordinal) &&
                   candidate.AccessStrategy is RuntimeDynamicMemberAccess) &&
                 (string.Equals(candidate.Name, columnName, StringComparison.Ordinal) ||
-                 string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal) ||
-                 string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal) ||
+                 string.Equals(candidate.QualifiedName, columnName, StringComparison.Ordinal) ||
                  string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal) ||
-                 sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
-                 HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
+                 columnName.Contains('.', StringComparison.Ordinal) &&
+                 HasQualifiedSuffix(candidate.Name, columnName) ||
                  string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal) ||
                  string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal) ||
                  string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.Ordinal)))
@@ -151,9 +153,8 @@ public static partial class ExecutionExpressionConverter
 
         var field = matchingFields.FirstOrDefault(candidate =>
             string.Equals(candidate.Name, columnName, StringComparison.Ordinal) ||
-            string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal) ||
-            string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal) ||
             string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, columnName, StringComparison.Ordinal) ||
             string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal) ||
             string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal) ||
             string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.Ordinal)) ??
@@ -166,7 +167,7 @@ public static partial class ExecutionExpressionConverter
             column,
             sourceShape,
             alias,
-            sourceRelativeColumnName);
+            columnName);
         if (nestedField != null)
             return nestedField;
 
@@ -174,14 +175,12 @@ public static partial class ExecutionExpressionConverter
             column,
             sourceShape,
             alias,
-            sourceRelativeColumnName);
+            columnName);
         if (indexedField != null)
             return indexedField;
 
         var unqualifiedMatches = sourceShape.Fields
-            .Where(candidate =>
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.Ordinal) ||
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), sourceRelativeColumnName, StringComparison.Ordinal))
+            .Where(candidate => string.Equals(GetUnqualifiedFieldName(candidate.Name), columnName, StringComparison.Ordinal))
             .Take(2)
             .ToArray();
         field = unqualifiedMatches.Length == 1 ? unqualifiedMatches[0] : null;
@@ -191,14 +190,6 @@ public static partial class ExecutionExpressionConverter
     private static bool HasQualifiedSuffix(string candidate, string relativeName)
     {
         return candidate.EndsWith($".{relativeName}", StringComparison.Ordinal);
-    }
-
-    private static string RemoveSourceAlias(string columnName, string sourceAlias)
-    {
-        var aliasPrefix = $"{sourceAlias}.";
-        return columnName.StartsWith(aliasPrefix, StringComparison.OrdinalIgnoreCase)
-            ? columnName[aliasPrefix.Length..]
-            : columnName;
     }
 
     private static string GetUnqualifiedFieldName(string fieldName)

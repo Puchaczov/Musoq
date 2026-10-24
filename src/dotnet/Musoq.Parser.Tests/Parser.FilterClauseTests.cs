@@ -8,6 +8,17 @@ namespace Musoq.Parser.Tests;
 public class ParserFilterClauseTests
 {
     [TestMethod]
+    [DataRow("Count")]
+    [DataRow("CustomRowCount")]
+    public void AggregateStar_ShouldRemainAnExplicitArgumentUntilBinding(string function)
+    {
+        var call = ParseFirstAccessMethod($"select {function}(*) from #some.a()");
+
+        Assert.HasCount(1, call.Arguments.Args);
+        Assert.IsInstanceOfType<AllColumnsNode>(call.Arguments.Args[0]);
+    }
+
+    [TestMethod]
     public void FilterOnCount_ShouldPreserveArgumentAndStorePredicate()
     {
         var accessMethod = ParseFirstAccessMethod("select Count(Name) filter (where Name = 'ABBA') from #some.a()");

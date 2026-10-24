@@ -98,14 +98,13 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_HandleNullableData_ComplexResolution()
     {
-        Assert.IsTrue(
+        var exception = Assert.Throws<Musoq.Schema.Exceptions.MethodResolutionException>(() =>
             _methodsMetadata.TryGetMethod(
                 "HandleNullableData",
                 [typeof(NullNode.NullType), typeof(NullNode.NullType)],
                 null,
-                out _),
-            "Should resolve with explicit nulls"
-        );
+                out _));
+        Assert.AreEqual("ambiguous-overload", exception.ResolutionReason);
 
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(

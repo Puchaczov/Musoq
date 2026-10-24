@@ -43,36 +43,26 @@ ORDER BY a.Name
 Cte
   Definition [_sq_1]
     MultiStatement
-      Project [1 as _sq_1_key, b.Name as _sq_1_corr_0, b.City as _sq_1_corr_1, b.Country as _sq_1_corr_2, b.Population as _sq_1_corr_3, b.Month as _sq_1_corr_4, b.Money as _sq_1_corr_5, b.Id as _sq_1_corr_6, b.NullableValue as _sq_1_corr_7]
-        SchemaScan [#B.entities() as b]
-  Definition [_sq_2]
-    MultiStatement
-      Project [1 as _sq_2_key, b.Name as _sq_2_corr_0, b.City as _sq_2_corr_1, b.Country as _sq_2_corr_2, b.Population as _sq_2_corr_3, b.Month as _sq_2_corr_4, b.Money as _sq_2_corr_5, b.Id as _sq_2_corr_6, b.NullableValue as _sq_2_corr_7]
-        SchemaScan [#B.entities() as b]
-  Definition [_sq_3]
-    MultiStatement
       Project [b.NullableValue as b.NullableValue, b.Id as b.Id, b.Money as b.Money, b.Month as b.Month, b.Population as b.Population, b.Country as b.Country, b.City as b.City, b.Name as b.Name, AggRef(b.__CorrelatedScalarSubqueryValue(b.City)) as b.__CorrelatedScalarSubqueryValue(b.City)]
         Aggregate [keys: b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue] [aggs: __CorrelatedScalarSubqueryValue(City)]
           SchemaScan [#B.entities() as b]
-      Project [b.Name as _sq_3_corr_0, b.City as _sq_3_corr_1, b.Country as _sq_3_corr_2, b.Population as _sq_3_corr_3, b.Month as _sq_3_corr_4, b.Money as _sq_3_corr_5, b.Id as _sq_3_corr_6, b.NullableValue as _sq_3_corr_7, b.__CorrelatedScalarSubqueryValue(b.City) as _sq_3_value]
+      Project [b.Name as _sq_1_corr_0, b.City as _sq_1_corr_1, b.Country as _sq_1_corr_2, b.Population as _sq_1_corr_3, b.Month as _sq_1_corr_4, b.Money as _sq_1_corr_5, b.Id as _sq_1_corr_6, b.NullableValue as _sq_1_corr_7, b.__CorrelatedScalarSubqueryValue(b.City) as _sq_1_value]
         CteRef [bScore as bScore]
   Query
     MultiStatement
-      Project [a.Name as a.Name, a.City as a.City, a.Country as a.Country, a.Population as a.Population, a.Money as a.Money, a.Month as a.Month, a.Id as a.Id, a.NullableValue as a.NullableValue, _sq_1._sq_1_key as _sq_1._sq_1_key, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7]
-        Join [LeftMark] [((1 = _sq_1._sq_1_key) AND ((((((((_sq_1._sq_1_corr_0 = a.Name) AND (_sq_1._sq_1_corr_1 = a.City)) AND (_sq_1._sq_1_corr_2 = a.Country)) AND (_sq_1._sq_1_corr_3 = a.Population)) AND (_sq_1._sq_1_corr_4 = a.Month)) AND (_sq_1._sq_1_corr_5 = a.Money)) AND (_sq_1._sq_1_corr_6 = a.Id)) AND (_sq_1._sq_1_corr_7 = a.NullableValue)))]
+      Project [a.Name as a.Name, a.City as a.City, a.Country as a.Country, a.Population as a.Population, a.Money as a.Money, a.Month as a.Month, a.Id as a.Id, a.NullableValue as a.NullableValue, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, _sq_1._sq_1_value as _sq_1._sq_1_value]
+        Join [LeftSingle] [((((((((_sq_1._sq_1_corr_0 = a.Name) AND (_sq_1._sq_1_corr_1 = a.City)) AND (_sq_1._sq_1_corr_2 = a.Country)) AND (_sq_1._sq_1_corr_3 = a.Population)) AND (_sq_1._sq_1_corr_4 = a.Month)) AND (_sq_1._sq_1_corr_5 = a.Money)) AND (_sq_1._sq_1_corr_6 = a.Id)) AND (_sq_1._sq_1_corr_7 = a.NullableValue))]
           SchemaScan [#A.entities() as a]
           CteRef [_sq_1 as _sq_1]
-      Project [a_sq_1.a.Name as a.Name, a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1.a.Population as a.Population, a_sq_1.a.Money as a.Money, a_sq_1.a.Month as a.Month, a_sq_1.a.Id as a.Id, a_sq_1.a.NullableValue as a.NullableValue, a_sq_1._sq_1._sq_1_key as _sq_1._sq_1_key, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, a_sq_1._sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, a_sq_1._sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, a_sq_1._sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, a_sq_1._sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, a_sq_1._sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, a_sq_1._sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, _sq_2._sq_2_key as _sq_2._sq_2_key, _sq_2._sq_2_corr_0 as _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1 as _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2 as _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3 as _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4 as _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5 as _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6 as _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7 as _sq_2._sq_2_corr_7]
-        Join [LeftMark] [((1 = _sq_2._sq_2_key) AND ((((((((_sq_2._sq_2_corr_0 = a_sq_1.a.Name) AND (_sq_2._sq_2_corr_1 = a_sq_1.a.City)) AND (_sq_2._sq_2_corr_2 = a_sq_1.a.Country)) AND (_sq_2._sq_2_corr_3 = a_sq_1.a.Population)) AND (_sq_2._sq_2_corr_4 = a_sq_1.a.Month)) AND (_sq_2._sq_2_corr_5 = a_sq_1.a.Money)) AND (_sq_2._sq_2_corr_6 = a_sq_1.a.Id)) AND (_sq_2._sq_2_corr_7 = a_sq_1.a.NullableValue)))]
-          CteRef [a_sq_1 as a_sq_1]
-          CteRef [_sq_2 as _sq_2]
-      Project [a_sq_1_sq_2.a.Name as a.Name, a_sq_1_sq_2.a.City as a.City, a_sq_1_sq_2.a.Country as a.Country, a_sq_1_sq_2.a.Population as a.Population, a_sq_1_sq_2.a.Money as a.Money, a_sq_1_sq_2.a.Month as a.Month, a_sq_1_sq_2.a.Id as a.Id, a_sq_1_sq_2.a.NullableValue as a.NullableValue, a_sq_1_sq_2._sq_1._sq_1_key as _sq_1._sq_1_key, a_sq_1_sq_2._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1_sq_2._sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, a_sq_1_sq_2._sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, a_sq_1_sq_2._sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, a_sq_1_sq_2._sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, a_sq_1_sq_2._sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, a_sq_1_sq_2._sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, a_sq_1_sq_2._sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, a_sq_1_sq_2._sq_2._sq_2_key as _sq_2._sq_2_key, a_sq_1_sq_2._sq_2._sq_2_corr_0 as _sq_2._sq_2_corr_0, a_sq_1_sq_2._sq_2._sq_2_corr_1 as _sq_2._sq_2_corr_1, a_sq_1_sq_2._sq_2._sq_2_corr_2 as _sq_2._sq_2_corr_2, a_sq_1_sq_2._sq_2._sq_2_corr_3 as _sq_2._sq_2_corr_3, a_sq_1_sq_2._sq_2._sq_2_corr_4 as _sq_2._sq_2_corr_4, a_sq_1_sq_2._sq_2._sq_2_corr_5 as _sq_2._sq_2_corr_5, a_sq_1_sq_2._sq_2._sq_2_corr_6 as _sq_2._sq_2_corr_6, a_sq_1_sq_2._sq_2._sq_2_corr_7 as _sq_2._sq_2_corr_7, _sq_3._sq_3_corr_0 as _sq_3_corr_0, _sq_3._sq_3_corr_1 as _sq_3_corr_1, _sq_3._sq_3_corr_2 as _sq_3_corr_2, _sq_3._sq_3_corr_3 as _sq_3_corr_3, _sq_3._sq_3_corr_4 as _sq_3_corr_4, _sq_3._sq_3_corr_5 as _sq_3_corr_5, _sq_3._sq_3_corr_6 as _sq_3_corr_6, _sq_3._sq_3_corr_7 as _sq_3_corr_7, _sq_3._sq_3_value as _sq_3_value]
-        Join [LeftSingle] [((((((((_sq_3._sq_3_corr_0 = a_sq_1_sq_2.a.Name) AND (_sq_3._sq_3_corr_1 = a_sq_1_sq_2.a.City)) AND (_sq_3._sq_3_corr_2 = a_sq_1_sq_2.a.Country)) AND (_sq_3._sq_3_corr_3 = a_sq_1_sq_2.a.Population)) AND (_sq_3._sq_3_corr_4 = a_sq_1_sq_2.a.Month)) AND (_sq_3._sq_3_corr_5 = a_sq_1_sq_2.a.Money)) AND (_sq_3._sq_3_corr_6 = a_sq_1_sq_2.a.Id)) AND (_sq_3._sq_3_corr_7 = a_sq_1_sq_2.a.NullableValue))]
-          CteRef [a_sq_1_sq_2 as a_sq_1_sq_2]
-          CteRef [_sq_3 as _sq_3]
       Sort [a.Name]
-        Project [a.Name as Name, CASE WHEN _sq_1._sq_1_key IS NOT NULL THEN 'Y' ELSE 'N' END as ExistsResult, CASE WHEN _sq_2._sq_2_key IS NULL THEN 'Y' ELSE 'N' END as NotExistsResult, __CorrelatedScalarSubqueryResult(_sq_3._sq_3_value) as Lookup]
-          CteRef [a_sq_1_sq_2_sq_3 as a_sq_1_sq_2_sq_3]
+        Project [a.Name as Name, CASE WHEN ApplyExists[Subquery0](a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue; MultiStatement
+  Project [b.City as City]
+    Filter [((((((((b.Name = outer[0]) AND (b.City = outer[1])) AND (b.Country = outer[2])) AND (b.Population = outer[3])) AND (b.Month = outer[4])) AND (b.Money = outer[5])) AND (b.Id = outer[6])) AND (b.NullableValue = outer[7]))]
+      SchemaScan [#B.entities() as b]) THEN 'Y' ELSE 'N' END as ExistsResult, CASE WHEN NOT ApplyExists[Subquery1](a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue; MultiStatement
+  Project [b.City as City]
+    Filter [((((((((b.Name = outer[0]) AND (b.City = outer[1])) AND (b.Country = outer[2])) AND (b.Population = outer[3])) AND (b.Month = outer[4])) AND (b.Money = outer[5])) AND (b.Id = outer[6])) AND (b.NullableValue = outer[7]))]
+      SchemaScan [#B.entities() as b]) THEN 'Y' ELSE 'N' END as NotExistsResult, __CorrelatedScalarSubqueryResult(_sq_1._sq_1_value) as Lookup]
+          CteRef [a_sq_1 as a_sq_1]
 */
 
 // === Physical Plan ===
@@ -80,36 +70,26 @@ Cte
 PhysicalCte
   Definition [_sq_1]
     PhysicalMultiStatement
-      PhysicalProject [1 as _sq_1_key, b.Name as _sq_1_corr_0, b.City as _sq_1_corr_1, b.Country as _sq_1_corr_2, b.Population as _sq_1_corr_3, b.Month as _sq_1_corr_4, b.Money as _sq_1_corr_5, b.Id as _sq_1_corr_6, b.NullableValue as _sq_1_corr_7]
-        PhysicalSchemaScan [#B.entities() as b]
-  Definition [_sq_2]
-    PhysicalMultiStatement
-      PhysicalProject [1 as _sq_2_key, b.Name as _sq_2_corr_0, b.City as _sq_2_corr_1, b.Country as _sq_2_corr_2, b.Population as _sq_2_corr_3, b.Month as _sq_2_corr_4, b.Money as _sq_2_corr_5, b.Id as _sq_2_corr_6, b.NullableValue as _sq_2_corr_7]
-        PhysicalSchemaScan [#B.entities() as b]
-  Definition [_sq_3]
-    PhysicalMultiStatement
       PhysicalProject [b.NullableValue as b.NullableValue, b.Id as b.Id, b.Money as b.Money, b.Month as b.Month, b.Population as b.Population, b.Country as b.Country, b.City as b.City, b.Name as b.Name, AggRef(b.__CorrelatedScalarSubqueryValue(b.City)) as b.__CorrelatedScalarSubqueryValue(b.City)]
         PhysicalValueTupleAggregate [keys: b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue] [aggs: __CorrelatedScalarSubqueryValue(City)]
           PhysicalSchemaScan [#B.entities() as b]
-      PhysicalProject [b.Name as _sq_3_corr_0, b.City as _sq_3_corr_1, b.Country as _sq_3_corr_2, b.Population as _sq_3_corr_3, b.Month as _sq_3_corr_4, b.Money as _sq_3_corr_5, b.Id as _sq_3_corr_6, b.NullableValue as _sq_3_corr_7, b.__CorrelatedScalarSubqueryValue(b.City) as _sq_3_value]
+      PhysicalProject [b.Name as _sq_1_corr_0, b.City as _sq_1_corr_1, b.Country as _sq_1_corr_2, b.Population as _sq_1_corr_3, b.Month as _sq_1_corr_4, b.Money as _sq_1_corr_5, b.Id as _sq_1_corr_6, b.NullableValue as _sq_1_corr_7, b.__CorrelatedScalarSubqueryValue(b.City) as _sq_1_value]
         PhysicalCteRef [bScore as bScore]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.Name as a.Name, a.City as a.City, a.Country as a.Country, a.Population as a.Population, a.Money as a.Money, a.Month as a.Month, a.Id as a.Id, a.NullableValue as a.NullableValue, _sq_1._sq_1_key as _sq_1._sq_1_key, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7]
-        PhysicalHashJoin [LeftMark] [build: _sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7] [probe: 1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue]
+      PhysicalProject [a.Name as a.Name, a.City as a.City, a.Country as a.Country, a.Population as a.Population, a.Money as a.Money, a.Month as a.Month, a.Id as a.Id, a.NullableValue as a.NullableValue, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, _sq_1._sq_1_value as _sq_1._sq_1_value]
+        PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7] [probe: a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
-      PhysicalProject [a_sq_1.a.Name as a.Name, a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1.a.Population as a.Population, a_sq_1.a.Money as a.Money, a_sq_1.a.Month as a.Month, a_sq_1.a.Id as a.Id, a_sq_1.a.NullableValue as a.NullableValue, a_sq_1._sq_1._sq_1_key as _sq_1._sq_1_key, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, a_sq_1._sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, a_sq_1._sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, a_sq_1._sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, a_sq_1._sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, a_sq_1._sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, a_sq_1._sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, _sq_2._sq_2_key as _sq_2._sq_2_key, _sq_2._sq_2_corr_0 as _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1 as _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2 as _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3 as _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4 as _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5 as _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6 as _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7 as _sq_2._sq_2_corr_7]
-        PhysicalHashJoin [LeftMark] [build: _sq_2._sq_2_key, _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7] [probe: 1, a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue]
-          PhysicalCteRef [a_sq_1 as a_sq_1]
-          PhysicalCteRef [_sq_2 as _sq_2]
-      PhysicalProject [a_sq_1_sq_2.a.Name as a.Name, a_sq_1_sq_2.a.City as a.City, a_sq_1_sq_2.a.Country as a.Country, a_sq_1_sq_2.a.Population as a.Population, a_sq_1_sq_2.a.Money as a.Money, a_sq_1_sq_2.a.Month as a.Month, a_sq_1_sq_2.a.Id as a.Id, a_sq_1_sq_2.a.NullableValue as a.NullableValue, a_sq_1_sq_2._sq_1._sq_1_key as _sq_1._sq_1_key, a_sq_1_sq_2._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1_sq_2._sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, a_sq_1_sq_2._sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, a_sq_1_sq_2._sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, a_sq_1_sq_2._sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, a_sq_1_sq_2._sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, a_sq_1_sq_2._sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, a_sq_1_sq_2._sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, a_sq_1_sq_2._sq_2._sq_2_key as _sq_2._sq_2_key, a_sq_1_sq_2._sq_2._sq_2_corr_0 as _sq_2._sq_2_corr_0, a_sq_1_sq_2._sq_2._sq_2_corr_1 as _sq_2._sq_2_corr_1, a_sq_1_sq_2._sq_2._sq_2_corr_2 as _sq_2._sq_2_corr_2, a_sq_1_sq_2._sq_2._sq_2_corr_3 as _sq_2._sq_2_corr_3, a_sq_1_sq_2._sq_2._sq_2_corr_4 as _sq_2._sq_2_corr_4, a_sq_1_sq_2._sq_2._sq_2_corr_5 as _sq_2._sq_2_corr_5, a_sq_1_sq_2._sq_2._sq_2_corr_6 as _sq_2._sq_2_corr_6, a_sq_1_sq_2._sq_2._sq_2_corr_7 as _sq_2._sq_2_corr_7, _sq_3._sq_3_corr_0 as _sq_3_corr_0, _sq_3._sq_3_corr_1 as _sq_3_corr_1, _sq_3._sq_3_corr_2 as _sq_3_corr_2, _sq_3._sq_3_corr_3 as _sq_3_corr_3, _sq_3._sq_3_corr_4 as _sq_3_corr_4, _sq_3._sq_3_corr_5 as _sq_3_corr_5, _sq_3._sq_3_corr_6 as _sq_3_corr_6, _sq_3._sq_3_corr_7 as _sq_3_corr_7, _sq_3._sq_3_value as _sq_3_value]
-        PhysicalHashJoin [LeftSingle] [build: _sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7] [probe: a_sq_1_sq_2.a.Name, a_sq_1_sq_2.a.City, a_sq_1_sq_2.a.Country, a_sq_1_sq_2.a.Population, a_sq_1_sq_2.a.Month, a_sq_1_sq_2.a.Money, a_sq_1_sq_2.a.Id, a_sq_1_sq_2.a.NullableValue]
-          PhysicalCteRef [a_sq_1_sq_2 as a_sq_1_sq_2]
-          PhysicalCteRef [_sq_3 as _sq_3]
       PhysicalSort [a.Name]
-        PhysicalProject [a.Name as Name, CASE WHEN _sq_1._sq_1_key IS NOT NULL THEN 'Y' ELSE 'N' END as ExistsResult, CASE WHEN _sq_2._sq_2_key IS NULL THEN 'Y' ELSE 'N' END as NotExistsResult, __CorrelatedScalarSubqueryResult(_sq_3._sq_3_value) as Lookup]
-          PhysicalCteRef [a_sq_1_sq_2_sq_3 as a_sq_1_sq_2_sq_3]
+        PhysicalProject [a.Name as Name, CASE WHEN ApplyExists[Subquery0](a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue; MultiStatement
+  Project [b.City as City]
+    Filter [((((((((b.Name = outer[0]) AND (b.City = outer[1])) AND (b.Country = outer[2])) AND (b.Population = outer[3])) AND (b.Month = outer[4])) AND (b.Money = outer[5])) AND (b.Id = outer[6])) AND (b.NullableValue = outer[7]))]
+      SchemaScan [#B.entities() as b]) THEN 'Y' ELSE 'N' END as ExistsResult, CASE WHEN NOT ApplyExists[Subquery1](a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue; MultiStatement
+  Project [b.City as City]
+    Filter [((((((((b.Name = outer[0]) AND (b.City = outer[1])) AND (b.Country = outer[2])) AND (b.Population = outer[3])) AND (b.Month = outer[4])) AND (b.Money = outer[5])) AND (b.Id = outer[6])) AND (b.NullableValue = outer[7]))]
+      SchemaScan [#B.entities() as b]) THEN 'Y' ELSE 'N' END as NotExistsResult, __CorrelatedScalarSubqueryResult(_sq_1._sq_1_value) as Lookup]
+          PhysicalCteRef [a_sq_1 as a_sq_1]
 */
 
 // === Execution Plan ===
@@ -125,17 +105,17 @@ ExecutionPlan [compiled]
       Month: string <- property Month
       Id: int <- property Id
       NullableValue: int? <- property NullableValue
-    AggregateGroup [Cte2AggregateGroup; keys: 8; typed aggs: 1]
-    Generated [Cte2Row0]
-      _sq_3_corr_0: string <- field _sq_3_corr_0
-      _sq_3_corr_1: string <- field _sq_3_corr_1
-      _sq_3_corr_2: string <- field _sq_3_corr_2
-      _sq_3_corr_3: decimal <- field _sq_3_corr_3
-      _sq_3_corr_4: string <- field _sq_3_corr_4
-      _sq_3_corr_5: decimal <- field _sq_3_corr_5
-      _sq_3_corr_6: int <- field _sq_3_corr_6
-      _sq_3_corr_7: int? <- field _sq_3_corr_7
-      _sq_3_value: CorrelatedScalarSubqueryResult<string> <- field _sq_3_value
+    AggregateGroup [Cte0AggregateGroup; keys: 8; typed aggs: 1]
+    Generated [Cte0Row0]
+      _sq_1_corr_0: string <- field _sq_1_corr_0
+      _sq_1_corr_1: string <- field _sq_1_corr_1
+      _sq_1_corr_2: string <- field _sq_1_corr_2
+      _sq_1_corr_3: decimal <- field _sq_1_corr_3
+      _sq_1_corr_4: string <- field _sq_1_corr_4
+      _sq_1_corr_5: decimal <- field _sq_1_corr_5
+      _sq_1_corr_6: int <- field _sq_1_corr_6
+      _sq_1_corr_7: int? <- field _sq_1_corr_7
+      _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
     SourceEntity [a: BasicEntity]
       Name: string <- property Name
       City: string <- property City
@@ -145,17 +125,7 @@ ExecutionPlan [compiled]
       Month: string <- property Month
       Id: int <- property Id
       NullableValue: int? <- property NullableValue
-    SourceEntity [b: BasicEntity]
-      Name: string <- property Name
-      City: string <- property City
-      Country: string <- property Country
-      Population: decimal <- property Population
-      Money: decimal <- property Money
-      Month: string <- property Month
-      Id: int <- property Id
-      NullableValue: int? <- property NullableValue
     TableRow [_sq_1]
-      _sq_1_key: int <- field _sq_1_key
       _sq_1_corr_0: string <- field _sq_1_corr_0
       _sq_1_corr_1: string <- field _sq_1_corr_1
       _sq_1_corr_2: string <- field _sq_1_corr_2
@@ -164,6 +134,7 @@ ExecutionPlan [compiled]
       _sq_1_corr_5: decimal <- field _sq_1_corr_5
       _sq_1_corr_6: int <- field _sq_1_corr_6
       _sq_1_corr_7: int? <- field _sq_1_corr_7
+      _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
     Generated [Statement0Row0]
       a.Name: string <- field a_Name
       a.City: string <- field a_City
@@ -173,7 +144,6 @@ ExecutionPlan [compiled]
       a.Month: string <- field a_Month
       a.Id: int <- field a_Id
       a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_key: int? <- field _sq_1__sq_1_key
       _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
       _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
       _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
@@ -182,6 +152,7 @@ ExecutionPlan [compiled]
       _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
       _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
       _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
+      _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     TableRow [a_sq_1]
       a.Name: string <- field a_Name
       a.City: string <- field a_City
@@ -191,7 +162,6 @@ ExecutionPlan [compiled]
       a.Month: string <- field a_Month
       a.Id: int <- field a_Id
       a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_key: int? <- field _sq_1__sq_1_key
       _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
       _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
       _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
@@ -200,161 +170,7 @@ ExecutionPlan [compiled]
       _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
       _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
       _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
-    SourceEntity [b: BasicEntity]
-      Name: string <- property Name
-      City: string <- property City
-      Country: string <- property Country
-      Population: decimal <- property Population
-      Money: decimal <- property Money
-      Month: string <- property Month
-      Id: int <- property Id
-      NullableValue: int? <- property NullableValue
-    TableRow [_sq_2]
-      _sq_2_key: int <- field _sq_2_key
-      _sq_2_corr_0: string <- field _sq_2_corr_0
-      _sq_2_corr_1: string <- field _sq_2_corr_1
-      _sq_2_corr_2: string <- field _sq_2_corr_2
-      _sq_2_corr_3: decimal <- field _sq_2_corr_3
-      _sq_2_corr_4: string <- field _sq_2_corr_4
-      _sq_2_corr_5: decimal <- field _sq_2_corr_5
-      _sq_2_corr_6: int <- field _sq_2_corr_6
-      _sq_2_corr_7: int? <- field _sq_2_corr_7
-    Generated [Statement1Row0]
-      a.Name: string <- field a_Name
-      a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      a.Population: decimal <- field a_Population
-      a.Money: decimal <- field a_Money
-      a.Month: string <- field a_Month
-      a.Id: int <- field a_Id
-      a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_key: int? <- field _sq_1__sq_1_key
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
-      _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
-      _sq_1._sq_1_corr_3: decimal? <- field _sq_1__sq_1_corr_3
-      _sq_1._sq_1_corr_4: string <- field _sq_1__sq_1_corr_4
-      _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
-      _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
-      _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
-      _sq_2._sq_2_key: int? <- field _sq_2__sq_2_key
-      _sq_2._sq_2_corr_0: string <- field _sq_2__sq_2_corr_0
-      _sq_2._sq_2_corr_1: string <- field _sq_2__sq_2_corr_1
-      _sq_2._sq_2_corr_2: string <- field _sq_2__sq_2_corr_2
-      _sq_2._sq_2_corr_3: decimal? <- field _sq_2__sq_2_corr_3
-      _sq_2._sq_2_corr_4: string <- field _sq_2__sq_2_corr_4
-      _sq_2._sq_2_corr_5: decimal? <- field _sq_2__sq_2_corr_5
-      _sq_2._sq_2_corr_6: int? <- field _sq_2__sq_2_corr_6
-      _sq_2._sq_2_corr_7: int? <- field _sq_2__sq_2_corr_7
-    TableRow [a_sq_1_sq_2]
-      a.Name: string <- field a_Name
-      a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      a.Population: decimal <- field a_Population
-      a.Money: decimal <- field a_Money
-      a.Month: string <- field a_Month
-      a.Id: int <- field a_Id
-      a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_key: int? <- field _sq_1__sq_1_key
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
-      _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
-      _sq_1._sq_1_corr_3: decimal? <- field _sq_1__sq_1_corr_3
-      _sq_1._sq_1_corr_4: string <- field _sq_1__sq_1_corr_4
-      _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
-      _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
-      _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
-      _sq_2._sq_2_key: int? <- field _sq_2__sq_2_key
-      _sq_2._sq_2_corr_0: string <- field _sq_2__sq_2_corr_0
-      _sq_2._sq_2_corr_1: string <- field _sq_2__sq_2_corr_1
-      _sq_2._sq_2_corr_2: string <- field _sq_2__sq_2_corr_2
-      _sq_2._sq_2_corr_3: decimal? <- field _sq_2__sq_2_corr_3
-      _sq_2._sq_2_corr_4: string <- field _sq_2__sq_2_corr_4
-      _sq_2._sq_2_corr_5: decimal? <- field _sq_2__sq_2_corr_5
-      _sq_2._sq_2_corr_6: int? <- field _sq_2__sq_2_corr_6
-      _sq_2._sq_2_corr_7: int? <- field _sq_2__sq_2_corr_7
-    TableRow [_sq_3]
-      _sq_3_corr_0: string <- field _sq_3_corr_0
-      _sq_3_corr_1: string <- field _sq_3_corr_1
-      _sq_3_corr_2: string <- field _sq_3_corr_2
-      _sq_3_corr_3: decimal <- field _sq_3_corr_3
-      _sq_3_corr_4: string <- field _sq_3_corr_4
-      _sq_3_corr_5: decimal <- field _sq_3_corr_5
-      _sq_3_corr_6: int <- field _sq_3_corr_6
-      _sq_3_corr_7: int? <- field _sq_3_corr_7
-      _sq_3_value: CorrelatedScalarSubqueryResult<string> <- field _sq_3_value
-    Generated [Statement2Row0]
-      a.Name: string <- field a_Name
-      a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      a.Population: decimal <- field a_Population
-      a.Money: decimal <- field a_Money
-      a.Month: string <- field a_Month
-      a.Id: int <- field a_Id
-      a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_key: int? <- field _sq_1__sq_1_key
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
-      _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
-      _sq_1._sq_1_corr_3: decimal? <- field _sq_1__sq_1_corr_3
-      _sq_1._sq_1_corr_4: string <- field _sq_1__sq_1_corr_4
-      _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
-      _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
-      _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
-      _sq_2._sq_2_key: int? <- field _sq_2__sq_2_key
-      _sq_2._sq_2_corr_0: string <- field _sq_2__sq_2_corr_0
-      _sq_2._sq_2_corr_1: string <- field _sq_2__sq_2_corr_1
-      _sq_2._sq_2_corr_2: string <- field _sq_2__sq_2_corr_2
-      _sq_2._sq_2_corr_3: decimal? <- field _sq_2__sq_2_corr_3
-      _sq_2._sq_2_corr_4: string <- field _sq_2__sq_2_corr_4
-      _sq_2._sq_2_corr_5: decimal? <- field _sq_2__sq_2_corr_5
-      _sq_2._sq_2_corr_6: int? <- field _sq_2__sq_2_corr_6
-      _sq_2._sq_2_corr_7: int? <- field _sq_2__sq_2_corr_7
-      _sq_3_corr_0: string <- field _sq_3_corr_0
-      _sq_3_corr_1: string <- field _sq_3_corr_1
-      _sq_3_corr_2: string <- field _sq_3_corr_2
-      _sq_3_corr_3: decimal? <- field _sq_3_corr_3
-      _sq_3_corr_4: string <- field _sq_3_corr_4
-      _sq_3_corr_5: decimal? <- field _sq_3_corr_5
-      _sq_3_corr_6: int? <- field _sq_3_corr_6
-      _sq_3_corr_7: int? <- field _sq_3_corr_7
-      _sq_3_value: CorrelatedScalarSubqueryResult<string> <- field _sq_3_value
-    TableRow [a_sq_1_sq_2_sq_3]
-      a.Name: string <- field a_Name
-      a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      a.Population: decimal <- field a_Population
-      a.Money: decimal <- field a_Money
-      a.Month: string <- field a_Month
-      a.Id: int <- field a_Id
-      a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_key: int? <- field _sq_1__sq_1_key
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
-      _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
-      _sq_1._sq_1_corr_3: decimal? <- field _sq_1__sq_1_corr_3
-      _sq_1._sq_1_corr_4: string <- field _sq_1__sq_1_corr_4
-      _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
-      _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
-      _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
-      _sq_2._sq_2_key: int? <- field _sq_2__sq_2_key
-      _sq_2._sq_2_corr_0: string <- field _sq_2__sq_2_corr_0
-      _sq_2._sq_2_corr_1: string <- field _sq_2__sq_2_corr_1
-      _sq_2._sq_2_corr_2: string <- field _sq_2__sq_2_corr_2
-      _sq_2._sq_2_corr_3: decimal? <- field _sq_2__sq_2_corr_3
-      _sq_2._sq_2_corr_4: string <- field _sq_2__sq_2_corr_4
-      _sq_2._sq_2_corr_5: decimal? <- field _sq_2__sq_2_corr_5
-      _sq_2._sq_2_corr_6: int? <- field _sq_2__sq_2_corr_6
-      _sq_2._sq_2_corr_7: int? <- field _sq_2__sq_2_corr_7
-      _sq_3_corr_0: string <- field _sq_3_corr_0
-      _sq_3_corr_1: string <- field _sq_3_corr_1
-      _sq_3_corr_2: string <- field _sq_3_corr_2
-      _sq_3_corr_3: decimal? <- field _sq_3_corr_3
-      _sq_3_corr_4: string <- field _sq_3_corr_4
-      _sq_3_corr_5: decimal? <- field _sq_3_corr_5
-      _sq_3_corr_6: int? <- field _sq_3_corr_6
-      _sq_3_corr_7: int? <- field _sq_3_corr_7
-      _sq_3_value: CorrelatedScalarSubqueryResult<string> <- field _sq_3_value
+      _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     Generated [ResultRow0]
       Name: string <- field Name
       ExistsResult: string <- field ExistsResult
@@ -364,91 +180,107 @@ ExecutionPlan [compiled]
   Body
     PhaseBoundary [Begin]
     PhaseBoundary [From]
-    PhaseBoundary [Begin:cte2]
-    PhaseBoundary [Select]
     PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [From:cte0]
+    SourceScan [b: BasicEntity] -> cte0_bRows
+    CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [GroupBy:cte0]
+    CreateValueTupleAggregateContext [cte0Groups: (string, string, string, decimal, string, decimal, int, int?) -> Cte0AggregateGroup]
+    ChunkedForEach [b in cte0_bRows]
+      GetOrAddValueTupleAggregateGroup [cte0Group = cte0Groups[(b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)] by b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue; typed: Cte0AggregateGroup]
+      Let [city: string = b.City]
+      TypedAggregateSet [Set(cte0Group.__agg0, city)]
+    EnsureCapacity [cte0 <- cte0GroupsToFinalize.Count]
+    PhaseBoundary [Select:cte0]
+    ForEach [cte0FinalGroup in cte0GroupsToFinalize]
+      AppendRow [cte0 <- Cte0Row0(_sq_1_corr_0: cte0FinalGroup.b.Name, _sq_1_corr_1: cte0FinalGroup.b.City, _sq_1_corr_2: cte0FinalGroup.b.Country, _sq_1_corr_3: cte0FinalGroup.b.Population, _sq_1_corr_4: cte0FinalGroup.b.Month, _sq_1_corr_5: cte0FinalGroup.b.Money, _sq_1_corr_6: cte0FinalGroup.b.Id, _sq_1_corr_7: cte0FinalGroup.b.NullableValue, _sq_1_value: b.__CorrelatedScalarSubqueryValue(b.City))]
+    StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
     PhaseBoundary [End:cte0]
     PhaseBoundary [Begin:cte1]
-    PhaseBoundary [End:cte1]
-    PhaseBoundary [From:cte2]
-    SourceScan [b: BasicEntity] -> cte2_bRows
-    CreateTable [cte2: Cte2Row0]
-    PhaseBoundary [GroupBy:cte2]
-    CreateValueTupleAggregateContext [cte2Groups: (string, string, string, decimal, string, decimal, int, int?) -> Cte2AggregateGroup]
-    ChunkedForEach [b in cte2_bRows]
-      GetOrAddValueTupleAggregateGroup [cte2Group = cte2Groups[(b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)] by b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue; typed: Cte2AggregateGroup]
-      Let [city: string = b.City]
-      TypedAggregateSet [Set(cte2Group.__agg0, city)]
-    EnsureCapacity [cte2 <- cte2GroupsToFinalize.Count]
-    PhaseBoundary [Select:cte2]
-    ForEach [cte2FinalGroup in cte2GroupsToFinalize]
-      AppendRow [cte2 <- Cte2Row0(_sq_3_corr_0: cte2FinalGroup.b.Name, _sq_3_corr_1: cte2FinalGroup.b.City, _sq_3_corr_2: cte2FinalGroup.b.Country, _sq_3_corr_3: cte2FinalGroup.b.Population, _sq_3_corr_4: cte2FinalGroup.b.Month, _sq_3_corr_5: cte2FinalGroup.b.Money, _sq_3_corr_6: cte2FinalGroup.b.Id, _sq_3_corr_7: cte2FinalGroup.b.NullableValue, _sq_3_value: b.__CorrelatedScalarSubqueryValue(b.City))]
-    StoreTable [cte2 -> _cteRowResults.Slot2: List<Cte2Row0>]
-    PhaseBoundary [End:cte2]
-    PhaseBoundary [Begin:cte3]
     SourceScan [a: BasicEntity] -> statement0_aRows
-    SourceScan [b: BasicEntity] -> cte0_bRows
     CreateTable [statement0: Statement0Row0]
-    CreateKeySet [statement0_sq_1Keys: ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>]
-    ChunkedForEach [b in cte0_bRows]
-      KeySetAdd [statement0_sq_1Keys += (1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)]
+    InitializeAggregateState [statement0_sq_1HashEmptyState: State<string> via Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel`1<string>.Reset]
+    Let [statement0_sq_1HashEmptyValue: CorrelatedScalarSubqueryResult<string> = Get(statement0_sq_1HashEmptyState)]
+    CreateHash [statement0_sq_1Hash: ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>> -> Row; capacity: _cteRowResults.Slot0.Count]
+    ForEach [_sq_1 in _cteRowResults.Slot0]
+      HashAdd [statement0_sq_1Hash[(_sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7)] += _sq_1]
     ChunkedForEach [a in statement0_aRows]
-      KeySetProbe [statement0_sq_1Keys[(1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue)]]
-        Let [name: string = a.Name]
-        Let [city: string = a.City]
-        Let [country: string = a.Country]
-        Let [population: decimal = a.Population]
-        Let [money: decimal = a.Money]
-        Let [month: string = a.Month]
-        Let [id: int = a.Id]
-        Let [nullableValue: int? = a.NullableValue]
-        AppendRow [statement0 <- Statement0Row0(a.Name: name, a.City: city, a.Country: country, a.Population: population, a.Money: money, a.Month: month, a.Id: id, a.NullableValue: nullableValue, _sq_1._sq_1_key: 1, _sq_1._sq_1_corr_0: name, _sq_1._sq_1_corr_1: city, _sq_1._sq_1_corr_2: country, _sq_1._sq_1_corr_3: population, _sq_1._sq_1_corr_4: month, _sq_1._sq_1_corr_5: money, _sq_1._sq_1_corr_6: id, _sq_1._sq_1_corr_7: nullableValue)]
-      KeySetProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_key: NULL, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_corr_1: NULL, _sq_1._sq_1_corr_2: NULL, _sq_1._sq_1_corr_3: NULL, _sq_1._sq_1_corr_4: NULL, _sq_1._sq_1_corr_5: NULL, _sq_1._sq_1_corr_6: NULL, _sq_1._sq_1_corr_7: NULL)]
-    StoreTable [statement0 -> _cteRowResults.Slot3: List<Statement0Row0>]
-    PhaseBoundary [End:cte3]
-    PhaseBoundary [Begin:cte4]
-    SourceScan [b: BasicEntity] -> cte1_bRows
-    CreateTable [statement1: Statement1Row0]
-    CreateKeySet [statement1_sq_2Keys: ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>]
-    ChunkedForEach [b in cte1_bRows]
-      KeySetAdd [statement1_sq_2Keys += (1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)]
-    ForEach [a_sq_1 in _cteRowResults.Slot3]
-      KeySetProbe [statement1_sq_2Keys[(1, a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue)]]
-        Let [a_Name: string = a_sq_1.a.Name]
-        Let [a_City: string = a_sq_1.a.City]
-        Let [a_Country: string = a_sq_1.a.Country]
-        Let [a_Population: decimal = a_sq_1.a.Population]
-        Let [a_Money: decimal = a_sq_1.a.Money]
-        Let [a_Month: string = a_sq_1.a.Month]
-        Let [a_Id: int = a_sq_1.a.Id]
-        Let [a_NullableValue: int? = a_sq_1.a.NullableValue]
-        AppendRow [statement1 <- Statement1Row0(a.Name: a_Name, a.City: a_City, a.Country: a_Country, a.Population: a_Population, a.Money: a_Money, a.Month: a_Month, a.Id: a_Id, a.NullableValue: a_NullableValue, _sq_1._sq_1_key: a_sq_1._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1._sq_1._sq_1_corr_7, _sq_2._sq_2_key: 1, _sq_2._sq_2_corr_0: a_Name, _sq_2._sq_2_corr_1: a_City, _sq_2._sq_2_corr_2: a_Country, _sq_2._sq_2_corr_3: a_Population, _sq_2._sq_2_corr_4: a_Month, _sq_2._sq_2_corr_5: a_Money, _sq_2._sq_2_corr_6: a_Id, _sq_2._sq_2_corr_7: a_NullableValue)]
-      KeySetProbeNoMatch
-        AppendRow [statement1 <- Statement1Row0(a.Name: a_sq_1.a.Name, a.City: a_sq_1.a.City, a.Country: a_sq_1.a.Country, a.Population: a_sq_1.a.Population, a.Money: a_sq_1.a.Money, a.Month: a_sq_1.a.Month, a.Id: a_sq_1.a.Id, a.NullableValue: a_sq_1.a.NullableValue, _sq_1._sq_1_key: a_sq_1._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1._sq_1._sq_1_corr_7, _sq_2._sq_2_key: NULL, _sq_2._sq_2_corr_0: NULL, _sq_2._sq_2_corr_1: NULL, _sq_2._sq_2_corr_2: NULL, _sq_2._sq_2_corr_3: NULL, _sq_2._sq_2_corr_4: NULL, _sq_2._sq_2_corr_5: NULL, _sq_2._sq_2_corr_6: NULL, _sq_2._sq_2_corr_7: NULL)]
-    StoreTable [statement1 -> _cteRowResults.Slot4: List<Statement1Row0>]
-    PhaseBoundary [End:cte4]
-    PhaseBoundary [Begin:cte5]
-    CreateTable [statement2: Statement2Row0]
-    InitializeAggregateState [statement2_sq_3HashEmptyState: State<string> via Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel`1<string>.Reset]
-    Let [statement2_sq_3HashEmptyValue: CorrelatedScalarSubqueryResult<string> = Get(statement2_sq_3HashEmptyState)]
-    CreateHash [statement2_sq_3Hash: ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>> -> Row; capacity: _cteRowResults.Slot2.Count]
-    ForEach [_sq_3 in _cteRowResults.Slot2]
-      HashAdd [statement2_sq_3Hash[(_sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7)] += _sq_3]
-    ForEach [a_sq_1_sq_2 in _cteRowResults.Slot4]
-      HashProbe [statement2_sq_3Hash[(a_sq_1_sq_2.a.Name, a_sq_1_sq_2.a.City, a_sq_1_sq_2.a.Country, a_sq_1_sq_2.a.Population, a_sq_1_sq_2.a.Month, a_sq_1_sq_2.a.Money, a_sq_1_sq_2.a.Id, a_sq_1_sq_2.a.NullableValue)] -> statement2_sq_3HashMatches] [match: statement2_sq_3HashHasMatch]
-        ForEach [_sq_3 in statement2_sq_3HashMatches]
-          Assign [statement2_sq_3HashHasMatch = TRUE]
-          AppendRow [statement2 <- Statement2Row0(a.Name: a_sq_1_sq_2.a.Name, a.City: a_sq_1_sq_2.a.City, a.Country: a_sq_1_sq_2.a.Country, a.Population: a_sq_1_sq_2.a.Population, a.Money: a_sq_1_sq_2.a.Money, a.Month: a_sq_1_sq_2.a.Month, a.Id: a_sq_1_sq_2.a.Id, a.NullableValue: a_sq_1_sq_2.a.NullableValue, _sq_1._sq_1_key: a_sq_1_sq_2._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1_sq_2._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1_sq_2._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1_sq_2._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1_sq_2._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1_sq_2._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1_sq_2._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1_sq_2._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1_sq_2._sq_1._sq_1_corr_7, _sq_2._sq_2_key: a_sq_1_sq_2._sq_2._sq_2_key, _sq_2._sq_2_corr_0: a_sq_1_sq_2._sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1: a_sq_1_sq_2._sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2: a_sq_1_sq_2._sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3: a_sq_1_sq_2._sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4: a_sq_1_sq_2._sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5: a_sq_1_sq_2._sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6: a_sq_1_sq_2._sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7: a_sq_1_sq_2._sq_2._sq_2_corr_7, _sq_3_corr_0: _sq_3._sq_3_corr_0, _sq_3_corr_1: _sq_3._sq_3_corr_1, _sq_3_corr_2: _sq_3._sq_3_corr_2, _sq_3_corr_3: _sq_3._sq_3_corr_3, _sq_3_corr_4: _sq_3._sq_3_corr_4, _sq_3_corr_5: _sq_3._sq_3_corr_5, _sq_3_corr_6: _sq_3._sq_3_corr_6, _sq_3_corr_7: _sq_3._sq_3_corr_7, _sq_3_value: _sq_3._sq_3_value)]
+      HashProbe [statement0_sq_1Hash[(a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue)] -> statement0_sq_1HashMatches] [match: statement0_sq_1HashHasMatch]
+        ForEach [_sq_1 in statement0_sq_1HashMatches]
+          Assign [statement0_sq_1HashHasMatch = TRUE]
+          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: _sq_1._sq_1_corr_7, _sq_1._sq_1_value: _sq_1._sq_1_value)]
       HashProbeNoMatch
-        AppendRow [statement2 <- Statement2Row0(a.Name: a_sq_1_sq_2.a.Name, a.City: a_sq_1_sq_2.a.City, a.Country: a_sq_1_sq_2.a.Country, a.Population: a_sq_1_sq_2.a.Population, a.Money: a_sq_1_sq_2.a.Money, a.Month: a_sq_1_sq_2.a.Month, a.Id: a_sq_1_sq_2.a.Id, a.NullableValue: a_sq_1_sq_2.a.NullableValue, _sq_1._sq_1_key: a_sq_1_sq_2._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1_sq_2._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1_sq_2._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1_sq_2._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1_sq_2._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1_sq_2._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1_sq_2._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1_sq_2._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1_sq_2._sq_1._sq_1_corr_7, _sq_2._sq_2_key: a_sq_1_sq_2._sq_2._sq_2_key, _sq_2._sq_2_corr_0: a_sq_1_sq_2._sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1: a_sq_1_sq_2._sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2: a_sq_1_sq_2._sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3: a_sq_1_sq_2._sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4: a_sq_1_sq_2._sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5: a_sq_1_sq_2._sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6: a_sq_1_sq_2._sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7: a_sq_1_sq_2._sq_2._sq_2_corr_7, _sq_3_corr_0: NULL, _sq_3_corr_1: NULL, _sq_3_corr_2: NULL, _sq_3_corr_3: NULL, _sq_3_corr_4: NULL, _sq_3_corr_5: NULL, _sq_3_corr_6: NULL, _sq_3_corr_7: NULL, _sq_3_value: statement2_sq_3HashEmptyValue)]
-    StoreTable [statement2 -> _cteRowResults.Slot5: List<Statement2Row0>]
-    PhaseBoundary [End:cte5]
+        AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_corr_1: NULL, _sq_1._sq_1_corr_2: NULL, _sq_1._sq_1_corr_3: NULL, _sq_1._sq_1_corr_4: NULL, _sq_1._sq_1_corr_5: NULL, _sq_1._sq_1_corr_6: NULL, _sq_1._sq_1_corr_7: NULL, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
+    StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
+    PhaseBoundary [End:cte1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
-    ForEach [a_sq_1_sq_2_sq_3 in _cteRowResults.Slot5]
-      AppendShape [result <- ResultShape0(Name: a_sq_1_sq_2_sq_3.a.Name, ExistsResult: CASE WHEN a_sq_1_sq_2_sq_3._sq_1._sq_1_key IS NOT NULL THEN 'Y' ELSE 'N' END, NotExistsResult: CASE WHEN a_sq_1_sq_2_sq_3._sq_2._sq_2_key IS NULL THEN 'Y' ELSE 'N' END, Lookup: __CorrelatedScalarSubqueryResult(a_sq_1_sq_2_sq_3._sq_3_value))]
+    ForEach [a_sq_1 in _cteRowResults.Slot1]
+      Let [a_Name: string = a_sq_1.a.Name]
+      Let [a_City: string = a_sq_1.a.City]
+      Let [a_Country: string = a_sq_1.a.Country]
+      Let [a_Population: decimal = a_sq_1.a.Population]
+      Let [a_Month: string = a_sq_1.a.Month]
+      Let [a_Money: decimal = a_sq_1.a.Money]
+      Let [a_Id: int = a_sq_1.a.Id]
+      Let [a_NullableValue: int? = a_sq_1.a.NullableValue]
+      AppendShape [result <- ResultShape0(Name: a_Name, ExistsResult: CASE WHEN ApplyExists[Subquery0](a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue) THEN 'Y' ELSE 'N' END, NotExistsResult: CASE WHEN NOT ApplyExists[Subquery1](a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue) THEN 'Y' ELSE 'N' END, Lookup: __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value))]
     SortShapeRows [result -> resultSorted by Name ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+
+  Subquery
+ExecutionPlan [Subquery0]
+  Shapes
+    SourceEntity [b: BasicEntity]
+      Name: string <- property Name
+      City: string <- property City
+      Country: string <- property Country
+      Population: decimal <- property Population
+      Money: decimal <- property Money
+      Month: string <- property Month
+      Id: int <- property Id
+      NullableValue: int? <- property NullableValue
+    Generated [Subquery0ResultRow0]
+      __existsValue: int <- field __existsValue
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    SourceScan [b: BasicEntity] -> bRows
+    CreateShapeRows [result: Subquery0ResultRow0 from Subquery0ResultRow0]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
+    ChunkedForEach [b in bRows]
+      If [((((((((b.Name = __outer0) AND (b.City = __outer1)) AND (b.Country = __outer2)) AND (b.Population = __outer3)) AND (b.Month = __outer4)) AND (b.Money = __outer5)) AND (b.Id = __outer6)) AND (b.NullableValue = __outer7))]
+        AppendShape [result <- Subquery0ResultRow0(__existsValue: 1)]
+    ReturnDeferredTable [result: Subquery0ResultRow0 <- Subquery0ResultRow0]
+
+  Subquery
+ExecutionPlan [Subquery1]
+  Shapes
+    SourceEntity [b: BasicEntity]
+      Name: string <- property Name
+      City: string <- property City
+      Country: string <- property Country
+      Population: decimal <- property Population
+      Money: decimal <- property Money
+      Month: string <- property Month
+      Id: int <- property Id
+      NullableValue: int? <- property NullableValue
+    Generated [Subquery1ResultRow0]
+      __existsValue: int <- field __existsValue
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    SourceScan [b: BasicEntity] -> bRows
+    CreateShapeRows [result: Subquery1ResultRow0 from Subquery1ResultRow0]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
+    ChunkedForEach [b in bRows]
+      If [((((((((b.Name = __outer0) AND (b.City = __outer1)) AND (b.Country = __outer2)) AND (b.Population = __outer3)) AND (b.Month = __outer4)) AND (b.Money = __outer5)) AND (b.Id = __outer6)) AND (b.NullableValue = __outer7))]
+        AppendShape [result <- Subquery1ResultRow0(__existsValue: 1)]
+    ReturnDeferredTable [result: Subquery1ResultRow0 <- Subquery1ResultRow0]
 */
 
 // === Generated C# ===
@@ -472,19 +304,27 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
 
     public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
     {
-        private static readonly Column[] __columns_compiled_cte2_1 = new Column[]
+        private static readonly Column[] __columns_Subquery0_result_1 = new Column[]
         {
-            new Column("_sq_3_corr_0", typeof(string), 0),
-            new Column("_sq_3_corr_1", typeof(string), 1),
-            new Column("_sq_3_corr_2", typeof(string), 2),
-            new Column("_sq_3_corr_3", typeof(decimal), 3),
-            new Column("_sq_3_corr_4", typeof(string), 4),
-            new Column("_sq_3_corr_5", typeof(decimal), 5),
-            new Column("_sq_3_corr_6", typeof(int), 6),
-            new Column("_sq_3_corr_7", typeof(int?), 7),
-            new Column("_sq_3_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 8)
+            new Column("__existsValue", typeof(int), 0)
         };
-        private static readonly Column[] __columns_compiled_result_5 = new Column[]
+        private static readonly Column[] __columns_Subquery1_result_1 = new Column[]
+        {
+            new Column("__existsValue", typeof(int), 0)
+        };
+        private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
+        {
+            new Column("_sq_1_corr_0", typeof(string), 0),
+            new Column("_sq_1_corr_1", typeof(string), 1),
+            new Column("_sq_1_corr_2", typeof(string), 2),
+            new Column("_sq_1_corr_3", typeof(decimal), 3),
+            new Column("_sq_1_corr_4", typeof(string), 4),
+            new Column("_sq_1_corr_5", typeof(decimal), 5),
+            new Column("_sq_1_corr_6", typeof(int), 6),
+            new Column("_sq_1_corr_7", typeof(int?), 7),
+            new Column("_sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 8)
+        };
+        private static readonly Column[] __columns_compiled_result_3 = new Column[]
         {
             new Column("Name", typeof(string), 0),
             new Column("ExistsResult", typeof(string), 1),
@@ -501,83 +341,18 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             new Column("a.Month", typeof(string), 5),
             new Column("a.Id", typeof(int), 6),
             new Column("a.NullableValue", typeof(int?), 7),
-            new Column("_sq_1._sq_1_key", typeof(int?), 8),
-            new Column("_sq_1._sq_1_corr_0", typeof(string), 9),
-            new Column("_sq_1._sq_1_corr_1", typeof(string), 10),
-            new Column("_sq_1._sq_1_corr_2", typeof(string), 11),
-            new Column("_sq_1._sq_1_corr_3", typeof(decimal?), 12),
-            new Column("_sq_1._sq_1_corr_4", typeof(string), 13),
-            new Column("_sq_1._sq_1_corr_5", typeof(decimal?), 14),
-            new Column("_sq_1._sq_1_corr_6", typeof(int?), 15),
-            new Column("_sq_1._sq_1_corr_7", typeof(int?), 16)
+            new Column("_sq_1._sq_1_corr_0", typeof(string), 8),
+            new Column("_sq_1._sq_1_corr_1", typeof(string), 9),
+            new Column("_sq_1._sq_1_corr_2", typeof(string), 10),
+            new Column("_sq_1._sq_1_corr_3", typeof(decimal?), 11),
+            new Column("_sq_1._sq_1_corr_4", typeof(string), 12),
+            new Column("_sq_1._sq_1_corr_5", typeof(decimal?), 13),
+            new Column("_sq_1._sq_1_corr_6", typeof(int?), 14),
+            new Column("_sq_1._sq_1_corr_7", typeof(int?), 15),
+            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 16)
         };
-        private static readonly Column[] __columns_compiled_statement1_3 = new Column[]
-        {
-            new Column("a.Name", typeof(string), 0),
-            new Column("a.City", typeof(string), 1),
-            new Column("a.Country", typeof(string), 2),
-            new Column("a.Population", typeof(decimal), 3),
-            new Column("a.Money", typeof(decimal), 4),
-            new Column("a.Month", typeof(string), 5),
-            new Column("a.Id", typeof(int), 6),
-            new Column("a.NullableValue", typeof(int?), 7),
-            new Column("_sq_1._sq_1_key", typeof(int?), 8),
-            new Column("_sq_1._sq_1_corr_0", typeof(string), 9),
-            new Column("_sq_1._sq_1_corr_1", typeof(string), 10),
-            new Column("_sq_1._sq_1_corr_2", typeof(string), 11),
-            new Column("_sq_1._sq_1_corr_3", typeof(decimal?), 12),
-            new Column("_sq_1._sq_1_corr_4", typeof(string), 13),
-            new Column("_sq_1._sq_1_corr_5", typeof(decimal?), 14),
-            new Column("_sq_1._sq_1_corr_6", typeof(int?), 15),
-            new Column("_sq_1._sq_1_corr_7", typeof(int?), 16),
-            new Column("_sq_2._sq_2_key", typeof(int?), 17),
-            new Column("_sq_2._sq_2_corr_0", typeof(string), 18),
-            new Column("_sq_2._sq_2_corr_1", typeof(string), 19),
-            new Column("_sq_2._sq_2_corr_2", typeof(string), 20),
-            new Column("_sq_2._sq_2_corr_3", typeof(decimal?), 21),
-            new Column("_sq_2._sq_2_corr_4", typeof(string), 22),
-            new Column("_sq_2._sq_2_corr_5", typeof(decimal?), 23),
-            new Column("_sq_2._sq_2_corr_6", typeof(int?), 24),
-            new Column("_sq_2._sq_2_corr_7", typeof(int?), 25)
-        };
-        private static readonly Column[] __columns_compiled_statement2_4 = new Column[]
-        {
-            new Column("a.Name", typeof(string), 0),
-            new Column("a.City", typeof(string), 1),
-            new Column("a.Country", typeof(string), 2),
-            new Column("a.Population", typeof(decimal), 3),
-            new Column("a.Money", typeof(decimal), 4),
-            new Column("a.Month", typeof(string), 5),
-            new Column("a.Id", typeof(int), 6),
-            new Column("a.NullableValue", typeof(int?), 7),
-            new Column("_sq_1._sq_1_key", typeof(int?), 8),
-            new Column("_sq_1._sq_1_corr_0", typeof(string), 9),
-            new Column("_sq_1._sq_1_corr_1", typeof(string), 10),
-            new Column("_sq_1._sq_1_corr_2", typeof(string), 11),
-            new Column("_sq_1._sq_1_corr_3", typeof(decimal?), 12),
-            new Column("_sq_1._sq_1_corr_4", typeof(string), 13),
-            new Column("_sq_1._sq_1_corr_5", typeof(decimal?), 14),
-            new Column("_sq_1._sq_1_corr_6", typeof(int?), 15),
-            new Column("_sq_1._sq_1_corr_7", typeof(int?), 16),
-            new Column("_sq_2._sq_2_key", typeof(int?), 17),
-            new Column("_sq_2._sq_2_corr_0", typeof(string), 18),
-            new Column("_sq_2._sq_2_corr_1", typeof(string), 19),
-            new Column("_sq_2._sq_2_corr_2", typeof(string), 20),
-            new Column("_sq_2._sq_2_corr_3", typeof(decimal?), 21),
-            new Column("_sq_2._sq_2_corr_4", typeof(string), 22),
-            new Column("_sq_2._sq_2_corr_5", typeof(decimal?), 23),
-            new Column("_sq_2._sq_2_corr_6", typeof(int?), 24),
-            new Column("_sq_2._sq_2_corr_7", typeof(int?), 25),
-            new Column("_sq_3_corr_0", typeof(string), 26),
-            new Column("_sq_3_corr_1", typeof(string), 27),
-            new Column("_sq_3_corr_2", typeof(string), 28),
-            new Column("_sq_3_corr_3", typeof(decimal?), 29),
-            new Column("_sq_3_corr_4", typeof(string), 30),
-            new Column("_sq_3_corr_5", typeof(decimal?), 31),
-            new Column("_sq_3_corr_6", typeof(int?), 32),
-            new Column("_sq_3_corr_7", typeof(int?), 33),
-            new Column("_sq_3_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 34)
-        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Subquery0_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Id", typeof(int), 6), new Column("NullableValue", typeof(int?), 7) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Subquery1_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Id", typeof(int), 6), new Column("NullableValue", typeof(int?), 7) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Id", typeof(int), 6), new Column("NullableValue", typeof(int?), 7) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
@@ -593,7 +368,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_5, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_3, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
@@ -618,21 +393,27 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                _cteRowResults.Slot2 = BuildCte2(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
-                _cteRowResults.Slot3 = BuildCte3(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
-                _cteRowResults.Slot4 = BuildCte4(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
-                _cteRowResults.Slot5 = BuildCte5(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                _cteRowResults.Slot1 = BuildCte1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
                 var result = new List<ResultShape0>();
-                var __storedTable5Rows = _cteRowResults.Slot5;
-                for (int __storedTable5Index = 0; __storedTable5Index < __storedTable5Rows.Count; ++__storedTable5Index)
+                var __storedTable1Rows = _cteRowResults.Slot1;
+                for (int __storedTable1Index = 0; __storedTable1Index < __storedTable1Rows.Count; ++__storedTable1Index)
                 {
-                    if ((__storedTable5Index & 1023) == 0)
+                    if ((__storedTable1Index & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Statement2Row0 a_sq_1_sq_2_sq_3 = __storedTable5Rows[__storedTable5Index];
-                    result.Add(new ResultShape0(a_sq_1_sq_2_sq_3.a_Name, (a_sq_1_sq_2_sq_3._sq_1__sq_1_key != null) ? (string)"Y" : (string)"N", (a_sq_1_sq_2_sq_3._sq_2__sq_2_key == null) ? (string)"Y" : (string)"N", (string)Musoq.Plugins.CorrelatedScalarSubqueryResultExtractor.GetValue(a_sq_1_sq_2_sq_3._sq_3_value)));
+                    Statement0Row0 a_sq_1 = __storedTable1Rows[__storedTable1Index];
+                    string a_Name = a_sq_1.a_Name;
+                    string a_City = a_sq_1.a_City;
+                    string a_Country = a_sq_1.a_Country;
+                    decimal a_Population = a_sq_1.a_Population;
+                    string a_Month = a_sq_1.a_Month;
+                    decimal a_Money = a_sq_1.a_Money;
+                    int a_Id = a_sq_1.a_Id;
+                    int? a_NullableValue = a_sq_1.a_NullableValue;
+                    result.Add(new ResultShape0(a_Name, global::Musoq.Evaluator.Runtime.SubqueryExecution.Exists<Subquery0ResultRow0>(__ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue), token) ? (string)"Y" : (string)"N", (!global::Musoq.Evaluator.Runtime.SubqueryExecution.Exists<Subquery1ResultRow0>(__ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue), token)) ? (string)"Y" : (string)"N", (string)Musoq.Plugins.CorrelatedScalarSubqueryResultExtractor.GetValue(a_sq_1._sq_1__sq_1_value)));
                 }
 
                 var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
@@ -675,18 +456,18 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte2Row0> BuildCte2(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
             try
             {
-                var __cte2_bSchema = provider.GetSchema("#B");
-                var cte2_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte2_bSchema, "entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
-                var cte2_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte2_bRowsSource.Chunks, __musoqProgressContext, "b:4") : cte2_bRowsSource.Chunks;
-                var cte2 = new List<Cte2Row0>();
-                var cte2GroupsToFinalize = new List<Cte2AggregateGroup>();
-                var cte2Groups = new Dictionary<(string, string, string, decimal, string, decimal, int, int?), Cte2AggregateGroup>();
-                foreach (var bChunk in cte2_bRows)
+                var __cte0_bSchema = provider.GetSchema("#B");
+                var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_bSchema, "entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:4") : cte0_bRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                var cte0GroupsToFinalize = new List<Cte0AggregateGroup>();
+                var cte0Groups = new Dictionary<(string, string, string, decimal, string, decimal, int, int?), Cte0AggregateGroup>();
+                foreach (var bChunk in cte0_bRows)
                 {
                     if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
@@ -709,16 +490,16 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 decimal groupKey5 = b.Money;
                                 int groupKey6 = b.Id;
                                 int? groupKey7 = b.NullableValue;
-                                ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
-                                if (!cte2GroupExists)
+                                ref var cte0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte0GroupExists);
+                                if (!cte0GroupExists)
                                 {
-                                    cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
-                                    cte2GroupsToFinalize.Add(cte2GroupRef);
+                                    cte0GroupRef = new Cte0AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
+                                    cte0GroupsToFinalize.Add(cte0GroupRef);
                                 }
 
-                                Cte2AggregateGroup cte2Group = cte2GroupRef;
+                                Cte0AggregateGroup cte0Group = cte0GroupRef;
                                 string city = b.City;
-                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
                             }
 
                             continue;
@@ -743,16 +524,16 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 decimal groupKey5 = b.Money;
                                 int groupKey6 = b.Id;
                                 int? groupKey7 = b.NullableValue;
-                                ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
-                                if (!cte2GroupExists)
+                                ref var cte0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte0GroupExists);
+                                if (!cte0GroupExists)
                                 {
-                                    cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
-                                    cte2GroupsToFinalize.Add(cte2GroupRef);
+                                    cte0GroupRef = new Cte0AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
+                                    cte0GroupsToFinalize.Add(cte0GroupRef);
                                 }
 
-                                Cte2AggregateGroup cte2Group = cte2GroupRef;
+                                Cte0AggregateGroup cte0Group = cte0GroupRef;
                                 string city = b.City;
-                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
                             }
 
                             continue;
@@ -775,132 +556,78 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                         decimal groupKey5 = b.Money;
                         int groupKey6 = b.Id;
                         int? groupKey7 = b.NullableValue;
-                        ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
-                        if (!cte2GroupExists)
+                        ref var cte0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte0GroupExists);
+                        if (!cte0GroupExists)
                         {
-                            cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
-                            cte2GroupsToFinalize.Add(cte2GroupRef);
+                            cte0GroupRef = new Cte0AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
+                            cte0GroupsToFinalize.Add(cte0GroupRef);
                         }
 
-                        Cte2AggregateGroup cte2Group = cte2GroupRef;
+                        Cte0AggregateGroup cte0Group = cte0GroupRef;
                         string city = b.City;
-                        Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                        Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
                     }
                 }
 
-                cte2.EnsureCapacity(cte2GroupsToFinalize.Count);
-                foreach (var cte2FinalGroup in cte2GroupsToFinalize)
+                cte0.EnsureCapacity(cte0GroupsToFinalize.Count);
+                foreach (var cte0FinalGroup in cte0GroupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    cte2.Add(new Cte2Row0(cte2FinalGroup.__key0, cte2FinalGroup.__key1, cte2FinalGroup.__key2, cte2FinalGroup.__key3, cte2FinalGroup.__key4, cte2FinalGroup.__key5, cte2FinalGroup.__key6, cte2FinalGroup.__key7, Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(in cte2FinalGroup.__agg0)));
+                    cte0.Add(new Cte0Row0(cte0FinalGroup.__key0, cte0FinalGroup.__key1, cte0FinalGroup.__key2, cte0FinalGroup.__key3, cte0FinalGroup.__key4, cte0FinalGroup.__key5, cte0FinalGroup.__key6, cte0FinalGroup.__key7, Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(in cte0FinalGroup.__agg0)));
                 }
 
-                return cte2;
+                return cte0;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte2", QueryPhase.End);
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
             }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement0Row0> BuildCte3(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        private static List<Statement0Row0> BuildCte1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            OnPhaseChanged("compiled:cte3", QueryPhase.Begin);
+            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
             try
             {
                 var __statement0_aSchema = provider.GetSchema("#A");
                 var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__statement0_aSchema, "entities", new SourceExecutionContext("a:4", sourceExecutionPlans["a:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:4"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
                 var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:4") : statement0_aRowsSource.Chunks;
-                var __cte0_bSchema = provider.GetSchema("#B");
-                var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
-                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
                 var statement0 = new List<Statement0Row0>();
-                var statement0_sq_1Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
-                foreach (var bChunk in cte0_bRows)
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State statement0_sq_1HashEmptyState = default(Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State)!;
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Reset(ref statement0_sq_1HashEmptyState);
+                Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement0_sq_1HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement0_sq_1HashEmptyState);
+                var statement0_sq_1Hash = new Dictionary<ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>>, HashJoinBucket<Cte0Row0>>(_cteRowResults.Slot0.Count);
+                var __storedTable0Rows = _cteRowResults.Slot0;
+                for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                 {
-                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                    if ((__storedTable0Index & 1023) == 0)
                     {
-                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
-                        {
-                            int bChunkViewOffset = bChunkView.Offset;
-                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                            {
-                                if ((bIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                var key0 = 1;
-                                var key1 = b.Name;
-                                var key2 = b.City;
-                                var key3 = b.Country;
-                                var key4 = b.Population;
-                                var key5 = b.Month;
-                                var key6 = b.Money;
-                                var key7 = b.Id;
-                                var key8 = b.NullableValue;
-                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                    continue;
-                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                                statement0_sq_1Keys.Add(key);
-                            }
-
-                            continue;
-                        }
-
-                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
-                        {
-                            int bChunkViewOffset = bChunkView.Offset;
-                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                            {
-                                if ((bIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                var key0 = 1;
-                                var key1 = b.Name;
-                                var key2 = b.City;
-                                var key3 = b.Country;
-                                var key4 = b.Population;
-                                var key5 = b.Month;
-                                var key6 = b.Money;
-                                var key7 = b.Id;
-                                var key8 = b.NullableValue;
-                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                    continue;
-                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                                statement0_sq_1Keys.Add(key);
-                            }
-
-                            continue;
-                        }
+                        token.ThrowIfCancellationRequested();
                     }
 
-                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                    Cte0Row0 _sq_1 = __storedTable0Rows[__storedTable0Index];
+                    var key0 = _sq_1._sq_1_corr_0;
+                    var key1 = _sq_1._sq_1_corr_1;
+                    var key2 = _sq_1._sq_1_corr_2;
+                    var key3 = _sq_1._sq_1_corr_3;
+                    var key4 = _sq_1._sq_1_corr_4;
+                    var key5 = _sq_1._sq_1_corr_5;
+                    var key6 = _sq_1._sq_1_corr_6;
+                    var key7 = _sq_1._sq_1_corr_7;
+                    if (key0 == null || key1 == null || key2 == null || key3 == null || key4 == null || key5 == null || key6 == null || key7 == null)
+                        continue;
+                    var key = (key0, key1, key2, key3, key4, key5, key6, key7);
                     {
-                        if ((bIndex & 1023) == 0)
+                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0_sq_1Hash, key, out var matchesExists);
+                        if (!matchesExists)
                         {
-                            token.ThrowIfCancellationRequested();
+                            matches = new HashJoinBucket<Cte0Row0>(_sq_1);
                         }
-
-                        var b = bChunk[bIndex];
-                        var key0 = 1;
-                        var key1 = b.Name;
-                        var key2 = b.City;
-                        var key3 = b.Country;
-                        var key4 = b.Population;
-                        var key5 = b.Month;
-                        var key6 = b.Money;
-                        var key7 = b.Id;
-                        var key8 = b.NullableValue;
-                        if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                            continue;
-                        var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                        statement0_sq_1Keys.Add(key);
+                        else
+                        {
+                            matches.Add(_sq_1);
+                        }
                     }
                 }
 
@@ -919,31 +646,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                var key0 = 1;
-                                var key1 = a.Name;
-                                var key2 = a.City;
-                                var key3 = a.Country;
-                                var key4 = a.Population;
-                                var key5 = a.Month;
-                                var key6 = a.Money;
-                                var key7 = a.Id;
-                                var key8 = a.NullableValue;
-                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                                if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                                bool statement0_sq_1HashHasMatch = false;
+                                var key0 = a.Name;
+                                var key1 = a.City;
+                                var key2 = a.Country;
+                                var key3 = a.Population;
+                                var key4 = a.Month;
+                                var key5 = a.Money;
+                                var key6 = a.Id;
+                                var key7 = a.NullableValue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7);
+                                if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
                                 {
-                                    string name = a.Name;
-                                    string city = a.City;
-                                    string country = a.Country;
-                                    decimal population = a.Population;
-                                    decimal money = a.Money;
-                                    string month = a.Month;
-                                    int id = a.Id;
-                                    int? nullableValue = a.NullableValue;
-                                    statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                                    foreach (var _sq_1 in statement0_sq_1HashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        statement0_sq_1HashHasMatch = true;
+                                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7, _sq_1._sq_1_value));
+                                    }
                                 }
-                                else
+
+                                if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, statement0_sq_1HashEmptyValue));
                                 }
                             }
 
@@ -961,31 +686,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                var key0 = 1;
-                                var key1 = a.Name;
-                                var key2 = a.City;
-                                var key3 = a.Country;
-                                var key4 = a.Population;
-                                var key5 = a.Month;
-                                var key6 = a.Money;
-                                var key7 = a.Id;
-                                var key8 = a.NullableValue;
-                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                                if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                                bool statement0_sq_1HashHasMatch = false;
+                                var key0 = a.Name;
+                                var key1 = a.City;
+                                var key2 = a.Country;
+                                var key3 = a.Population;
+                                var key4 = a.Month;
+                                var key5 = a.Money;
+                                var key6 = a.Id;
+                                var key7 = a.NullableValue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7);
+                                if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
                                 {
-                                    string name = a.Name;
-                                    string city = a.City;
-                                    string country = a.Country;
-                                    decimal population = a.Population;
-                                    decimal money = a.Money;
-                                    string month = a.Month;
-                                    int id = a.Id;
-                                    int? nullableValue = a.NullableValue;
-                                    statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                                    foreach (var _sq_1 in statement0_sq_1HashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        statement0_sq_1HashHasMatch = true;
+                                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7, _sq_1._sq_1_value));
+                                    }
                                 }
-                                else
+
+                                if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, statement0_sq_1HashEmptyValue));
                                 }
                             }
 
@@ -1001,31 +724,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                         }
 
                         var a = aChunk[aIndex];
-                        var key0 = 1;
-                        var key1 = a.Name;
-                        var key2 = a.City;
-                        var key3 = a.Country;
-                        var key4 = a.Population;
-                        var key5 = a.Month;
-                        var key6 = a.Money;
-                        var key7 = a.Id;
-                        var key8 = a.NullableValue;
-                        var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                        if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                        bool statement0_sq_1HashHasMatch = false;
+                        var key0 = a.Name;
+                        var key1 = a.City;
+                        var key2 = a.Country;
+                        var key3 = a.Population;
+                        var key4 = a.Month;
+                        var key5 = a.Money;
+                        var key6 = a.Id;
+                        var key7 = a.NullableValue;
+                        var key = (key0, key1, key2, key3, key4, key5, key6, key7);
+                        if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
                         {
-                            string name = a.Name;
-                            string city = a.City;
-                            string country = a.Country;
-                            decimal population = a.Population;
-                            decimal money = a.Money;
-                            string month = a.Month;
-                            int id = a.Id;
-                            int? nullableValue = a.NullableValue;
-                            statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                            foreach (var _sq_1 in statement0_sq_1HashMatches)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                statement0_sq_1HashHasMatch = true;
+                                statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7, _sq_1._sq_1_value));
+                            }
                         }
-                        else
+
+                        if (!statement0_sq_1HashHasMatch)
                         {
-                            statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                            statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, statement0_sq_1HashEmptyValue));
                         }
                     }
                 }
@@ -1034,22 +755,22 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             }
             finally
             {
-                OnPhaseChanged("compiled:cte3", QueryPhase.End);
+                OnPhaseChanged("compiled:cte1", QueryPhase.End);
             }
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement1Row0> BuildCte4(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        private static IEnumerable<Subquery0ResultRow0> __ExecuteSubquery0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, string __outer0, string __outer1, string __outer2, decimal __outer3, string __outer4, decimal __outer5, int __outer6, int? __outer7)
         {
-            OnPhaseChanged("compiled:cte4", QueryPhase.Begin);
             try
             {
-                var __cte1_bSchema = provider.GetSchema("#B");
-                var cte1_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte1_bSchema, "entities", new SourceExecutionContext("b:3", sourceExecutionPlans["b:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
-                var cte1_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_bRowsSource.Chunks, __musoqProgressContext, "b:3") : cte1_bRowsSource.Chunks;
-                var statement1 = new List<Statement1Row0>(_cteRowResults.Slot3.Count);
-                var statement1_sq_2Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
-                foreach (var bChunk in cte1_bRows)
+                OnPhaseChanged("Subquery0", QueryPhase.Begin);
+                OnPhaseChanged("Subquery0", QueryPhase.From);
+                var __bSchema = provider.GetSchema("#B");
+                var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_Subquery0_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:2") : bRowsSource.Chunks;
+                OnPhaseChanged("Subquery0", QueryPhase.Where);
+                OnPhaseChanged("Subquery0", QueryPhase.Select);
+                foreach (var bChunk in bRows)
                 {
                     if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
@@ -1064,19 +785,45 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                var key0 = 1;
-                                var key1 = b.Name;
-                                var key2 = b.City;
-                                var key3 = b.Country;
-                                var key4 = b.Population;
-                                var key5 = b.Month;
-                                var key6 = b.Money;
-                                var key7 = b.Id;
-                                var key8 = b.NullableValue;
-                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                    continue;
-                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                                statement1_sq_2Keys.Add(key);
+                                if (((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)(Operators.SqlCompare<string, string>(b.Name, __outer0, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Population == __outer3),
+                                    _ => (bool?)(b.Population == __outer3) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Money == __outer5),
+                                    _ => (bool?)(b.Money == __outer5) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Id == __outer6),
+                                    _ => (bool?)(b.Id == __outer6) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                })) == true)
+                                {
+                                    yield return new Subquery0ResultRow0(1);
+                                }
                             }
 
                             continue;
@@ -1093,19 +840,45 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                var key0 = 1;
-                                var key1 = b.Name;
-                                var key2 = b.City;
-                                var key3 = b.Country;
-                                var key4 = b.Population;
-                                var key5 = b.Month;
-                                var key6 = b.Money;
-                                var key7 = b.Id;
-                                var key8 = b.NullableValue;
-                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                    continue;
-                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                                statement1_sq_2Keys.Add(key);
+                                if (((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)(Operators.SqlCompare<string, string>(b.Name, __outer0, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Population == __outer3),
+                                    _ => (bool?)(b.Population == __outer3) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Money == __outer5),
+                                    _ => (bool?)(b.Money == __outer5) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Id == __outer6),
+                                    _ => (bool?)(b.Id == __outer6) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                })) == true)
+                                {
+                                    yield return new Subquery0ResultRow0(1);
+                                }
                             }
 
                             continue;
@@ -1120,155 +893,251 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                         }
 
                         var b = bChunk[bIndex];
-                        var key0 = 1;
-                        var key1 = b.Name;
-                        var key2 = b.City;
-                        var key3 = b.Country;
-                        var key4 = b.Population;
-                        var key5 = b.Month;
-                        var key6 = b.Money;
-                        var key7 = b.Id;
-                        var key8 = b.NullableValue;
-                        if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                            continue;
-                        var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                        statement1_sq_2Keys.Add(key);
+                        if (((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)(Operators.SqlCompare<string, string>(b.Name, __outer0, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(b.Population == __outer3),
+                            _ => (bool?)(b.Population == __outer3) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(b.Money == __outer5),
+                            _ => (bool?)(b.Money == __outer5) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(b.Id == __outer6),
+                            _ => (bool?)(b.Id == __outer6) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        })) == true)
+                        {
+                            yield return new Subquery0ResultRow0(1);
+                        }
                     }
                 }
-
-                var __storedTable3Rows = _cteRowResults.Slot3;
-                for (int __storedTable3Index = 0; __storedTable3Index < __storedTable3Rows.Count; ++__storedTable3Index)
-                {
-                    if ((__storedTable3Index & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    Statement0Row0 a_sq_1 = __storedTable3Rows[__storedTable3Index];
-                    var key0 = 1;
-                    var key1 = a_sq_1.a_Name;
-                    var key2 = a_sq_1.a_City;
-                    var key3 = a_sq_1.a_Country;
-                    var key4 = a_sq_1.a_Population;
-                    var key5 = a_sq_1.a_Month;
-                    var key6 = a_sq_1.a_Money;
-                    var key7 = a_sq_1.a_Id;
-                    var key8 = a_sq_1.a_NullableValue;
-                    var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                    if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement1_sq_2Keys.Contains(key))
-                    {
-                        string a_Name = a_sq_1.a_Name;
-                        string a_City = a_sq_1.a_City;
-                        string a_Country = a_sq_1.a_Country;
-                        decimal a_Population = a_sq_1.a_Population;
-                        decimal a_Money = a_sq_1.a_Money;
-                        string a_Month = a_sq_1.a_Month;
-                        int a_Id = a_sq_1.a_Id;
-                        int? a_NullableValue = a_sq_1.a_NullableValue;
-                        statement1.Add(new Statement1Row0(a_Name, a_City, a_Country, a_Population, a_Money, a_Month, a_Id, a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, 1, a_Name, a_City, a_Country, a_Population, a_Month, a_Money, a_Id, a_NullableValue));
-                    }
-                    else
-                    {
-                        statement1.Add(new Statement1Row0(a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Money, a_sq_1.a_Month, a_sq_1.a_Id, a_sq_1.a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, null, null, null, null, null, null, null, null, null));
-                    }
-                }
-
-                return statement1;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte4", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("Subquery0", QueryPhase.End);
+                }
             }
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement2Row0> BuildCte5(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        private static IEnumerable<Subquery1ResultRow0> __ExecuteSubquery1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, string __outer0, string __outer1, string __outer2, decimal __outer3, string __outer4, decimal __outer5, int __outer6, int? __outer7)
         {
-            OnPhaseChanged("compiled:cte5", QueryPhase.Begin);
             try
             {
-                var statement2 = new List<Statement2Row0>(_cteRowResults.Slot4.Count);
-                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State statement2_sq_3HashEmptyState = default(Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State)!;
-                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Reset(ref statement2_sq_3HashEmptyState);
-                Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement2_sq_3HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement2_sq_3HashEmptyState);
-                var statement2_sq_3Hash = new Dictionary<ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>>, HashJoinBucket<Cte2Row0>>(_cteRowResults.Slot2.Count);
-                var __storedTable2Rows = _cteRowResults.Slot2;
-                for (int __storedTable2Index = 0; __storedTable2Index < __storedTable2Rows.Count; ++__storedTable2Index)
+                OnPhaseChanged("Subquery1", QueryPhase.Begin);
+                OnPhaseChanged("Subquery1", QueryPhase.From);
+                var __bSchema = provider.GetSchema("#B");
+                var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:3", sourceExecutionPlans["b:3"], token, __schemaColumns_Subquery1_b_0, sourceRuntimeSettingsBySourceContextId["b:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:3") : bRowsSource.Chunks;
+                OnPhaseChanged("Subquery1", QueryPhase.Where);
+                OnPhaseChanged("Subquery1", QueryPhase.Select);
+                foreach (var bChunk in bRows)
                 {
-                    if ((__storedTable2Index & 1023) == 0)
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    Cte2Row0 _sq_3 = __storedTable2Rows[__storedTable2Index];
-                    var key0 = _sq_3._sq_3_corr_0;
-                    var key1 = _sq_3._sq_3_corr_1;
-                    var key2 = _sq_3._sq_3_corr_2;
-                    var key3 = _sq_3._sq_3_corr_3;
-                    var key4 = _sq_3._sq_3_corr_4;
-                    var key5 = _sq_3._sq_3_corr_5;
-                    var key6 = _sq_3._sq_3_corr_6;
-                    var key7 = _sq_3._sq_3_corr_7;
-                    if (key0 == null || key1 == null || key2 == null || key3 == null || key4 == null || key5 == null || key6 == null || key7 == null)
-                        continue;
-                    var key = (key0, key1, key2, key3, key4, key5, key6, key7);
-                    {
-                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement2_sq_3Hash, key, out var matchesExists);
-                        if (!matchesExists)
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
                         {
-                            matches = new HashJoinBucket<Cte2Row0>(_sq_3);
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                if (((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)(Operators.SqlCompare<string, string>(b.Name, __outer0, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Population == __outer3),
+                                    _ => (bool?)(b.Population == __outer3) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Money == __outer5),
+                                    _ => (bool?)(b.Money == __outer5) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Id == __outer6),
+                                    _ => (bool?)(b.Id == __outer6) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                })) == true)
+                                {
+                                    yield return new Subquery1ResultRow0(1);
+                                }
+                            }
+
+                            continue;
                         }
-                        else
+
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
                         {
-                            matches.Add(_sq_3);
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                if (((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)(Operators.SqlCompare<string, string>(b.Name, __outer0, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Population == __outer3),
+                                    _ => (bool?)(b.Population == __outer3) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Money == __outer5),
+                                    _ => (bool?)(b.Money == __outer5) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)(b.Id == __outer6),
+                                    _ => (bool?)(b.Id == __outer6) & (bool?)null
+                                }))) switch
+                                {
+                                    false => (bool?)false,
+                                    true => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)),
+                                    _ => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                                })) == true)
+                                {
+                                    yield return new Subquery1ResultRow0(1);
+                                }
+                            }
+
+                            continue;
                         }
                     }
-                }
 
-                var __storedTable4Rows = _cteRowResults.Slot4;
-                for (int __storedTable4Index = 0; __storedTable4Index < __storedTable4Rows.Count; ++__storedTable4Index)
-                {
-                    if ((__storedTable4Index & 1023) == 0)
+                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                     {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    Statement1Row0 a_sq_1_sq_2 = __storedTable4Rows[__storedTable4Index];
-                    bool statement2_sq_3HashHasMatch = false;
-                    var key0 = a_sq_1_sq_2.a_Name;
-                    var key1 = a_sq_1_sq_2.a_City;
-                    var key2 = a_sq_1_sq_2.a_Country;
-                    var key3 = a_sq_1_sq_2.a_Population;
-                    var key4 = a_sq_1_sq_2.a_Month;
-                    var key5 = a_sq_1_sq_2.a_Money;
-                    var key6 = a_sq_1_sq_2.a_Id;
-                    var key7 = a_sq_1_sq_2.a_NullableValue;
-                    var key = (key0, key1, key2, key3, key4, key5, key6, key7);
-                    if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement2_sq_3Hash.TryGetValue(key, out var statement2_sq_3HashMatches))
-                    {
-                        foreach (var _sq_3 in statement2_sq_3HashMatches)
+                        if ((bIndex & 1023) == 0)
                         {
                             token.ThrowIfCancellationRequested();
-                            statement2_sq_3HashHasMatch = true;
-                            statement2.Add(new Statement2Row0(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue, a_sq_1_sq_2._sq_1__sq_1_key, a_sq_1_sq_2._sq_1__sq_1_corr_0, a_sq_1_sq_2._sq_1__sq_1_corr_1, a_sq_1_sq_2._sq_1__sq_1_corr_2, a_sq_1_sq_2._sq_1__sq_1_corr_3, a_sq_1_sq_2._sq_1__sq_1_corr_4, a_sq_1_sq_2._sq_1__sq_1_corr_5, a_sq_1_sq_2._sq_1__sq_1_corr_6, a_sq_1_sq_2._sq_1__sq_1_corr_7, a_sq_1_sq_2._sq_2__sq_2_key, a_sq_1_sq_2._sq_2__sq_2_corr_0, a_sq_1_sq_2._sq_2__sq_2_corr_1, a_sq_1_sq_2._sq_2__sq_2_corr_2, a_sq_1_sq_2._sq_2__sq_2_corr_3, a_sq_1_sq_2._sq_2__sq_2_corr_4, a_sq_1_sq_2._sq_2__sq_2_corr_5, a_sq_1_sq_2._sq_2__sq_2_corr_6, a_sq_1_sq_2._sq_2__sq_2_corr_7, _sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7, _sq_3._sq_3_value));
+                        }
+
+                        var b = bChunk[bIndex];
+                        if (((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)((((bool?)(Operators.SqlCompare<string, string>(b.Name, __outer0, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(b.City, __outer1, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(b.Country, __outer2, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(b.Population == __outer3),
+                            _ => (bool?)(b.Population == __outer3) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<string, string>(b.Month, __outer4, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(b.Money == __outer5),
+                            _ => (bool?)(b.Money == __outer5) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)(b.Id == __outer6),
+                            _ => (bool?)(b.Id == __outer6) & (bool?)null
+                        }))) switch
+                        {
+                            false => (bool?)false,
+                            true => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)),
+                            _ => (bool?)Operators.SqlCompare<int?, int?>(b.NullableValue, __outer7, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & (bool?)null
+                        })) == true)
+                        {
+                            yield return new Subquery1ResultRow0(1);
                         }
                     }
-
-                    if (!statement2_sq_3HashHasMatch)
-                    {
-                        statement2.Add(new Statement2Row0(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue, a_sq_1_sq_2._sq_1__sq_1_key, a_sq_1_sq_2._sq_1__sq_1_corr_0, a_sq_1_sq_2._sq_1__sq_1_corr_1, a_sq_1_sq_2._sq_1__sq_1_corr_2, a_sq_1_sq_2._sq_1__sq_1_corr_3, a_sq_1_sq_2._sq_1__sq_1_corr_4, a_sq_1_sq_2._sq_1__sq_1_corr_5, a_sq_1_sq_2._sq_1__sq_1_corr_6, a_sq_1_sq_2._sq_1__sq_1_corr_7, a_sq_1_sq_2._sq_2__sq_2_key, a_sq_1_sq_2._sq_2__sq_2_corr_0, a_sq_1_sq_2._sq_2__sq_2_corr_1, a_sq_1_sq_2._sq_2__sq_2_corr_2, a_sq_1_sq_2._sq_2__sq_2_corr_3, a_sq_1_sq_2._sq_2__sq_2_corr_4, a_sq_1_sq_2._sq_2__sq_2_corr_5, a_sq_1_sq_2._sq_2__sq_2_corr_6, a_sq_1_sq_2._sq_2__sq_2_corr_7, null, null, null, null, null, null, null, null, statement2_sq_3HashEmptyValue));
-                    }
                 }
-
-                return statement2;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte5", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("Subquery1", QueryPhase.End);
+                }
             }
         }
 
-        private sealed class Cte2AggregateGroup
+        private sealed class Cte0AggregateGroup
         {
             public Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State __agg0;
             public readonly string __key0;
@@ -1279,7 +1148,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             public readonly decimal __key5;
             public readonly int __key6;
             public readonly int? __key7;
-            public Cte2AggregateGroup(string __key0, string __key1, string __key2, decimal __key3, string __key4, decimal __key5, int __key6, int? __key7)
+            public Cte0AggregateGroup(string __key0, string __key1, string __key2, decimal __key3, string __key4, decimal __key5, int __key6, int? __key7)
             {
                 this.__key0 = __key0;
                 this.__key1 = __key1;
@@ -1292,44 +1161,42 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Reset(ref this.__agg0);
             }
 
-            public void MergeFrom(Cte2AggregateGroup source)
+            public void MergeFrom(Cte0AggregateGroup source)
             {
                 Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Merge(ref this.__agg0, in source.__agg0);
             }
         }
 
-        private sealed class Cte2Row0
+        private sealed class Cte0Row0
         {
-            public Cte2Row0(string __value0, string __value1, string __value2, decimal __value3, string __value4, decimal __value5, int __value6, int? __value7, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value8)
+            public Cte0Row0(string __value0, string __value1, string __value2, decimal __value3, string __value4, decimal __value5, int __value6, int? __value7, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value8)
             {
-                _sq_3_corr_0 = __value0;
-                _sq_3_corr_1 = __value1;
-                _sq_3_corr_2 = __value2;
-                _sq_3_corr_3 = __value3;
-                _sq_3_corr_4 = __value4;
-                _sq_3_corr_5 = __value5;
-                _sq_3_corr_6 = __value6;
-                _sq_3_corr_7 = __value7;
-                _sq_3_value = __value8;
+                _sq_1_corr_0 = __value0;
+                _sq_1_corr_1 = __value1;
+                _sq_1_corr_2 = __value2;
+                _sq_1_corr_3 = __value3;
+                _sq_1_corr_4 = __value4;
+                _sq_1_corr_5 = __value5;
+                _sq_1_corr_6 = __value6;
+                _sq_1_corr_7 = __value7;
+                _sq_1_value = __value8;
             }
 
-            public string _sq_3_corr_0 { get; }
-            public string _sq_3_corr_1 { get; }
-            public string _sq_3_corr_2 { get; }
-            public decimal _sq_3_corr_3 { get; }
-            public string _sq_3_corr_4 { get; }
-            public decimal _sq_3_corr_5 { get; }
-            public int _sq_3_corr_6 { get; }
-            public int? _sq_3_corr_7 { get; }
-            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_3_value { get; }
+            public string _sq_1_corr_0 { get; }
+            public string _sq_1_corr_1 { get; }
+            public string _sq_1_corr_2 { get; }
+            public decimal _sq_1_corr_3 { get; }
+            public string _sq_1_corr_4 { get; }
+            public decimal _sq_1_corr_5 { get; }
+            public int _sq_1_corr_6 { get; }
+            public int? _sq_1_corr_7 { get; }
+            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1_value { get; }
         }
 
         private sealed class CteRowResults
         {
-            public List<Cte2Row0> Slot2;
-            public List<Statement0Row0> Slot3;
-            public List<Statement1Row0> Slot4;
-            public List<Statement2Row0> Slot5;
+            public List<Cte0Row0> Slot0;
+            public List<Statement0Row0> Slot1;
         }
 
         private sealed class ResultRow0 : Row
@@ -1401,7 +1268,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1, string __value2, decimal __value3, decimal __value4, string __value5, int __value6, int? __value7, int? __value8, string __value9, string __value10, string __value11, decimal? __value12, string __value13, decimal? __value14, int? __value15, int? __value16)
+            public Statement0Row0(string __value0, string __value1, string __value2, decimal __value3, decimal __value4, string __value5, int __value6, int? __value7, string __value8, string __value9, string __value10, decimal? __value11, string __value12, decimal? __value13, int? __value14, int? __value15, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value16)
             {
                 a_Name = __value0;
                 a_City = __value1;
@@ -1411,15 +1278,15 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 a_Month = __value5;
                 a_Id = __value6;
                 a_NullableValue = __value7;
-                _sq_1__sq_1_key = __value8;
-                _sq_1__sq_1_corr_0 = __value9;
-                _sq_1__sq_1_corr_1 = __value10;
-                _sq_1__sq_1_corr_2 = __value11;
-                _sq_1__sq_1_corr_3 = __value12;
-                _sq_1__sq_1_corr_4 = __value13;
-                _sq_1__sq_1_corr_5 = __value14;
-                _sq_1__sq_1_corr_6 = __value15;
-                _sq_1__sq_1_corr_7 = __value16;
+                _sq_1__sq_1_corr_0 = __value8;
+                _sq_1__sq_1_corr_1 = __value9;
+                _sq_1__sq_1_corr_2 = __value10;
+                _sq_1__sq_1_corr_3 = __value11;
+                _sq_1__sq_1_corr_4 = __value12;
+                _sq_1__sq_1_corr_5 = __value13;
+                _sq_1__sq_1_corr_6 = __value14;
+                _sq_1__sq_1_corr_7 = __value15;
+                _sq_1__sq_1_value = __value16;
             }
 
             public string _sq_1__sq_1_corr_0 { get; }
@@ -1430,7 +1297,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             public decimal? _sq_1__sq_1_corr_5 { get; }
             public int? _sq_1__sq_1_corr_6 { get; }
             public int? _sq_1__sq_1_corr_7 { get; }
-            public int? _sq_1__sq_1_key { get; }
+            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1__sq_1_value { get; }
             public string a_City { get; }
             public string a_Country { get; }
             public int a_Id { get; }
@@ -1441,142 +1308,70 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             public decimal a_Population { get; }
         }
 
-        private sealed class Statement1Row0
+        private sealed class Subquery0ResultRow0 : Row
         {
-            public Statement1Row0(string __value0, string __value1, string __value2, decimal __value3, decimal __value4, string __value5, int __value6, int? __value7, int? __value8, string __value9, string __value10, string __value11, decimal? __value12, string __value13, decimal? __value14, int? __value15, int? __value16, int? __value17, string __value18, string __value19, string __value20, decimal? __value21, string __value22, decimal? __value23, int? __value24, int? __value25)
+            public Subquery0ResultRow0(int __value0)
             {
-                a_Name = __value0;
-                a_City = __value1;
-                a_Country = __value2;
-                a_Population = __value3;
-                a_Money = __value4;
-                a_Month = __value5;
-                a_Id = __value6;
-                a_NullableValue = __value7;
-                _sq_1__sq_1_key = __value8;
-                _sq_1__sq_1_corr_0 = __value9;
-                _sq_1__sq_1_corr_1 = __value10;
-                _sq_1__sq_1_corr_2 = __value11;
-                _sq_1__sq_1_corr_3 = __value12;
-                _sq_1__sq_1_corr_4 = __value13;
-                _sq_1__sq_1_corr_5 = __value14;
-                _sq_1__sq_1_corr_6 = __value15;
-                _sq_1__sq_1_corr_7 = __value16;
-                _sq_2__sq_2_key = __value17;
-                _sq_2__sq_2_corr_0 = __value18;
-                _sq_2__sq_2_corr_1 = __value19;
-                _sq_2__sq_2_corr_2 = __value20;
-                _sq_2__sq_2_corr_3 = __value21;
-                _sq_2__sq_2_corr_4 = __value22;
-                _sq_2__sq_2_corr_5 = __value23;
-                _sq_2__sq_2_corr_6 = __value24;
-                _sq_2__sq_2_corr_7 = __value25;
+                __existsValue = __value0;
             }
 
-            public string _sq_1__sq_1_corr_0 { get; }
-            public string _sq_1__sq_1_corr_1 { get; }
-            public string _sq_1__sq_1_corr_2 { get; }
-            public decimal? _sq_1__sq_1_corr_3 { get; }
-            public string _sq_1__sq_1_corr_4 { get; }
-            public decimal? _sq_1__sq_1_corr_5 { get; }
-            public int? _sq_1__sq_1_corr_6 { get; }
-            public int? _sq_1__sq_1_corr_7 { get; }
-            public int? _sq_1__sq_1_key { get; }
-            public string _sq_2__sq_2_corr_0 { get; }
-            public string _sq_2__sq_2_corr_1 { get; }
-            public string _sq_2__sq_2_corr_2 { get; }
-            public decimal? _sq_2__sq_2_corr_3 { get; }
-            public string _sq_2__sq_2_corr_4 { get; }
-            public decimal? _sq_2__sq_2_corr_5 { get; }
-            public int? _sq_2__sq_2_corr_6 { get; }
-            public int? _sq_2__sq_2_corr_7 { get; }
-            public int? _sq_2__sq_2_key { get; }
-            public string a_City { get; }
-            public string a_Country { get; }
-            public int a_Id { get; }
-            public decimal a_Money { get; }
-            public string a_Month { get; }
-            public string a_Name { get; }
-            public int? a_NullableValue { get; }
-            public decimal a_Population { get; }
+            public override int Count => 1;
+            public int __existsValue { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.__existsValue = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.__existsValue),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
+            public override bool HasColumn(string name) => name switch
+            {
+                "__existsValue" => true,
+                _ => false
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.__existsValue, ref visitor);
+            }
         }
 
-        private sealed class Statement2Row0
+        private sealed class Subquery1ResultRow0 : Row
         {
-            public Statement2Row0(string __value0, string __value1, string __value2, decimal __value3, decimal __value4, string __value5, int __value6, int? __value7, int? __value8, string __value9, string __value10, string __value11, decimal? __value12, string __value13, decimal? __value14, int? __value15, int? __value16, int? __value17, string __value18, string __value19, string __value20, decimal? __value21, string __value22, decimal? __value23, int? __value24, int? __value25, string __value26, string __value27, string __value28, decimal? __value29, string __value30, decimal? __value31, int? __value32, int? __value33, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value34)
+            public Subquery1ResultRow0(int __value0)
             {
-                a_Name = __value0;
-                a_City = __value1;
-                a_Country = __value2;
-                a_Population = __value3;
-                a_Money = __value4;
-                a_Month = __value5;
-                a_Id = __value6;
-                a_NullableValue = __value7;
-                _sq_1__sq_1_key = __value8;
-                _sq_1__sq_1_corr_0 = __value9;
-                _sq_1__sq_1_corr_1 = __value10;
-                _sq_1__sq_1_corr_2 = __value11;
-                _sq_1__sq_1_corr_3 = __value12;
-                _sq_1__sq_1_corr_4 = __value13;
-                _sq_1__sq_1_corr_5 = __value14;
-                _sq_1__sq_1_corr_6 = __value15;
-                _sq_1__sq_1_corr_7 = __value16;
-                _sq_2__sq_2_key = __value17;
-                _sq_2__sq_2_corr_0 = __value18;
-                _sq_2__sq_2_corr_1 = __value19;
-                _sq_2__sq_2_corr_2 = __value20;
-                _sq_2__sq_2_corr_3 = __value21;
-                _sq_2__sq_2_corr_4 = __value22;
-                _sq_2__sq_2_corr_5 = __value23;
-                _sq_2__sq_2_corr_6 = __value24;
-                _sq_2__sq_2_corr_7 = __value25;
-                _sq_3_corr_0 = __value26;
-                _sq_3_corr_1 = __value27;
-                _sq_3_corr_2 = __value28;
-                _sq_3_corr_3 = __value29;
-                _sq_3_corr_4 = __value30;
-                _sq_3_corr_5 = __value31;
-                _sq_3_corr_6 = __value32;
-                _sq_3_corr_7 = __value33;
-                _sq_3_value = __value34;
+                __existsValue = __value0;
             }
 
-            public string _sq_1__sq_1_corr_0 { get; }
-            public string _sq_1__sq_1_corr_1 { get; }
-            public string _sq_1__sq_1_corr_2 { get; }
-            public decimal? _sq_1__sq_1_corr_3 { get; }
-            public string _sq_1__sq_1_corr_4 { get; }
-            public decimal? _sq_1__sq_1_corr_5 { get; }
-            public int? _sq_1__sq_1_corr_6 { get; }
-            public int? _sq_1__sq_1_corr_7 { get; }
-            public int? _sq_1__sq_1_key { get; }
-            public string _sq_2__sq_2_corr_0 { get; }
-            public string _sq_2__sq_2_corr_1 { get; }
-            public string _sq_2__sq_2_corr_2 { get; }
-            public decimal? _sq_2__sq_2_corr_3 { get; }
-            public string _sq_2__sq_2_corr_4 { get; }
-            public decimal? _sq_2__sq_2_corr_5 { get; }
-            public int? _sq_2__sq_2_corr_6 { get; }
-            public int? _sq_2__sq_2_corr_7 { get; }
-            public int? _sq_2__sq_2_key { get; }
-            public string _sq_3_corr_0 { get; }
-            public string _sq_3_corr_1 { get; }
-            public string _sq_3_corr_2 { get; }
-            public decimal? _sq_3_corr_3 { get; }
-            public string _sq_3_corr_4 { get; }
-            public decimal? _sq_3_corr_5 { get; }
-            public int? _sq_3_corr_6 { get; }
-            public int? _sq_3_corr_7 { get; }
-            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_3_value { get; }
-            public string a_City { get; }
-            public string a_Country { get; }
-            public int a_Id { get; }
-            public decimal a_Money { get; }
-            public string a_Month { get; }
-            public string a_Name { get; }
-            public int? a_NullableValue { get; }
-            public decimal a_Population { get; }
+            public override int Count => 1;
+            public int __existsValue { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.__existsValue = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.__existsValue),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
+            public override bool HasColumn(string name) => name switch
+            {
+                "__existsValue" => true,
+                _ => false
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.__existsValue, ref visitor);
+            }
         }
     }
 }

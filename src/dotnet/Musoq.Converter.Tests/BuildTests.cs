@@ -188,14 +188,40 @@ public class BuildTests
     }
 
     [TestMethod]
-    public void CompiledTypedQueryArtifact_ShouldSnapshotTypedPredicateApplications()
+    public void CompiledTypedQueryArtifact_ShouldSnapshotTypedStringPredicateApplications()
+    {
+        var match = new SourcePredicateStringMatch(new SourceColumnRef("Name"), SourceStringMatchKind.Contains, "%item%", "item");
+        var plan = CreatePatternApplicationSnapshot(match);
+        Assert.HasCount(1, plan.PredicateApplications);
+        Assert.AreNotSame(match, plan.PredicateApplications[0].Predicate);
+        var copiedMatch = Assert.IsInstanceOfType<SourcePredicateStringMatch>(plan.PredicateApplications[0].Predicate);
+        Assert.AreEqual(SourceStringMatchKind.Contains, copiedMatch.Kind);
+        Assert.AreEqual("%item%", copiedMatch.OriginalPattern);
+        Assert.AreEqual("item", copiedMatch.Needle);
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
+    }
+
+    [TestMethod]
+    public void CompiledTypedQueryArtifact_ShouldSnapshotTypedRegexPredicateApplications()
+    {
+        var match = new SourcePredicateRegexMatch(new SourceColumnRef("Name"), "item.*", TimeSpan.FromMilliseconds(37), isNegated: true);
+        var plan = CreatePatternApplicationSnapshot(match);
+        Assert.HasCount(1, plan.PredicateApplications);
+        Assert.AreNotSame(match, plan.PredicateApplications[0].Predicate);
+        var copiedRegex = Assert.IsInstanceOfType<SourcePredicateRegexMatch>(plan.PredicateApplications[0].Predicate);
+        Assert.AreEqual("item.*", copiedRegex.Pattern);
+        Assert.AreEqual(TimeSpan.FromMilliseconds(37), copiedRegex.MatchTimeout);
+        Assert.AreEqual(SourceRegexSemantics.MusoqRLike, copiedRegex.Semantics);
+        Assert.IsTrue(copiedRegex.IsNegated);
+        Assert.AreEqual(copiedRegex, plan.AcceptedPredicate);
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
+    }
+
+    private static SourceExecutionPlan CreatePatternApplicationSnapshot(SourcePredicatePatternMatch match)
     {
         var sourceArtifact = CompileDualArtifact();
-        var match = new SourcePredicateStringMatch(
-            new SourceColumnRef("Name"),
-            SourceStringMatchKind.Contains,
-            "%item%",
-            "item");
         var applications = new List<SourcePredicateApplication>
         {
             new(match, SourcePredicateEvaluationPhase.RowFiltering)
@@ -224,14 +250,7 @@ public class BuildTests
 
         applications.Clear();
 
-        var plan = artifact.SourceExecutionPlans["typed"];
-        Assert.HasCount(1, plan.PredicateApplications);
-        var copiedMatch = plan.PredicateApplications[0].Predicate;
-        Assert.AreEqual(SourceStringMatchKind.Contains, copiedMatch.Kind);
-        Assert.AreEqual("%item%", copiedMatch.OriginalPattern);
-        Assert.AreEqual("item", copiedMatch.Needle);
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
+        return artifact.SourceExecutionPlans["typed"];
     }
 
     [TestMethod]

@@ -178,7 +178,7 @@ public sealed class DiagnosticREC119ReachabilityAndPrecedenceTests
         SystemCase("U03", "UNREACHABLE_BRANCH", "select case when true then 'first' when d.Dummy = 'x' then 'tail' else 'fallback' end from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         SystemCase("U04", "UNREACHABLE_BRANCH", "select case when d.Dummy = 'x' then 'first' when d.Dummy = 'x' then 'duplicate' else 'fallback' end from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         SystemCase("U05", "UNREACHABLE_BRANCH", "let enabled: bool = true; select case when $enabled then 'first' when d.Dummy = 'x' then 'tail' else 'fallback' end from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
-        SystemCase("U06", "UNREACHABLE_BRANCH", "select 1 ?? 'unused' from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
+        SystemCase("U06", "UNREACHABLE_BRANCH", "select 1 ?? 2 from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         SystemCase("U07", "UNREACHABLE_BRANCH", "let value: int = 1; select $value ?? 2 from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         SystemCase("U08", "UNREACHABLE_BRANCH", "param (value: string = 'value'); select $value ?? 'fallback' from #system.dual() d", []),
         SystemCase("U09", "UNREACHABLE_BRANCH", "select ToString(d.Dummy) ?? 'fallback' from #system.dual() d", []),
@@ -188,7 +188,7 @@ public sealed class DiagnosticREC119ReachabilityAndPrecedenceTests
 
         SystemCase("P01", "PRECEDENCE_INACTIVE", "select case when 1 = 2 then 'dead' else 'live' end from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         SystemCase("P02", "PRECEDENCE_INACTIVE", "select case when 1 = 1 then 'live' else 'dead' end from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
-        SystemCase("P03", "PRECEDENCE_INACTIVE", "select 1 ?? 'unused' from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
+        SystemCase("P03", "PRECEDENCE_INACTIVE", "select 1 ?? 2 from #system.dual() d", [DiagnosticCode.MQ5008_UnreachableCode]),
         SystemCase("P04", "PRECEDENCE_INACTIVE", SystemSeed + " where true", [DiagnosticCode.MQ5010_TautologicalCondition]),
         SystemCase("P05", "PRECEDENCE_INACTIVE", SystemSeed + " where false", [DiagnosticCode.MQ5011_ContradictoryCondition]),
         SystemCase("P06", "PRECEDENCE_INACTIVE", SystemSeed + " order by d.Dummy", []),

@@ -15,11 +15,22 @@ internal static class OutputSchemaFactory
                 fields[i].OutputName,
                 fields[i].Expression.ReturnType,
                 i,
-                intendedTypeName: null,
+                intendedTypeName: ResolveIntendedTypeName(fields[i].Expression),
                 sourceReadType: fields[i].Expression.ReturnType,
                 enumType: fields[i].Expression.EnumType);
 
         return new OutputSchema(columns);
+    }
+
+    private static string? ResolveIntendedTypeName(IrExpression expression)
+    {
+        if (expression is ColumnRef column)
+            return column.GeneratedTypeName;
+        if (expression is ArrayAccess array &&
+            ResolveIntendedTypeName(array.Array) is { } arrayType &&
+            arrayType.EndsWith("[]", StringComparison.Ordinal))
+            return arrayType[..^2];
+        return null;
     }
 
     public static OutputSchema ForSetOperation(OutputSchema left, OutputSchema right)
@@ -37,7 +48,13 @@ internal static class OutputSchemaFactory
             var rightColumn = right.Columns[i];
             var enumType = leftColumn.EnumType ?? rightColumn.EnumType;
             if (enumType == null)
+            {
+                if (Nullable.GetUnderlyingType(rightColumn.Type) != leftColumn.Type)
+                    continue;
+                columns ??= [..left.Columns];
+                columns[i] = leftColumn with { Type = rightColumn.Type, SourceReadType = rightColumn.Type };
                 continue;
+            }
 
             columns ??= [..left.Columns];
             var carrierType = EnumScalarTypeFacts.GetCarrierType(enumType.UnderlyingKind);

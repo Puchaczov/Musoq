@@ -141,7 +141,7 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
             ExecutionOperationCatalog.CSharpClrSupportedOperationIds.ToArray(),
             ExecutionTargetCapabilities.CSharpClr.SupportedOperations.ToArray());
         CollectionAssert.AreEqual(
-            new[] { ExecutionSemanticsContract.Version1.Version },
+            new[] { ExecutionSemanticsContract.Current.Version },
             ExecutionTargetCapabilities.CSharpClr.SupportedSemanticsVersions.Order().ToArray());
         Assert.AreEqual(TargetContractVersions.ExecutionIr, new ExecutionPlan(
             "Q_VersionGuardrail",
@@ -154,7 +154,7 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
             "dotnet",
             "Musoq.Targets.Abstractions",
             "TargetContractVersions.cs"));
-        StringAssert.Contains(versionsText, "const int ExecutionIr = 10");
+        StringAssert.Contains(versionsText, "const int ExecutionIr = 11");
         StringAssert.Contains(versionsText, "const int HostAbi = 8");
         StringAssert.Contains(versionsText, "const int PackageFormat = 2");
     }

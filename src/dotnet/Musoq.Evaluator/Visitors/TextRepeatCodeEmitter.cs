@@ -8,7 +8,12 @@ internal sealed record TextRepeatEmission(
     string LocalName,
     string SchemaName,
     string ReadCode,
-    string Assignment);
+    string Assignment)
+{
+    internal string? DiagnosticName { get; init; }
+
+    internal int MaxRepeatIterations { get; init; } = InterpretationExecutionLimits.DefaultMaxRepeatIterations;
+}
 
 internal static class TextRepeatCodeEmitter
 {
@@ -39,7 +44,7 @@ internal static class TextRepeatCodeEmitter
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"while ({condition})");
         builder.AppendLine("{");
-        AppendIteration(builder, emission, escape(emission.Field.Name));
+        AppendIteration(builder, emission, escape(emission.DiagnosticName ?? emission.Field.Name));
         builder.AppendLine("}");
         if (untilDelimiter == null)
             return;
@@ -53,7 +58,7 @@ internal static class TextRepeatCodeEmitter
     private static void AppendIteration(StringBuilder builder, TextRepeatEmission emission, string escapedFieldName)
     {
         var localName = emission.LocalName;
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatIteration(\"{escapedFieldName}\", _iteration_{localName}++);");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatIteration(\"{escapedFieldName}\", _iteration_{localName}++, {emission.MaxRepeatIterations});");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _startPos_{localName} = ParsePosition;");
         builder.Append(emission.ReadCode);
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatMadeProgress(\"{escapedFieldName}\", _startPos_{localName});");

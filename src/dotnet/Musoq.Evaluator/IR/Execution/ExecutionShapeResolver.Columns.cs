@@ -101,7 +101,7 @@ public sealed partial class ExecutionShapeResolver
                 sourceReadType: column.SourceReadType,
                 enumType: column.EnumType) with
             {
-                GeneratedTypeName = column.IntendedTypeName,
+                GeneratedTypeName = InterpretationTypeNames.Executable(column.IntendedTypeName),
                 Stability = column.Stability
             };
         }

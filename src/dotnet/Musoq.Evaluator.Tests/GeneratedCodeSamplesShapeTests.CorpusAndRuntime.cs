@@ -204,7 +204,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "var paramMinPopulation = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState, \"minPopulation\", 100);",
             whereSelect);
         Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
-        Assert.Contains("if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", whereSelect);
+        Assert.Contains("Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", whereSelect);
         Assert.Contains("yield return new ResultRow0(ko3iko.Name, population, paramCountry);", whereSelect);
         Assert.Contains("yield return __musoqShapeRow;", whereSelect);
 

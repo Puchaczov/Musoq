@@ -388,6 +388,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'ByteValue'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class ByteValue : BytesInterpreterBase<ByteValue>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -433,6 +434,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'ShortValue'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class ShortValue : BytesInterpreterBase<ShortValue>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -479,6 +481,7 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Pair'.
     /// This is a generic schema with type parameters: T, U.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Pair<T, U> : BytesInterpreterBase<Pair<T, U>>, global::Musoq.Plugins.IJsonPayload where T : IBytesInterpreter<T>, new()
         where U : IBytesInterpreter<U>, new()
     {
@@ -556,6 +559,7 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'LengthPrefixed'.
     /// This is a generic schema with type parameters: T.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class LengthPrefixed<T> : BytesInterpreterBase<LengthPrefixed<T>>, global::Musoq.Plugins.IJsonPayload where T : IBytesInterpreter<T>, new()
     {
         internal readonly record struct ParentContext();
@@ -621,9 +625,9 @@ namespace Musoq.Generated.Interpreters
             var __data_count = ResolveExpressionSize<byte>(() => checked((byte?)(_count)), ParseErrorCode.InvalidSize);
             for (int __data_i = 0; __data_i < __data_count; __data_i++)
             {
-                var __data_elemInterpreter = (__factory0 is null ? new T() : __factory0.Invoke(__parsedValue, __parentContext));
-                var _elem = InterpretNested(__data_elemInterpreter, data, "Data");
-                __data_list.Add(_elem);
+                var ___data_elem_interpreter = (__factory0 is null ? new T() : __factory0.Invoke(__parsedValue, __parentContext));
+                var __data_elem = InterpretNested(___data_elem_interpreter, data, "Data");
+                __data_list.Add(__data_elem);
             }
 
             var _data = __data_list.ToArray();
@@ -636,6 +640,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'NestedGenericContainer'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class NestedGenericContainer : BytesInterpreterBase<NestedGenericContainer>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;

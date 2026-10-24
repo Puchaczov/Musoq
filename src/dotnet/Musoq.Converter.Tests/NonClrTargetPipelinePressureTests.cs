@@ -521,7 +521,7 @@ public sealed class NonClrTargetPipelinePressureTests
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             ExecutionOperationCatalog.AllOperationIds,
-            [ExecutionSemanticsContract.Version1.Version],
+            [ExecutionSemanticsContract.Current.Version],
             [
                 ExecutionTargetFeatureKind.ConstantKind,
                 ExecutionTargetFeatureKind.TypePortability
@@ -564,14 +564,14 @@ public sealed class NonClrTargetPipelinePressureTests
     public void Render_WhenTargetCapabilitiesRejectSemantics_ShouldFailBeforeBackendRender()
     {
         var backend = new CapturingFakeBackend(
-            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Version1.Version]));
+            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version]));
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(backend: backend);
-        var version2 = new ExecutionSemanticsContract(2, ExecutionSemanticsContract.Version1.Rules);
-        var plan = new ExecutionPlan("Q_UnsupportedSemantics", [], new ExecutionBlock([]), semanticsContract: version2);
+        var unsupportedContract = new ExecutionSemanticsContract(3, ExecutionSemanticsContract.Current.Rules);
+        var plan = new ExecutionPlan("Q_UnsupportedSemantics", [], new ExecutionBlock([]), semanticsContract: unsupportedContract);
         var request = CreateMinimalRequest() with
         {
             ExecutionPlan = plan,
-            SemanticsContract = version2,
+            SemanticsContract = unsupportedContract,
             RuntimeContract = CreateNoRuntimeRequirementsContract(plan)
         };
 
@@ -582,7 +582,7 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
             diagnostic.Code == TargetDiagnosticCodes.UnsupportedSemantics &&
-            diagnostic.Message.Contains("version 2", StringComparison.Ordinal)));
+            diagnostic.Message.Contains("version 3", StringComparison.Ordinal)));
         Assert.IsNull(backend.Request, "Backend render must not run when execution semantics are unsupported.");
     }
 
@@ -595,7 +595,7 @@ public sealed class NonClrTargetPipelinePressureTests
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             [ExecutionPortableSymbolPortability.Portable],
             ExecutionOperationCatalog.AllOperationIds,
-            [ExecutionSemanticsContract.Version1.Version]);
+            [ExecutionSemanticsContract.Current.Version]);
         var backend = new CapturingFakeBackend(capabilities);
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(
             backend: backend,
@@ -658,7 +658,7 @@ public sealed class NonClrTargetPipelinePressureTests
             renderedArtifact,
             executableArtifact,
             TargetArtifactSemanticFacts.Empty,
-            ExecutionSemanticsContract.Version1,
+            ExecutionSemanticsContract.Current,
             runtimeContract,
             runtimeContract is null || compatibilityReport is null
                 ? null

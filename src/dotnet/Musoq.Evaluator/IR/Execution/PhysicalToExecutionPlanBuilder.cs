@@ -41,4 +41,5 @@ public sealed class PhysicalToExecutionPlanBuilder
         PhysicalNode physicalPlan,
         string identifier = "compiled") =>
         _physicalLoweringFacade.Build(physicalPlan, identifier);
+
 }

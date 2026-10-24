@@ -5,21 +5,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
-    private static string EscapeCSharpRegexString(string value)
-    {
-        return value.Replace("\"", "\"\"", StringComparison.Ordinal);
-    }
-
-    private static string EscapeCSharpString(string value)
-    {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal)
-            .Replace("\r", "\\r", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal)
-            .Replace("\t", "\\t", StringComparison.Ordinal);
-    }
-
     private static string GenerateModifierArgs(TextFieldModifier modifiers)
     {
         var args = new List<string>();

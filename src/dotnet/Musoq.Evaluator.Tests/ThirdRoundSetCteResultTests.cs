@@ -67,7 +67,7 @@ public sealed class ThirdRoundSetCteResultTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(except, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(except, ["001"]);
         TableMaterializationTestHelper.AssertColumns(intersect, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(intersect, ["002"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(intersect, ["002"], ["002"]);
     }
 
     [TestMethod]

@@ -33,6 +33,7 @@ internal static class RuntimeExpressionFailureDiagnostic
         {
             InvalidRuntimeRegexException => DiagnosticCode.MQ7015_InvalidRuntimeRegex,
             Musoq.Plugins.ScalarSubqueryCardinalityException => DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation,
+            OverflowException => DiagnosticCode.MQ7018_NumericOverflow,
             _ => (DiagnosticCode?)null
         };
         if (!code.HasValue)

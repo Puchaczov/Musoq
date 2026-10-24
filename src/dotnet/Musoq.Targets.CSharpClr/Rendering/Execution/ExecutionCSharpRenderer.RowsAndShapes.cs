@@ -1,3 +1,4 @@
+using Musoq.Evaluator.IR;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -45,6 +46,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return SyntaxFactory.LiteralExpression(value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
     }
+
+    private static ExpressionSyntax CreateIntLiteral(PagingCount count) => PagingCountSyntax.Read(count);
 
     private static LiteralExpressionSyntax CreateIntLiteral(int value)
     {

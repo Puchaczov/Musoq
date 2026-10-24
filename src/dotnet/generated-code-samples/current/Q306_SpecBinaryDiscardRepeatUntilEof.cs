@@ -365,6 +365,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'Item'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Item : BytesInterpreterBase<Item>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -412,6 +413,7 @@ namespace Musoq.Generated.Interpreters
     /// <summary>
     /// Generated interpreter for binary schema 'ItemStream'.
     /// </summary>
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class ItemStream : BytesInterpreterBase<ItemStream>, global::Musoq.Plugins.IJsonPayload
     {
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
@@ -452,11 +454,12 @@ namespace Musoq.Generated.Interpreters
             var __items_iteration = 0;
             while (!IsAtEnd(data))
             {
-                EnsureRepeatIteration("Items", __items_iteration++);
+                EnsureRepeatIteration("Items", __items_iteration++, 10000);
                 var __items_startPos = ParsePosition;
                 var __items_startBit = BitOffset;
-                var __items_lastElem_interpreter = new Item();
-                __items_lastElem = InterpretNested(__items_lastElem_interpreter, data, "Items");
+                var ___items_lastElem_value_interpreter = new Item();
+                var __items_lastElem_value = InterpretNested(___items_lastElem_value_interpreter, data, "Items");
+                __items_lastElem = __items_lastElem_value;
                 __items_list.Add(__items_lastElem);
                 EnsureRepeatMadeProgress("Items", __items_startPos, __items_startBit);
             }

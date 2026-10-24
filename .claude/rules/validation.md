@@ -1,7 +1,22 @@
 ## Validation
 
+### Validation by Change Impact
+
+Choose validation by the effects of the change, not its file extension or directory. Mixed changes use the combined requirements below. Broaden checks when failures or unresolved impact justify it, and report the checks performed and any limitations.
+
+| Change | Required validation |
+|---|---|
+| Prose, formatting, links, agent instructions, or reordered unchanged examples | Review the diff; check affected links, anchors, formatting, and example preservation. No solution build or tests are required. |
+| Added or changed executable examples | Execute affected examples and compare expected results. Build only what execution requires. |
+| Tests or test fixtures only | Build affected test projects and run affected tests. Broaden to affected projects when shared helpers or fixtures change. |
+| Tooling, scripts, CI, or build configuration | Run applicable syntax/configuration checks and exercise affected paths. Build or test affected projects when compilation or test execution changes. |
+| Production code, dependencies, or configuration affecting runtime behavior | Run focused regression checks, then the Release solution build and full Release solution tests. |
+| Release qualification | Preserve all existing release-specific gates. |
+
+Documentation and test-only changes do not require the full solution suite solely because they are located in a production module. Runtime dependency updates and build/configuration changes affecting runtime behavior follow the production-change requirements.
+
 ### Manual Testing and Validation Scenarios
-- **ALWAYS run the full test suite** after making changes: `dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal" --logger "trx"`
+- **For production changes, run the full Release solution test suite** after focused regression checks and the Release solution build: `dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal" --logger "trx"`
 - **The test suite validates core functionality** across parsing, semantic analysis, logical/physical planning, IR rendering, compilation, execution, plugins, and schema resolution. Test counts change as the planner grows; use the current command output as authoritative.
 - **Keep command output token-friendly**: default to `--nologo --verbosity quiet` and `--logger "console;verbosity=minimal"`; rerun only the narrowed failing test with higher console verbosity when the minimal output is not enough.
 - **For targeted testing**, run specific modules:
@@ -90,7 +105,7 @@ After making changes to core components, validate actual SQL functionality:
    -- Should fail with clear error message
    ```
 
-**CRITICAL**: Always test at least one complete query execution after making changes to verify the entire pipeline works.
+**For changes affecting query behavior**, test at least one complete query execution to verify the entire pipeline works. An appropriate existing end-to-end test can satisfy this requirement.
 
 ## Common Development Tasks
 

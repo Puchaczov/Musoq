@@ -157,9 +157,9 @@ internal sealed partial class PhysicalLoweringImplementation
             return true;
         }
 
-        if (branch is PhysicalMultiStatementNode { Statements.Length: 1 })
+        if (branch is PhysicalMultiStatementNode { Statements.Length: 1 } statements)
         {
-            pruned = new PhysicalMultiStatementNode([prunedProject]);
+            pruned = new PhysicalMultiStatementNode([prunedProject]) { IntermediateProducers = statements.IntermediateProducers };
             return true;
         }
 

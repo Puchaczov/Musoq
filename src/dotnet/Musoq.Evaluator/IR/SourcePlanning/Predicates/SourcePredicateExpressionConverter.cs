@@ -92,14 +92,13 @@ internal static partial class SourcePredicateExpressionConverter
                 break;
             case MethodCall methodCall when TryConvertEnumFlagsPredicate(methodCall, sourceAlias, out predicate):
                 return true;
-            case PatternMatch patternMatch when patternMatch.Kind == PatternKind.Like:
-                if (TryConvertStringMatch(patternMatch, sourceAlias, isNegated: false, out predicate))
+            case PatternMatch patternMatch:
+                if (TryConvertPatternMatch(patternMatch, sourceAlias, isNegated: false, out predicate))
                     return true;
 
                 break;
             case UnaryOp { Kind: UnaryOpKind.Not, Operand: PatternMatch patternMatch }:
-                if (patternMatch.Kind == PatternKind.Like &&
-                    TryConvertStringMatch(patternMatch, sourceAlias, isNegated: true, out predicate))
+                if (TryConvertPatternMatch(patternMatch, sourceAlias, isNegated: true, out predicate))
                 {
                     return true;
                 }

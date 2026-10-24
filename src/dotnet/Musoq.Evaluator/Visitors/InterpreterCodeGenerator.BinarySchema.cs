@@ -40,6 +40,7 @@ public partial class InterpreterCodeGenerator
                 $"/// This is a generic schema with type parameters: {string.Join(", ", typeParameters)}.");
         if (!string.IsNullOrEmpty(schema.Extends)) builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Extends schema '{schema.Extends}'.");
         builder.AppendLine("/// </summary>");
+        builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
             $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, global::Musoq.Plugins.IJsonPayload{genericConstraints}");
         builder.AppendLine("{");
