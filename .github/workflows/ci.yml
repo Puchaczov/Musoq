@@ -76,6 +76,8 @@ jobs:
           dotnet build src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Benchmarks.Scenarios/Musoq.Benchmarks.Scenarios.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Benchmarks.Tests/Musoq.Benchmarks.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Playground/Musoq.Playground.csproj --configuration Release --no-restore --no-dependencies -warnaserror
 
       - name: Test

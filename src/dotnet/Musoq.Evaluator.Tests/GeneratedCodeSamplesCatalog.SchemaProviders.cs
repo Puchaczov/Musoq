@@ -218,6 +218,85 @@ internal static partial class GeneratedCodeSamplesCatalog
                 });
         }
     }
+    private sealed class BenchmarkSampleSchemaProvider(int inputCount) : ISchemaProvider
+    {
+        private readonly BenchmarkSampleSchema _schema = new(inputCount);
+
+        public ISchema GetSchema(string schema)
+        {
+            if (!string.Equals(schema.TrimStart('#'), "bench", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"Unknown sample schema '{schema}'.");
+            return _schema;
+        }
+    }
+
+    private sealed class BenchmarkSampleSchema : SchemaBase
+    {
+        private readonly Dictionary<string, BenchmarkSampleRows> _sources;
+
+        public BenchmarkSampleSchema(int inputCount) : base("bench", CreateSampleLibrary())
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(inputCount);
+            var rows = Enumerable.Range(0, inputCount).Select(CreateBenchmarkRow).ToArray();
+            var stream = rows.SelectMany(row => row.Payload).Concat(rows[0].Truncated).ToArray();
+            _sources = new Dictionary<string, BenchmarkSampleRows>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["rows"] = new(rows),
+                ["lookup"] = new(rows.Take(3).ToArray()),
+                ["stream"] = new([rows[0] with { Payload = stream }])
+            };
+        }
+
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext context,
+            params object?[] parameters)
+        {
+            if (!_sources.ContainsKey(name))
+                throw new InvalidOperationException($"Unknown sample source '{name}'.");
+            return new BenchmarkSampleTable();
+        }
+
+        public override RowSource<T> GetRowSource<T, TArguments>(string name,
+            SourceExecutionContext context, TArguments arguments) =>
+            EnsureSourceType<T, BenchmarkSampleRow>(name, _sources[name]);
+
+        private static MethodsAggregator CreateSampleLibrary()
+        {
+            var methods = new MethodsManager();
+            methods.RegisterLibraries(new Musoq.Plugins.LibraryBase());
+            return new MethodsAggregator(methods);
+        }
+    }
+
+    private static BenchmarkSampleRow CreateBenchmarkRow(int index)
+    {
+        var payload = new byte[8];
+        payload[0] = (byte)(index % 4);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(payload.AsSpan(1), index + 1);
+        payload[5] = 2;
+        payload[6] = 10;
+        payload[7] = 11;
+        return new BenchmarkSampleRow(index, index % 4, index + 1, $"item-{index % 4}",
+            index % 3 == 0 ? null : index, [index, index + 1], payload,
+            $"INFO|{index}|item-{index % 4}", payload[..3]);
+    }
+
+    private sealed class BenchmarkSampleTable : ISchemaTable
+    {
+        public ISchemaColumn[] Columns { get; } = typeof(BenchmarkSampleRow).GetProperties()
+            .Select((property, index) => (ISchemaColumn)new SchemaColumn(property.Name, index, property.PropertyType))
+            .ToArray();
+        public SchemaTableMetadata Metadata { get; } = new(typeof(BenchmarkSampleRow));
+        public ISchemaColumn? GetColumnByName(string name) =>
+            Columns.FirstOrDefault(column => column.ColumnName == name);
+        public ISchemaColumn[] GetColumnsByName(string name) =>
+            Columns.Where(column => column.ColumnName == name).ToArray();
+    }
+
+    private sealed class BenchmarkSampleRows(BenchmarkSampleRow[] rows) : RowSource<BenchmarkSampleRow>
+    {
+        private readonly BenchmarkSampleRow[][] _chunks = rows.Chunk(RowChunking.DefaultChunkSize).ToArray();
+        public override IEnumerable<IReadOnlyList<BenchmarkSampleRow>> Chunks => _chunks;
+    }
 }
 
 public sealed class ScriptParameterSampleEntity
@@ -226,3 +305,9 @@ public sealed class ScriptParameterSampleEntity
 
     public string Value { get; init; } = string.Empty;
 }
+
+public sealed record BenchmarkSampleRow(int Id, int Key, decimal Amount, string Name, int? Optional,
+    int[] Items, byte[] Payload, string Text, byte[] Truncated);
+
+public readonly record struct BenchmarkProjectionOutput(int Id, string Name);
+public readonly record struct BenchmarkWindowOutput(int Id, decimal? Total, decimal? First);

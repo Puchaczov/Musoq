@@ -2,6 +2,8 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto
+# Recorded evidence must survive commits and cross-platform checkouts byte-for-byte.
+benchmarks/history/** -text -whitespace
 src/dotnet/Musoq.Evaluator.KaitaiStruct.Tests/Upstream/src/*.bin -text -whitespace
 src/dotnet/generated-code-samples/**/*.cs text eol=lf
 

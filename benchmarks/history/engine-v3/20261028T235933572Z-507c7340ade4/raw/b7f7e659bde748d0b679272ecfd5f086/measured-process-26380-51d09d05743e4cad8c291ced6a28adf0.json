@@ -1,0 +1,20 @@
+{
+  "processId": 26380,
+  "capturedUtc": "2026-10-29T04:59:08.8214692+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X03_Reconciliation",
+  "inputCount": 10000,
+  "sql": "with classified as (select case when r is missing then 'right-only' when d is missing then 'missing' else 'matched' end as State, r.Optional ?? -1 as Fallback\r\nfrom bench.rows() r\r\nfull outer join bench.reconcile() d on r.Key = d.Key) select State, Fallback, Count(*) as Count\r\nfrom classified\r\ngroup by State, Fallback\r\norder by State, Fallback"
+}

@@ -1,0 +1,20 @@
+{
+  "processId": 46520,
+  "capturedUtc": "2026-10-29T00:11:01.7680348+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B01_Wide",
+  "inputCount": 4,
+  "sql": "select r.Id as Id, r.Amount + 0d as C0, r.Amount + 1d as C1, r.Amount + 2d as C2, r.Amount + 3d as C3, r.Amount + 4d as C4, r.Amount + 5d as C5, r.Amount + 6d as C6, r.Amount + 7d as C7, r.Amount + 8d as C8, r.Amount + 9d as C9, r.Amount + 10d as C10, r.Amount + 11d as C11, r.Amount + 12d as C12, r.Amount + 13d as C13, r.Amount + 14d as C14, r.Amount + 15d as C15, r.Amount + 16d as C16, r.Amount + 17d as C17, r.Amount + 18d as C18, r.Amount + 19d as C19, r.Amount + 20d as C20, r.Amount + 21d as C21, r.Amount + 22d as C22, r.Amount + 23d as C23, r.Amount + 24d as C24, r.Amount + 25d as C25, r.Amount + 26d as C26, r.Amount + 27d as C27, r.Amount + 28d as C28, r.Amount + 29d as C29, r.Amount + 30d as C30, r.Amount + 31d as C31, r.Amount + 32d as C32, r.Amount + 33d as C33, r.Amount + 34d as C34, r.Amount + 35d as C35, r.Amount + 36d as C36, r.Amount + 37d as C37, r.Amount + 38d as C38, r.Amount + 39d as C39, r.Amount + 40d as C40, r.Amount + 41d as C41, r.Amount + 42d as C42, r.Amount + 43d as C43, r.Amount + 44d as C44, r.Amount + 45d as C45, r.Amount + 46d as C46, r.Amount + 47d as C47, r.Amount + 48d as C48, r.Amount + 49d as C49, r.Amount + 50d as C50, r.Amount + 51d as C51, r.Amount + 52d as C52, r.Amount + 53d as C53, r.Amount + 54d as C54, r.Amount + 55d as C55, r.Amount + 56d as C56, r.Amount + 57d as C57, r.Amount + 58d as C58, r.Amount + 59d as C59, r.Amount + 60d as C60, r.Amount + 61d as C61, r.Amount + 62d as C62, r.Amount + 63d as C63 from bench.rows() r order by r.Id"
+}

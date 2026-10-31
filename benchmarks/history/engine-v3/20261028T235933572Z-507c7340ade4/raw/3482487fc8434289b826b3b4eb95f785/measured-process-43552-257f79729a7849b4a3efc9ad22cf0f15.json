@@ -1,0 +1,20 @@
+{
+  "processId": 43552,
+  "capturedUtc": "2026-10-29T00:35:44.4713472+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B05_Membership",
+  "inputCount": 10000,
+  "sql": "select r.Id as Id from bench.rows() r where r.Key in (0, 2, 2, null) order by r.Id"
+}

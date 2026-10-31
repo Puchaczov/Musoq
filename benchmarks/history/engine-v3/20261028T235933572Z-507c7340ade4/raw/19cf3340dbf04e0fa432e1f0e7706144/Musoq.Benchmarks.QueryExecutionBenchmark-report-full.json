@@ -1,0 +1,45 @@
+{
+   "Title":"Musoq.Benchmarks.QueryExecutionBenchmark-20261029-015600",
+   "HostEnvironmentInfo":{
+      "BenchmarkDotNetCaption":"BenchmarkDotNet",
+      "BenchmarkDotNetVersion":"0.15.8",
+      "OsVersion":"Windows 11 (10.0.26300.9711)",
+      "ProcessorName":"Intel Core Ultra 9 285K",
+      "PhysicalProcessorCount":1,
+      "PhysicalCoreCount":24,
+      "LogicalCoreCount":24,
+      "RuntimeVersion":".NET 10.0.14 (10.0.14, 10.0.1426.52326)",
+      "Architecture":"X64",
+      "HasAttachedDebugger":false,
+      "HasRyuJit":true,
+      "Configuration":"RELEASE",
+      "DotNetCliVersion":"10.0.403",
+      "ChronometerFrequency":{
+         "Hertz":10000000
+      },
+      "HardwareTimerKind":"Unknown"
+   },
+   "Benchmarks":[
+      {
+         "DisplayInfo":"QueryExecutionBenchmark.Execute: OfficialThroughput(Concurrent=True, Server=True, LaunchCount=2) [ScenarioId=B08_CrossJoin, Size=Medium]",
+         "Namespace":"Musoq.Benchmarks",
+         "Type":"QueryExecutionBenchmark",
+         "Method":"Execute",
+         "MethodTitle":"Execute",
+         "Parameters":"ScenarioId=B08_CrossJoin&Size=Medium",
+         "FullName":"Musoq.Benchmarks.QueryExecutionBenchmark.Execute(ScenarioId: \"B08_CrossJoin\", Size: \"Medium\")",
+         "HardwareIntrinsics":"",
+         "Statistics":null,
+         "Memory":{
+            "Gen0Collections":0,
+            "Gen1Collections":0,
+            "Gen2Collections":0,
+            "TotalOperations":0,
+            "BytesAllocatedPerOperation":null
+         },
+         "Measurements":[
+            
+         ]
+      }
+   ]
+}

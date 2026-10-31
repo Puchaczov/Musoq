@@ -1,0 +1,20 @@
+{
+  "processId": 44616,
+  "capturedUtc": "2026-10-29T00:51:37.6411939+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B08_AntiJoin",
+  "inputCount": 10000,
+  "sql": "select r.Id as Id from bench.rows() r anti join bench.lookup() d on r.Key = d.Key order by r.Id"
+}

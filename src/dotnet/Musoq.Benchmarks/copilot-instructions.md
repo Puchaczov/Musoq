@@ -1,28 +1,34 @@
 # Musoq.Benchmarks
 
-Follow the repository-wide guide first. This non-packable .NET 10 project contains
-one BenchmarkDotNet execution case while the benchmark suite awaits redesign.
+Follow the repository-wide guide and the measurement contract in README.md.
 
-## Structure and behavior
+- Benchmark SQL, IDs and deterministic fixtures belong only to Musoq.Benchmarks.Scenarios.
+- Musoq.Benchmarks.Tests independently asserts complete small resultsets.
+- Neither shared scenarios nor benchmarks may reference existing engine test projects.
+- Compile and generate data outside execution measurement. Consume every result row and dispose owned resources.
+- Keep framework behavior in ordinary C# and retain raw BenchmarkDotNet reports.
+- Correctness tests must never assert elapsed times. Dry validates execution, not performance.
+- Do not overlap measurements with builds or tests.
+- Keep all three projects non-packable. Do not change production versions.
 
-- `Program.cs` forwards command-line arguments to BenchmarkDotNet in all configurations.
-- `SimpleQueryExecutionBenchmark.cs` compiles an inline three-row query in global
-  setup and verifies the exact results 1, 2, 3 outside measurement.
-- Its single benchmark method executes the compiled query, consumes the rows,
-  disposes the result table, and returns checksum 6. Global cleanup disposes the query.
-- Keep the project self-contained: no external files, test helpers, datasource
-  fixtures, parameter matrices, qualification gates, or custom report commands.
-- The project references BenchmarkDotNet and Musoq.Converter. It remains in the
-  solution and CI build, but is not part of the NuGet release train.
+- Official campaigns use clean source, the complete catalog and fixed out-of-process parallel measurement.
+- Local runs allow filters, dirty source and Short/Dry jobs. Neither starts the full solution test suite.
+- All SQL and query generation stay in the shared project; expected resultsets stay independently authored in tests.
+- Keep the wrapper thin and use ordinary C#. Do not introduce a query DSL or aggregate scoring.
+- First compilation requires a fresh process without preceding compilation. Warmed process does not imply cache hit;
+  define these paths through their setup boundaries without compiler probes.
+- Preserve branch/commit and CPU/core/RAM/runtime provenance. Separate machine/environment series.
+- Persist per-case attempts and raw JSON; failures remain visible. Resume requires identical source revision,
+  engine version, suite, exact cases and environment/settings. Successful cases and complete campaigns are immutable.
+- Official history is committable. Working binaries/logs remain ignored. Never automatically commit or push results.
 
-## Validation and measurement
+- Execution sizes are uniformly 1,000/10,000/100,000, including expensive and recursive workloads.
+  Local custom counts replace that matrix; lifecycle fixtures stay fixed. Never silently cap inputs.
+- Registrations and job settings have one authority. Reject duplicates instead of deduplicating them.
+- Schema-v3 definitions and finalized attempts are authoritative. Derived views must be recoverable;
+  completion markers make finished bundles immutable. Preserve interrupted evidence and attempt IDs.
+- Status/Verify/Latest are read-only. Historical verification must not rely on the current checkout or hardware.
+- Keep the repository running skill thin; structured receipts own compatibility and website eligibility.
 
-Use the commands in [README.md](README.md) to build, list the single case, run a
-Dry smoke check, or select a short measurement job. Keep MemoryDiagnoser enabled.
-Dry runs validate execution only; do not interpret them as performance evidence.
-Do not run builds or tests concurrently with measurements. Keep raw reports in
-ignored BenchmarkDotNet artifacts.
-
-Choose wider validation by actual change impact, following the repository policy.
-Engine performance changes still require correctness regressions and controlled,
-equivalent measurements. Design the future benchmark suite separately.
+- Artifact paths must fit the 180-character repository-relative and 240-character absolute budgets, including temporary writes.
+- Keep artifacts free of fingerprints and checksums. Verify checks structure and readable evidence; Latest selects by engine version only.

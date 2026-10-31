@@ -1,0 +1,20 @@
+{
+  "processId": 11928,
+  "capturedUtc": "2026-10-29T04:46:12.881387+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B32_TryParse",
+  "inputCount": 10000,
+  "sql": "text Valid { Prefix: literal 'INFO|', Message: rest }; select r.Id as Id, p.Message as Message\r\nfrom bench.rows() r\r\nouter apply TryParse<Valid>(case when r.Id % 2 = 0 then r.Text else 'bad' end) p\r\norder by r.Id"
+}

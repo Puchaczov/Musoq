@@ -1,0 +1,20 @@
+{
+  "processId": 17924,
+  "capturedUtc": "2026-10-29T02:50:41.4193804+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B18_Unpivot",
+  "inputCount": 1000,
+  "sql": "unpivot bench.rows() r on Label in (r.Id as Original, r.Key as Grouped) using Value keep r.Id as Id order by Id, Label"
+}

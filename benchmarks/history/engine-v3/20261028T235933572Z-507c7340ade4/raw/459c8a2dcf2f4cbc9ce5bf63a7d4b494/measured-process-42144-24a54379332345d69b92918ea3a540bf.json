@@ -1,0 +1,20 @@
+{
+  "processId": 42144,
+  "capturedUtc": "2026-10-29T03:44:49.4820973+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B25_Couple",
+  "inputCount": 100000,
+  "sql": "table Selected { Name: string, Id: int }; couple bench.rows with table Selected as SelectedRows; select r.Id as Id, r.Name as Name\r\nfrom SelectedRows() r\r\norder by r.Id"
+}

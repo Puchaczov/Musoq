@@ -1,0 +1,20 @@
+{
+  "processId": 39640,
+  "capturedUtc": "2026-10-29T04:28:42.7090294+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B31_TextCaptures",
+  "inputCount": 4,
+  "sql": "text Captured {\r\n    Fields: pattern r'(?<Level>[A-Z]+)\\|(?<Number>[0-9]+)\\|(?<Label>.*)' capture (Level, Number, Label)\r\n};\r\nselect r.Id as Id, p.Fields.Label as Label\r\nfrom bench.rows() r\r\ncross apply Parse<Captured>(r.Text) p\r\norder by r.Id"
+}

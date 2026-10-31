@@ -1,0 +1,24 @@
+{
+  "caseId": "B21_CteReuse-execution-Table-Small",
+  "startedUtc": "2026-10-29T03:23:03.8721867+00:00",
+  "finishedUtc": "2026-10-29T03:25:05.0024308+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 8534.692157154352,
+  "medianNanoseconds": 8494.387817382812,
+  "standardDeviationNanoseconds": 493.4665792224036,
+  "confidenceLowerNanoseconds": 8395.516041476376,
+  "confidenceUpperNanoseconds": 8673.868272832327,
+  "sampleCount": 142,
+  "allocatedBytesPerOperation": 6880,
+  "gen0Collections": 7,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 65536,
+  "rawReports": [
+    "raw/120824d85a774c648e4ebfe57b0b402a/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/120824d85a774c648e4ebfe57b0b402a/measured-process-24416-5ab8cab127aa48ebafac4e12a58c2c90.json",
+    "raw/120824d85a774c648e4ebfe57b0b402a/measured-process-40156-a7dcbcfb97094bd8b1f04c55814d84c4.json"
+  ],
+  "attemptId": "120824d85a774c648e4ebfe57b0b402a"
+}

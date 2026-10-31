@@ -1,0 +1,22 @@
+{
+  "caseId": "B08_CrossJoin-execution-Table-Medium",
+  "startedUtc": "2026-10-29T00:55:50.0768409+00:00",
+  "finishedUtc": "2026-10-29T00:56:00.2677917+00:00",
+  "status": "failed",
+  "error": "\nBenchmarkDotNet produced no successful samples; inspect raw reports.",
+  "meanNanoseconds": null,
+  "medianNanoseconds": null,
+  "standardDeviationNanoseconds": null,
+  "confidenceLowerNanoseconds": null,
+  "confidenceUpperNanoseconds": null,
+  "sampleCount": 0,
+  "allocatedBytesPerOperation": null,
+  "gen0Collections": null,
+  "gen1Collections": null,
+  "gen2Collections": null,
+  "gcOperations": null,
+  "rawReports": [
+    "raw/19cf3340dbf04e0fa432e1f0e7706144/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json"
+  ],
+  "attemptId": "19cf3340dbf04e0fa432e1f0e7706144"
+}

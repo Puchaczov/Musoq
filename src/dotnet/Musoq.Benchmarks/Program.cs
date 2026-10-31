@@ -1,3 +1,3 @@
-using BenchmarkDotNet.Running;
+using Musoq.Benchmarks;
 
-BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+return CampaignCli.Run(args);

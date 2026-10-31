@@ -1,0 +1,20 @@
+{
+  "processId": 35952,
+  "capturedUtc": "2026-10-29T01:05:19.1540693+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B08_LeftJoin",
+  "inputCount": 1000,
+  "sql": "select r.Id as Id, d.Id as Match\r\nfrom bench.rows() r\r\nleft join bench.lookup() d on r.Key = d.Key\r\norder by r.Id"
+}

@@ -1,0 +1,20 @@
+{
+  "processId": 28276,
+  "capturedUtc": "2026-10-29T05:05:44.0500749+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X05_CollectionPivot",
+  "inputCount": 100000,
+  "sql": "with expanded as (select r.Key as Id, i.Ordinal as Bucket, r.Amount as Amount\r\nfrom bench.rows() r\r\nouter apply r.Items i with ordinality\r\nleft join bench.lookup() d on i.Value = d.Id) pivot expanded e on e.Bucket in (0 as Even, 1 as Odd) using Sum(e.Amount) as Total\r\ngroup by e.Id\r\norder by Id"
+}

@@ -1,0 +1,20 @@
+{
+  "processId": 8824,
+  "capturedUtc": "2026-10-29T02:43:54.452267+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B18_Pivot",
+  "inputCount": 10000,
+  "sql": "pivot bench.rows() r on r.Key in (0 as K0, 1 as K1, 2 as K2, 3 as K3) using Sum(r.Amount) as Total"
+}

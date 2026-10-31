@@ -1,0 +1,24 @@
+{
+  "caseId": "B19_Intersect-execution-Table-Large",
+  "startedUtc": "2026-10-29T02:55:26.9263911+00:00",
+  "finishedUtc": "2026-10-29T02:57:16.247729+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 13003238.35685484,
+  "medianNanoseconds": 13011568.75,
+  "standardDeviationNanoseconds": 446873.35262253653,
+  "confidenceLowerNanoseconds": 12807026.6620464,
+  "confidenceUpperNanoseconds": 13199450.051663278,
+  "sampleCount": 62,
+  "allocatedBytesPerOperation": 15895926,
+  "gen0Collections": 10,
+  "gen1Collections": 9,
+  "gen2Collections": 8,
+  "gcOperations": 64,
+  "rawReports": [
+    "raw/2ac1a26789cd46edb224d29b8a40679c/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/2ac1a26789cd46edb224d29b8a40679c/measured-process-31788-57fd419b03d747aaaf13ab7161ddee91.json",
+    "raw/2ac1a26789cd46edb224d29b8a40679c/measured-process-42096-c4b0f28d35a948c381b4afd7156788ea.json"
+  ],
+  "attemptId": "2ac1a26789cd46edb224d29b8a40679c"
+}

@@ -1,0 +1,20 @@
+{
+  "processId": 23516,
+  "capturedUtc": "2026-10-29T05:10:48.2466039+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X06_Consolidation",
+  "inputCount": 10000,
+  "sql": "with combined as (select r.Key as Id\r\nfrom bench.rows() r\r\nunion (Id) select d.Key as Id\r\nfrom bench.lookup() d) select distinct Id\r\nfrom combined\r\norder by Id\r\nskip 1\r\ntake 2"
+}

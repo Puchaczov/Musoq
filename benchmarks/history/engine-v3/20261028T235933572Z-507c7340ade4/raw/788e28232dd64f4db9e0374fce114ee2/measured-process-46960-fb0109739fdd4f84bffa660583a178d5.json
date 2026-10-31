@@ -1,0 +1,20 @@
+{
+  "processId": 46960,
+  "capturedUtc": "2026-10-29T04:53:37.2190712+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X02_JoinWindow",
+  "inputCount": 10000,
+  "sql": "select r.Id as Id, Sum(r.Amount) over (order by r.Id) as Total, Sum(r.Amount) over (order by r.Id range between 1 preceding and current row) as Sliding\r\nfrom bench.rows() r\r\ninner join bench.twice() d on r.Key = d.Key\r\norder by r.Id"
+}

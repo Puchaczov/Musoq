@@ -1,0 +1,5 @@
+{
+  "exitCode": 0,
+  "output": "Test run for D:\\repos\\Musoq\\src\\dotnet\\Musoq.Benchmarks.Tests\\bin\\Release\\net10.0\\Musoq.Benchmarks.Tests.dll (.NETCoreApp,Version=v10.0)\r\nA total of 1 test files matched the specified pattern.\r\n\r\nPassed!  - Failed:     0, Passed:   131, Skipped:     0, Total:   131, Duration: 19 s - Musoq.Benchmarks.Tests.dll (net10.0)",
+  "error": ""
+}

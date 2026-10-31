@@ -1,0 +1,24 @@
+{
+  "caseId": "X10_StructuredPipeline-execution-Table-Small",
+  "startedUtc": "2026-10-29T06:56:36.2645056+00:00",
+  "finishedUtc": "2026-10-29T06:57:35.1785731+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 9146.13515218099,
+  "medianNanoseconds": 9142.713928222656,
+  "standardDeviationNanoseconds": 143.453410031064,
+  "confidenceLowerNanoseconds": 9050.29207957976,
+  "confidenceUpperNanoseconds": 9241.97822478222,
+  "sampleCount": 30,
+  "allocatedBytesPerOperation": 32728,
+  "gen0Collections": 37,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 65536,
+  "rawReports": [
+    "raw/220ce884e25d493db3ea5d85a7e6adec/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/220ce884e25d493db3ea5d85a7e6adec/measured-process-34820-6e0e9260779b4b2da2f2fe5f95a0561f.json",
+    "raw/220ce884e25d493db3ea5d85a7e6adec/measured-process-42412-52844d60383b4ddda87924e499ee01b3.json"
+  ],
+  "attemptId": "220ce884e25d493db3ea5d85a7e6adec"
+}

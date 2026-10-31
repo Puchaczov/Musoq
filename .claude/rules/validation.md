@@ -66,7 +66,7 @@ Documentation and test-only changes do not require the full solution suite solel
 - **No build-time dependencies**: Only requires the .NET 10.0.401+ SDK
 
 ### Performance and Benchmarks Validation
-- **Benchmarks validate functionality**: run a focused benchmark with quiet build output, for example `dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore --nologo --verbosity quiet` followed by `dotnet run --project src/dotnet/Musoq.Benchmarks --configuration Release --no-build -- --filter "*RelevantBenchmark*" --job short --exporters json > TestResults/benchmark.log 2>&1`
+- **Benchmarks validate functionality**: run `./scripts/benchmarks/Run-Benchmarks.ps1 -Mode Local -Filter '*B01_Scan-execution-Table-Small*' -Job Dry -InProcess` for a focused execution check. Use `-Job Short` without `-InProcess` for measurements. Local mode builds only benchmarks and dependencies; JSON export is automatic. See the benchmark README for official campaigns and resume.
 - **Performance regression testing**: Use benchmarks to measure impact of changes
 - **Memory usage validation**: Monitor compilation and execution phases for memory efficiency
 

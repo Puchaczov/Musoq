@@ -1,0 +1,20 @@
+{
+  "processId": 47492,
+  "capturedUtc": "2026-10-29T01:57:12.7365856+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B14_Group",
+  "inputCount": 10000,
+  "sql": "select r.Key as Id, Sum(r.Amount) as Total, Count(distinct r.Optional) filter (where r.Id % 2 = 0) as Present\r\nfrom bench.rows() r\r\ngroup by r.Key\r\nhaving Sum(r.Amount) > 0\r\norder by Id"
+}

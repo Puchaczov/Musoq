@@ -1,0 +1,20 @@
+{
+  "processId": 39472,
+  "capturedUtc": "2026-10-29T02:08:16.5328871+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.14-alpha.2+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "suiteInformationalVersion": "1.0.0+507c7340ade48c9b5787ceb61138d24d2108118f",
+  "source": {
+    "commit": "507c7340ade48c9b5787ceb61138d24d2108118f",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B14_WholeAggregate",
+  "inputCount": 100000,
+  "sql": "select Count(*) as Count, Sum(r.Amount) as Total, Avg(r.Amount) as Average from bench.rows() r"
+}
