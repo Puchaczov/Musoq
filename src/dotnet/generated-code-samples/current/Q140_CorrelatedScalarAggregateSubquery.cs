@@ -41,7 +41,7 @@ PhysicalCte
         PhysicalCteRef [bScore as bScore]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
+      PhysicalProject [a.City as a.City, _sq_1._sq_1_value as _sq_1._sq_1_value]
         PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]

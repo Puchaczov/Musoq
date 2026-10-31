@@ -28,7 +28,7 @@ Cte
 PhysicalCte
   Definition [cte]
     PhysicalMultiStatement
-      PhysicalProject [a.Country as a.Country, b.Country as b.Country]
+      PhysicalProject [a.Country as a.Country]
         PhysicalHashJoin [Inner] [build: b.Country] [probe: a.Country]
           PhysicalSchemaScan [#A.Entities() as a]
           PhysicalSchemaScan [#B.Entities() as b]

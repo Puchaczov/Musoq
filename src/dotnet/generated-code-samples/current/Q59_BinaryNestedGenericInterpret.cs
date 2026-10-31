@@ -43,11 +43,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, c.Items as c.Items]
+  PhysicalProject [c.Items as c.Items]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#NestedGenericContainer(f.Content) as c]
-  PhysicalProject [fc.f.Content as f.Content, fc.c.Items as c.Items, p.LeftItem as p.LeftItem, p.RightItem as p.RightItem]
+  PhysicalProject [p.LeftItem as p.LeftItem, p.RightItem as p.RightItem]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fc as fc]
       PhysicalPropertySource [fc.c.Items.Data as p] [apply: Cross] [type: Object[]]
@@ -66,10 +66,8 @@ ExecutionPlan [compiled]
       Items.Count: byte <- nested property Items.Count
       Items.Data: object[] <- nested property Items.Data
     Generated [Statement0Row0]
-      f.Content: byte[] <- field f_Content
       c.Items: object <- field c_Items
     TableRow [fc]
-      f.Content: byte[] <- field f_Content
       c.Items: object <- field c_Items
     SourceEntity [p: object]
       LeftItem: object <- property LeftItem
@@ -86,7 +84,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in statement0_fRows]
       InterpretSource [NestedGenericContainer.Interpret(f.Content) -> statement0_cRows]
       ScalarForEach [c in statement0_cRows]
-        AppendRow [statement0 <- Statement0Row0(f.Content: f.Content, c.Items: c.Items)]
+        AppendRow [statement0 <- Statement0Row0(c.Items: c.Items)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -127,8 +125,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("c.Items", typeof(Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>>), 1)
+            new Column("c.Items", typeof(Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>>), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
         public ILogger Logger { get; set; }
@@ -259,7 +256,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var c = statement0_cRows;
-                                statement0.Add(new Statement0Row0(f.Content, c.Items));
+                                statement0.Add(new Statement0Row0(c.Items));
                             }
                         }
 
@@ -283,7 +280,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var c = statement0_cRows;
-                                statement0.Add(new Statement0Row0(f.Content, c.Items));
+                                statement0.Add(new Statement0Row0(c.Items));
                             }
                         }
 
@@ -305,7 +302,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
                     {
                         token.ThrowIfCancellationRequested();
                         var c = statement0_cRows;
-                        statement0.Add(new Statement0Row0(f.Content, c.Items));
+                        statement0.Add(new Statement0Row0(c.Items));
                     }
                 }
             }
@@ -359,14 +356,12 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>> __value1)
+            public Statement0Row0(Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>> __value0)
             {
-                f_Content = __value0;
-                c_Items = __value1;
+                c_Items = __value0;
             }
 
             public Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>> c_Items { get; }
-            public byte[] f_Content { get; }
         }
     }
 }

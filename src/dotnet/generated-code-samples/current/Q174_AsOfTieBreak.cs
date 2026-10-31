@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population, b.Money as b.Money]
+  PhysicalProject [a.Name as a.Name, b.Name as b.Name, b.Money as b.Money]
     PhysicalNestedLoopJoin [AsofInner] [(a.Population >= b.Population)] [tie: b.Money DESC NULLS LAST]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#A.entities() as b]

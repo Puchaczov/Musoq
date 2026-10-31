@@ -170,8 +170,8 @@ ExecutionPlan [compiled]
       Let [amount: decimal = r.Amount]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Id: r.Id, C0: (amount + 0), C1: (amount + 1), C2: (amount + 2), C3: (amount + 3), C4: (amount + 4), C5: (amount + 5), C6: (amount + 6), C7: (amount + 7), C8: (amount + 8), C9: (amount + 9), C10: (amount + 10), C11: (amount + 11), C12: (amount + 12), C13: (amount + 13), C14: (amount + 14), C15: (amount + 15), C16: (amount + 16), C17: (amount + 17), C18: (amount + 18), C19: (amount + 19), C20: (amount + 20), C21: (amount + 21), C22: (amount + 22), C23: (amount + 23), C24: (amount + 24), C25: (amount + 25), C26: (amount + 26), C27: (amount + 27), C28: (amount + 28), C29: (amount + 29), C30: (amount + 30), C31: (amount + 31), C32: (amount + 32), C33: (amount + 33), C34: (amount + 34), C35: (amount + 35), C36: (amount + 36), C37: (amount + 37), C38: (amount + 38), C39: (amount + 39), C40: (amount + 40), C41: (amount + 41), C42: (amount + 42), C43: (amount + 43), C44: (amount + 44), C45: (amount + 45), C46: (amount + 46), C47: (amount + 47), C48: (amount + 48), C49: (amount + 49), C50: (amount + 50), C51: (amount + 51), C52: (amount + 52), C53: (amount + 53), C54: (amount + 54), C55: (amount + 55), C56: (amount + 56), C57: (amount + 57), C58: (amount + 58), C59: (amount + 59), C60: (amount + 60), C61: (amount + 61), C62: (amount + 62), C63: (amount + 63))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Id ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -289,7 +289,7 @@ namespace GeneratedSample_B01_Wide_BenchmarkTable
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -298,7 +298,6 @@ namespace GeneratedSample_B01_Wide_BenchmarkTable
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __rSchema = provider.GetSchema("#bench");
@@ -361,12 +360,7 @@ namespace GeneratedSample_B01_Wide_BenchmarkTable
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Id, resultRecord.C0, resultRecord.C1, resultRecord.C2, resultRecord.C3, resultRecord.C4, resultRecord.C5, resultRecord.C6, resultRecord.C7, resultRecord.C8, resultRecord.C9, resultRecord.C10, resultRecord.C11, resultRecord.C12, resultRecord.C13, resultRecord.C14, resultRecord.C15, resultRecord.C16, resultRecord.C17, resultRecord.C18, resultRecord.C19, resultRecord.C20, resultRecord.C21, resultRecord.C22, resultRecord.C23, resultRecord.C24, resultRecord.C25, resultRecord.C26, resultRecord.C27, resultRecord.C28, resultRecord.C29, resultRecord.C30, resultRecord.C31, resultRecord.C32, resultRecord.C33, resultRecord.C34, resultRecord.C35, resultRecord.C36, resultRecord.C37, resultRecord.C38, resultRecord.C39, resultRecord.C40, resultRecord.C41, resultRecord.C42, resultRecord.C43, resultRecord.C44, resultRecord.C45, resultRecord.C46, resultRecord.C47, resultRecord.C48, resultRecord.C49, resultRecord.C50, resultRecord.C51, resultRecord.C52, resultRecord.C53, resultRecord.C54, resultRecord.C55, resultRecord.C56, resultRecord.C57, resultRecord.C58, resultRecord.C59, resultRecord.C60, resultRecord.C61, resultRecord.C62, resultRecord.C63));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -903,144 +897,6 @@ namespace GeneratedSample_B01_Wide_BenchmarkTable
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(int Id, decimal C0, decimal C1, decimal C2, decimal C3, decimal C4, decimal C5, decimal C6, decimal C7, decimal C8, decimal C9, decimal C10, decimal C11, decimal C12, decimal C13, decimal C14, decimal C15, decimal C16, decimal C17, decimal C18, decimal C19, decimal C20, decimal C21, decimal C22, decimal C23, decimal C24, decimal C25, decimal C26, decimal C27, decimal C28, decimal C29, decimal C30, decimal C31, decimal C32, decimal C33, decimal C34, decimal C35, decimal C36, decimal C37, decimal C38, decimal C39, decimal C40, decimal C41, decimal C42, decimal C43, decimal C44, decimal C45, decimal C46, decimal C47, decimal C48, decimal C49, decimal C50, decimal C51, decimal C52, decimal C53, decimal C54, decimal C55, decimal C56, decimal C57, decimal C58, decimal C59, decimal C60, decimal C61, decimal C62, decimal C63)
-            {
-                this.Id = Id;
-                this.C0 = C0;
-                this.C1 = C1;
-                this.C2 = C2;
-                this.C3 = C3;
-                this.C4 = C4;
-                this.C5 = C5;
-                this.C6 = C6;
-                this.C7 = C7;
-                this.C8 = C8;
-                this.C9 = C9;
-                this.C10 = C10;
-                this.C11 = C11;
-                this.C12 = C12;
-                this.C13 = C13;
-                this.C14 = C14;
-                this.C15 = C15;
-                this.C16 = C16;
-                this.C17 = C17;
-                this.C18 = C18;
-                this.C19 = C19;
-                this.C20 = C20;
-                this.C21 = C21;
-                this.C22 = C22;
-                this.C23 = C23;
-                this.C24 = C24;
-                this.C25 = C25;
-                this.C26 = C26;
-                this.C27 = C27;
-                this.C28 = C28;
-                this.C29 = C29;
-                this.C30 = C30;
-                this.C31 = C31;
-                this.C32 = C32;
-                this.C33 = C33;
-                this.C34 = C34;
-                this.C35 = C35;
-                this.C36 = C36;
-                this.C37 = C37;
-                this.C38 = C38;
-                this.C39 = C39;
-                this.C40 = C40;
-                this.C41 = C41;
-                this.C42 = C42;
-                this.C43 = C43;
-                this.C44 = C44;
-                this.C45 = C45;
-                this.C46 = C46;
-                this.C47 = C47;
-                this.C48 = C48;
-                this.C49 = C49;
-                this.C50 = C50;
-                this.C51 = C51;
-                this.C52 = C52;
-                this.C53 = C53;
-                this.C54 = C54;
-                this.C55 = C55;
-                this.C56 = C56;
-                this.C57 = C57;
-                this.C58 = C58;
-                this.C59 = C59;
-                this.C60 = C60;
-                this.C61 = C61;
-                this.C62 = C62;
-                this.C63 = C63;
-            }
-
-            public decimal C0 { get; }
-            public decimal C1 { get; }
-            public decimal C10 { get; }
-            public decimal C11 { get; }
-            public decimal C12 { get; }
-            public decimal C13 { get; }
-            public decimal C14 { get; }
-            public decimal C15 { get; }
-            public decimal C16 { get; }
-            public decimal C17 { get; }
-            public decimal C18 { get; }
-            public decimal C19 { get; }
-            public decimal C2 { get; }
-            public decimal C20 { get; }
-            public decimal C21 { get; }
-            public decimal C22 { get; }
-            public decimal C23 { get; }
-            public decimal C24 { get; }
-            public decimal C25 { get; }
-            public decimal C26 { get; }
-            public decimal C27 { get; }
-            public decimal C28 { get; }
-            public decimal C29 { get; }
-            public decimal C3 { get; }
-            public decimal C30 { get; }
-            public decimal C31 { get; }
-            public decimal C32 { get; }
-            public decimal C33 { get; }
-            public decimal C34 { get; }
-            public decimal C35 { get; }
-            public decimal C36 { get; }
-            public decimal C37 { get; }
-            public decimal C38 { get; }
-            public decimal C39 { get; }
-            public decimal C4 { get; }
-            public decimal C40 { get; }
-            public decimal C41 { get; }
-            public decimal C42 { get; }
-            public decimal C43 { get; }
-            public decimal C44 { get; }
-            public decimal C45 { get; }
-            public decimal C46 { get; }
-            public decimal C47 { get; }
-            public decimal C48 { get; }
-            public decimal C49 { get; }
-            public decimal C5 { get; }
-            public decimal C50 { get; }
-            public decimal C51 { get; }
-            public decimal C52 { get; }
-            public decimal C53 { get; }
-            public decimal C54 { get; }
-            public decimal C55 { get; }
-            public decimal C56 { get; }
-            public decimal C57 { get; }
-            public decimal C58 { get; }
-            public decimal C59 { get; }
-            public decimal C6 { get; }
-            public decimal C60 { get; }
-            public decimal C61 { get; }
-            public decimal C62 { get; }
-            public decimal C63 { get; }
-            public decimal C7 { get; }
-            public decimal C8 { get; }
-            public decimal C9 { get; }
-            public int Id { get; }
         }
     }
 }

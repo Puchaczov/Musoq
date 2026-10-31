@@ -48,7 +48,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in iRows]
       Let [iName: string = i.Name]
       EnumerableSource [JustReturnArrayOfString() -> sRows]
-      ChunkedForEach [s in sRows]
+      ForEach [s in sRows]
         AppendShape [result <- ResultRow0(Name: iName, Text: s.Value)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
@@ -143,55 +143,38 @@ namespace GeneratedSample_Q62_AccessMethodApply
 
                                     var i = iChunkViewArray[iChunkViewOffset + iIndex];
                                     string iName = i.Name;
-                                    var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
-                                    foreach (var sChunk in sRows)
-                                    {
-                                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                        {
-                                            if (sChunkView.Source is string[] sChunkViewArray)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
-                                                }
-
-                                                continue;
-                                            }
-
-                                            if (sChunkView.Source is List<string> sChunkViewList)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
-                                                }
-
-                                                continue;
-                                            }
-                                        }
-
-                                        for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                                    var sRows = (IEnumerable<string>)(string[])__resultLibrary0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                                    var sIndexRows = sRows;
+                                    if (sIndexRows is string[] sIndexArray)
+                                        for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                         {
                                             if ((sIndex & 1023) == 0)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                             }
 
-                                            var s = sChunk[sIndex];
+                                            string s = sIndexArray[sIndex];
                                             __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                        }
+                                    else if (sIndexRows is List<string> sIndexConcreteList)
+                                        for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                        {
+                                            if ((sIndex & 1023) == 0)
+                                            {
+                                                token.ThrowIfCancellationRequested();
+                                            }
+
+                                            string s = sIndexConcreteList[sIndex];
+                                            __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                        }
+                                    else
+                                    {
+                                        int sIndex = 0;
+                                        foreach (var s in sIndexRows)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                            ++sIndex;
                                         }
                                     }
                                 }
@@ -211,55 +194,38 @@ namespace GeneratedSample_Q62_AccessMethodApply
 
                                     var i = iChunkViewList[iChunkViewOffset + iIndex];
                                     string iName = i.Name;
-                                    var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
-                                    foreach (var sChunk in sRows)
-                                    {
-                                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                        {
-                                            if (sChunkView.Source is string[] sChunkViewArray)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
-                                                }
-
-                                                continue;
-                                            }
-
-                                            if (sChunkView.Source is List<string> sChunkViewList)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
-                                                }
-
-                                                continue;
-                                            }
-                                        }
-
-                                        for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                                    var sRows = (IEnumerable<string>)(string[])__resultLibrary0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                                    var sIndexRows = sRows;
+                                    if (sIndexRows is string[] sIndexArray)
+                                        for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                         {
                                             if ((sIndex & 1023) == 0)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                             }
 
-                                            var s = sChunk[sIndex];
+                                            string s = sIndexArray[sIndex];
                                             __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                        }
+                                    else if (sIndexRows is List<string> sIndexConcreteList)
+                                        for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                        {
+                                            if ((sIndex & 1023) == 0)
+                                            {
+                                                token.ThrowIfCancellationRequested();
+                                            }
+
+                                            string s = sIndexConcreteList[sIndex];
+                                            __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                        }
+                                    else
+                                    {
+                                        int sIndex = 0;
+                                        foreach (var s in sIndexRows)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                            ++sIndex;
                                         }
                                     }
                                 }
@@ -277,55 +243,38 @@ namespace GeneratedSample_Q62_AccessMethodApply
 
                             var i = iChunk[iIndex];
                             string iName = i.Name;
-                            var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
-                            foreach (var sChunk in sRows)
-                            {
-                                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                {
-                                    if (sChunkView.Source is string[] sChunkViewArray)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (sChunkView.Source is List<string> sChunkViewList)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                            var sRows = (IEnumerable<string>)(string[])__resultLibrary0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                            var sIndexRows = sRows;
+                            if (sIndexRows is string[] sIndexArray)
+                                for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                 {
                                     if ((sIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var s = sChunk[sIndex];
+                                    string s = sIndexArray[sIndex];
                                     __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                }
+                            else if (sIndexRows is List<string> sIndexConcreteList)
+                                for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                {
+                                    if ((sIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    string s = sIndexConcreteList[sIndex];
+                                    __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                }
+                            else
+                            {
+                                int sIndex = 0;
+                                foreach (var s in sIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    __musoqFinalShapeRows.Add(new ResultRow0(iName, s));
+                                    ++sIndex;
                                 }
                             }
                         }

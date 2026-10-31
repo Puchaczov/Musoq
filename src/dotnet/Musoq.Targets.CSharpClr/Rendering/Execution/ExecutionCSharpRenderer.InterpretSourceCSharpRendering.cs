@@ -12,14 +12,39 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var interpreterVariableName = CreateInterpreterVariableName(interpret.SchemaName);
         var invocation = CreateInterpretInvocation(interpret, interpreterVariableName, context);
+        var declaration = CreateInterpreterDeclaration(interpreterVariableName, interpret.InterpreterTypeName);
+        if (interpret.Kind is InterpretSourceKind.TryInterpret or InterpretSourceKind.TryParse)
+            return RenderTolerantInterpretSource(interpret, declaration, invocation);
 
         return
         [
-            CreateInterpreterDeclaration(interpreterVariableName, interpret.InterpreterTypeName),
+            declaration,
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 interpret.Rows.Name,
                 invocation)
+        ];
+    }
+
+    private static IReadOnlyList<StatementSyntax> RenderTolerantInterpretSource(ExecutionInterpretSource interpret,
+        StatementSyntax declaration, ExpressionSyntax invocation)
+    {
+        var rows = SyntaxFactory.IdentifierName(interpret.Rows.Name);
+        var nullValue = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+        var assignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+            SyntaxKind.SimpleAssignmentExpression, rows, invocation));
+        var reset = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+            SyntaxKind.SimpleAssignmentExpression, rows, nullValue));
+        var parseFailure = SyntaxFactory.CatchClause()
+            .WithDeclaration(SyntaxFactory.CatchDeclaration(
+                SyntaxFactory.ParseTypeName("global::Musoq.Schema.Interpreters.ParseException")))
+            .WithBlock(SyntaxFactory.Block(reset));
+        return
+        [
+            declaration,
+            CreateLocalDeclaration(SyntaxFactory.NullableType(SyntaxFactory.ParseTypeName(interpret.InterpreterTypeName)),
+                interpret.Rows.Name, nullValue),
+            SyntaxFactory.TryStatement(SyntaxFactory.Block(assignment), SyntaxFactory.SingletonList(parseFailure), null)
         ];
     }
 
@@ -88,9 +113,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(ResolveInterpretMethodName(interpret.Kind))))
             .WithArgumentList(CreateArgumentList(interpret.Arguments.Select(argument => RenderExpression(argument, context))));
 
-        return interpret.Kind is InterpretSourceKind.TryInterpret or InterpretSourceKind.TryParse
-            ? WrapInTryCatchReturningNull(invocation, interpret.InterpreterTypeName)
-            : invocation;
+        return invocation;
     }
 
     private static LocalDeclarationStatementSyntax CreateInterpreterDeclaration(

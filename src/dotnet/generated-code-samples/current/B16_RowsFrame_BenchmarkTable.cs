@@ -46,7 +46,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, r in resultWindowRows]
       AppendShape [result <- ResultShape0(Id: r.Id, Total: resultSums0[windowIndex], First: resultFirstValues1[windowIndex])]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
     PhaseBoundary [Select]
 */
@@ -113,7 +113,6 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTable
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __rSchema = provider.GetSchema("#bench");
@@ -210,23 +209,18 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTable
                     }
 
                     Musoq.Evaluator.Tests.BenchmarkSampleRow r = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(r.Id, (decimal?)resultSums0[windowIndex], (decimal?)resultFirstValues1[windowIndex]));
+                    result.Add(new ResultShape0(r.Id, (decimal?)resultSums0[windowIndex], (decimal?)resultFirstValues1[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -310,6 +304,7 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTable
             public decimal? First { get; }
             public int Id { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultSums0OrderKeysKey : System.IEquatable<WindowResultSums0OrderKeysKey>, System.IComparable<WindowResultSums0OrderKeysKey>

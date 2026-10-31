@@ -481,9 +481,9 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("SortShapeRows [result -> resultSorted by Count DESC]", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [result by Count DESC, stable sequence __musoqSequence]", result.ExecutionPlanText);
         Assert.Contains(
-            "var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create",
+            "result.Sort(Comparer<ResultShape0>.Create",
             result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class ResultRow0OrderBy_1DComparer : IComparer<ResultRow0>", StringComparison.Ordinal));
     }

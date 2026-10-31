@@ -29,7 +29,7 @@ PhysicalCte
         PhysicalSchemaScan [#A.entities() as ko3iko]
   Query
     PhysicalMultiStatement
-      PhysicalProject [l.Name as l.Name, r.Name as r.Name, r.City as r.City]
+      PhysicalProject [l.Name as l.Name, r.City as r.City]
         PhysicalHashJoin [Inner] [build: r.Name] [probe: l.Name]
           PhysicalCteRef [c as l]
           PhysicalCteRef [c as r]

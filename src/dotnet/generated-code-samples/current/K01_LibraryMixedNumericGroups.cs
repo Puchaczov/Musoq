@@ -65,7 +65,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Partition: finalGroup.Partition, Integers: ko3iko.Sum(ko3iko.Integral), Decimals: ko3iko.Sum(ko3iko.Amount), Doubles: ko3iko.Sum(ko3iko.Floating), Values: ko3iko.Count(ko3iko.Amount))]
-    SortShapeRows [result -> resultSorted by Partition ASC]
+    SortOwnedBuffer [result by Partition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -133,7 +133,6 @@ namespace GeneratedSample_K01_LibraryMixedNumericGroups
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -383,22 +382,17 @@ namespace GeneratedSample_K01_LibraryMixedNumericGroups
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg3.HasValue ? (int?)finalGroup.__agg3.Value : null, finalGroup.__agg2.HasValue ? (decimal?)finalGroup.__agg2.Value : null, finalGroup.__agg1.HasValue ? (double?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count));
+                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg3.HasValue ? (int?)finalGroup.__agg3.Value : null, finalGroup.__agg2.HasValue ? (decimal?)finalGroup.__agg2.Value : null, finalGroup.__agg1.HasValue ? (double?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -526,6 +520,7 @@ namespace GeneratedSample_K01_LibraryMixedNumericGroups
             public int? Integers { get; }
             public string Partition { get; }
             public long Values { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

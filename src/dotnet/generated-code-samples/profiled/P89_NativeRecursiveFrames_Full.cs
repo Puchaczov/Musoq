@@ -97,7 +97,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, counter in resultWindowRows]
       AppendShape [result <- ResultShape0(Value: counter.Value, Total: resultSums0[windowIndex], Average: resultAvgs1[windowIndex], Present: resultCounts2[windowIndex])]
-    SortShapeRows [result -> resultSorted by Value ASC]
+    SortOwnedBuffer [result by Value ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
     PhaseBoundary [Select]
 */
@@ -181,7 +181,6 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
@@ -368,23 +367,18 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                     }
 
                     Cte0Row0 counter = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(counter.Value, (int?)resultSums0[windowIndex], (decimal?)resultAvgs1[windowIndex], (long)resultCounts2[windowIndex]));
+                    result.Add(new ResultShape0(counter.Value, (int?)resultSums0[windowIndex], (decimal?)resultAvgs1[windowIndex], (long)resultCounts2[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Value.CompareTo(right.Value);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -412,7 +406,6 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op18Handle = profileRecorder?.GetOperatorHandle("op18", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "PhaseBoundary") ?? OperatorProfileHandle.None;
@@ -434,7 +427,7 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                     var __op38Handle = profileRecorder?.GetOperatorHandle("op38", "CreateShapeRows") ?? OperatorProfileHandle.None;
                     var __op39Handle = profileRecorder?.GetOperatorHandle("op39", "ForEachIndexed") ?? OperatorProfileHandle.None;
                     var __op40Handle = profileRecorder?.GetOperatorHandle("op40", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op41Handle = profileRecorder?.GetOperatorHandle("op41", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op41Handle = profileRecorder?.GetOperatorHandle("op41", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     var __op43Handle = profileRecorder?.GetOperatorHandle("op43", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     long __op25InputRows = 0L;
                     long __op25OutputRows = 0L;
@@ -718,7 +711,7 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                             Cte0Row0 counter = resultWindowRows[windowIndex];
                             __op39InputRows++;
                             __op39OutputRows++;
-                            result.Add(new ResultShape0(counter.Value, (int?)resultSums0[windowIndex], (decimal?)resultAvgs1[windowIndex], (long)resultCounts2[windowIndex]));
+                            result.Add(new ResultShape0(counter.Value, (int?)resultSums0[windowIndex], (decimal?)resultAvgs1[windowIndex], (long)resultCounts2[windowIndex]) { __musoqSequence = result.Count });
                             __op40OutputRows += 1;
                         }
                     }
@@ -731,19 +724,14 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
 
                     var __op41Scope = profileRecorder?.BeginOperatorValue(__op41Handle) ?? OperatorProfileValueScope.None;
                     __op41Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Value.CompareTo(right.Value);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op41Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op41Scope.AddOutputRows(result.Count);
                     __op41Scope.Dispose();
                     var __op43Scope = profileRecorder?.BeginOperatorValue(__op43Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
@@ -758,7 +746,7 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
                         profileRecorder?.AddOperatorOutputRows(__op29Handle, __op29OutputRows);
                     if (__op40OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op40Handle, __op40OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -874,6 +862,7 @@ namespace GeneratedSample_P89_NativeRecursiveFrames_Full
             public long Present { get; }
             public int? Total { get; }
             public int Value { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultSums0OrderKeysKey : System.IEquatable<WindowResultSums0OrderKeysKey>, System.IComparable<WindowResultSums0OrderKeysKey>

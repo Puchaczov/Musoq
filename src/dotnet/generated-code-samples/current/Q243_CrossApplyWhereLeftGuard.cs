@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [i.Name as i.Name, i.Numbers as i.Numbers, n.Value as n.Value]
+  PhysicalProject [i.Name as i.Name, n.Value as n.Value]
     PhysicalNestedLoopApply [Cross] [guards: PreApplyRight: (i.Name = 'left')]
       PhysicalSchemaScan [#apply.items() as i] [pushdown: (i.Name = 'left')]
       PhysicalPropertySource [i.Numbers as n] [apply: Cross] [type: Int32[]]
@@ -38,11 +38,9 @@ ExecutionPlan [compiled]
       Value: int <- direct scalar value
     Generated [Statement0Row0]
       i.Name: string <- field i_Name
-      i.Numbers: int[] <- field i_Numbers
       n.Value: int <- field n_Value
     TableRow [in]
       i.Name: string <- field i_Name
-      i.Numbers: int[] <- field i_Numbers
       n.Value: int <- field n_Value
     Generated [ResultRow0]
       Value: int <- field Value
@@ -57,8 +55,8 @@ ExecutionPlan [compiled]
       Let [iName: string = i.Name]
       ContinueIf [NOT ((i.Name = 'left') = TRUE)]
       EnumerableSource [i.Numbers -> statement0_nRows]
-      ChunkedForEach [n in statement0_nRows]
-        AppendRow [statement0 <- Statement0Row0(i.Name: iName, i.Numbers: i.Numbers, n.Value: n.Value)]
+      ForEach [n in statement0_nRows]
+        AppendRow [statement0 <- Statement0Row0(i.Name: iName, n.Value: n.Value)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
@@ -95,8 +93,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("i.Name", typeof(string), 0),
-            new Column("i.Numbers", typeof(int[]), 1),
-            new Column("n.Value", typeof(int), 2)
+            new Column("n.Value", typeof(int), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_i_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Numbers", typeof(int[]), 1) });
         public ILogger Logger { get; set; }
@@ -207,55 +204,38 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                 continue;
                             }
 
-                            var statement0_nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-                            foreach (var nChunk in statement0_nRows)
-                            {
-                                if (nChunk is global::Musoq.Schema.DataSources.RowChunk<int> nChunkView)
-                                {
-                                    if (nChunkView.Source is int[] nChunkViewArray)
-                                    {
-                                        int nChunkViewOffset = nChunkView.Offset;
-                                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                        {
-                                            if ((nIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (nChunkView.Source is List<int> nChunkViewList)
-                                    {
-                                        int nChunkViewOffset = nChunkView.Offset;
-                                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                        {
-                                            if ((nIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+                            var statement0_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                            var nIndexRows = statement0_nRows;
+                            if (nIndexRows is int[] nIndexArray)
+                                for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                                 {
                                     if ((nIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var n = nChunk[nIndex];
-                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
+                                    int n = nIndexArray[nIndex];
+                                    statement0.Add(new Statement0Row0(iName, n));
+                                }
+                            else if (nIndexRows is List<int> nIndexConcreteList)
+                                for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                                {
+                                    if ((nIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    int n = nIndexConcreteList[nIndex];
+                                    statement0.Add(new Statement0Row0(iName, n));
+                                }
+                            else
+                            {
+                                int nIndex = 0;
+                                foreach (var n in nIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, n));
+                                    ++nIndex;
                                 }
                             }
                         }
@@ -280,55 +260,38 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                 continue;
                             }
 
-                            var statement0_nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-                            foreach (var nChunk in statement0_nRows)
-                            {
-                                if (nChunk is global::Musoq.Schema.DataSources.RowChunk<int> nChunkView)
-                                {
-                                    if (nChunkView.Source is int[] nChunkViewArray)
-                                    {
-                                        int nChunkViewOffset = nChunkView.Offset;
-                                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                        {
-                                            if ((nIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (nChunkView.Source is List<int> nChunkViewList)
-                                    {
-                                        int nChunkViewOffset = nChunkView.Offset;
-                                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                        {
-                                            if ((nIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+                            var statement0_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                            var nIndexRows = statement0_nRows;
+                            if (nIndexRows is int[] nIndexArray)
+                                for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                                 {
                                     if ((nIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var n = nChunk[nIndex];
-                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
+                                    int n = nIndexArray[nIndex];
+                                    statement0.Add(new Statement0Row0(iName, n));
+                                }
+                            else if (nIndexRows is List<int> nIndexConcreteList)
+                                for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                                {
+                                    if ((nIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    int n = nIndexConcreteList[nIndex];
+                                    statement0.Add(new Statement0Row0(iName, n));
+                                }
+                            else
+                            {
+                                int nIndex = 0;
+                                foreach (var n in nIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, n));
+                                    ++nIndex;
                                 }
                             }
                         }
@@ -351,55 +314,38 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                         continue;
                     }
 
-                    var statement0_nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-                    foreach (var nChunk in statement0_nRows)
-                    {
-                        if (nChunk is global::Musoq.Schema.DataSources.RowChunk<int> nChunkView)
-                        {
-                            if (nChunkView.Source is int[] nChunkViewArray)
-                            {
-                                int nChunkViewOffset = nChunkView.Offset;
-                                for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                {
-                                    if ((nIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
-                                }
-
-                                continue;
-                            }
-
-                            if (nChunkView.Source is List<int> nChunkViewList)
-                            {
-                                int nChunkViewOffset = nChunkView.Offset;
-                                for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                {
-                                    if ((nIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
-                                }
-
-                                continue;
-                            }
-                        }
-
-                        for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+                    var statement0_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                    var nIndexRows = statement0_nRows;
+                    if (nIndexRows is int[] nIndexArray)
+                        for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                         {
                             if ((nIndex & 1023) == 0)
                             {
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            var n = nChunk[nIndex];
-                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
+                            int n = nIndexArray[nIndex];
+                            statement0.Add(new Statement0Row0(iName, n));
+                        }
+                    else if (nIndexRows is List<int> nIndexConcreteList)
+                        for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                        {
+                            if ((nIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int n = nIndexConcreteList[nIndex];
+                            statement0.Add(new Statement0Row0(iName, n));
+                        }
+                    else
+                    {
+                        int nIndex = 0;
+                        foreach (var n in nIndexRows)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            statement0.Add(new Statement0Row0(iName, n));
+                            ++nIndex;
                         }
                     }
                 }
@@ -451,15 +397,13 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, int[] __value1, int __value2)
+            public Statement0Row0(string __value0, int __value1)
             {
                 i_Name = __value0;
-                i_Numbers = __value1;
-                n_Value = __value2;
+                n_Value = __value1;
             }
 
             public string i_Name { get; }
-            public int[] i_Numbers { get; }
             public int n_Value { get; }
         }
     }

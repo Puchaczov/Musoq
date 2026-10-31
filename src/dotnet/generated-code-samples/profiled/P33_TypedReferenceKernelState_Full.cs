@@ -53,7 +53,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Partition: finalGroup.Partition, Positive: ko3iko.ReferencePositiveCount(ko3iko.Amount))]
-    SortShapeRows [result -> resultSorted by Partition ASC]
+    SortOwnedBuffer [result by Partition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -134,7 +134,6 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -276,22 +275,17 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ReferencePositiveCountKernel.Get(in finalGroup.__agg0)));
+                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ReferencePositiveCountKernel.Get(in finalGroup.__agg0)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -318,7 +312,6 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op11Handle = profileRecorder?.GetOperatorHandle("op11", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op13Handle = profileRecorder?.GetOperatorHandle("op13", "SourceScan") ?? OperatorProfileHandle.None;
@@ -332,7 +325,7 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
                     var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "EnsureShapeCapacity") ?? OperatorProfileHandle.None;
                     var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "ForEach") ?? OperatorProfileHandle.None;
                     var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op19InputRows = 0L;
                     long __op19OutputRows = 0L;
                     long __op21OutputRows = 0L;
@@ -536,7 +529,7 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
                             token.ThrowIfCancellationRequested();
                             __op23InputRows++;
                             __op23OutputRows++;
-                            result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ReferencePositiveCountKernel.Get(in finalGroup.__agg0)));
+                            result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ReferencePositiveCountKernel.Get(in finalGroup.__agg0)) { __musoqSequence = result.Count });
                             __op24OutputRows += 1;
                         }
                     }
@@ -549,19 +542,14 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
 
                     var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                     __op25Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op25Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op25Scope.AddOutputRows(result.Count);
                     __op25Scope.Dispose();
                     if (__op19InputRows > 0L)
                         profileRecorder?.AddOperatorInputRows(__op19Handle, __op19InputRows);
@@ -571,7 +559,7 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
                         profileRecorder?.AddOperatorOutputRows(__op21Handle, __op21OutputRows);
                     if (__op24OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op24Handle, __op24OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -667,6 +655,7 @@ namespace GeneratedSample_P33_TypedReferenceKernelState_Full
 
             public string Partition { get; }
             public long Positive { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

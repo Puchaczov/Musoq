@@ -33,7 +33,7 @@ PhysicalCte
           PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Population > 0)]
   Query
     PhysicalMultiStatement
-      PhysicalProject [b.Name as b.Name, b.Population as b.Population, a.Name as a.Name, a.City as a.City]
+      PhysicalProject [b.Name as b.Name, b.Population as b.Population, a.City as a.City]
         PhysicalHashJoin [Inner] [build: b.Name] [probe: a.Name]
           PhysicalCteRef [base as b]
           PhysicalSchemaScan [#A.entities() as a]
@@ -66,12 +66,10 @@ ExecutionPlan [compiled]
     Generated [Statement0Row0]
       b.Name: string <- field b_Name
       b.Population: decimal <- field b_Population
-      a.Name: string <- field a_Name
       a.City: string <- field a_City
     TableRow [ba]
       b.Name: string <- field b_Name
       b.Population: decimal <- field b_Population
-      a.Name: string <- field a_Name
       a.City: string <- field a_City
     Generated [ResultRow0]
       Name: string <- field Name
@@ -102,7 +100,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Name] -> statement0BHashMatches]
         ForEach [b in statement0BHashMatches]
-          AppendRow [statement0 <- Statement0Row0(b.Name: b.Name, b.Population: b.Population, a.Name: a.Name, a.City: a.City)]
+          AppendRow [statement0 <- Statement0Row0(b.Name: b.Name, b.Population: b.Population, a.City: a.City)]
     StoreTable [statement0 -> _cteRowResults.Slot1: GeneratedColumnarBuffer<Statement0Row0>]
     PhaseBoundary [End:cte1]
     Materialize [_cteRowResults.Slot1 -> resultWindowRows]
@@ -146,8 +144,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
         {
             new Column("b.Name", typeof(string), 0),
             new Column("b.Population", typeof(decimal), 1),
-            new Column("a.Name", typeof(string), 2),
-            new Column("a.City", typeof(string), 3)
+            new Column("a.City", typeof(string), 2)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Population", typeof(decimal), 1) });
@@ -406,7 +403,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
                                     foreach (var b in statement0BHashMatches)
                                     {
                                         token.ThrowIfCancellationRequested();
-                                        statement0.Add(b.Name, b.Population, a.Name, a.City);
+                                        statement0.Add(b.Name, b.Population, a.City);
                                     }
                                 }
                             }
@@ -431,7 +428,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
                                     foreach (var b in statement0BHashMatches)
                                     {
                                         token.ThrowIfCancellationRequested();
-                                        statement0.Add(b.Name, b.Population, a.Name, a.City);
+                                        statement0.Add(b.Name, b.Population, a.City);
                                     }
                                 }
                             }
@@ -454,7 +451,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
                             foreach (var b in statement0BHashMatches)
                             {
                                 token.ThrowIfCancellationRequested();
-                                statement0.Add(b.Name, b.Population, a.Name, a.City);
+                                statement0.Add(b.Name, b.Population, a.City);
                             }
                         }
                     }
@@ -549,8 +546,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
 
             public string b_Name => __buffer.Column0[__index];
             public decimal b_Population => __buffer.Column1[__index];
-            public string a_Name => __buffer.Column2[__index];
-            public string a_City => __buffer.Column3[__index];
+            public string a_City => __buffer.Column2[__index];
         }
 
         private sealed class StoredTableColumn<T>
@@ -599,23 +595,20 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
             public readonly StoredTableColumn<string> Column0;
             public readonly StoredTableColumn<decimal> Column1;
             public readonly StoredTableColumn<string> Column2;
-            public readonly StoredTableColumn<string> Column3;
             public StoredTableColumnBuffer1(int capacity = 0)
             {
                 Column0 = new StoredTableColumn<string>(capacity);
                 Column1 = new StoredTableColumn<decimal>(capacity);
                 Column2 = new StoredTableColumn<string>(capacity);
-                Column3 = new StoredTableColumn<string>(capacity);
             }
 
             public int Count => Column0.Count;
 
-            public void Add(string value0, decimal value1, string value2, string value3)
+            public void Add(string value0, decimal value1, string value2)
             {
                 Column0.Add(value0);
                 Column1.Add(value1);
                 Column2.Add(value2);
-                Column3.Add(value3);
             }
 
             public void EnsureCapacity(int capacity)
@@ -623,7 +616,6 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
                 Column0.EnsureCapacity(capacity);
                 Column1.EnsureCapacity(capacity);
                 Column2.EnsureCapacity(capacity);
-                Column3.EnsureCapacity(capacity);
             }
 
             public Statement0Row0 this[int index] => new Statement0Row0(this, index);

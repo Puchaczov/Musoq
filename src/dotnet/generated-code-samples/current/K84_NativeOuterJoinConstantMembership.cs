@@ -19,7 +19,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Id as a.Id, b.Id as b.Id, b.Label as b.Label]
+  PhysicalProject [a.Id as a.Id, b.Label as b.Label]
     PhysicalHashJoin [LeftOuter] [build: b.Id] [probe: (a.Id + 1)]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -40,11 +40,9 @@ ExecutionPlan [compiled]
       Label: string <- property Label
     Generated [Statement0Row0]
       a.Id: int <- field a_Id
-      b.Id: int? <- field b_Id
       b.Label: string <- field b_Label
     TableRow [ab]
       a.Id: int <- field a_Id
-      b.Id: int? <- field b_Id
       b.Label: string <- field b_Label
     Generated [ResultRow0]
       Id: int <- field Id
@@ -64,15 +62,15 @@ ExecutionPlan [compiled]
       HashProbe [statement0BHash[(a.Id + 1)] -> statement0BHashMatches] [match: statement0BHashHasMatch]
         ForEach [b in statement0BHashMatches]
           Assign [statement0BHashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, b.Id: b.Id, b.Label: b.Label)]
+          AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, b.Label: b.Label)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, b.Id: NULL, b.Label: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, b.Label: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [ab in _cteRowResults.Slot0]
       If [ab.b.Label IN ('match', NULL)]
         AppendShape [result <- ResultShape0(Id: ab.a.Id)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -104,8 +102,7 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
         private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
         {
             new Column("a.Id", typeof(int), 0),
-            new Column("b.Id", typeof(int?), 1),
-            new Column("b.Label", typeof(string), 2)
+            new Column("b.Label", typeof(string), 1)
         };
         private static readonly string[] __inSet_compiled_0 = new string[]
         {
@@ -149,7 +146,6 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Where);
@@ -167,23 +163,18 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
                     if ((Array.IndexOf(__inSet_compiled_0, ab.b_Label) >= 0))
                     {
-                        result.Add(new ResultShape0(ab.a_Id));
+                        result.Add(new ResultShape0(ab.a_Id) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -334,13 +325,13 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                                 {
                                     token.ThrowIfCancellationRequested();
                                     statement0BHashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Id, b.Id, b.Label));
+                                    statement0.Add(new Statement0Row0(a.Id, b.Label));
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Id, null, null));
+                                statement0.Add(new Statement0Row0(a.Id, null));
                             }
                         }
 
@@ -366,13 +357,13 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                                 {
                                     token.ThrowIfCancellationRequested();
                                     statement0BHashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Id, b.Id, b.Label));
+                                    statement0.Add(new Statement0Row0(a.Id, b.Label));
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Id, null, null));
+                                statement0.Add(new Statement0Row0(a.Id, null));
                             }
                         }
 
@@ -396,13 +387,13 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                         {
                             token.ThrowIfCancellationRequested();
                             statement0BHashHasMatch = true;
-                            statement0.Add(new Statement0Row0(a.Id, b.Id, b.Label));
+                            statement0.Add(new Statement0Row0(a.Id, b.Label));
                         }
                     }
 
                     if (!statement0BHashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.Id, null, null));
+                        statement0.Add(new Statement0Row0(a.Id, null));
                     }
                 }
             }
@@ -459,19 +450,18 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
             }
 
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, int? __value1, string __value2)
+            public Statement0Row0(int __value0, string __value1)
             {
                 a_Id = __value0;
-                b_Id = __value1;
-                b_Label = __value2;
+                b_Label = __value1;
             }
 
             public int a_Id { get; }
-            public int? b_Id { get; }
             public string b_Label { get; }
         }
     }

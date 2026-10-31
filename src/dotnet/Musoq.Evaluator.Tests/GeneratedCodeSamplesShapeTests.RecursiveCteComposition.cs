@@ -60,7 +60,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RecursiveOuterConsumerSamples_ShouldRunAfterCompletedRecursiveResult()
     {
-        AssertOuterConsumerAfterRecursion("Q211_RecursiveOuterFilterOrder.cs", "SortShapeRows [");
+        AssertOuterConsumerAfterRecursion("Q211_RecursiveOuterFilterOrder.cs", "SortOwnedBuffer [");
         AssertOuterConsumerAfterRecursion("Q212_RecursiveOuterJoin.cs", "CreateHash [lHash");
         AssertOuterConsumerAfterRecursion("Q213_RecursiveOuterAggregate.cs", "CreateAggregateContext [");
         AssertOuterConsumerAfterRecursion("Q214_RecursiveOuterWindowAndSet.cs", "ComputeRowNumberWindow [");

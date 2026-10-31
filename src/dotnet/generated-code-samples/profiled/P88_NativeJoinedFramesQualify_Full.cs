@@ -41,7 +41,7 @@ Cte
 PhysicalCte
   Definition [joined]
     PhysicalMultiStatement
-      PhysicalProject [a.Position as a.Position, a.Partition as a.Partition, a.Value as a.Value, b.Position as b.Position, b.Value as b.Value]
+      PhysicalProject [a.Position as a.Position, a.Partition as a.Partition, a.Value as a.Value, b.Value as b.Value]
         PhysicalHashJoin [LeftOuter] [build: b.Position] [probe: (a.Position - 1)]
           PhysicalSchemaScan [#schema.first() as a]
           PhysicalSchemaScan [#schema.first() as b]
@@ -119,7 +119,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, joined in resultWindowRows]
       If [((resultRowNumbers0[windowIndex] > 0) AND (resultRowNumbers0[windowIndex] <= 5))]
         AppendShape [result <- ResultShape0(Position: joined.Position, Partition: joined.Partition, Total: resultSums1[windowIndex], Average: resultAvgs2[windowIndex], Present: resultCounts3[windowIndex], Previous: resultLags4[windowIndex], Number: resultRowNumbers0[windowIndex])]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -213,7 +213,6 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -372,23 +371,18 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     Cte0Row0 joined = resultWindowRows[windowIndex];
                     if ((((long)resultRowNumbers0[windowIndex] > 0L) && ((long)resultRowNumbers0[windowIndex] <= 5)))
                     {
-                        result.Add(new ResultShape0(joined.Position, joined.Partition, (int?)resultSums1[windowIndex], (decimal?)resultAvgs2[windowIndex], (long)resultCounts3[windowIndex], (int?)resultLags4[windowIndex], (long)resultRowNumbers0[windowIndex]));
+                        result.Add(new ResultShape0(joined.Position, joined.Partition, (int?)resultSums1[windowIndex], (decimal?)resultAvgs2[windowIndex], (long)resultCounts3[windowIndex], (int?)resultLags4[windowIndex], (long)resultRowNumbers0[windowIndex]) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -416,7 +410,6 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "PhaseBoundary") ?? OperatorProfileHandle.None;
@@ -429,7 +422,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     var __op56Handle = profileRecorder?.GetOperatorHandle("op56", "CreateShapeRows") ?? OperatorProfileHandle.None;
                     var __op57Handle = profileRecorder?.GetOperatorHandle("op57", "ForEachIndexed") ?? OperatorProfileHandle.None;
                     var __op59Handle = profileRecorder?.GetOperatorHandle("op59", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op60Handle = profileRecorder?.GetOperatorHandle("op60", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op60Handle = profileRecorder?.GetOperatorHandle("op60", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op59OutputRows = 0L;
                     var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
@@ -617,7 +610,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                             __op57OutputRows++;
                             if ((((long)resultRowNumbers0[windowIndex] > 0L) && ((long)resultRowNumbers0[windowIndex] <= 5)))
                             {
-                                result.Add(new ResultShape0(joined.Position, joined.Partition, (int?)resultSums1[windowIndex], (decimal?)resultAvgs2[windowIndex], (long)resultCounts3[windowIndex], (int?)resultLags4[windowIndex], (long)resultRowNumbers0[windowIndex]));
+                                result.Add(new ResultShape0(joined.Position, joined.Partition, (int?)resultSums1[windowIndex], (decimal?)resultAvgs2[windowIndex], (long)resultCounts3[windowIndex], (int?)resultLags4[windowIndex], (long)resultRowNumbers0[windowIndex]) { __musoqSequence = result.Count });
                                 __op59OutputRows += 1;
                             }
                         }
@@ -631,23 +624,18 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
 
                     var __op60Scope = profileRecorder?.BeginOperatorValue(__op60Handle) ?? OperatorProfileValueScope.None;
                     __op60Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op60Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op60Scope.AddOutputRows(result.Count);
                     __op60Scope.Dispose();
                     if (__op59OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op59Handle, __op59OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -1323,6 +1311,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
             public long Present { get; }
             public int? Previous { get; }
             public int? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultRowNumbers0OrderKeysKey : System.IEquatable<WindowResultRowNumbers0OrderKeysKey>, System.IComparable<WindowResultRowNumbers0OrderKeysKey>

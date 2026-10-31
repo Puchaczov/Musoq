@@ -41,7 +41,7 @@ Cte
 PhysicalCte
   Definition [joined]
     PhysicalMultiStatement
-      PhysicalProject [a.Position as a.Position, a.Partition as a.Partition, a.Value as a.Value, b.Position as b.Position, b.Value as b.Value]
+      PhysicalProject [a.Position as a.Position, a.Partition as a.Partition, a.Value as a.Value, b.Value as b.Value]
         PhysicalHashJoin [LeftOuter] [build: b.Position] [probe: (a.Position - 1)]
           PhysicalSchemaScan [#schema.first() as a]
           PhysicalSchemaScan [#schema.first() as b]
@@ -119,7 +119,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, joined in resultWindowRows]
       If [((resultRowNumbers0[windowIndex] > 0) AND (resultRowNumbers0[windowIndex] <= 5))]
         AppendShape [result <- ResultShape0(Position: joined.Position, Partition: joined.Partition, Total: resultSums1[windowIndex], Average: resultAvgs2[windowIndex], Present: resultCounts3[windowIndex], Previous: resultLags4[windowIndex], Number: resultRowNumbers0[windowIndex])]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -197,7 +197,6 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -356,23 +355,18 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                     Cte0Row0 joined = resultWindowRows[windowIndex];
                     if ((((long)resultRowNumbers0[windowIndex] > 0L) && ((long)resultRowNumbers0[windowIndex] <= 5)))
                     {
-                        result.Add(new ResultShape0(joined.Position, joined.Partition, (int?)resultSums1[windowIndex], (decimal?)resultAvgs2[windowIndex], (long)resultCounts3[windowIndex], (int?)resultLags4[windowIndex], (long)resultRowNumbers0[windowIndex]));
+                        result.Add(new ResultShape0(joined.Position, joined.Partition, (int?)resultSums1[windowIndex], (decimal?)resultAvgs2[windowIndex], (long)resultCounts3[windowIndex], (int?)resultLags4[windowIndex], (long)resultRowNumbers0[windowIndex]) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -729,6 +723,7 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
             public long Present { get; }
             public int? Previous { get; }
             public int? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultRowNumbers0OrderKeysKey : System.IEquatable<WindowResultRowNumbers0OrderKeysKey>, System.IComparable<WindowResultRowNumbers0OrderKeysKey>

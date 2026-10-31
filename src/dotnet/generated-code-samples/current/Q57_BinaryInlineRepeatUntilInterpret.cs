@@ -29,11 +29,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.Items as p.Items]
+  PhysicalProject [p.Items as p.Items]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#InlineRepeatPacket(f.Content) as p]
-  PhysicalProject [fp.f.Content as f.Content, fp.p.Items as p.Items, it.Tag as it.Tag, it.Value as it.Value]
+  PhysicalProject [it.Tag as it.Tag, it.Value as it.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fp as fp]
       PhysicalPropertySource [fp.p.Items as it] [apply: Cross] [type: Object[]]
@@ -50,10 +50,8 @@ ExecutionPlan [compiled]
     SourceEntity [p: object]
       Items: object[] <- property Items
     Generated [Statement0Row0]
-      f.Content: byte[] <- field f_Content
       p.Items: object[] <- field p_Items
     TableRow [fp]
-      f.Content: byte[] <- field f_Content
       p.Items: object[] <- field p_Items
     SourceEntity [it: object]
       Tag: byte <- property Tag
@@ -70,7 +68,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in statement0_fRows]
       InterpretSource [InlineRepeatPacket.Interpret(f.Content) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(f.Content: f.Content, p.Items: p.Items)]
+        AppendRow [statement0 <- Statement0Row0(p.Items: p.Items)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -111,8 +109,7 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("p.Items", typeof(Musoq.Generated.Interpreters.Inline_Items[]), 1)
+            new Column("p.Items", typeof(Musoq.Generated.Interpreters.Inline_Items[]), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
         public ILogger Logger { get; set; }
@@ -243,7 +240,7 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Items));
+                                statement0.Add(new Statement0Row0(p.Items));
                             }
                         }
 
@@ -267,7 +264,7 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Items));
+                                statement0.Add(new Statement0Row0(p.Items));
                             }
                         }
 
@@ -289,7 +286,7 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(f.Content, p.Items));
+                        statement0.Add(new Statement0Row0(p.Items));
                     }
                 }
             }
@@ -343,13 +340,11 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.Inline_Items[] __value1)
+            public Statement0Row0(Musoq.Generated.Interpreters.Inline_Items[] __value0)
             {
-                f_Content = __value0;
-                p_Items = __value1;
+                p_Items = __value0;
             }
 
-            public byte[] f_Content { get; }
             public Musoq.Generated.Interpreters.Inline_Items[] p_Items { get; }
         }
     }

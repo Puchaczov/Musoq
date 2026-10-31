@@ -27,7 +27,7 @@ internal static partial class FinalOutputPlanner
             sortedSources = new Dictionary<string, string>(StringComparer.Ordinal);
         }
 
-        return new FinalOutputPlan(
+        var output = new FinalOutputPlan(
             result,
             supported,
             generatedRows ? FinalOutputRowRepresentation.GeneratedRow : FinalOutputRowRepresentation.SelectShape,
@@ -36,5 +36,6 @@ internal static partial class FinalOutputPlanner
             generatedRows,
             sourceBuffers.ToFrozenDictionary(StringComparer.Ordinal),
             sortedSources.ToFrozenDictionary(StringComparer.Ordinal));
+        return SelectOwnedTerminalBuffer(plan, output);
     }
 }

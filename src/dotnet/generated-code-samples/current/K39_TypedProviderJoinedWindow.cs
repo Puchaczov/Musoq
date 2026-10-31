@@ -19,7 +19,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Id as a.Id, a.Amount as a.Amount, b.Id as b.Id]
+  PhysicalProject [a.Id as a.Id, a.Amount as a.Amount]
     PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]
       PhysicalSchemaScan [#typedrows.rows() as a] [query-row:SealedClass;lifetime=EscapesScan;shape=896769F4889215AC88BDFADE9351576307B6F8F655D2248082FAD5BDA158FBCB]
       PhysicalSchemaScan [#typedrows.rows() as b] [query-row:SealedClass;lifetime=EscapesScan;shape=3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B]
@@ -42,11 +42,9 @@ ExecutionPlan [compiled]
     Generated [Statement0Row0]
       a.Id: int <- field a_Id
       a.Amount: decimal? <- field a_Amount
-      b.Id: int <- field b_Id
     TableRow [ab]
       a.Id: int <- field a_Id
       a.Amount: decimal? <- field a_Amount
-      b.Id: int <- field b_Id
     Generated [ResultRow0]
       Id: int <- field Id
       Total: decimal? <- field Total
@@ -65,7 +63,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Id] -> statement0BHashMatches]
         ForEach [b in statement0BHashMatches]
-          AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, a.Amount: a.Amount, b.Id: b.Id)]
+          AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, a.Amount: a.Amount)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     Materialize [_cteRowResults.Slot0 -> resultWindowRows]
     ComputeSumWindowKernel[BoundedRows] [resultSums0 <- resultWindowRows value ab.a.Amount order by ab.a.Id ASC frame range between unbounded preceding and current row]
@@ -73,7 +71,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ab in resultWindowRows]
       AppendShape [result <- ResultShape0(Id: ab.a.Id, Total: resultSums0[windowIndex], Number: resultRowNumbers1[windowIndex])]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -107,8 +105,7 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
         private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
         {
             new Column("a.Id", typeof(int), 0),
-            new Column("a.Amount", typeof(decimal?), 1),
-            new Column("b.Id", typeof(int), 2)
+            new Column("a.Amount", typeof(decimal?), 1)
         };
         private static readonly QueryRowShape __queryRowShape_3D4EDDB8B07D = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false) });
         private static readonly QueryRowShape __queryRowShape_896769F48892 = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false), new QueryRowField(1, 1, "Amount", typeof(decimal?), true) });
@@ -149,7 +146,6 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -217,22 +213,17 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
                     }
 
                     Statement0Row0 ab = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(ab.a_Id, (decimal?)resultSums0[windowIndex], (long)resultRowNumbers1[windowIndex]));
+                    result.Add(new ResultShape0(ab.a_Id, (decimal?)resultSums0[windowIndex], (long)resultRowNumbers1[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -377,7 +368,7 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement0.Add(new Statement0Row0(a.Field0, a.Field1, b.Field0));
+                                    statement0.Add(new Statement0Row0(a.Field0, a.Field1));
                                 }
                             }
                         }
@@ -402,7 +393,7 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement0.Add(new Statement0Row0(a.Field0, a.Field1, b.Field0));
+                                    statement0.Add(new Statement0Row0(a.Field0, a.Field1));
                                 }
                             }
                         }
@@ -425,7 +416,7 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            statement0.Add(new Statement0Row0(a.Field0, a.Field1, b.Field0));
+                            statement0.Add(new Statement0Row0(a.Field0, a.Field1));
                         }
                     }
                 }
@@ -533,20 +524,19 @@ namespace GeneratedSample_K39_TypedProviderJoinedWindow
             public int Id { get; }
             public long Number { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, decimal? __value1, int __value2)
+            public Statement0Row0(int __value0, decimal? __value1)
             {
                 a_Id = __value0;
                 a_Amount = __value1;
-                b_Id = __value2;
             }
 
             public decimal? a_Amount { get; }
             public int a_Id { get; }
-            public int b_Id { get; }
         }
 
         private readonly struct WindowResultSums0OrderKeysKey : System.IEquatable<WindowResultSums0OrderKeysKey>, System.IComparable<WindowResultSums0OrderKeysKey>

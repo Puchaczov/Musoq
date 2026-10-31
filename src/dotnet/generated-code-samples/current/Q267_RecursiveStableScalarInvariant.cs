@@ -40,13 +40,13 @@ PhysicalCte
         PhysicalMultiStatement
           PhysicalProject [ko3iko.RootId as Id, 0 as Depth]
             PhysicalSchemaScan [#graph.roots() as ko3iko]
-      Invariant [__recursive_eexpected_invariant_0; HashIndex; fields e.SourceId, e.TargetId, e.Label, expected.Label]
+      Invariant [__recursive_eexpected_invariant_0; HashIndex; fields e.SourceId, e.TargetId]
         PhysicalHashJoin [Inner] [build: expected.Label] [probe: e.Label]
           PhysicalSchemaScan [#graph.edges() as e]
           PhysicalValuesScan [2 rows as expected]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [eexpected.e.SourceId as e.SourceId, eexpected.e.TargetId as e.TargetId, eexpected.e.Label as e.Label, eexpected.expected.Label as expected.Label, r.Id as Id, r.Depth as Depth]
+          PhysicalProject [eexpected.e.TargetId as e.TargetId, r.Id as Id, r.Depth as Depth]
             PhysicalHashJoin [Inner] [build: eexpected.e.SourceId] [probe: r.Id]
               PhysicalCteRef [__recursive_eexpected_invariant_0 as eexpected]
               PhysicalCteRef [reachable as r]
@@ -77,13 +77,9 @@ ExecutionPlan [compiled]
     Generated [Cte0Invariant0Row0]
       e.SourceId: int <- field e_SourceId
       e.TargetId: int <- field e_TargetId
-      e.Label: string <- field e_Label
-      expected.Label: string <- field expected_Label
     TableRow [eexpected]
       e.SourceId: int <- field e_SourceId
       e.TargetId: int <- field e_TargetId
-      e.Label: string <- field e_Label
-      expected.Label: string <- field expected_Label
     TableRow [r]
       Id: int <- field Id
       Depth: int <- field Depth
@@ -115,7 +111,7 @@ ExecutionPlan [compiled]
             ForEach [expected in cte0Invariant0ExpectedHashMatches]
               ScopedBlock
                 RecursiveSnapshotGuard [__cte0SnapshotRows < 10000000; reachable]
-                CreateGeneratedRow [cte0Invariant0Row <- Cte0Invariant0Row0(e.SourceId: e.SourceId, e.TargetId: e.TargetId, e.Label: e.Label, expected.Label: expected.Label)]
+                CreateGeneratedRow [cte0Invariant0Row <- Cte0Invariant0Row0(e.SourceId: e.SourceId, e.TargetId: e.TargetId)]
                 HashAdd [cte0Invariant0Hash[cte0Invariant0Row.e.SourceId] += cte0Invariant0Row]
       RecursiveMember
         ForEach [r in cte0CurrentFrontier]
@@ -130,7 +126,7 @@ ExecutionPlan [compiled]
     ForEach [reachable in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: reachable.Id, Depth: reachable.Depth)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -197,7 +193,6 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -354,7 +349,7 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
                                                     }
 
                                                     __cte0SnapshotRows++;
-                                                    Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId, e.Label, expected.Label);
+                                                    Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId);
                                                     int cte0Invariant0HashKey = cte0Invariant0Row.e_SourceId;
                                                     {
                                                         ref var cte0Invariant0HashMatches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0Hash, cte0Invariant0HashKey, out var cte0Invariant0HashMatchesExists);
@@ -399,7 +394,7 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
                                                     }
 
                                                     __cte0SnapshotRows++;
-                                                    Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId, e.Label, expected.Label);
+                                                    Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId);
                                                     int cte0Invariant0HashKey = cte0Invariant0Row.e_SourceId;
                                                     {
                                                         ref var cte0Invariant0HashMatches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0Hash, cte0Invariant0HashKey, out var cte0Invariant0HashMatchesExists);
@@ -442,7 +437,7 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
                                             }
 
                                             __cte0SnapshotRows++;
-                                            Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId, e.Label, expected.Label);
+                                            Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId);
                                             int cte0Invariant0HashKey = cte0Invariant0Row.e_SourceId;
                                             {
                                                 ref var cte0Invariant0HashMatches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0Hash, cte0Invariant0HashKey, out var cte0Invariant0HashMatchesExists);
@@ -535,23 +530,18 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
                     }
 
                     Cte0Row0 reachable = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(reachable.Id, reachable.Depth));
+                    result.Add(new ResultShape0(reachable.Id, reachable.Depth) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -580,18 +570,14 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
 
         private readonly struct Cte0Invariant0Row0
         {
-            public Cte0Invariant0Row0(int e_SourceId, int e_TargetId, string e_Label, string expected_Label)
+            public Cte0Invariant0Row0(int e_SourceId, int e_TargetId)
             {
                 this.e_SourceId = e_SourceId;
                 this.e_TargetId = e_TargetId;
-                this.e_Label = e_Label;
-                this.expected_Label = expected_Label;
             }
 
             public int e_SourceId { get; }
             public int e_TargetId { get; }
-            public string e_Label { get; }
-            public string expected_Label { get; }
         }
 
         private readonly struct Cte0Row0
@@ -663,6 +649,7 @@ namespace GeneratedSample_Q267_RecursiveStableScalarInvariant
 
             public int Depth { get; }
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class expectedValuesF9227A53Row0 : Row

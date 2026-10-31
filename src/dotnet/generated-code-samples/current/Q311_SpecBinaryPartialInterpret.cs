@@ -20,7 +20,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.ErrorField as p.ErrorField, p.ErrorMessage as p.ErrorMessage, p.BytesConsumed as p.BytesConsumed]
+  PhysicalProject [p.ErrorField as p.ErrorField, p.ErrorMessage as p.ErrorMessage, p.BytesConsumed as p.BytesConsumed]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#DebugPacket(f.Content) as p]

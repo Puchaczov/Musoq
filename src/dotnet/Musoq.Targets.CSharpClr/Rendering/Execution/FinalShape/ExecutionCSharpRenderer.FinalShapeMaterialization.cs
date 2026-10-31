@@ -11,6 +11,10 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionMaterializeRecordListToTable materialize,
         ExecutionRenderContext context)
     {
+        if (context.Session.FinalShapeYieldSink?.OwnedBuffer is { SequenceField: null } owned &&
+            owned.SourceName == materialize.Source.Name)
+            return [];
+
         var statements = new List<StatementSyntax>();
 
         const string rowNumberVariableName = "rowNumber";

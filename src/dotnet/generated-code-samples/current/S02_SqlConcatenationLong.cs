@@ -1,4 +1,4 @@
-// === Parsed Query ===
+﻿// === Parsed Query ===
 /*
 select Name || City || Name || City || Name || City || Name || City as A from #A.entities()
 */

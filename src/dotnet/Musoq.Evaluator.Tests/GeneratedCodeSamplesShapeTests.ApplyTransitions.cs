@@ -129,7 +129,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetSum", "SetDistinctAggregate");
         Assert.Contains("inm.Sum(distinct n.Value)", result.ExecutionPlanText);
-        Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [", result.ExecutionPlanText);
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ConvertTableToSourcePattern));
@@ -175,7 +175,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertUsesTypedAggregateState(result, "SetMin", "SetMax", "SetDistinctAggregate");
         Assert.Contains("inm.Min(distinct n.Value)", result.ExecutionPlanText);
         Assert.Contains("inm.Max(distinct n.Value)", result.ExecutionPlanText);
-        Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
@@ -223,7 +223,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetAvg", "SetDistinctAggregate");
         Assert.Contains("inm.Avg(distinct n.Value)", result.ExecutionPlanText);
-        Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));

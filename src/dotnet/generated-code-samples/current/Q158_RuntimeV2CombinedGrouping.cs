@@ -74,7 +74,7 @@ ExecutionPlan [compiled]
     ForEach [finalGroup in groupsToFinalize]
       If [((ko3iko.Count(*) > 1) AND (ko3iko.Sum(ko3iko.Amount::Decimal) > '10.00'::Decimal))]
         AppendShape [result <- ResultShape0(c: finalGroup.ko3iko.City, pop: finalGroup.ko3iko.Population::Int32, cnt: ko3iko.Count(*), total: ko3iko.Sum(ko3iko.Amount::Decimal))]
-    SortShapeRows [result -> resultSorted by c ASC]
+    SortOwnedBuffer [result by c ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -141,7 +141,6 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#features");
@@ -297,23 +296,18 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
 
                     })) == true)
                     {
-                        result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
+                        result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.c, right.c);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -425,6 +419,7 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                 this.total = total;
             }
 
+            public int __musoqSequence { get; init; }
             public string c { get; }
             public long cnt { get; }
             public int? pop { get; }

@@ -18,7 +18,8 @@ internal static class ExecutionRowStreams
     {
         return rows switch
         {
-            ExecutionRowStream stream => new ExecutionRowStream(variable, stream.Kind),
+            ExecutionRowStream stream => new ExecutionRowStream(variable, stream.Kind)
+                { HasDirectScalarElements = stream.HasDirectScalarElements, IsValueEnumerable = stream.IsValueEnumerable },
             ExecutionScalarRowStream => new ExecutionScalarRowStream(variable),
             _ => new ExecutionVariableRead(variable)
         };

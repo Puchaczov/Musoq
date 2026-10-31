@@ -45,7 +45,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Partition: ko3iko.Partition, Position: ko3iko.Position, Label: resultFirstLabels[windowIndex])]
-    SortShapeRows [result -> resultSorted by Partition ASC, Position ASC, Label ASC]
+    SortOwnedBuffer [result by Partition ASC, Position ASC, Label ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
     PhaseBoundary [Select]
 */
@@ -112,7 +112,6 @@ namespace GeneratedSample_K41_TypedCompositeOrderKeyContext
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -161,10 +160,10 @@ namespace GeneratedSample_K41_TypedCompositeOrderKeyContext
                     }
 
                     Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.OrderKeyRow ko3iko = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(ko3iko.Partition, ko3iko.Position, (string)resultFirstLabels[windowIndex]));
+                    result.Add(new ResultShape0(ko3iko.Partition, ko3iko.Position, (string)resultFirstLabels[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Partition.CompareTo(right.Partition);
                     if (comparison != 0)
@@ -175,15 +174,10 @@ namespace GeneratedSample_K41_TypedCompositeOrderKeyContext
                     comparison = StringComparer.Ordinal.Compare(left.Label, right.Label);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -270,6 +264,7 @@ namespace GeneratedSample_K41_TypedCompositeOrderKeyContext
             public string Label { get; }
             public int Partition { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultFirstLabelsOrderKeysKey : System.IEquatable<WindowResultFirstLabelsOrderKeysKey>, System.IComparable<WindowResultFirstLabelsOrderKeysKey>

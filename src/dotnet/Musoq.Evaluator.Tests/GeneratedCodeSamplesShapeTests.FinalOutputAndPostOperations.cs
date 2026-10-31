@@ -87,7 +87,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("new Cte0HashPayload0(ko3iko.Name, ko3iko.Population)", sample, CteJoinFrameQualifySampleFileName);
         Assert.Contains("GeneratedColumnarBuffer<Statement0Row0>", sample, CteJoinFrameQualifySampleFileName);
         Assert.Contains("public Statement0Row0(StoredTableColumnBuffer1 buffer, int index)", sample, CteJoinFrameQualifySampleFileName);
-        Assert.Contains("statement0.Add(b.Name, b.Population, a.Name, a.City)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.Contains("statement0.Add(b.Name, b.Population, a.City)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.DoesNotContain("statement0.Add(b.Name, b.Population, a.Name, a.City)", sample, CteJoinFrameQualifySampleFileName);
     }
 
 }

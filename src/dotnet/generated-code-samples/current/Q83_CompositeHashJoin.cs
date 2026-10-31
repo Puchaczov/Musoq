@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Name as a.Name, a.Population as a.Population, a.Id as a.Id, b.Name as b.Name, b.Population as b.Population, b.Id as b.Id]
+  PhysicalProject [a.Name as a.Name, b.Name as b.Name]
     PhysicalHashJoin [Inner] [build: b.Id, b.Population] [probe: a.Id, a.Population]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#B.entities() as b]

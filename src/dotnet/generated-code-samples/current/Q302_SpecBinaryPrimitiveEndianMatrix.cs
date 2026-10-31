@@ -27,7 +27,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.LittleInt as p.LittleInt, p.BigInt as p.BigInt, p.LittleShort as p.LittleShort, p.BigShort as p.BigShort, p.LittleFloat as p.LittleFloat, p.LittleDouble as p.LittleDouble]
+  PhysicalProject [p.LittleInt as p.LittleInt, p.BigInt as p.BigInt, p.LittleShort as p.LittleShort, p.BigShort as p.BigShort, p.LittleFloat as p.LittleFloat, p.LittleDouble as p.LittleDouble]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#PrimitiveMatrix(f.Content) as p]

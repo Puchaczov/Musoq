@@ -1,37 +1,10 @@
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Logical.Nodes;
 
 namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static InvocationExpressionSyntax WrapInTryCatchReturningNull(
-        ExpressionSyntax expression,
-        string typeName)
-    {
-        var tryBlock = SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expression));
-        var catchClause = SyntaxFactory.CatchClause()
-            .WithDeclaration(SyntaxFactory.CatchDeclaration(
-                SyntaxFactory.ParseTypeName("global::Musoq.Schema.Interpreters.ParseException")))
-            .WithBlock(SyntaxFactory.Block(
-                SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))));
-        var lambda = SyntaxFactory.ParenthesizedLambdaExpression()
-            .WithBlock(SyntaxFactory.Block(SyntaxFactory.TryStatement()
-                .WithBlock(tryBlock)
-                .WithCatches(SyntaxFactory.SingletonList(catchClause))));
-        var funcType = SyntaxFactory.GenericName("Func")
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                    SyntaxFactory.NullableType(SyntaxFactory.ParseTypeName(typeName)))));
-
-        return SyntaxFactory.InvocationExpression(
-            SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.ObjectCreationExpression(funcType)
-                    .WithArgumentList(CreateArgumentList(lambda))));
-    }
-
     private static string ResolveInterpretMethodName(InterpretSourceKind kind)
     {
         return kind switch

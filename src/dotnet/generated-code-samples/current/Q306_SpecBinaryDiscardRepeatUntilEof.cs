@@ -31,11 +31,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, s.Items as s.Items]
+  PhysicalProject [s.Items as s.Items]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#ItemStream(f.Content) as s]
-  PhysicalProject [fs.f.Content as f.Content, fs.s.Items as s.Items, i.Value as i.Value]
+  PhysicalProject [i.Value as i.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fs as fs]
       PhysicalPropertySource [fs.s.Items as i] [apply: Cross] [type: Object[]]
@@ -52,10 +52,8 @@ ExecutionPlan [compiled]
     SourceEntity [s: object]
       Items: object[] <- property Items
     Generated [Statement0Row0]
-      f.Content: byte[] <- field f_Content
       s.Items: object[] <- field s_Items
     TableRow [fs]
-      f.Content: byte[] <- field f_Content
       s.Items: object[] <- field s_Items
     SourceEntity [i: object]
       Value: byte <- property Value
@@ -70,7 +68,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in statement0_fRows]
       InterpretSource [ItemStream.Interpret(f.Content) -> statement0_sRows]
       ScalarForEach [s in statement0_sRows]
-        AppendRow [statement0 <- Statement0Row0(f.Content: f.Content, s.Items: s.Items)]
+        AppendRow [statement0 <- Statement0Row0(s.Items: s.Items)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -110,8 +108,7 @@ namespace GeneratedSample_Q306_SpecBinaryDiscardRepeatUntilEof
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("s.Items", typeof(Musoq.Generated.Interpreters.Item[]), 1)
+            new Column("s.Items", typeof(Musoq.Generated.Interpreters.Item[]), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
         public ILogger Logger { get; set; }
@@ -242,7 +239,7 @@ namespace GeneratedSample_Q306_SpecBinaryDiscardRepeatUntilEof
                             {
                                 token.ThrowIfCancellationRequested();
                                 var s = statement0_sRows;
-                                statement0.Add(new Statement0Row0(f.Content, s.Items));
+                                statement0.Add(new Statement0Row0(s.Items));
                             }
                         }
 
@@ -266,7 +263,7 @@ namespace GeneratedSample_Q306_SpecBinaryDiscardRepeatUntilEof
                             {
                                 token.ThrowIfCancellationRequested();
                                 var s = statement0_sRows;
-                                statement0.Add(new Statement0Row0(f.Content, s.Items));
+                                statement0.Add(new Statement0Row0(s.Items));
                             }
                         }
 
@@ -288,7 +285,7 @@ namespace GeneratedSample_Q306_SpecBinaryDiscardRepeatUntilEof
                     {
                         token.ThrowIfCancellationRequested();
                         var s = statement0_sRows;
-                        statement0.Add(new Statement0Row0(f.Content, s.Items));
+                        statement0.Add(new Statement0Row0(s.Items));
                     }
                 }
             }
@@ -336,13 +333,11 @@ namespace GeneratedSample_Q306_SpecBinaryDiscardRepeatUntilEof
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.Item[] __value1)
+            public Statement0Row0(Musoq.Generated.Interpreters.Item[] __value0)
             {
-                f_Content = __value0;
-                s_Items = __value1;
+                s_Items = __value0;
             }
 
-            public byte[] f_Content { get; }
             public Musoq.Generated.Interpreters.Item[] s_Items { get; }
         }
     }

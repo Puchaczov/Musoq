@@ -29,7 +29,7 @@ PhysicalCte
         PhysicalSchemaScan [#dynamic.all() as d] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=6CE20F4D259D3B79D13AB2D9B2DEFCA5236BC4E894D4B74115E4B3F88F7F8AFB]
   Query
     PhysicalMultiStatement
-      PhysicalProject [l.Team as l.Team, l.Name as l.Name, l.Score as l.Score, r.Team as r.Team, r.Name as r.Name, r.Score as r.Score]
+      PhysicalProject [l.Name as l.Name, r.Name as r.Name]
         PhysicalNestedLoopJoin [AsofInner] [((l.Team = r.Team) AND (l.Score >= r.Score))]
           PhysicalSchemaScan [#dynamic.all() as l] [query-row:SealedClass;lifetime=EscapesScan;shape=6CE20F4D259D3B79D13AB2D9B2DEFCA5236BC4E894D4B74115E4B3F88F7F8AFB]
           PhysicalCteRef [rightCte as r]

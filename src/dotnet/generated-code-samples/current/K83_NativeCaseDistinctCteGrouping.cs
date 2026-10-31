@@ -82,7 +82,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Name: finalGroup.Name, name: finalGroup.name, Present: data.Count(data.Position))]
-    SortShapeRows [result -> resultSorted by name ASC]
+    SortOwnedBuffer [result by name ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -155,7 +155,6 @@ namespace GeneratedSample_K83_NativeCaseDistinctCteGrouping
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -194,22 +193,17 @@ namespace GeneratedSample_K83_NativeCaseDistinctCteGrouping
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg0.Count));
+                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg0.Count) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = Nullable.Compare(left.name, right.name);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -401,6 +395,7 @@ namespace GeneratedSample_K83_NativeCaseDistinctCteGrouping
 
             public string Name { get; }
             public long Present { get; }
+            public int __musoqSequence { get; init; }
             public int? name { get; }
         }
     }

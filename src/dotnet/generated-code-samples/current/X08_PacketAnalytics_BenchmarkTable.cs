@@ -47,19 +47,19 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [r.Key as r.Key, r.Payload as r.Payload, r.Text as r.Text, p.Body as p.Body, p.Tail as p.Tail]
+  PhysicalProject [r.Key as r.Key, r.Text as r.Text, p.Body as p.Body, p.Tail as p.Tail]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#bench.rows() as r]
       PhysicalInterpretSource [#Packet(r.Payload) as p]
-  PhysicalProject [rp.r.Key as r.Key, rp.r.Payload as r.Payload, rp.r.Text as r.Text, rp.p.Body as p.Body, rp.p.Tail as p.Tail]
+  PhysicalProject [rp.r.Key as r.Key, rp.r.Text as r.Text, rp.p.Body as p.Body]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [rp as rp]
       PhysicalPropertySource [rp.p.Tail as b] [apply: Cross] [type: Byte[]]
-  PhysicalProject [rpb.r.Key as r.Key, rpb.r.Payload as r.Payload, rpb.r.Text as r.Text, rpb.p.Body as p.Body, rpb.p.Tail as p.Tail, t.Level as t.Level]
+  PhysicalProject [rpb.r.Key as r.Key, rpb.p.Body as p.Body, t.Level as t.Level]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [rpb as rpb]
       PhysicalInterpretSource [#Entry(rpb.r.Text) as t]
-  PhysicalProject [rpbt.r.Key as r.Key, rpbt.r.Payload as r.Payload, rpbt.r.Text as r.Text, rpbt.p.Body as p.Body, rpbt.p.Tail as p.Tail, rpbt.t.Level as t.Level, d.Key as Key]
+  PhysicalProject [rpbt.p.Body as p.Body, rpbt.t.Level as t.Level]
     PhysicalHashJoin [Inner] [build: rpbt.r.Key] [probe: d.Key]
       PhysicalCteRef [rpbt as rpbt]
       PhysicalSchemaScan [#bench.lookup() as d]
@@ -87,13 +87,11 @@ ExecutionPlan [compiled]
       Tail: byte[] <- property Tail
     Generated [Statement0Row0]
       r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
       r.Text: string <- field r_Text
       p.Body: object <- field p_Body
       p.Tail: byte[] <- field p_Tail
     TableRow [rp]
       r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
       r.Text: string <- field r_Text
       p.Body: object <- field p_Body
       p.Tail: byte[] <- field p_Tail
@@ -101,52 +99,32 @@ ExecutionPlan [compiled]
       Value: byte <- direct scalar value
     Generated [Statement1Row0]
       r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
       r.Text: string <- field r_Text
       p.Body: object <- field p_Body
-      p.Tail: byte[] <- field p_Tail
     TableRow [rpb]
       r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
       r.Text: string <- field r_Text
       p.Body: object <- field p_Body
-      p.Tail: byte[] <- field p_Tail
     SourceEntity [t: object]
       Level: string <- property Level
       Number: string <- property Number
       Label: string <- property Label
     Generated [Statement2Row0]
       r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
-      r.Text: string <- field r_Text
       p.Body: object <- field p_Body
-      p.Tail: byte[] <- field p_Tail
       t.Level: string <- field t_Level
     TableRow [rpbt]
       r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
-      r.Text: string <- field r_Text
       p.Body: object <- field p_Body
-      p.Tail: byte[] <- field p_Tail
       t.Level: string <- field t_Level
     SourceEntity [d: BenchmarkSampleRow]
       Key: int <- property Key
     Generated [Statement3Row0]
-      r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
-      r.Text: string <- field r_Text
       p.Body: object <- field p_Body
-      p.Tail: byte[] <- field p_Tail
       t.Level: string <- field t_Level
-      Key: int <- field Key
     TableRow [rpbtd]
-      r.Key: int <- field r_Key
-      r.Payload: byte[] <- field r_Payload
-      r.Text: string <- field r_Text
       p.Body: object <- field p_Body
-      p.Tail: byte[] <- field p_Tail
       t.Level: string <- field t_Level
-      Key: int <- field Key
     AggregateGroup [Statement4AggregateGroup; keys: 1; typed aggs: 2]
     Generated [Statement4Row0]
       t.Level: string <- field t_Level
@@ -172,23 +150,22 @@ ExecutionPlan [compiled]
       Let [rText: string = r.Text]
       InterpretSource [Packet.Interpret(r.Payload) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(r.Key: rKey, r.Payload: r.Payload, r.Text: rText, p.Body: p.Body, p.Tail: p.Tail)]
+        AppendRow [statement0 <- Statement0Row0(r.Key: rKey, r.Text: rText, p.Body: p.Body, p.Tail: p.Tail)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateTable [statement1: Statement1Row0]
     ForEach [rp in _cteRowResults.Slot0]
       Let [rprKey: int = rp.r.Key]
       Let [rprText: string = rp.r.Text]
       EnumerableSource [rp.p.Tail -> statement1_bRows]
-      ChunkedForEach [b in statement1_bRows]
-        AppendRow [statement1 <- Statement1Row0(r.Key: rprKey, r.Payload: rp.r.Payload, r.Text: rprText, p.Body: rp.p.Body, p.Tail: rp.p.Tail)]
+      ForEach [b in statement1_bRows]
+        AppendRow [statement1 <- Statement1Row0(r.Key: rprKey, r.Text: rprText, p.Body: rp.p.Body)]
     StoreTable [statement1 -> _cteRowResults.Slot1: List<Statement1Row0>]
     CreateTable [statement2: Statement2Row0]
     ForEach [rpb in _cteRowResults.Slot1]
       Let [rpbrKey: int = rpb.r.Key]
-      Let [rpbrText: string = rpb.r.Text]
       InterpretSource [Entry.Parse(rpb.r.Text) -> statement2_tRows]
       ScalarForEach [t in statement2_tRows]
-        AppendRow [statement2 <- Statement2Row0(r.Key: rpbrKey, r.Payload: rpb.r.Payload, r.Text: rpbrText, p.Body: rpb.p.Body, p.Tail: rpb.p.Tail, t.Level: t.Level)]
+        AppendRow [statement2 <- Statement2Row0(r.Key: rpbrKey, p.Body: rpb.p.Body, t.Level: t.Level)]
     StoreTable [statement2 -> _cteRowResults.Slot2: List<Statement2Row0>]
     SourceScan [d: BenchmarkSampleRow] -> statement3_dRows
     CreateTable [statement3: Statement3Row0]
@@ -198,7 +175,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [d in statement3_dRows]
       HashProbe [statement3RpbtHash[d.Key] -> statement3RpbtHashMatches]
         ForEach [rpbt in statement3RpbtHashMatches]
-          AppendRow [statement3 <- Statement3Row0(r.Key: rpbt.r.Key, r.Payload: rpbt.r.Payload, r.Text: rpbt.r.Text, p.Body: rpbt.p.Body, p.Tail: rpbt.p.Tail, t.Level: rpbt.t.Level, Key: d.Key)]
+          AppendRow [statement3 <- Statement3Row0(p.Body: rpbt.p.Body, t.Level: rpbt.t.Level)]
     StoreTable [statement3 -> _cteRowResults.Slot3: List<Statement3Row0>]
     CreateTable [statement4: Statement4Row0]
     PhaseBoundary [GroupBy]
@@ -216,7 +193,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [rpbtdScore in _cteRowResults.Slot4]
       AppendShape [result <- ResultShape0(Level: rpbtdScore.t.Level, Total: rpbtdScore.r.Sum(p.Body.Value::Int64), Count: rpbtdScore.r.Count(*))]
-    SortShapeRows [result -> resultSorted by Level ASC]
+    SortOwnedBuffer [result by Level ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -241,7 +218,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
 
     public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
     {
-        private static readonly Column[] __columns_compiled_result_6 = new Column[]
+        private static readonly Column[] __columns_compiled_result_7 = new Column[]
         {
             new Column("Level", typeof(string), 0),
             new Column("Total", typeof(long?), 1),
@@ -250,37 +227,34 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("r.Key", typeof(int), 0),
-            new Column("r.Payload", typeof(byte[]), 1),
-            new Column("r.Text", typeof(string), 2),
-            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 3),
-            new Column("p.Tail", typeof(byte[]), 4)
+            new Column("r.Text", typeof(string), 1),
+            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 2),
+            new Column("p.Tail", typeof(byte[]), 3)
         };
-        private static readonly Column[] __columns_compiled_statement2_2 = new Column[]
+        private static readonly Column[] __columns_compiled_statement1_2 = new Column[]
         {
             new Column("r.Key", typeof(int), 0),
-            new Column("r.Payload", typeof(byte[]), 1),
-            new Column("r.Text", typeof(string), 2),
-            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 3),
-            new Column("p.Tail", typeof(byte[]), 4),
-            new Column("t.Level", typeof(string), 5)
+            new Column("r.Text", typeof(string), 1),
+            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 2)
         };
-        private static readonly Column[] __columns_compiled_statement3_4 = new Column[]
+        private static readonly Column[] __columns_compiled_statement2_3 = new Column[]
         {
             new Column("r.Key", typeof(int), 0),
-            new Column("r.Payload", typeof(byte[]), 1),
-            new Column("r.Text", typeof(string), 2),
-            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 3),
-            new Column("p.Tail", typeof(byte[]), 4),
-            new Column("t.Level", typeof(string), 5),
-            new Column("Key", typeof(int), 6)
+            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 1),
+            new Column("t.Level", typeof(string), 2)
         };
-        private static readonly Column[] __columns_compiled_statement4_5 = new Column[]
+        private static readonly Column[] __columns_compiled_statement3_5 = new Column[]
+        {
+            new Column("p.Body", typeof(Musoq.Generated.Interpreters.Body), 0),
+            new Column("t.Level", typeof(string), 1)
+        };
+        private static readonly Column[] __columns_compiled_statement4_6 = new Column[]
         {
             new Column("t.Level", typeof(string), 0),
             new Column("r.Count(*)", typeof(long), 1),
             new Column("r.Sum(p.Body.Value::Int64)", typeof(long?), 2)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_d_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Key", typeof(int), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_d_4 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Key", typeof(int), 0) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Key", typeof(int), 0), new Column("Payload", typeof(byte[]), 1), new Column("Text", typeof(string), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
@@ -296,7 +270,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_6, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_7, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
@@ -317,7 +291,6 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -337,22 +310,17 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                     }
 
                     Statement4Row0 rpbtdScore = __storedTable4Rows[__storedTable4Index];
-                    result.Add(new ResultShape0(rpbtdScore.t_Level, rpbtdScore.r_Sum_p_Body_Value__Int64_, rpbtdScore.r_Count___));
+                    result.Add(new ResultShape0(rpbtdScore.t_Level, rpbtdScore.r_Sum_p_Body_Value__Int64_, rpbtdScore.r_Count___) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Level, right.Level);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -409,7 +377,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(rKey, r.Payload, rText, p.Body, p.Tail));
+                                statement0.Add(new Statement0Row0(rKey, rText, p.Body, p.Tail));
                             }
                         }
 
@@ -435,7 +403,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(rKey, r.Payload, rText, p.Body, p.Tail));
+                                statement0.Add(new Statement0Row0(rKey, rText, p.Body, p.Tail));
                             }
                         }
 
@@ -459,7 +427,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(rKey, r.Payload, rText, p.Body, p.Tail));
+                        statement0.Add(new Statement0Row0(rKey, rText, p.Body, p.Tail));
                     }
                 }
             }
@@ -482,55 +450,38 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                 Statement0Row0 rp = __storedTable0Rows[__storedTable0Index];
                 int rprKey = rp.r_Key;
                 string rprText = rp.r_Text;
-                var statement1_bRows = EvaluationHelper.ConvertEnumerableOutputToChunks<byte>(rp.p_Tail);
-                foreach (var bChunk in statement1_bRows)
-                {
-                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<byte> bChunkView)
-                    {
-                        if (bChunkView.Source is byte[] bChunkViewArray)
-                        {
-                            int bChunkViewOffset = bChunkView.Offset;
-                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                            {
-                                if ((bIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                statement1.Add(new Statement1Row0(rprKey, rp.r_Payload, rprText, rp.p_Body, rp.p_Tail));
-                            }
-
-                            continue;
-                        }
-
-                        if (bChunkView.Source is List<byte> bChunkViewList)
-                        {
-                            int bChunkViewOffset = bChunkView.Offset;
-                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                            {
-                                if ((bIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                statement1.Add(new Statement1Row0(rprKey, rp.r_Payload, rprText, rp.p_Body, rp.p_Tail));
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                var statement1_bRows = (IEnumerable<byte>)rp.p_Tail ?? Array.Empty<byte>();
+                var bIndexRows = statement1_bRows;
+                if (bIndexRows is byte[] bIndexArray)
+                    for (int bIndex = 0, bIndexCount = bIndexArray.Length; bIndex < bIndexCount; ++bIndex)
                     {
                         if ((bIndex & 1023) == 0)
                         {
                             token.ThrowIfCancellationRequested();
                         }
 
-                        var b = bChunk[bIndex];
-                        statement1.Add(new Statement1Row0(rprKey, rp.r_Payload, rprText, rp.p_Body, rp.p_Tail));
+                        byte b = bIndexArray[bIndex];
+                        statement1.Add(new Statement1Row0(rprKey, rprText, rp.p_Body));
+                    }
+                else if (bIndexRows is List<byte> bIndexConcreteList)
+                    for (int bIndex = 0, bIndexCount = bIndexConcreteList.Count; bIndex < bIndexCount; ++bIndex)
+                    {
+                        if ((bIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        byte b = bIndexConcreteList[bIndex];
+                        statement1.Add(new Statement1Row0(rprKey, rprText, rp.p_Body));
+                    }
+                else
+                {
+                    int bIndex = 0;
+                    foreach (var b in bIndexRows)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        statement1.Add(new Statement1Row0(rprKey, rprText, rp.p_Body));
+                        ++bIndex;
                     }
                 }
             }
@@ -552,14 +503,13 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
 
                 Statement1Row0 rpb = __storedTable1Rows[__storedTable1Index];
                 int rpbrKey = rpb.r_Key;
-                string rpbrText = rpb.r_Text;
                 var _interpreter_Entry = new Musoq.Generated.Interpreters.Entry();
                 var statement2_tRows = _interpreter_Entry.Parse(rpb.r_Text);
                 if (statement2_tRows != null)
                 {
                     token.ThrowIfCancellationRequested();
                     var t = statement2_tRows;
-                    statement2.Add(new Statement2Row0(rpbrKey, rpb.r_Payload, rpbrText, rpb.p_Body, rpb.p_Tail, t.Level));
+                    statement2.Add(new Statement2Row0(rpbrKey, rpb.p_Body, t.Level));
                 }
             }
 
@@ -570,7 +520,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
         private static List<Statement3Row0> BuildCte3(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement3_dSchema = provider.GetSchema("#bench");
-            var statement3_dRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BenchmarkSampleRow>.Open(__statement3_dSchema, "lookup", new SourceExecutionContext("d:1", sourceExecutionPlans["d:1"], token, __schemaColumns_compiled_d_3, sourceRuntimeSettingsBySourceContextId["d:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+            var statement3_dRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BenchmarkSampleRow>.Open(__statement3_dSchema, "lookup", new SourceExecutionContext("d:1", sourceExecutionPlans["d:1"], token, __schemaColumns_compiled_d_4, sourceRuntimeSettingsBySourceContextId["d:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
             var statement3_dRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.BenchmarkSampleRow>(statement3_dRowsSource.Chunks, __musoqProgressContext, "d:1") : statement3_dRowsSource.Chunks;
             var statement3 = new List<Statement3Row0>();
             var statement3RpbtHash = new Dictionary<int, HashJoinBucket<Statement2Row0>>(_cteRowResults.Slot2.Count);
@@ -618,7 +568,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                                 foreach (var rpbt in statement3RpbtHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement3.Add(new Statement3Row0(rpbt.r_Key, rpbt.r_Payload, rpbt.r_Text, rpbt.p_Body, rpbt.p_Tail, rpbt.t_Level, d.Key));
+                                    statement3.Add(new Statement3Row0(rpbt.p_Body, rpbt.t_Level));
                                 }
                             }
                         }
@@ -643,7 +593,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                                 foreach (var rpbt in statement3RpbtHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement3.Add(new Statement3Row0(rpbt.r_Key, rpbt.r_Payload, rpbt.r_Text, rpbt.p_Body, rpbt.p_Tail, rpbt.t_Level, d.Key));
+                                    statement3.Add(new Statement3Row0(rpbt.p_Body, rpbt.t_Level));
                                 }
                             }
                         }
@@ -666,7 +616,7 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
                         foreach (var rpbt in statement3RpbtHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            statement3.Add(new Statement3Row0(rpbt.r_Key, rpbt.r_Payload, rpbt.r_Text, rpbt.p_Body, rpbt.p_Tail, rpbt.t_Level, d.Key));
+                            statement3.Add(new Statement3Row0(rpbt.p_Body, rpbt.t_Level));
                         }
                     }
                 }
@@ -806,83 +756,62 @@ namespace GeneratedSample_X08_PacketAnalytics_BenchmarkTable
             public long Count_ { get; }
             public string Level { get; }
             public long? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, byte[] __value1, string __value2, Musoq.Generated.Interpreters.Body __value3, byte[] __value4)
+            public Statement0Row0(int __value0, string __value1, Musoq.Generated.Interpreters.Body __value2, byte[] __value3)
             {
                 r_Key = __value0;
-                r_Payload = __value1;
-                r_Text = __value2;
-                p_Body = __value3;
-                p_Tail = __value4;
+                r_Text = __value1;
+                p_Body = __value2;
+                p_Tail = __value3;
             }
 
             public Musoq.Generated.Interpreters.Body p_Body { get; }
             public byte[] p_Tail { get; }
             public int r_Key { get; }
-            public byte[] r_Payload { get; }
             public string r_Text { get; }
         }
 
         private sealed class Statement1Row0
         {
-            public Statement1Row0(int __value0, byte[] __value1, string __value2, Musoq.Generated.Interpreters.Body __value3, byte[] __value4)
+            public Statement1Row0(int __value0, string __value1, Musoq.Generated.Interpreters.Body __value2)
             {
                 r_Key = __value0;
-                r_Payload = __value1;
-                r_Text = __value2;
-                p_Body = __value3;
-                p_Tail = __value4;
+                r_Text = __value1;
+                p_Body = __value2;
             }
 
             public Musoq.Generated.Interpreters.Body p_Body { get; }
-            public byte[] p_Tail { get; }
             public int r_Key { get; }
-            public byte[] r_Payload { get; }
             public string r_Text { get; }
         }
 
         private sealed class Statement2Row0
         {
-            public Statement2Row0(int __value0, byte[] __value1, string __value2, Musoq.Generated.Interpreters.Body __value3, byte[] __value4, string __value5)
+            public Statement2Row0(int __value0, Musoq.Generated.Interpreters.Body __value1, string __value2)
             {
                 r_Key = __value0;
-                r_Payload = __value1;
-                r_Text = __value2;
-                p_Body = __value3;
-                p_Tail = __value4;
-                t_Level = __value5;
+                p_Body = __value1;
+                t_Level = __value2;
             }
 
             public Musoq.Generated.Interpreters.Body p_Body { get; }
-            public byte[] p_Tail { get; }
             public int r_Key { get; }
-            public byte[] r_Payload { get; }
-            public string r_Text { get; }
             public string t_Level { get; }
         }
 
         private sealed class Statement3Row0
         {
-            public Statement3Row0(int __value0, byte[] __value1, string __value2, Musoq.Generated.Interpreters.Body __value3, byte[] __value4, string __value5, int __value6)
+            public Statement3Row0(Musoq.Generated.Interpreters.Body __value0, string __value1)
             {
-                r_Key = __value0;
-                r_Payload = __value1;
-                r_Text = __value2;
-                p_Body = __value3;
-                p_Tail = __value4;
-                t_Level = __value5;
-                Key = __value6;
+                p_Body = __value0;
+                t_Level = __value1;
             }
 
-            public int Key { get; }
             public Musoq.Generated.Interpreters.Body p_Body { get; }
-            public byte[] p_Tail { get; }
-            public int r_Key { get; }
-            public byte[] r_Payload { get; }
-            public string r_Text { get; }
             public string t_Level { get; }
         }
 

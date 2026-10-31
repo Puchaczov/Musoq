@@ -29,7 +29,7 @@ Cte
 PhysicalCte
   Definition [p]
     PhysicalMultiStatement
-      PhysicalProject [1 as 1, AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+      PhysicalProject [AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
         PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Sum(Money) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Jan')]
           PhysicalSchemaScan [#A.entities() as ko3iko]
       PhysicalProject [ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb]

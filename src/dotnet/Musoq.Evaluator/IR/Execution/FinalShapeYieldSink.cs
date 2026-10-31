@@ -8,4 +8,5 @@ internal sealed record FinalShapeYieldSink(
     IReadOnlyList<FieldBinding> Fields,
     string? BufferName = null,
     IReadOnlyDictionary<string, FinalShapeSourceBuffer>? SourceBuffers = null,
-    bool UsesGeneratedRowCarrier = false);
+    bool UsesGeneratedRowCarrier = false,
+    Musoq.Evaluator.IR.CodeGeneration.OwnedTerminalBuffer? OwnedBuffer = null);

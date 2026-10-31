@@ -59,8 +59,8 @@ ExecutionPlan [compiled]
       If [(populationInt32 > 1000)]
         AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(QuantityNext: (ko3iko.Quantity + 1)::Int64, PopulationText: populationInt32::String, CreatedOffset: ko3iko.CreatedAt::DateTimeOffset, __sortKey0: ko3iko.Amount::Decimal)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -116,7 +116,7 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -125,7 +125,6 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#features");
@@ -201,12 +200,7 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.QuantityNext, resultRecord.PopulationText, resultRecord.CreatedOffset));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -309,20 +303,6 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(long? QuantityNext, string PopulationText, DateTimeOffset? CreatedOffset)
-            {
-                this.QuantityNext = QuantityNext;
-                this.PopulationText = PopulationText;
-                this.CreatedOffset = CreatedOffset;
-            }
-
-            public DateTimeOffset? CreatedOffset { get; }
-            public string PopulationText { get; }
-            public long? QuantityNext { get; }
         }
     }
 }

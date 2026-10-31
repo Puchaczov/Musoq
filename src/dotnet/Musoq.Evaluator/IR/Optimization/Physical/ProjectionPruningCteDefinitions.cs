@@ -9,7 +9,7 @@ using ColumnUsage = Musoq.Evaluator.IR.Optimization.Physical.PhysicalColumnUsage
 
 namespace Musoq.Evaluator.IR.Optimization.Physical;
 
-internal static class ProjectionPruningCteDefinitions
+internal static partial class ProjectionPruningCteDefinitions
 {
     public static ProjectionPruningCteResult Prune(PhysicalCteNode cte)
     {

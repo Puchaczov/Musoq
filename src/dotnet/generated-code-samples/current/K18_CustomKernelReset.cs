@@ -56,7 +56,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Partition: finalGroup.Partition, Total: ko3iko.SeededTotal(ko3iko.Amount), Positive: ko3iko.PositiveCount(ko3iko.Amount))]
-    SortShapeRows [result -> resultSorted by Partition ASC]
+    SortOwnedBuffer [result by Partition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -122,7 +122,6 @@ namespace GeneratedSample_K18_CustomKernelReset
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -270,22 +269,17 @@ namespace GeneratedSample_K18_CustomKernelReset
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.SeededTotalKernel.Get(in finalGroup.__agg1), Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.PositiveCountKernel.Get(in finalGroup.__agg0)));
+                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.SeededTotalKernel.Get(in finalGroup.__agg1), Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.PositiveCountKernel.Get(in finalGroup.__agg0)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -385,6 +379,7 @@ namespace GeneratedSample_K18_CustomKernelReset
             public string Partition { get; }
             public long Positive { get; }
             public decimal Total { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

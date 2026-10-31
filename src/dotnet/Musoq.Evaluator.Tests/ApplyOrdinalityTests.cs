@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class ApplyOrdinalityTests : GenericEntityTestBase
+public sealed partial class ApplyOrdinalityTests : GenericEntityTestBase
 {
 
     [TestMethod]

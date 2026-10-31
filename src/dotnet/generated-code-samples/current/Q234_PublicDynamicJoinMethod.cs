@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [e.RuntimeKey as e.RuntimeKey, e.Metric as e.Metric, l.Id as l.Id, l.Factor as l.Factor]
+  PhysicalProject [e.Metric as e.Metric, l.Factor as l.Factor]
     PhysicalHashJoin [Inner] [build: l.Id] [probe: e.RuntimeKey]
       PhysicalSchemaScan [#runtime.events() as e]
       PhysicalSchemaScan [#runtime.lookup() as l]

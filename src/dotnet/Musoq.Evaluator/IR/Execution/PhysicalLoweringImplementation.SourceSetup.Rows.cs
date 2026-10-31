@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
@@ -27,8 +28,8 @@ internal sealed partial class PhysicalLoweringImplementation
             PhysicalSchemaScanNode scan => CreateSchemaScanRowsExpression(scan.Alias, sourceRowsScope),
             PhysicalInterpretSourceNode interpret =>
                 new ExecutionScalarRowStream(new ExecutionVariable(CreateSourceRowsName(interpret.Alias, sourceRowsScope), typeof(object))),
-            PhysicalPropertySourceNode property => CreateEnumerableRowsExpression(property.Alias, sourceRowsScope),
-            PhysicalAccessMethodSourceNode accessMethod => CreateEnumerableRowsExpression(accessMethod.Alias, sourceRowsScope),
+            PhysicalPropertySourceNode property => CreateEnumerableRowsExpression(property.Alias, property.ResultType, sourceShape, sourceRowsScope),
+            PhysicalAccessMethodSourceNode accessMethod => CreateEnumerableRowsExpression(accessMethod.Alias, accessMethod.ResultType, sourceShape, sourceRowsScope),
             PhysicalValuesScanNode values when sourceShape is ValuesRowShape valuesShape =>
                 new ExecutionVariableRead(CreateValuesRowsVariable(values.Alias, valuesShape.GeneratedShape, sourceRowsScope)),
             PhysicalCteRefNode cteRef when scope?.RecursiveCteInvariantInputs.TryGetValue(
@@ -47,11 +48,19 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ExecutionExpression CreateEnumerableRowsExpression(
         string alias,
+        Type enumerableType,
+        RowShape sourceShape,
         string? sourceRowsScope)
     {
         var rows = new ExecutionVariable(CreateSourceRowsName(alias, sourceRowsScope), typeof(object));
 
-        return new ExecutionRowStream(rows, ExecutionRowStreamKind.Chunks);
+        var directScalar = IsDirectScalarSource(sourceShape);
+        return new ExecutionRowStream(rows, directScalar
+            ? ExecutionRowStreamKind.Rows : ExecutionRowStreamKind.Chunks)
+        {
+            HasDirectScalarElements = directScalar,
+            IsValueEnumerable = directScalar && enumerableType.IsValueType
+        };
     }
 
     private static ExecutionExpression CreateSchemaScanRowsExpression(
@@ -93,6 +102,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool IsDirectScalarSource(RowShape sourceShape)
     {
-        return sourceShape is SourceEntityShape { Fields: [{ AccessStrategy: DirectScalarValueAccess }] };
+        return sourceShape is SourceEntityShape source &&
+               source.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess);
     }
 }

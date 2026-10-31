@@ -65,10 +65,10 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [i in windowSourceTable_iRows]
       EnumerableSource [i.Numbers -> windowSourceTable_nRows]
-      ChunkedForEach [n in windowSourceTable_nRows]
+      ForEach [n in windowSourceTable_nRows]
         Let [nValue: int = n.Value]
         EnumerableSource [i.Numbers -> windowSourceTable_mRows]
-        ChunkedForEach [m in windowSourceTable_mRows]
+        ForEach [m in windowSourceTable_mRows]
           GetOrAddSingleKeyAggregateGroup [group = groups[i.Name] by i.Name; typed: WindowSourceTableAggregateGroup]
           TypedAggregateSet [Set(group.__agg0, nValue)]
     EnsureRowBufferCapacity [windowSourceTable <- groupsToFinalize.Count]
@@ -79,7 +79,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, windowSource in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: windowSource.i.Name, ValueSum: windowSource.ValueSum, GroupRowNo: resultRowNumbers[windowIndex])]
-    SortShapeRows [result -> resultSorted by GroupRowNo ASC]
+    SortOwnedBuffer [result by GroupRowNo ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -150,7 +150,6 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __windowSourceTable_iSchema = provider.GetSchema("#apply");
@@ -249,22 +248,17 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
                     }
 
                     WindowSourceRow0 windowSource = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(windowSource.i_Name, windowSource.ValueSum, (long)resultRowNumbers[windowIndex]));
+                    result.Add(new ResultShape0(windowSource.i_Name, windowSource.ValueSum, (long)resultRowNumbers[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.GroupRowNo.CompareTo(right.GroupRowNo);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -306,118 +300,17 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
         {
             token.ThrowIfCancellationRequested();
             int nValue = n;
-            var windowSourceTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-            foreach (var mChunk in windowSourceTable_mRows)
-            {
-                if (mChunk is global::Musoq.Schema.DataSources.RowChunk<int> mChunkView)
-                {
-                    if (mChunkView.Source is int[] mChunkViewArray)
-                    {
-                        int mChunkViewOffset = mChunkView.Offset;
-                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                        {
-                            if ((mIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                            string groupKey = i.Name;
-                            WindowSourceTableAggregateGroup group = null;
-                            if (groupKey != null)
-                            {
-                                ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                                if (!groupExists)
-                                {
-                                    groupRef = new WindowSourceTableAggregateGroup(groupKey);
-                                    groupsToFinalize.Add(groupRef);
-                                }
-
-                                group = groupRef;
-                            }
-                            else
-                            {
-                                if (nullGroup == null)
-                                {
-                                    nullGroup = new WindowSourceTableAggregateGroup(null);
-                                    groupsToFinalize.Add(nullGroup);
-                                }
-
-                                group = nullGroup;
-                            }
-
-                            {
-                                var __agg0Input = (int?)nValue;
-                                if (__agg0Input.HasValue)
-                                {
-                                    var __agg0Current = __agg0Input.GetValueOrDefault();
-                                    group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
-                                    group.__agg0.HasValue = true;
-                                }
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    if (mChunkView.Source is List<int> mChunkViewList)
-                    {
-                        int mChunkViewOffset = mChunkView.Offset;
-                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                        {
-                            if ((mIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var m = mChunkViewList[mChunkViewOffset + mIndex];
-                            string groupKey = i.Name;
-                            WindowSourceTableAggregateGroup group = null;
-                            if (groupKey != null)
-                            {
-                                ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                                if (!groupExists)
-                                {
-                                    groupRef = new WindowSourceTableAggregateGroup(groupKey);
-                                    groupsToFinalize.Add(groupRef);
-                                }
-
-                                group = groupRef;
-                            }
-                            else
-                            {
-                                if (nullGroup == null)
-                                {
-                                    nullGroup = new WindowSourceTableAggregateGroup(null);
-                                    groupsToFinalize.Add(nullGroup);
-                                }
-
-                                group = nullGroup;
-                            }
-
-                            {
-                                var __agg0Input = (int?)nValue;
-                                if (__agg0Input.HasValue)
-                                {
-                                    var __agg0Current = __agg0Input.GetValueOrDefault();
-                                    group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
-                                    group.__agg0.HasValue = true;
-                                }
-                            }
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int mIndex = 0, mIndexCount = mChunk.Count; mIndex < mIndexCount; ++mIndex)
+            var windowSourceTable_mRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+            var mIndexRows = windowSourceTable_mRows;
+            if (mIndexRows is int[] mIndexArray)
+                for (int mIndex = 0, mIndexCount = mIndexArray.Length; mIndex < mIndexCount; ++mIndex)
                 {
                     if ((mIndex & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var m = mChunk[mIndex];
+                    int m = mIndexArray[mIndex];
                     string groupKey = i.Name;
                     WindowSourceTableAggregateGroup group = null;
                     if (groupKey != null)
@@ -452,6 +345,91 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
                         }
                     }
                 }
+            else if (mIndexRows is List<int> mIndexConcreteList)
+                for (int mIndex = 0, mIndexCount = mIndexConcreteList.Count; mIndex < mIndexCount; ++mIndex)
+                {
+                    if ((mIndex & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    int m = mIndexConcreteList[mIndex];
+                    string groupKey = i.Name;
+                    WindowSourceTableAggregateGroup group = null;
+                    if (groupKey != null)
+                    {
+                        ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                        if (!groupExists)
+                        {
+                            groupRef = new WindowSourceTableAggregateGroup(groupKey);
+                            groupsToFinalize.Add(groupRef);
+                        }
+
+                        group = groupRef;
+                    }
+                    else
+                    {
+                        if (nullGroup == null)
+                        {
+                            nullGroup = new WindowSourceTableAggregateGroup(null);
+                            groupsToFinalize.Add(nullGroup);
+                        }
+
+                        group = nullGroup;
+                    }
+
+                    {
+                        var __agg0Input = (int?)nValue;
+                        if (__agg0Input.HasValue)
+                        {
+                            var __agg0Current = __agg0Input.GetValueOrDefault();
+                            group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
+                            group.__agg0.HasValue = true;
+                        }
+                    }
+                }
+            else
+            {
+                int mIndex = 0;
+                foreach (var m in mIndexRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    string groupKey = i.Name;
+                    WindowSourceTableAggregateGroup group = null;
+                    if (groupKey != null)
+                    {
+                        ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                        if (!groupExists)
+                        {
+                            groupRef = new WindowSourceTableAggregateGroup(groupKey);
+                            groupsToFinalize.Add(groupRef);
+                        }
+
+                        group = groupRef;
+                    }
+                    else
+                    {
+                        if (nullGroup == null)
+                        {
+                            nullGroup = new WindowSourceTableAggregateGroup(null);
+                            groupsToFinalize.Add(nullGroup);
+                        }
+
+                        group = nullGroup;
+                    }
+
+                    {
+                        var __agg0Input = (int?)nValue;
+                        if (__agg0Input.HasValue)
+                        {
+                            var __agg0Current = __agg0Input.GetValueOrDefault();
+                            group.__agg0.Value = group.__agg0.HasValue ? checked(group.__agg0.Value + __agg0Current) : __agg0Current;
+                            group.__agg0.HasValue = true;
+                        }
+                    }
+
+                    ++mIndex;
+                }
             }
         }
 
@@ -459,55 +437,38 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
         private static void TraverseWindowSourceTableNRows(CancellationToken token, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, List<WindowSourceTableAggregateGroup> groupsToFinalize, Dictionary<string, WindowSourceTableAggregateGroup> groups, ref WindowSourceTableAggregateGroup nullGroup)
         {
             token.ThrowIfCancellationRequested();
-            var windowSourceTable_nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-            foreach (var nChunk in windowSourceTable_nRows)
-            {
-                if (nChunk is global::Musoq.Schema.DataSources.RowChunk<int> nChunkView)
-                {
-                    if (nChunkView.Source is int[] nChunkViewArray)
-                    {
-                        int nChunkViewOffset = nChunkView.Offset;
-                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                        {
-                            if ((nIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                            TraverseWindowSourceTableMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
-                        }
-
-                        continue;
-                    }
-
-                    if (nChunkView.Source is List<int> nChunkViewList)
-                    {
-                        int nChunkViewOffset = nChunkView.Offset;
-                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                        {
-                            if ((nIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var n = nChunkViewList[nChunkViewOffset + nIndex];
-                            TraverseWindowSourceTableMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+            var windowSourceTable_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+            var nIndexRows = windowSourceTable_nRows;
+            if (nIndexRows is int[] nIndexArray)
+                for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                 {
                     if ((nIndex & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var n = nChunk[nIndex];
+                    int n = nIndexArray[nIndex];
                     TraverseWindowSourceTableMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
+                }
+            else if (nIndexRows is List<int> nIndexConcreteList)
+                for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                {
+                    if ((nIndex & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    int n = nIndexConcreteList[nIndex];
+                    TraverseWindowSourceTableMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
+                }
+            else
+            {
+                int nIndex = 0;
+                foreach (var n in nIndexRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    TraverseWindowSourceTableMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
+                    ++nIndex;
                 }
             }
         }
@@ -572,6 +533,7 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
             public long GroupRowNo { get; }
             public string Name { get; }
             public int? ValueSum { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultRowNumbersOrderKeysKey : System.IEquatable<WindowResultRowNumbersOrderKeysKey>, System.IComparable<WindowResultRowNumbersOrderKeysKey>

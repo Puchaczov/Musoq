@@ -40,7 +40,7 @@ PhysicalCte
         PhysicalValuesScan [2 rows as p]
   Query
     PhysicalMultiStatement
-      PhysicalProject [leftPolicy.Name as leftPolicy.Name, rightPolicy.Name as rightPolicy.Name, rightPolicy.Approved as rightPolicy.Approved]
+      PhysicalProject [leftPolicy.Name as leftPolicy.Name, rightPolicy.Approved as rightPolicy.Approved]
         PhysicalHashJoin [Inner] [build: rightPolicy.Name] [probe: leftPolicy.Name]
           PhysicalCteRef [policy as leftPolicy]
           PhysicalCteRef [policy as rightPolicy]

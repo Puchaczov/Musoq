@@ -307,7 +307,7 @@ public partial class QueryInspectionTests
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(Dummy: 'b')]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(Dummy: 'a')]", result.ExecutionPlanText);
-        Assert.Contains("SortShapeRows [result -> resultSorted by Dummy ASC]", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [result by Dummy ASC, stable sequence __musoqSequence]", result.ExecutionPlanText);
     }
 
     [TestMethod]

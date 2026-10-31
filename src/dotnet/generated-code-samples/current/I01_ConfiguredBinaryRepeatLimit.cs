@@ -1,4 +1,4 @@
-// === Parsed Query ===
+﻿// === Parsed Query ===
 /*
 binary Item { X: byte } binary Packet { Records: Item repeat until eof } select Count(r.X) as N from #test.files() f cross apply Interpret<Packet>(f.Content) p cross apply p.Records r
 */
@@ -24,15 +24,15 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.Records as p.Records]
+  PhysicalProject [p.Records as p.Records]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#Packet(f.Content) as p]
-  PhysicalProject [fp.f.Content as f.Content, fp.p.Records as p.Records, r.X as r.X]
+  PhysicalProject [r.X as r.X]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fp as fp]
       PhysicalPropertySource [fp.p.Records as r] [apply: Cross] [type: Object[]]
-  PhysicalProject [1 as 1, AggRef(fpr.Count(r.X)) as fpr.Count(r.X)]
+  PhysicalProject [AggRef(fpr.Count(r.X)) as fpr.Count(r.X)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(X)]
       PhysicalCteRef [fpr as fpr]
   PhysicalProject [fpr.Count(r.X) as N]
@@ -48,20 +48,14 @@ ExecutionPlan [compiled]
     SourceEntity [p: object]
       Records: object[] <- property Records
     Generated [Statement0Row0]
-      f.Content: byte[] <- field f_Content
       p.Records: object[] <- field p_Records
     TableRow [fp]
-      f.Content: byte[] <- field f_Content
       p.Records: object[] <- field p_Records
     SourceEntity [r: object]
       X: byte <- property X
     Generated [Statement1Row0]
-      f.Content: byte[] <- field f_Content
-      p.Records: object[] <- field p_Records
       r.X: byte <- field r_X
     TableRow [fpr]
-      f.Content: byte[] <- field f_Content
-      p.Records: object[] <- field p_Records
       r.X: byte <- field r_X
     AggregateGroup [Statement2AggregateGroup; keys: 0; typed aggs: 1]
     Generated [Statement2Row0]
@@ -79,13 +73,13 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in statement0_fRows]
       InterpretSource [Packet.Interpret(f.Content) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(f.Content: f.Content, p.Records: p.Records)]
+        AppendRow [statement0 <- Statement0Row0(p.Records: p.Records)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateTable [statement1: Statement1Row0]
     ForEach [fp in _cteRowResults.Slot0]
       EnumerableSource [fp.p.Records -> statement1_rRows]
       ChunkedForEach [r in statement1_rRows]
-        AppendRow [statement1 <- Statement1Row0(f.Content: fp.f.Content, p.Records: fp.p.Records, r.X: r.X)]
+        AppendRow [statement1 <- Statement1Row0(r.X: r.X)]
     StoreTable [statement1 -> _cteRowResults.Slot1: List<Statement1Row0>]
     CreateTable [statement2: Statement2Row0]
     CreateAggregateContext [statement2RootGroup, statement2Group, statement2GroupsToFinalize; typed: Statement2AggregateGroup]
@@ -131,14 +125,11 @@ namespace GeneratedSample_I01_ConfiguredBinaryRepeatLimit
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("p.Records", typeof(Musoq.Generated.Interpreters.Item[]), 1)
+            new Column("p.Records", typeof(Musoq.Generated.Interpreters.Item[]), 0)
         };
         private static readonly Column[] __columns_compiled_statement1_2 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("p.Records", typeof(Musoq.Generated.Interpreters.Item[]), 1),
-            new Column("r.X", typeof(byte), 2)
+            new Column("r.X", typeof(byte), 0)
         };
         private static readonly Column[] __columns_compiled_statement2_3 = new Column[]
         {
@@ -254,7 +245,7 @@ namespace GeneratedSample_I01_ConfiguredBinaryRepeatLimit
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Records));
+                                statement0.Add(new Statement0Row0(p.Records));
                             }
                         }
 
@@ -278,7 +269,7 @@ namespace GeneratedSample_I01_ConfiguredBinaryRepeatLimit
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Records));
+                                statement0.Add(new Statement0Row0(p.Records));
                             }
                         }
 
@@ -300,7 +291,7 @@ namespace GeneratedSample_I01_ConfiguredBinaryRepeatLimit
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(f.Content, p.Records));
+                        statement0.Add(new Statement0Row0(p.Records));
                     }
                 }
             }
@@ -332,7 +323,7 @@ namespace GeneratedSample_I01_ConfiguredBinaryRepeatLimit
                         }
 
                         var r = rChunk[rIndex];
-                        statement1.Add(new Statement1Row0(fp.f_Content, fp.p_Records, r.X));
+                        statement1.Add(new Statement1Row0(r.X));
                     }
                 }
             }
@@ -421,27 +412,21 @@ namespace GeneratedSample_I01_ConfiguredBinaryRepeatLimit
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.Item[] __value1)
+            public Statement0Row0(Musoq.Generated.Interpreters.Item[] __value0)
             {
-                f_Content = __value0;
-                p_Records = __value1;
+                p_Records = __value0;
             }
 
-            public byte[] f_Content { get; }
             public Musoq.Generated.Interpreters.Item[] p_Records { get; }
         }
 
         private sealed class Statement1Row0
         {
-            public Statement1Row0(byte[] __value0, Musoq.Generated.Interpreters.Item[] __value1, byte __value2)
+            public Statement1Row0(byte __value0)
             {
-                f_Content = __value0;
-                p_Records = __value1;
-                r_X = __value2;
+                r_X = __value0;
             }
 
-            public byte[] f_Content { get; }
-            public Musoq.Generated.Interpreters.Item[] p_Records { get; }
             public byte r_X { get; }
         }
 

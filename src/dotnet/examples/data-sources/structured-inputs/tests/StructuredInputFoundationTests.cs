@@ -145,11 +145,12 @@ public sealed class StructuredInputFoundationTests
             new CompilationOptions(usePrimitiveTypeValidation: false));
         Assert.IsNotNull(inspection.GeneratedCSharpCode);
         var generated = inspection.GeneratedCSharpCode!;
-        var fieldRead = generated.IndexOf("string pPattern = p.Pattern", StringComparison.Ordinal);
+        var fieldRead = generated.IndexOf(" = (p.Pattern + paramSuffix);", StringComparison.Ordinal);
         var preparation = generated.IndexOf(" = new Musoq.Examples.DataSources.StructuredInputs.PatternInput(", StringComparison.Ordinal);
         Assert.IsTrue(fieldRead >= 0, generated);
         Assert.IsTrue(preparation >= 0, generated);
         Assert.IsTrue(fieldRead < preparation, generated);
+        Assert.AreEqual(1, CountOccurrences(generated, "p.Pattern + paramSuffix"), generated);
         Assert.AreEqual(1, CountOccurrences(generated, "new SourceExecutionContext("), generated);
         var build = InstanceCreator.CompileWithDiagnostics(
             query,

@@ -76,7 +76,7 @@ PhysicalCte
           PhysicalCteRef [lr as lr]
   Definition [Joined]
     PhysicalMultiStatement
-      PhysicalProject [e.Name as e.Name, e.Population as e.Population, r.Name as r.Name]
+      PhysicalProject [e.Name as e.Name, e.Population as e.Population]
         PhysicalHashJoin [Inner] [build: e.Name] [probe: r.Name]
           PhysicalCteRef [Expanded as e]
           PhysicalSchemaScan [#B.entities() as r]

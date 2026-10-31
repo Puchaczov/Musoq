@@ -28,11 +28,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [file.Content as file.Content, p.Flags as p.Flags]
+  PhysicalProject [p.Flags as p.Flags]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as file]
       PhysicalInterpretSource [#BitsRepeatPacket(file.Content) as p]
-  PhysicalProject [filep.file.Content as file.Content, filep.p.Flags as p.Flags, f.Value as f.Value]
+  PhysicalProject [f.Value as f.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [filep as filep]
       PhysicalPropertySource [filep.p.Flags as f] [apply: Cross] [type: Byte[]]
@@ -49,10 +49,8 @@ ExecutionPlan [compiled]
     SourceEntity [p: object]
       Flags: byte[] <- property Flags
     Generated [Statement0Row0]
-      file.Content: byte[] <- field file_Content
       p.Flags: byte[] <- field p_Flags
     TableRow [filep]
-      file.Content: byte[] <- field file_Content
       p.Flags: byte[] <- field p_Flags
     SourceEntity [f: byte]
       Value: byte <- direct scalar value
@@ -67,14 +65,14 @@ ExecutionPlan [compiled]
     ChunkedForEach [file in statement0_fileRows]
       InterpretSource [BitsRepeatPacket.Interpret(file.Content) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(file.Content: file.Content, p.Flags: p.Flags)]
+        AppendRow [statement0 <- Statement0Row0(p.Flags: p.Flags)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     ForEach [filep in _cteRowResults.Slot0]
       EnumerableSource [filep.p.Flags -> fRows]
-      ChunkedForEach [f in fRows]
+      ForEach [f in fRows]
         AppendShape [result <- ResultRow0(FlagValue: f.Value)]
     PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
@@ -107,8 +105,7 @@ namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("file.Content", typeof(byte[]), 0),
-            new Column("p.Flags", typeof(byte[]), 1)
+            new Column("p.Flags", typeof(byte[]), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_file_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
         public ILogger Logger { get; set; }
@@ -163,55 +160,38 @@ namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret
                         }
 
                         Statement0Row0 filep = __storedTable0Rows[__storedTable0Index];
-                        var fRows = EvaluationHelper.ConvertEnumerableOutputToChunks<byte>(filep.p_Flags);
-                        foreach (var fChunk in fRows)
-                        {
-                            if (fChunk is global::Musoq.Schema.DataSources.RowChunk<byte> fChunkView)
-                            {
-                                if (fChunkView.Source is byte[] fChunkViewArray)
-                                {
-                                    int fChunkViewOffset = fChunkView.Offset;
-                                    for (int fIndex = 0, fIndexCount = fChunkView.Count; fIndex < fIndexCount; ++fIndex)
-                                    {
-                                        if ((fIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var f = fChunkViewArray[fChunkViewOffset + fIndex];
-                                        __musoqFinalShapeRows.Add(new ResultRow0(f));
-                                    }
-
-                                    continue;
-                                }
-
-                                if (fChunkView.Source is List<byte> fChunkViewList)
-                                {
-                                    int fChunkViewOffset = fChunkView.Offset;
-                                    for (int fIndex = 0, fIndexCount = fChunkView.Count; fIndex < fIndexCount; ++fIndex)
-                                    {
-                                        if ((fIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var f = fChunkViewList[fChunkViewOffset + fIndex];
-                                        __musoqFinalShapeRows.Add(new ResultRow0(f));
-                                    }
-
-                                    continue;
-                                }
-                            }
-
-                            for (int fIndex = 0, fIndexCount = fChunk.Count; fIndex < fIndexCount; ++fIndex)
+                        var fRows = (IEnumerable<byte>)filep.p_Flags ?? Array.Empty<byte>();
+                        var fIndexRows = fRows;
+                        if (fIndexRows is byte[] fIndexArray)
+                            for (int fIndex = 0, fIndexCount = fIndexArray.Length; fIndex < fIndexCount; ++fIndex)
                             {
                                 if ((fIndex & 1023) == 0)
                                 {
                                     token.ThrowIfCancellationRequested();
                                 }
 
-                                var f = fChunk[fIndex];
+                                byte f = fIndexArray[fIndex];
                                 __musoqFinalShapeRows.Add(new ResultRow0(f));
+                            }
+                        else if (fIndexRows is List<byte> fIndexConcreteList)
+                            for (int fIndex = 0, fIndexCount = fIndexConcreteList.Count; fIndex < fIndexCount; ++fIndex)
+                            {
+                                if ((fIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                byte f = fIndexConcreteList[fIndex];
+                                __musoqFinalShapeRows.Add(new ResultRow0(f));
+                            }
+                        else
+                        {
+                            int fIndex = 0;
+                            foreach (var f in fIndexRows)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                __musoqFinalShapeRows.Add(new ResultRow0(f));
+                                ++fIndex;
                             }
                         }
                     }
@@ -276,7 +256,7 @@ namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(file.Content, p.Flags));
+                                statement0.Add(new Statement0Row0(p.Flags));
                             }
                         }
 
@@ -300,7 +280,7 @@ namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(file.Content, p.Flags));
+                                statement0.Add(new Statement0Row0(p.Flags));
                             }
                         }
 
@@ -322,7 +302,7 @@ namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(file.Content, p.Flags));
+                        statement0.Add(new Statement0Row0(p.Flags));
                     }
                 }
             }
@@ -370,13 +350,11 @@ namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, byte[] __value1)
+            public Statement0Row0(byte[] __value0)
             {
-                file_Content = __value0;
-                p_Flags = __value1;
+                p_Flags = __value0;
             }
 
-            public byte[] file_Content { get; }
             public byte[] p_Flags { get; }
         }
     }

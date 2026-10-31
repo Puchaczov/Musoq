@@ -161,8 +161,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void MixedNumericKeySamples_ShouldRetainConcreteNullableOperands()
     {
         var content = ReadSample("K58_TypedMixedNumericHashKeys.cs").Content;
-        Assert.Contains("int? intKey", content);
-        Assert.Contains("long? longKey", content);
+        Assert.Contains("IntKey: int? <- property IntKey", content);
+        Assert.Contains("LongKey: long? <- property LongKey", content);
+        Assert.Contains("Operators.SqlCompare<int?, long?>(a.IntKey, b.LongKey", content);
         Assert.DoesNotContain("CreateNullableHashJoinKey", content);
         Assert.DoesNotContain("new object[]", content);
     }

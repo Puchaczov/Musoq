@@ -76,6 +76,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["Pagination"] = new() { ContextsAccess = 0 },
         ["Parameters"] = new() { ContextsAccess = 0 },
         ["Performance"] = new() { ContextsAccess = 0 },
+        ["OfficialBenchmark"] = new() { ContextsAccess = 0 },
         ["Pivot"] = new() { ContextsAccess = 0 },
         ["QueryScopedRows"] = new()
         {

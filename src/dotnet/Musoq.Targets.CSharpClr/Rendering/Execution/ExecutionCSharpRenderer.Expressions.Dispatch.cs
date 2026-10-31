@@ -130,6 +130,20 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRowPresence rowPresence,
         ExecutionRenderContext context)
     {
+        if (rowPresence.PresenceSource is ExecutionLiteral
+            { Value: { Kind: ExecutionConstantKind.Boolean, UnsignedInteger: 1 } })
+            return SyntaxFactory.LiteralExpression(rowPresence.IsPresent
+                ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+
+        var sourceType = rowPresence.PresenceSource.ReturnType.RequireClrType();
+        if (Nullable.GetUnderlyingType(sourceType) != null)
+        {
+            var hasValue = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource, context)),
+                SyntaxFactory.IdentifierName("HasValue"));
+            return rowPresence.IsPresent ? hasValue : SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, hasValue);
+        }
+
         var boxedSource = SyntaxFactory.CastExpression(
             CreateTypeSyntax(typeof(object)),
             SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource, context)));

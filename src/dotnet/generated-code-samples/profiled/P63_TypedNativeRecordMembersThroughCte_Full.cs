@@ -62,7 +62,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [Records in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Position: Records.Payload.F0, Value: Records.Payload.F1.F0)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -148,7 +148,6 @@ namespace GeneratedSample_P63_TypedNativeRecordMembersThroughCte_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -163,22 +162,17 @@ namespace GeneratedSample_P63_TypedNativeRecordMembersThroughCte_Full
                     }
 
                     Cte0Row0 Records = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(Records.Payload.F0, Records.Payload.F1.F0));
+                    result.Add(new ResultShape0(Records.Payload.F0, Records.Payload.F1.F0) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -206,14 +200,13 @@ namespace GeneratedSample_P63_TypedNativeRecordMembersThroughCte_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op14Handle = profileRecorder?.GetOperatorHandle("op14", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "CreateShapeRows") ?? OperatorProfileHandle.None;
                     var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "ForEach") ?? OperatorProfileHandle.None;
                     var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op28OutputRows = 0L;
                     var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
@@ -244,7 +237,7 @@ namespace GeneratedSample_P63_TypedNativeRecordMembersThroughCte_Full
                             Cte0Row0 Records = __storedTable0Rows[__storedTable0Index];
                             __op27InputRows++;
                             __op27OutputRows++;
-                            result.Add(new ResultShape0(Records.Payload.F0, Records.Payload.F1.F0));
+                            result.Add(new ResultShape0(Records.Payload.F0, Records.Payload.F1.F0) { __musoqSequence = result.Count });
                             __op28OutputRows += 1;
                         }
                     }
@@ -257,23 +250,18 @@ namespace GeneratedSample_P63_TypedNativeRecordMembersThroughCte_Full
 
                     var __op29Scope = profileRecorder?.BeginOperatorValue(__op29Handle) ?? OperatorProfileValueScope.None;
                     __op29Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op29Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op29Scope.AddOutputRows(result.Count);
                     __op29Scope.Dispose();
                     if (__op28OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op28Handle, __op28OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -553,6 +541,7 @@ namespace GeneratedSample_P63_TypedNativeRecordMembersThroughCte_Full
 
             public int Position { get; }
             public int? Value { get; }
+            public int __musoqSequence { get; init; }
         }
 
         [global::System.Text.Json.Serialization.JsonConverter(typeof(__musoqStructuralCarrier_0_1JsonConverter))]

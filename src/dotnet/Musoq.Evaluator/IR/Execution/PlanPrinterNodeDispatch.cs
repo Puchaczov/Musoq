@@ -332,6 +332,12 @@ public static partial class ExecutionPlanPrinter
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}DistinctTable [{FormatTablePostOperationFlow(distinct)}]");
                 break;
             case ExecutionSortTable sort:
+                if (TryGetFinalShapeContext(out var ownedSortContext) &&
+                    ownedSortContext.OwnedBuffer is { SequenceField: not null } owned && owned.SourceName == sort.Source.Name)
+                {
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}SortOwnedBuffer [{sort.Source.Name} by {FormatOrderFields(sort.Keys)}, stable sequence {owned.SequenceField}]");
+                    break;
+                }
                 if (IsTypedRowBufferPostOperation(sort.Target, sort.Source))
                 {
                     builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}SortRowBuffer [{FormatTablePostOperationFlow(sort)} by {FormatOrderFields(sort.Keys)}{FormatOptionalCandidateCapacity(sort.CapacityHint)}]");
@@ -440,6 +446,12 @@ public static partial class ExecutionPlanPrinter
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}OrderRecordList [{orderRecords.Source.Name}: {orderRecords.RecordShape.TypeName} by {FormatOrderFields(orderRecords.Keys)}{FormatOrderRecordSelection(orderRecords.Selection)}]");
                 break;
             case ExecutionMaterializeRecordListToTable materialize:
+                if (TryGetFinalShapeContext(out var ownedRecordContext) &&
+                    ownedRecordContext.OwnedBuffer is { SequenceField: null } records && records.SourceName == materialize.Source.Name)
+                {
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}TransferOwnedRows [{materialize.Source.Name} -> {materialize.Target.Name}: {records.CarrierTypeName}]");
+                    break;
+                }
                 if (IsFinalShapeTarget(materialize.Target.Name) || IsFinalShapeSourceBuffer(materialize.Target.Name, out _))
                 {
                     var materializeShapeTypeName = TryGetFinalShapeContext(out var materializeContext)

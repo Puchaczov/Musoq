@@ -16,7 +16,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [1 as 1, AggRef(ko3iko.Count(*) filter (where not (Label in ('match', null)))) as ko3iko.Count(*) filter (where not (Label in ('match', null)))]
+  PhysicalProject [AggRef(ko3iko.Count(*) filter (where not (Label in ('match', null)))) as ko3iko.Count(*) filter (where not (Label in ('match', null)))]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(*) filter (where not (Label in ('match', null)))]
       PhysicalSchemaScan [#schema.first() as ko3iko]
   PhysicalProject [ko3iko.Count(*) filter (where not (Label in ('match', null))) as Present]

@@ -39,7 +39,7 @@ PhysicalCte
         PhysicalCteRef [bScore as bScore]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.Position as a.Position, a.Partition as a.Partition, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
+      PhysicalProject [a.Position as a.Position, _sq_1._sq_1_value as _sq_1._sq_1_value]
         PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0] [probe: a.Partition]
           PhysicalSchemaScan [#schema.first() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
@@ -67,13 +67,9 @@ ExecutionPlan [compiled]
       _sq_1_value: decimal? <- field _sq_1_value
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      a.Partition: string <- field a_Partition
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
       _sq_1._sq_1_value: decimal? <- field _sq_1__sq_1_value
     TableRow [a_sq_1]
       a.Position: int <- field a_Position
-      a.Partition: string <- field a_Partition
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
       _sq_1._sq_1_value: decimal? <- field _sq_1__sq_1_value
     Generated [ResultRow0]
       Position: int <- field Position
@@ -109,15 +105,15 @@ ExecutionPlan [compiled]
       HashProbe [statement0_sq_1Hash[a.Partition] -> statement0_sq_1HashMatches] [match: statement0_sq_1HashHasMatch]
         ForEach [_sq_1 in statement0_sq_1HashMatches]
           Assign [statement0_sq_1HashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, a.Partition: a.Partition, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_value: _sq_1._sq_1_value)]
+          AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, _sq_1._sq_1_value: _sq_1._sq_1_value)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, a.Partition: a.Partition, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_value: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, _sq_1._sq_1_value: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
     PhaseBoundary [End:cte1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [a_sq_1 in _cteRowResults.Slot1]
       AppendShape [result <- ResultShape0(Position: a_sq_1.a.Position, Total: a_sq_1._sq_1._sq_1_value)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -155,9 +151,7 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
         private static readonly Column[] __columns_compiled_statement0_3 = new Column[]
         {
             new Column("a.Position", typeof(int), 0),
-            new Column("a.Partition", typeof(string), 1),
-            new Column("_sq_1._sq_1_corr_0", typeof(string), 2),
-            new Column("_sq_1._sq_1_value", typeof(decimal?), 3)
+            new Column("_sq_1._sq_1_value", typeof(decimal?), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Partition", typeof(string), 1) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Partition", typeof(string), 0), new Column("Amount", typeof(decimal?), 1) });
@@ -196,7 +190,6 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -212,22 +205,17 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
                     }
 
                     Statement0Row0 a_sq_1 = __storedTable1Rows[__storedTable1Index];
-                    result.Add(new ResultShape0(a_sq_1.a_Position, a_sq_1._sq_1__sq_1_value));
+                    result.Add(new ResultShape0(a_sq_1.a_Position, a_sq_1._sq_1__sq_1_value) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -491,13 +479,13 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
                                     {
                                         token.ThrowIfCancellationRequested();
                                         statement0_sq_1HashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, a.Partition, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                        statement0.Add(new Statement0Row0(a.Position, _sq_1._sq_1_value));
                                     }
                                 }
 
                                 if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Position, a.Partition, null, null));
+                                    statement0.Add(new Statement0Row0(a.Position, null));
                                 }
                             }
 
@@ -523,13 +511,13 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
                                     {
                                         token.ThrowIfCancellationRequested();
                                         statement0_sq_1HashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, a.Partition, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                        statement0.Add(new Statement0Row0(a.Position, _sq_1._sq_1_value));
                                     }
                                 }
 
                                 if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Position, a.Partition, null, null));
+                                    statement0.Add(new Statement0Row0(a.Position, null));
                                 }
                             }
 
@@ -553,13 +541,13 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
                             {
                                 token.ThrowIfCancellationRequested();
                                 statement0_sq_1HashHasMatch = true;
-                                statement0.Add(new Statement0Row0(a.Position, a.Partition, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                statement0.Add(new Statement0Row0(a.Position, _sq_1._sq_1_value));
                             }
                         }
 
                         if (!statement0_sq_1HashHasMatch)
                         {
-                            statement0.Add(new Statement0Row0(a.Position, a.Partition, null, null));
+                            statement0.Add(new Statement0Row0(a.Position, null));
                         }
                     }
                 }
@@ -658,21 +646,18 @@ namespace GeneratedSample_K07_LibraryCorrelatedScalarAggregate
 
             public int Position { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, string __value1, string __value2, decimal? __value3)
+            public Statement0Row0(int __value0, decimal? __value1)
             {
                 a_Position = __value0;
-                a_Partition = __value1;
-                _sq_1__sq_1_corr_0 = __value2;
-                _sq_1__sq_1_value = __value3;
+                _sq_1__sq_1_value = __value1;
             }
 
-            public string _sq_1__sq_1_corr_0 { get; }
             public decimal? _sq_1__sq_1_value { get; }
-            public string a_Partition { get; }
             public int a_Position { get; }
         }
     }

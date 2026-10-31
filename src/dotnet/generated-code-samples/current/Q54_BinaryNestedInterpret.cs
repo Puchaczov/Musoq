@@ -30,7 +30,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, v.Id as v.Id, v.Position as v.Position]
+  PhysicalProject [v.Id as v.Id, v.Position as v.Position]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#Vertex(f.Content) as v]

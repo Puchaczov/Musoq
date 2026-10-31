@@ -38,7 +38,7 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [p in pRows]
       AppendShape [result <- ResultShape0(Position: p.Position, Value: p.Payload?.Value)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -120,7 +120,6 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __pSchema = provider.GetSchema("#positional");
@@ -144,7 +143,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                                 }
 
                                 var p = pChunkViewArray[pChunkViewOffset + pIndex];
-                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                             }
 
                             continue;
@@ -161,7 +160,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                                 }
 
                                 var p = pChunkViewList[pChunkViewOffset + pIndex];
-                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                             }
 
                             continue;
@@ -176,23 +175,18 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                         }
 
                         var p = pChunk[pIndex];
-                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -219,7 +213,6 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op10Handle = profileRecorder?.GetOperatorHandle("op10", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op11Handle = profileRecorder?.GetOperatorHandle("op11", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "SourceScan") ?? OperatorProfileHandle.None;
@@ -227,7 +220,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                     var __op14Handle = profileRecorder?.GetOperatorHandle("op14", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "ChunkedForEach") ?? OperatorProfileHandle.None;
                     var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op16OutputRows = 0L;
                     var __op10Scope = profileRecorder?.BeginOperatorValue(__op10Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
@@ -270,7 +263,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                                         var p = pChunkViewArray[pChunkViewOffset + pIndex];
                                         __op15InputRows++;
                                         __op15OutputRows++;
-                                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                                         __op16OutputRows += 1;
                                     }
 
@@ -290,7 +283,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                                         var p = pChunkViewList[pChunkViewOffset + pIndex];
                                         __op15InputRows++;
                                         __op15OutputRows++;
-                                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                                         __op16OutputRows += 1;
                                     }
 
@@ -308,7 +301,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                                 var p = pChunk[pIndex];
                                 __op15InputRows++;
                                 __op15OutputRows++;
-                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                                 __op16OutputRows += 1;
                             }
                         }
@@ -322,23 +315,18 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
 
                     var __op17Scope = profileRecorder?.BeginOperatorValue(__op17Handle) ?? OperatorProfileValueScope.None;
                     __op17Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op17Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op17Scope.AddOutputRows(result.Count);
                     __op17Scope.Dispose();
                     if (__op16OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op16Handle, __op16OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -441,6 +429,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
 
             public int Position { get; }
             public decimal? Value { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

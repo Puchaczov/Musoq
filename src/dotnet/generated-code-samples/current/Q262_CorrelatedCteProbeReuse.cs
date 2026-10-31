@@ -35,7 +35,7 @@ PhysicalCte
         PhysicalCteRef [ko3ikoScore as ko3ikoScore]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.City as a.City, a.Country as a.Country, b.Country as b.Country, b.Total as b.Total]
+      PhysicalProject [a.City as a.City, b.Total as b.Total]
         PhysicalHashJoin [Inner] [build: b.Country] [probe: a.Country]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [base as b]

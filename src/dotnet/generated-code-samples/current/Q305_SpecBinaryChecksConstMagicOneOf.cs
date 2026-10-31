@@ -24,7 +24,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, r.Version as r.Version, r.Signature as r.Signature, r.Kind as r.Kind]
+  PhysicalProject [r.Version as r.Version, r.Signature as r.Signature, r.Kind as r.Kind]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#ValidatedRecord(f.Content) as r]

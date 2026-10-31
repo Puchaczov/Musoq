@@ -78,7 +78,7 @@ ExecutionPlan [compiled]
     ForEach [cycle in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: cycle.Id)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -158,7 +158,6 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -255,23 +254,18 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                     }
 
                     Cte0Row0 cycle = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(cycle.Id));
+                    result.Add(new ResultShape0(cycle.Id) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -299,7 +293,6 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op14Handle = profileRecorder?.GetOperatorHandle("op14", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "PhaseBoundary") ?? OperatorProfileHandle.None;
@@ -317,7 +310,7 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                     var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "ForEach") ?? OperatorProfileHandle.None;
                     var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "AppendShape") ?? OperatorProfileHandle.None;
                     var __op32Handle = profileRecorder?.GetOperatorHandle("op32", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op33Handle = profileRecorder?.GetOperatorHandle("op33", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op33Handle = profileRecorder?.GetOperatorHandle("op33", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op21InputRows = 0L;
                     long __op21OutputRows = 0L;
                     long __op24InputRows = 0L;
@@ -499,7 +492,7 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                             Cte0Row0 cycle = __storedTable0Rows[__storedTable0Index];
                             __op30InputRows++;
                             __op30OutputRows++;
-                            result.Add(new ResultShape0(cycle.Id));
+                            result.Add(new ResultShape0(cycle.Id) { __musoqSequence = result.Count });
                             __op31OutputRows += 1;
                         }
                     }
@@ -515,19 +508,14 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                     __op32Scope.Dispose();
                     var __op33Scope = profileRecorder?.BeginOperatorValue(__op33Handle) ?? OperatorProfileValueScope.None;
                     __op33Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Id.CompareTo(right.Id);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op33Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op33Scope.AddOutputRows(result.Count);
                     __op33Scope.Dispose();
                     if (__op21InputRows > 0L)
                         profileRecorder?.AddOperatorInputRows(__op21Handle, __op21InputRows);
@@ -539,7 +527,7 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
                         profileRecorder?.AddOperatorOutputRows(__op24Handle, __op24OutputRows);
                     if (__op31OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op31Handle, __op31OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -631,6 +619,7 @@ namespace GeneratedSample_P11_RecursiveKeyedUnion_Full
             }
 
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValues0C8F87F6Row0 : Row

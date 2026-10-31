@@ -43,7 +43,7 @@ PhysicalCte
           PhysicalSchemaScan [#B.entities() as b] [pushdown: b.City IS NULL]
   Query
     PhysicalMultiStatement
-      PhysicalProject [1 as 1, AggRef(a.Count(a.City)) as a.Count(a.City)]
+      PhysicalProject [AggRef(a.Count(a.City)) as a.Count(a.City)]
         PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(City)]
           PhysicalFilter [a.City IS NOT NULL]
             PhysicalHashJoin [LeftAntiSemi] [build: _sq_2._sq_2_key] [probe: 1]

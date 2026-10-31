@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Value as a.Value, a.Middles as a.Middles, b.Value as b.Value]
+  PhysicalProject [a.Value as a.Value, b.Value as b.Value]
     PhysicalNestedLoopApply [Cross] [guards: PreApplyRight: (a.Value > 0)]
       PhysicalSchemaScan [#licm.outers() as a] [pushdown: (a.Value > 0)]
       PhysicalPropertySource [a.Middles as b] [apply: Cross] [type: LoopInvariantSampleMiddle[]]
@@ -41,11 +41,9 @@ ExecutionPlan [compiled]
       Leaves: LoopInvariantSampleLeaf[] <- property Leaves
     Generated [Statement0Row0]
       a.Value: int <- field a_Value
-      a.Middles: LoopInvariantSampleMiddle[] <- field a_Middles
       b.Value: int <- field b_Value
     TableRow [ab]
       a.Value: int <- field a_Value
-      a.Middles: LoopInvariantSampleMiddle[] <- field a_Middles
       b.Value: int <- field b_Value
     Generated [ResultRow0]
       Value: int <- field Value
@@ -62,7 +60,7 @@ ExecutionPlan [compiled]
       ContinueIf [NOT (a.Value > 0)]
       EnumerableSource [a.Middles -> statement0_bRows]
       ChunkedForEach [b in statement0_bRows]
-        AppendRow [statement0 <- Statement0Row0(a.Value: aValue, a.Middles: a.Middles, b.Value: b.Value)]
+        AppendRow [statement0 <- Statement0Row0(a.Value: aValue, b.Value: b.Value)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
@@ -102,8 +100,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.Value", typeof(int), 0),
-            new Column("a.Middles", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[]), 1),
-            new Column("b.Value", typeof(int), 2)
+            new Column("b.Value", typeof(int), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Value", typeof(int), 0), new Column("Middles", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[]), 1) });
         public ILogger Logger { get; set; }
@@ -234,7 +231,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(aValue, b.Value));
                                         }
 
                                         continue;
@@ -251,7 +248,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(aValue, b.Value));
                                         }
 
                                         continue;
@@ -266,7 +263,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(aValue, b.Value));
                                 }
                             }
                         }
@@ -307,7 +304,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(aValue, b.Value));
                                         }
 
                                         continue;
@@ -324,7 +321,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(aValue, b.Value));
                                         }
 
                                         continue;
@@ -339,7 +336,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(aValue, b.Value));
                                 }
                             }
                         }
@@ -378,7 +375,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                     }
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(aValue, b.Value));
                                 }
 
                                 continue;
@@ -395,7 +392,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                                     }
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(aValue, b.Value));
                                 }
 
                                 continue;
@@ -410,7 +407,7 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
                             }
 
                             var b = bChunk[bIndex];
-                            statement0.Add(new Statement0Row0(aValue, a.Middles, b.Value));
+                            statement0.Add(new Statement0Row0(aValue, b.Value));
                         }
                     }
                 }
@@ -468,14 +465,12 @@ namespace GeneratedSample_Q258_GuardedStableApplyPredicate
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] __value1, int __value2)
+            public Statement0Row0(int __value0, int __value1)
             {
                 a_Value = __value0;
-                a_Middles = __value1;
-                b_Value = __value2;
+                b_Value = __value1;
             }
 
-            public Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] a_Middles { get; }
             public int a_Value { get; }
             public int b_Value { get; }
         }

@@ -50,8 +50,8 @@ ExecutionPlan [compiled]
       If [DYNAMIC_RLIKE(name, ko3iko.City, cache=__rlikeCache0, strategy=runtime-classified)]
         AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Id: ko3iko.Id, Name: name)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Id ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -106,7 +106,7 @@ namespace GeneratedSample_Q373_DynamicColumnRLike
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -116,7 +116,6 @@ namespace GeneratedSample_Q373_DynamicColumnRLike
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
                 Musoq.Evaluator.RLikeMatcherCacheSlot __rlikeCache0 = new Musoq.Evaluator.RLikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L));
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
@@ -189,12 +188,7 @@ namespace GeneratedSample_Q373_DynamicColumnRLike
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Id, resultRecord.Name));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -287,18 +281,6 @@ namespace GeneratedSample_Q373_DynamicColumnRLike
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(int Id, string Name)
-            {
-                this.Id = Id;
-                this.Name = Name;
-            }
-
-            public int Id { get; }
-            public string Name { get; }
         }
     }
 }

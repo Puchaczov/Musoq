@@ -59,7 +59,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in statement0_iRows]
       Let [iName: string = i.Name]
       EnumerableSource [JustReturnArrayOfString() -> statement0_sRows]
-      ChunkedForEach [s in statement0_sRows]
+      ForEach [s in statement0_sRows]
         AppendRow [statement0 <- Statement0Row0(i.Name: iName, s.Value: s.Value)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -68,7 +68,7 @@ ExecutionPlan [compiled]
       Let [s_Value: string = is.s.Value]
       If [DYNAMIC_LIKE(i_Name, s_Value, cache=__likeCache0, comparison=LikeIgnoreCase)]
         AppendShape [result <- ResultShape0(Name: i_Name, Value: s_Value)]
-    SortShapeRows [result -> resultSorted by Name ASC, Value ASC]
+    SortOwnedBuffer [result by Name ASC, Value ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -140,7 +140,6 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
                 Musoq.Evaluator.LikeMatcherCacheSlot __likeCache0 = new Musoq.Evaluator.LikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L));
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Where);
@@ -160,11 +159,11 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
                     string s_Value = @is.s_Value;
                     if (Operators.LikeDynamic(i_Name, s_Value, __likeCache0))
                     {
-                        result.Add(new ResultShape0(i_Name, s_Value));
+                        result.Add(new ResultShape0(i_Name, s_Value) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Name, right.Name);
                     if (comparison != 0)
@@ -172,14 +171,9 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
                     comparison = StringComparer.Ordinal.Compare(left.Value, right.Value);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -230,55 +224,38 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
 
                             var i = iChunkViewArray[iChunkViewOffset + iIndex];
                             string iName = i.Name;
-                            var statement0_sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__statement0Library0.JustReturnArrayOfString());
-                            foreach (var sChunk in statement0_sRows)
-                            {
-                                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                {
-                                    if (sChunkView.Source is string[] sChunkViewArray)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (sChunkView.Source is List<string> sChunkViewList)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                            var statement0_sRows = (IEnumerable<string>)(string[])__statement0Library0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                            var sIndexRows = statement0_sRows;
+                            if (sIndexRows is string[] sIndexArray)
+                                for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                 {
                                     if ((sIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var s = sChunk[sIndex];
+                                    string s = sIndexArray[sIndex];
                                     statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else if (sIndexRows is List<string> sIndexConcreteList)
+                                for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                {
+                                    if ((sIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    string s = sIndexConcreteList[sIndex];
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else
+                            {
+                                int sIndex = 0;
+                                foreach (var s in sIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                    ++sIndex;
                                 }
                             }
                         }
@@ -298,55 +275,38 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
 
                             var i = iChunkViewList[iChunkViewOffset + iIndex];
                             string iName = i.Name;
-                            var statement0_sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__statement0Library0.JustReturnArrayOfString());
-                            foreach (var sChunk in statement0_sRows)
-                            {
-                                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                {
-                                    if (sChunkView.Source is string[] sChunkViewArray)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (sChunkView.Source is List<string> sChunkViewList)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                            var statement0_sRows = (IEnumerable<string>)(string[])__statement0Library0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                            var sIndexRows = statement0_sRows;
+                            if (sIndexRows is string[] sIndexArray)
+                                for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                 {
                                     if ((sIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var s = sChunk[sIndex];
+                                    string s = sIndexArray[sIndex];
                                     statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else if (sIndexRows is List<string> sIndexConcreteList)
+                                for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                {
+                                    if ((sIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    string s = sIndexConcreteList[sIndex];
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else
+                            {
+                                int sIndex = 0;
+                                foreach (var s in sIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                    ++sIndex;
                                 }
                             }
                         }
@@ -364,55 +324,38 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
 
                     var i = iChunk[iIndex];
                     string iName = i.Name;
-                    var statement0_sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__statement0Library0.JustReturnArrayOfString());
-                    foreach (var sChunk in statement0_sRows)
-                    {
-                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                        {
-                            if (sChunkView.Source is string[] sChunkViewArray)
-                            {
-                                int sChunkViewOffset = sChunkView.Offset;
-                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                {
-                                    if ((sIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                    statement0.Add(new Statement0Row0(iName, s));
-                                }
-
-                                continue;
-                            }
-
-                            if (sChunkView.Source is List<string> sChunkViewList)
-                            {
-                                int sChunkViewOffset = sChunkView.Offset;
-                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                {
-                                    if ((sIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                    statement0.Add(new Statement0Row0(iName, s));
-                                }
-
-                                continue;
-                            }
-                        }
-
-                        for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                    var statement0_sRows = (IEnumerable<string>)(string[])__statement0Library0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                    var sIndexRows = statement0_sRows;
+                    if (sIndexRows is string[] sIndexArray)
+                        for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                         {
                             if ((sIndex & 1023) == 0)
                             {
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            var s = sChunk[sIndex];
+                            string s = sIndexArray[sIndex];
                             statement0.Add(new Statement0Row0(iName, s));
+                        }
+                    else if (sIndexRows is List<string> sIndexConcreteList)
+                        for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                        {
+                            if ((sIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            string s = sIndexConcreteList[sIndex];
+                            statement0.Add(new Statement0Row0(iName, s));
+                        }
+                    else
+                    {
+                        int sIndex = 0;
+                        foreach (var s in sIndexRows)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            statement0.Add(new Statement0Row0(iName, s));
+                            ++sIndex;
                         }
                     }
                 }
@@ -478,6 +421,7 @@ namespace GeneratedSample_Q370_CorrelatedApplyDynamicLike
 
             public string Name { get; }
             public string Value { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0

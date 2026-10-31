@@ -1,4 +1,4 @@
-// === Parsed Query ===
+﻿// === Parsed Query ===
 /*
 text Item { X: chars[1] } text Packet { Records: repeat Item until end } select Count(r.X) as N from #test.lines() f cross apply Parse<Packet>(f.Line) p cross apply p.Records r
 */
@@ -24,15 +24,15 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Line as f.Line, p.Records as p.Records]
+  PhysicalProject [p.Records as p.Records]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.lines() as f]
       PhysicalInterpretSource [#Packet(f.Line) as p]
-  PhysicalProject [fp.f.Line as f.Line, fp.p.Records as p.Records, r.X as r.X]
+  PhysicalProject [r.X as r.X]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fp as fp]
       PhysicalPropertySource [fp.p.Records as r] [apply: Cross] [type: Object[]]
-  PhysicalProject [1 as 1, AggRef(fpr.Count(r.X)) as fpr.Count(r.X)]
+  PhysicalProject [AggRef(fpr.Count(r.X)) as fpr.Count(r.X)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(X)]
       PhysicalCteRef [fpr as fpr]
   PhysicalProject [fpr.Count(r.X) as N]
@@ -48,20 +48,14 @@ ExecutionPlan [compiled]
     SourceEntity [p: object]
       Records: object[] <- property Records
     Generated [Statement0Row0]
-      f.Line: string <- field f_Line
       p.Records: object[] <- field p_Records
     TableRow [fp]
-      f.Line: string <- field f_Line
       p.Records: object[] <- field p_Records
     SourceEntity [r: object]
       X: string <- property X
     Generated [Statement1Row0]
-      f.Line: string <- field f_Line
-      p.Records: object[] <- field p_Records
       r.X: string <- field r_X
     TableRow [fpr]
-      f.Line: string <- field f_Line
-      p.Records: object[] <- field p_Records
       r.X: string <- field r_X
     AggregateGroup [Statement2AggregateGroup; keys: 0; typed aggs: 1]
     Generated [Statement2Row0]
@@ -77,17 +71,15 @@ ExecutionPlan [compiled]
     SourceScan [f: TextEntity] -> statement0_fRows
     CreateTable [statement0: Statement0Row0]
     ChunkedForEach [f in statement0_fRows]
-      Let [fLine: string = f.Line]
       InterpretSource [Packet.Parse(f.Line) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(f.Line: fLine, p.Records: p.Records)]
+        AppendRow [statement0 <- Statement0Row0(p.Records: p.Records)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateTable [statement1: Statement1Row0]
     ForEach [fp in _cteRowResults.Slot0]
-      Let [fpfLine: string = fp.f.Line]
       EnumerableSource [fp.p.Records -> statement1_rRows]
       ChunkedForEach [r in statement1_rRows]
-        AppendRow [statement1 <- Statement1Row0(f.Line: fpfLine, p.Records: fp.p.Records, r.X: r.X)]
+        AppendRow [statement1 <- Statement1Row0(r.X: r.X)]
     StoreTable [statement1 -> _cteRowResults.Slot1: List<Statement1Row0>]
     CreateTable [statement2: Statement2Row0]
     CreateAggregateContext [statement2RootGroup, statement2Group, statement2GroupsToFinalize; typed: Statement2AggregateGroup]
@@ -133,14 +125,11 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Line", typeof(string), 0),
-            new Column("p.Records", typeof(Musoq.Generated.Interpreters.Item[]), 1)
+            new Column("p.Records", typeof(Musoq.Generated.Interpreters.Item[]), 0)
         };
         private static readonly Column[] __columns_compiled_statement1_2 = new Column[]
         {
-            new Column("f.Line", typeof(string), 0),
-            new Column("p.Records", typeof(Musoq.Generated.Interpreters.Item[]), 1),
-            new Column("r.X", typeof(string), 2)
+            new Column("r.X", typeof(string), 0)
         };
         private static readonly Column[] __columns_compiled_statement2_3 = new Column[]
         {
@@ -250,14 +239,13 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                             }
 
                             var f = fChunkViewArray[fChunkViewOffset + fIndex];
-                            string fLine = f.Line;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
                             var statement0_pRows = _interpreter_Packet.Parse(f.Line);
                             if (statement0_pRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(fLine, p.Records));
+                                statement0.Add(new Statement0Row0(p.Records));
                             }
                         }
 
@@ -275,14 +263,13 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                             }
 
                             var f = fChunkViewList[fChunkViewOffset + fIndex];
-                            string fLine = f.Line;
                             var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
                             var statement0_pRows = _interpreter_Packet.Parse(f.Line);
                             if (statement0_pRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(fLine, p.Records));
+                                statement0.Add(new Statement0Row0(p.Records));
                             }
                         }
 
@@ -298,14 +285,13 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                     }
 
                     var f = fChunk[fIndex];
-                    string fLine = f.Line;
                     var _interpreter_Packet = new Musoq.Generated.Interpreters.Packet();
                     var statement0_pRows = _interpreter_Packet.Parse(f.Line);
                     if (statement0_pRows != null)
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(fLine, p.Records));
+                        statement0.Add(new Statement0Row0(p.Records));
                     }
                 }
             }
@@ -326,7 +312,6 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                 }
 
                 Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
-                string fpfLine = fp.f_Line;
                 var statement1_rRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Item>(fp.p_Records);
                 foreach (var rChunk in statement1_rRows)
                 {
@@ -338,7 +323,7 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                         }
 
                         var r = rChunk[rIndex];
-                        statement1.Add(new Statement1Row0(fpfLine, fp.p_Records, r.X));
+                        statement1.Add(new Statement1Row0(r.X));
                     }
                 }
             }
@@ -427,27 +412,21 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, Musoq.Generated.Interpreters.Item[] __value1)
+            public Statement0Row0(Musoq.Generated.Interpreters.Item[] __value0)
             {
-                f_Line = __value0;
-                p_Records = __value1;
+                p_Records = __value0;
             }
 
-            public string f_Line { get; }
             public Musoq.Generated.Interpreters.Item[] p_Records { get; }
         }
 
         private sealed class Statement1Row0
         {
-            public Statement1Row0(string __value0, Musoq.Generated.Interpreters.Item[] __value1, string __value2)
+            public Statement1Row0(string __value0)
             {
-                f_Line = __value0;
-                p_Records = __value1;
-                r_X = __value2;
+                r_X = __value0;
             }
 
-            public string f_Line { get; }
-            public Musoq.Generated.Interpreters.Item[] p_Records { get; }
             public string r_X { get; }
         }
 

@@ -20,7 +20,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Avg(ko3iko.Temperature::Single)) as ko3iko.Avg(ko3iko.Temperature::Single), AggRef(ko3iko.Max(ko3iko.Temperature::Single)) as ko3iko.Max(ko3iko.Temperature::Single), AggRef(ko3iko.Min(ko3iko.Temperature::Single)) as ko3iko.Min(ko3iko.Temperature::Single)]
+  PhysicalProject [AggRef(ko3iko.Avg(ko3iko.Temperature::Single)) as ko3iko.Avg(ko3iko.Temperature::Single), AggRef(ko3iko.Max(ko3iko.Temperature::Single)) as ko3iko.Max(ko3iko.Temperature::Single), AggRef(ko3iko.Min(ko3iko.Temperature::Single)) as ko3iko.Min(ko3iko.Temperature::Single)]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Avg(Temperature::Single), Max(Temperature::Single), Min(Temperature::Single)]
       PhysicalSchemaScan [#weather.measurements() as ko3iko]
   PhysicalProject [ko3iko.Min(ko3iko.Temperature::Single) as MinTemperature, ko3iko.Max(ko3iko.Temperature::Single) as MaxTemperature, ko3iko.Avg(ko3iko.Temperature::Single) as AvgTemperature]

@@ -82,7 +82,8 @@ public class TypedInspectionTests
         Assert.IsFalse(result.HasFinalSinkRejectionDiagnostics);
         Assert.AreEqual(FinalProjectionSinkRejectionKind.None, result.FinalSinkRejectionKind);
         Assert.IsNull(result.FinalSinkRejectionReason);
-        StringAssert.Contains(result.GeneratedCSharpCode, "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(");
+        StringAssert.Contains(result.GeneratedCSharpCode, "private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(");
+        StringAssert.Contains(result.GeneratedCSharpCode, "return resultOrderRecords;");
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
     }
 

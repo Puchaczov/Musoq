@@ -60,7 +60,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Partition: finalGroup.Partition, Positive: ko3iko.PositiveTotal(ko3iko.Amount), Scaled: ko3iko.ScaledTotal(ko3iko.Amount, 2), Total: ko3iko.Sum(ko3iko.Amount))]
-    SortShapeRows [result -> resultSorted by Partition ASC]
+    SortOwnedBuffer [result by Partition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -143,7 +143,6 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -324,22 +323,17 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.PositiveTotalKernel.Get(in finalGroup.__agg2), Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ScaledTotalKernel.Get(in finalGroup.__agg1), finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
+                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.PositiveTotalKernel.Get(in finalGroup.__agg2), Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ScaledTotalKernel.Get(in finalGroup.__agg1), finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -366,7 +360,6 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op13Handle = profileRecorder?.GetOperatorHandle("op13", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op14Handle = profileRecorder?.GetOperatorHandle("op14", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "SourceScan") ?? OperatorProfileHandle.None;
@@ -382,7 +375,7 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
                     var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "EnsureShapeCapacity") ?? OperatorProfileHandle.None;
                     var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "ForEach") ?? OperatorProfileHandle.None;
                     var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op21InputRows = 0L;
                     long __op21OutputRows = 0L;
                     long __op23OutputRows = 0L;
@@ -633,7 +626,7 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
                             token.ThrowIfCancellationRequested();
                             __op29InputRows++;
                             __op29OutputRows++;
-                            result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.PositiveTotalKernel.Get(in finalGroup.__agg2), Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ScaledTotalKernel.Get(in finalGroup.__agg1), finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
+                            result.Add(new ResultShape0(finalGroup.__key0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.PositiveTotalKernel.Get(in finalGroup.__agg2), Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary.ScaledTotalKernel.Get(in finalGroup.__agg1), finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) { __musoqSequence = result.Count });
                             __op30OutputRows += 1;
                         }
                     }
@@ -646,19 +639,14 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
 
                     var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
                     __op31Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op31Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op31Scope.AddOutputRows(result.Count);
                     __op31Scope.Dispose();
                     if (__op21InputRows > 0L)
                         profileRecorder?.AddOperatorInputRows(__op21Handle, __op21InputRows);
@@ -672,7 +660,7 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
                         profileRecorder?.AddOperatorOutputRows(__op27Handle, __op27OutputRows);
                     if (__op30OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op30Handle, __op30OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -788,6 +776,7 @@ namespace GeneratedSample_P21_LibraryCustomMultiArgumentGroups_Full
             public decimal? Positive { get; }
             public decimal? Scaled { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

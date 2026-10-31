@@ -40,4 +40,18 @@ public sealed class ExecutionRowStreamsTests
     {
         return new ExecutionVariable(name, typeof(object), "Row0");
     }
+
+    [TestMethod]
+    public void RebindLike_DirectScalarRows_PreservesTraversalWithoutReusingTableAccess()
+    {
+        var prototype = new ExecutionRowStream(Var("source"), ExecutionRowStreamKind.Rows,
+            ExecutionRowStreamRowsAccess.TableRows) { HasDirectScalarElements = true };
+
+        var rebound = (ExecutionRowStream)ExecutionRowStreams.RebindLike(prototype, Var("rebound"));
+
+        Assert.IsTrue(rebound.HasDirectScalarElements);
+        Assert.AreEqual(ExecutionRowStreamKind.Rows, rebound.Kind);
+        Assert.AreEqual(ExecutionRowStreamRowsAccess.Direct, rebound.RowsAccess);
+        Assert.AreEqual("rebound", rebound.Variable.Name);
+    }
 }

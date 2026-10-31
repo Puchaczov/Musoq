@@ -126,7 +126,7 @@ ExecutionPlan [compiled]
     ForEach [wide in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: wide.Id, Depth: wide.Depth, A: wide.A, B: wide.B, C: wide.C, D: wide.D, E: wide.E, F: wide.F, Name: wide.Name, Flag: wide.Flag, Amount: wide.Amount, Code: wide.Code)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -201,7 +201,6 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -324,23 +323,18 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
                     }
 
                     Cte0Row0 wide = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(wide.Id, wide.Depth, wide.A, wide.B, wide.C, wide.D, wide.E, wide.F, wide.Name, wide.Flag, wide.Amount, wide.Code));
+                    result.Add(new ResultShape0(wide.Id, wide.Depth, wide.A, wide.B, wide.C, wide.D, wide.E, wide.F, wide.Name, wide.Flag, wide.Amount, wide.Code) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -536,6 +530,7 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
             public bool Flag { get; }
             public int Id { get; }
             public string Name { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValuesD6F9BDFERow0 : Row

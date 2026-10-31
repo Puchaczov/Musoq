@@ -88,8 +88,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersOrderKeys);", computeMethod, sample.FileName);
         Assert.Contains("var result = new List<ResultShape0>(resultWindowRows.Count);", computeMethod, sample.FileName);
-        Assert.Contains("var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create", computeMethod, sample.FileName);
-        Assert.Contains("__musoqFinalShapeRows.Add(resultSortedRowsRow);", computeMethod, sample.FileName);
+        Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", computeMethod, sample.FileName);
+        Assert.Contains("return left.__musoqSequence.CompareTo(right.__musoqSequence);", computeMethod, sample.FileName);
+        Assert.Contains("return result;", computeMethod, sample.FileName);
         Assert.Contains("for (int windowIndex", computeMethod, sample.FileName);
         Assert.Contains("private static void ExtractResultRowNumbersWindowKeys", sample.Content, sample.FileName);
         Assert.IsFalse(sample.Content.Contains("private static void AppendResultWindowRows", StringComparison.Ordinal), sample.FileName);

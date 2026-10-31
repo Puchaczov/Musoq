@@ -54,7 +54,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, First: resultFirstValues0[windowIndex], Nth: resultNthValues1[windowIndex], Previous: resultLags2[windowIndex], Tile: resultNtiles3[windowIndex])]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
     PhaseBoundary [Select]
 */
@@ -123,7 +123,6 @@ namespace GeneratedSample_K28_TypedWindowValueContext
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -251,23 +250,18 @@ namespace GeneratedSample_K28_TypedWindowValueContext
                     }
 
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultFirstValues0[windowIndex], (decimal?)resultNthValues1[windowIndex], (decimal?)resultLags2[windowIndex], (long)resultNtiles3[windowIndex]));
+                    result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultFirstValues0[windowIndex], (decimal?)resultNthValues1[windowIndex], (decimal?)resultLags2[windowIndex], (long)resultNtiles3[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -370,6 +364,7 @@ namespace GeneratedSample_K28_TypedWindowValueContext
             public int Position { get; }
             public decimal? Previous { get; }
             public long Tile { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultFirstValues0OrderKeysKey : System.IEquatable<WindowResultFirstValues0OrderKeysKey>, System.IComparable<WindowResultFirstValues0OrderKeysKey>

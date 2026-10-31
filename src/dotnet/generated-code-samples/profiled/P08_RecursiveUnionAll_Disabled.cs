@@ -82,7 +82,7 @@ ExecutionPlan [compiled]
     ForEach [counter in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Value: counter.Value)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Value ASC]
+    SortOwnedBuffer [result by Value ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -146,7 +146,6 @@ namespace GeneratedSample_P08_RecursiveUnionAll_Disabled
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -238,23 +237,18 @@ namespace GeneratedSample_P08_RecursiveUnionAll_Disabled
                     }
 
                     Cte0Row0 counter = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(counter.Value));
+                    result.Add(new ResultShape0(counter.Value) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Value.CompareTo(right.Value);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -340,6 +334,7 @@ namespace GeneratedSample_P08_RecursiveUnionAll_Disabled
             }
 
             public int Value { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValuesA380A8DARow0 : Row

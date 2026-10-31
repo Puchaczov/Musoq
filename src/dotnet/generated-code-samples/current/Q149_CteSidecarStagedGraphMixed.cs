@@ -65,11 +65,11 @@ PhysicalCte
           PhysicalCteRef [raw as raw]
   Definition [joined]
     PhysicalMultiStatement
-      PhysicalProject [b.Id as b.Id, n.Id as n.Id, n.Name as n.Name]
+      PhysicalProject [b.Id as b.Id, n.Name as n.Name]
         PhysicalHashJoin [Inner] [build: n.Id] [probe: b.Id]
           PhysicalSchemaScan [#B.entities() as b]
           PhysicalCteRef [names as n]
-      PhysicalProject [bn.b.Id as b.Id, bn.n.Id as n.Id, bn.n.Name as n.Name, c.Id as Id, c.City as City]
+      PhysicalProject [bn.b.Id as b.Id, bn.n.Name as n.Name, c.City as City]
         PhysicalHashJoin [Inner] [build: c.Id] [probe: bn.b.Id]
           PhysicalCteRef [bn as bn]
           PhysicalCteRef [cities as c]

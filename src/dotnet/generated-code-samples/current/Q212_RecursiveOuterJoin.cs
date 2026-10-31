@@ -43,7 +43,7 @@ PhysicalCte
               PhysicalCteRef [walk as w]
   Query
     PhysicalMultiStatement
-      PhysicalProject [w.Id as w.Id, l.Id as l.Id, l.Name as l.Name]
+      PhysicalProject [w.Id as w.Id, l.Name as l.Name]
         PhysicalHashJoin [Inner] [build: l.Id] [probe: w.Id]
           PhysicalCteRef [walk as w]
           PhysicalValuesScan [3 rows as l]

@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Id as a.Id, b.Id as b.Id]
+  PhysicalProject [a.Id as a.Id]
     PhysicalHashJoin [LeftOuter] [build: b.Id] [probe: a.Id]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#B.entities() as b]
@@ -37,10 +37,8 @@ ExecutionPlan [compiled]
       Id: int <- property Id
     Generated [Statement0Row0]
       a.Id: int <- field a_Id
-      b.Id: int? <- field b_Id
     TableRow [ab]
       a.Id: int <- field a_Id
-      b.Id: int? <- field b_Id
     Generated [ResultRow0]
       Id: int <- field Id
       RightCountry: string <- field RightCountry
@@ -59,16 +57,16 @@ ExecutionPlan [compiled]
       HashProbe [statement0BHash[a.Id] -> statement0BHashMatches] [match: statement0BHashHasMatch]
         ForEach [b in statement0BHashMatches]
           Assign [statement0BHashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, b.Id: b.Id)]
+          AppendRow [statement0 <- Statement0Row0(a.Id: a.Id)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Id: a.Id, b.Id: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Id: a.Id)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibrary0: Library]
     ForEach [ab in _cteRowResults.Slot0]
       Let [b1: BasicEntity = ab.b]
       AppendShape [result <- ResultShape0(Id: ab.a.Id, RightCountry: CASE WHEN b1 IS NULL THEN NULL ELSE GetCountry() END)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -100,8 +98,7 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("a.Id", typeof(int), 0),
-            new Column("b.Id", typeof(int?), 1)
+            new Column("a.Id", typeof(int), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0) });
         public ILogger Logger { get; set; }
@@ -139,7 +136,6 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -156,22 +152,17 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
                     Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b1 = (Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)ab.__rightContext;
-                    result.Add(new ResultShape0(ab.a_Id, (b1 == null) ? (string)null : (string)(string)__resultLibrary0.GetCountry((Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)b1)));
+                    result.Add(new ResultShape0(ab.a_Id, (b1 == null) ? (string)null : (string)(string)__resultLibrary0.GetCountry((Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)b1)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -322,13 +313,13 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
                                 {
                                     token.ThrowIfCancellationRequested();
                                     statement0BHashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Id, b.Id, a, b));
+                                    statement0.Add(new Statement0Row0(a.Id, a, b));
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Id, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Id, a, null));
                             }
                         }
 
@@ -354,13 +345,13 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
                                 {
                                     token.ThrowIfCancellationRequested();
                                     statement0BHashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Id, b.Id, a, b));
+                                    statement0.Add(new Statement0Row0(a.Id, a, b));
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Id, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Id, a, null));
                             }
                         }
 
@@ -384,13 +375,13 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
                         {
                             token.ThrowIfCancellationRequested();
                             statement0BHashHasMatch = true;
-                            statement0.Add(new Statement0Row0(a.Id, b.Id, a, b));
+                            statement0.Add(new Statement0Row0(a.Id, a, b));
                         }
                     }
 
                     if (!statement0BHashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.Id, null, a, null));
+                        statement0.Add(new Statement0Row0(a.Id, a, null));
                     }
                 }
             }
@@ -455,22 +446,21 @@ namespace GeneratedSample_Q235_NullableProviderMethodLeftJoin
 
             public int Id { get; }
             public string RightCountry { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
             public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __leftContext;
             public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __rightContext;
-            public Statement0Row0(int __value0, int? __value1, Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __leftContext, Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __rightContext)
+            public Statement0Row0(int __value0, Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __leftContext, Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __rightContext)
             {
                 a_Id = __value0;
-                b_Id = __value1;
                 this.__leftContext = __leftContext;
                 this.__rightContext = __rightContext;
             }
 
             public int a_Id { get; }
-            public int? b_Id { get; }
         }
     }
 }

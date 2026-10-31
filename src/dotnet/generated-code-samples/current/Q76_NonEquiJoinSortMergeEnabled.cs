@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population]
+  PhysicalProject [a.Name as a.Name, b.Name as b.Name]
     PhysicalSortMergeJoin [Inner] [left: a.Population] [right: (b.Population + 950)] [op: >] [residual: (a.Population > (b.Population + 950))]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#A.entities() as b]

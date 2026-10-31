@@ -55,7 +55,7 @@ ExecutionPlan [compiled]
       Let [iName: string = i.Name]
       ContinueIf [NOT ((i.Name = 'left') = TRUE)]
       EnumerableSource [JustReturnArrayOfString() -> statement0_sRows]
-      ChunkedForEach [s in statement0_sRows]
+      ForEach [s in statement0_sRows]
         AppendRow [statement0 <- Statement0Row0(i.Name: iName, s.Value: s.Value)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
@@ -205,55 +205,38 @@ namespace GeneratedSample_Q247_CrossApplyMethodWhereLeftGuard
                                 continue;
                             }
 
-                            var statement0_sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__statement0Library0.JustReturnArrayOfString());
-                            foreach (var sChunk in statement0_sRows)
-                            {
-                                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                {
-                                    if (sChunkView.Source is string[] sChunkViewArray)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (sChunkView.Source is List<string> sChunkViewList)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                            var statement0_sRows = (IEnumerable<string>)(string[])__statement0Library0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                            var sIndexRows = statement0_sRows;
+                            if (sIndexRows is string[] sIndexArray)
+                                for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                 {
                                     if ((sIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var s = sChunk[sIndex];
+                                    string s = sIndexArray[sIndex];
                                     statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else if (sIndexRows is List<string> sIndexConcreteList)
+                                for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                {
+                                    if ((sIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    string s = sIndexConcreteList[sIndex];
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else
+                            {
+                                int sIndex = 0;
+                                foreach (var s in sIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                    ++sIndex;
                                 }
                             }
                         }
@@ -278,55 +261,38 @@ namespace GeneratedSample_Q247_CrossApplyMethodWhereLeftGuard
                                 continue;
                             }
 
-                            var statement0_sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__statement0Library0.JustReturnArrayOfString());
-                            foreach (var sChunk in statement0_sRows)
-                            {
-                                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                {
-                                    if (sChunkView.Source is string[] sChunkViewArray)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (sChunkView.Source is List<string> sChunkViewList)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            statement0.Add(new Statement0Row0(iName, s));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                            var statement0_sRows = (IEnumerable<string>)(string[])__statement0Library0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                            var sIndexRows = statement0_sRows;
+                            if (sIndexRows is string[] sIndexArray)
+                                for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                 {
                                     if ((sIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var s = sChunk[sIndex];
+                                    string s = sIndexArray[sIndex];
                                     statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else if (sIndexRows is List<string> sIndexConcreteList)
+                                for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                {
+                                    if ((sIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    string s = sIndexConcreteList[sIndex];
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                }
+                            else
+                            {
+                                int sIndex = 0;
+                                foreach (var s in sIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, s));
+                                    ++sIndex;
                                 }
                             }
                         }
@@ -349,55 +315,38 @@ namespace GeneratedSample_Q247_CrossApplyMethodWhereLeftGuard
                         continue;
                     }
 
-                    var statement0_sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__statement0Library0.JustReturnArrayOfString());
-                    foreach (var sChunk in statement0_sRows)
-                    {
-                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                        {
-                            if (sChunkView.Source is string[] sChunkViewArray)
-                            {
-                                int sChunkViewOffset = sChunkView.Offset;
-                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                {
-                                    if ((sIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                    statement0.Add(new Statement0Row0(iName, s));
-                                }
-
-                                continue;
-                            }
-
-                            if (sChunkView.Source is List<string> sChunkViewList)
-                            {
-                                int sChunkViewOffset = sChunkView.Offset;
-                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                {
-                                    if ((sIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                    statement0.Add(new Statement0Row0(iName, s));
-                                }
-
-                                continue;
-                            }
-                        }
-
-                        for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                    var statement0_sRows = (IEnumerable<string>)(string[])__statement0Library0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                    var sIndexRows = statement0_sRows;
+                    if (sIndexRows is string[] sIndexArray)
+                        for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                         {
                             if ((sIndex & 1023) == 0)
                             {
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            var s = sChunk[sIndex];
+                            string s = sIndexArray[sIndex];
                             statement0.Add(new Statement0Row0(iName, s));
+                        }
+                    else if (sIndexRows is List<string> sIndexConcreteList)
+                        for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                        {
+                            if ((sIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            string s = sIndexConcreteList[sIndex];
+                            statement0.Add(new Statement0Row0(iName, s));
+                        }
+                    else
+                    {
+                        int sIndex = 0;
+                        foreach (var s in sIndexRows)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            statement0.Add(new Statement0Row0(iName, s));
+                            ++sIndex;
                         }
                     }
                 }

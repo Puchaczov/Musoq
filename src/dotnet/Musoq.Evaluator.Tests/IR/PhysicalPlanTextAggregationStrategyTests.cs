@@ -18,7 +18,7 @@ public sealed class PhysicalPlanTextAggregationStrategyTests : BasicEntityTestBa
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [1 as 1, AggRef(e.Sum(e.Population)) as e.Sum(e.Population), AggRef(e.Count(e.Name)) as e.Count(e.Name)]",
+                "  PhysicalProject [AggRef(e.Sum(e.Population)) as e.Sum(e.Population), AggRef(e.Count(e.Name)) as e.Count(e.Name)]",
                 "    PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Sum(Population), Count(Name)]",
                 "      PhysicalSchemaScan [#A.Entities() as e]",
                 "  PhysicalProject [e.Count(e.Name) as Count(e.Name), e.Sum(e.Population) as Sum(e.Population)]",

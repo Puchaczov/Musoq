@@ -31,6 +31,12 @@ public static partial class ExecutionExpressionConverter
             RowShapeLookup.TryResolveSourceAlias(shape, out var sourceAlias) &&
             string.Equals(sourceAlias, alias, StringComparison.OrdinalIgnoreCase))
         {
+            if (shape is SourceEntityShape scalar &&
+                scalar.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess))
+            {
+                source = new ExecutionLiteral(true, typeof(bool));
+                return true;
+            }
             source = new ExecutionVariableRead(new ExecutionVariable(alias, RowShapeLookup.ResolveSourceRuntimeType(shape)));
             return true;
         }
@@ -52,6 +58,20 @@ public static partial class ExecutionExpressionConverter
             if (context == null)
                 continue;
 
+            var ordinal = IsScalarPresenceContext(context.Type) ? tableRow.Fields.FirstOrDefault(field =>
+                string.Equals(field.Name, $"{alias}.Ordinal", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(field.QualifiedName, $"{alias}.Ordinal", StringComparison.OrdinalIgnoreCase)) : null;
+            if (ordinal != null)
+            {
+                if (Nullable.GetUnderlyingType(ordinal.Type.ResolveClrType()) == null)
+                {
+                    source = new ExecutionLiteral(true, typeof(bool));
+                    return true;
+                }
+                source = new ExecutionFieldRead(tableRow.Alias, ordinal.Name, ordinal.Type, ordinal.AccessStrategy);
+                return true;
+            }
+
             var presenceType = context.Type;
             if (presenceType.ResolveClrType().IsValueType)
                 presenceType = ExecutionClrBindingFactory.FromClr(typeof(object));
@@ -61,5 +81,13 @@ public static partial class ExecutionExpressionConverter
 
         source = new ExecutionLiteral(null, typeof(object));
         return false;
+    }
+
+    private static bool IsScalarPresenceContext(ExecutionTypeRef type)
+    {
+        var scalar = type.ResolveClrType();
+        scalar = Nullable.GetUnderlyingType(scalar) ?? scalar;
+        return scalar.IsPrimitive || scalar == typeof(string) || scalar == typeof(decimal) ||
+               scalar == typeof(DateTime) || scalar == typeof(Guid);
     }
 }

@@ -55,15 +55,15 @@ public abstract partial class TextInterpreterBase<TOut>
             var validationPattern = adjustedPattern.StartsWith(@"\G", StringComparison.Ordinal)
                 ? adjustedPattern[2..]
                 : adjustedPattern;
-            _ = new Regex(
-                validationPattern,
-                RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
-
             var regex = RegexCache.GetOrAdd(
                 anchoredPattern,
-                p => new Regex(
-                    p,
-                    RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking));
+                static (key, validation) =>
+                {
+                    _ = new Regex(validation, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
+                    return new Regex(key,
+                        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
+                },
+                validationPattern);
             match = regex.Match(remaining);
         }
         catch (ArgumentException exception)

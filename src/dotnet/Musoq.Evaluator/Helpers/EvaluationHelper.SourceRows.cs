@@ -231,6 +231,13 @@ public static partial class EvaluationHelper
 
     private static IEnumerable<IReadOnlyList<PrimitiveTypeEntity<T>>> CreateScalarBufferedChunks<T>(IEnumerable<T> rows)
     {
-        return RowChunking.FromEnumerableOutput(rows.Select(static row => new PrimitiveTypeEntity<T>(row)));
+        var chunkSize = DefaultSourceChunkSize;
+        if (rows.TryGetNonEnumeratedCount(out var count))
+        {
+            if (count == 0)
+                return [];
+            chunkSize = Math.Min(chunkSize, count);
+        }
+        return RowChunking.FromEnumerableOutput(rows.Select(static row => new PrimitiveTypeEntity<T>(row)), chunkSize);
     }
 }

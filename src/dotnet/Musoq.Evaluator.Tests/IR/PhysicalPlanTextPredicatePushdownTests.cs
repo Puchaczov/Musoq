@@ -22,7 +22,7 @@ public sealed partial class PhysicalPlanTextPredicatePushdownTests : BasicEntity
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.City as a.City, a.Population as a.Population, b.City as b.City]",
+                "  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.City as b.City]",
                 "    PhysicalHashJoin [Inner] [build: b.City] [probe: a.City]",
                 "      PhysicalFilter [(a.Population > 100)]",
                 "        PhysicalSchemaScan [#A.Entities() as a] [pushdown: (a.Population > 100)]",
@@ -106,7 +106,7 @@ public sealed partial class PhysicalPlanTextPredicatePushdownTests : BasicEntity
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.City as a.City, a.Population as a.Population, b.City as b.City]",
+                "  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.City as b.City]",
                 "    PhysicalHashJoin [Inner] [build: b.City] [probe: a.City]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
@@ -139,7 +139,7 @@ public sealed partial class PhysicalPlanTextPredicatePushdownTests : BasicEntity
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.City as a.City, a.Population as a.Population, b.City as b.City, b.Population as b.Population]",
+                "  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.City as b.City, b.Population as b.Population]",
                 "    PhysicalHashJoin [Inner] [build: b.City] [probe: a.City]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",

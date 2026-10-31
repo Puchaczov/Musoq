@@ -56,17 +56,17 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [i in iRows]
       EnumerableSource [i.Numbers -> nRows]
-      ChunkedForEach [n in nRows]
+      ForEach [n in nRows]
         Let [nValue: int = n.Value]
         EnumerableSource [i.Numbers -> mRows]
-        ChunkedForEach [m in mRows]
+        ForEach [m in mRows]
           GetOrAddSingleKeyAggregateGroup [group = groups[i.Name] by i.Name; typed: ResultAggregateGroup]
           TypedAggregateSet [Set(group.__agg0, nValue)]
           TypedAggregateSet [Set(group.__agg1, nValue)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Name: finalGroup.i.Name, RepeatedAvg: inm.Avg(n.Value), DistinctAvg: inm.Avg(distinct n.Value))]
-    SortShapeRows [result -> resultSorted by DistinctAvg DESC, RepeatedAvg DESC, Name ASC]
+    SortOwnedBuffer [result by DistinctAvg DESC, RepeatedAvg DESC, Name ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -132,7 +132,6 @@ namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __iSchema = provider.GetSchema("#apply");
@@ -199,10 +198,10 @@ namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Plugins.AverageKernel<int, decimal>.Get(in finalGroup.__agg0), Musoq.Plugins.AverageDistinctKernel<int, decimal>.Get(in finalGroup.__agg1)));
+                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.Plugins.AverageKernel<int, decimal>.Get(in finalGroup.__agg0), Musoq.Plugins.AverageDistinctKernel<int, decimal>.Get(in finalGroup.__agg1)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = Nullable.Compare(left.DistinctAvg, right.DistinctAvg);
                     comparison = -comparison;
@@ -215,14 +214,9 @@ namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort
                     comparison = StringComparer.Ordinal.Compare(left.Name, right.Name);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -254,55 +248,38 @@ namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort
         {
             token.ThrowIfCancellationRequested();
             int nValue = n;
-            var mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-            foreach (var mChunk in mRows)
-            {
-                if (mChunk is global::Musoq.Schema.DataSources.RowChunk<int> mChunkView)
-                {
-                    if (mChunkView.Source is int[] mChunkViewArray)
-                    {
-                        int mChunkViewOffset = mChunkView.Offset;
-                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                        {
-                            if ((mIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                            UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
-                        }
-
-                        continue;
-                    }
-
-                    if (mChunkView.Source is List<int> mChunkViewList)
-                    {
-                        int mChunkViewOffset = mChunkView.Offset;
-                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                        {
-                            if ((mIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var m = mChunkViewList[mChunkViewOffset + mIndex];
-                            UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int mIndex = 0, mIndexCount = mChunk.Count; mIndex < mIndexCount; ++mIndex)
+            var mRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+            var mIndexRows = mRows;
+            if (mIndexRows is int[] mIndexArray)
+                for (int mIndex = 0, mIndexCount = mIndexArray.Length; mIndex < mIndexCount; ++mIndex)
                 {
                     if ((mIndex & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var m = mChunk[mIndex];
+                    int m = mIndexArray[mIndex];
                     UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
+                }
+            else if (mIndexRows is List<int> mIndexConcreteList)
+                for (int mIndex = 0, mIndexCount = mIndexConcreteList.Count; mIndex < mIndexCount; ++mIndex)
+                {
+                    if ((mIndex & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    int m = mIndexConcreteList[mIndex];
+                    UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
+                }
+            else
+            {
+                int mIndex = 0;
+                foreach (var m in mIndexRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
+                    ++mIndex;
                 }
             }
         }
@@ -311,55 +288,38 @@ namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort
         private static void TraverseNRows(CancellationToken token, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup)
         {
             token.ThrowIfCancellationRequested();
-            var nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-            foreach (var nChunk in nRows)
-            {
-                if (nChunk is global::Musoq.Schema.DataSources.RowChunk<int> nChunkView)
-                {
-                    if (nChunkView.Source is int[] nChunkViewArray)
-                    {
-                        int nChunkViewOffset = nChunkView.Offset;
-                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                        {
-                            if ((nIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                            TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
-                        }
-
-                        continue;
-                    }
-
-                    if (nChunkView.Source is List<int> nChunkViewList)
-                    {
-                        int nChunkViewOffset = nChunkView.Offset;
-                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                        {
-                            if ((nIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var n = nChunkViewList[nChunkViewOffset + nIndex];
-                            TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+            var nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+            var nIndexRows = nRows;
+            if (nIndexRows is int[] nIndexArray)
+                for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                 {
                     if ((nIndex & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var n = nChunk[nIndex];
+                    int n = nIndexArray[nIndex];
                     TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
+                }
+            else if (nIndexRows is List<int> nIndexConcreteList)
+                for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                {
+                    if ((nIndex & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    int n = nIndexConcreteList[nIndex];
+                    TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
+                }
+            else
+            {
+                int nIndex = 0;
+                foreach (var n in nIndexRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
+                    ++nIndex;
                 }
             }
         }
@@ -474,6 +434,7 @@ namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort
             public decimal? DistinctAvg { get; }
             public string Name { get; }
             public decimal? RepeatedAvg { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

@@ -48,7 +48,7 @@ PhysicalCte
         PhysicalCteRef [edges as e]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [r.Id as r.Id, r.Depth as r.Depth, e.SourceId as e.SourceId, e.TargetId as e.TargetId]
+          PhysicalProject [r.Id as r.Id, r.Depth as r.Depth, e.TargetId as e.TargetId]
             PhysicalHashJoin [Inner] [build: e.SourceId] [probe: r.Id]
               PhysicalCteRef [reachable as r]
               PhysicalCteRef [__recursive_reachable_invariant_0 as e]
@@ -130,7 +130,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [reachable in _cteRowResults.Slot1]
       AppendShape [result <- ResultShape0(Id: reachable.Id, Depth: reachable.Depth)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -201,7 +201,6 @@ namespace GeneratedSample_Q204_RecursivePriorValuesCteEdges
                 var _cteIndexResults = new CteIndexResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -313,22 +312,17 @@ namespace GeneratedSample_Q204_RecursivePriorValuesCteEdges
                     }
 
                     Cte1Row0 reachable = __storedTable1Rows[__storedTable1Index];
-                    result.Add(new ResultShape0(reachable.Id, reachable.Depth));
+                    result.Add(new ResultShape0(reachable.Id, reachable.Depth) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -495,6 +489,7 @@ namespace GeneratedSample_Q204_RecursivePriorValuesCteEdges
 
             public int Depth { get; }
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class eValuesB352CAC4Row0 : Row

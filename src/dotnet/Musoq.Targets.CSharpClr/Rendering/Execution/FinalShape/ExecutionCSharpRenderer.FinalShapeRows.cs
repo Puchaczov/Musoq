@@ -55,16 +55,18 @@ public sealed partial class ExecutionCSharpRenderer
             session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(
                 plan.Body,
                 session.TypedStoredTableResults);
-            var sinkTypeName = outputPlan.UsesGeneratedRow ? outputPlan.Result.RowTypeName : shapeTypeName;
+            var sinkTypeName = outputPlan.RowTypeName;
             session.DirectSortedRowBufferSources = outputPlan.SortedRowBufferSources;
-            var finalShapeBufferName = outputPlan.BufferFinalRows ? "__musoqFinalShapeRows" : null;
+            var finalShapeBufferName = outputPlan.OwnedBuffer?.SourceName ??
+                                       (outputPlan.BufferFinalRows ? "__musoqFinalShapeRows" : null);
             session.FinalShapeYieldSink = new FinalShapeYieldSink(
                 finalTableName,
                 sinkTypeName,
                 shapeFields,
                 finalShapeBufferName,
                 CreateFinalShapeSourceBuffers(outputPlan, shapeFields),
-                outputPlan.UsesGeneratedRow);
+                outputPlan.UsesGeneratedRow,
+                outputPlan.OwnedBuffer);
             session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
             session.EnumerableTraversalHelpersByBlock = Enumerable
                 .Where<KeyValuePair<ExecutionBlock, EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body, context), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
@@ -142,7 +144,7 @@ public sealed partial class ExecutionCSharpRenderer
             tryStatements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
             tryStatements.AddRange(CollectMethodCallCaches(block)
                 .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
-            if (finalShapeBufferName != null)
+            if (finalShapeBufferName != null && session.FinalShapeYieldSink?.OwnedBuffer == null)
             {
                 tryStatements.Add(CreateLocalDeclaration(
                     SyntaxFactory.IdentifierName("var"),

@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Name as a.Name, a.Population as a.Population, a.Id as a.Id, b.City as b.City, b.Id as b.Id]
+  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.City as b.City]
     PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#A.entities() as b]
@@ -42,15 +42,11 @@ ExecutionPlan [compiled]
     Generated [Statement0Row0]
       a.Name: string <- field a_Name
       a.Population: decimal <- field a_Population
-      a.Id: int <- field a_Id
       b.City: string <- field b_City
-      b.Id: int <- field b_Id
     TableRow [ab]
       a.Name: string <- field a_Name
       a.Population: decimal <- field a_Population
-      a.Id: int <- field a_Id
       b.City: string <- field b_City
-      b.Id: int <- field b_Id
     Generated [ResultRow0]
       Name: string <- field Name
       City: string <- field City
@@ -70,7 +66,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Id] -> statement0BHashMatches]
         ForEach [b in statement0BHashMatches]
-          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.Population: a.Population, a.Id: a.Id, b.City: b.City, b.Id: b.Id)]
+          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.Population: a.Population, b.City: b.City)]
     StoreTable [statement0 -> _cteRowResults.Slot0: GeneratedColumnarBuffer<Statement0Row0>]
     Materialize [_cteRowResults.Slot0 -> resultWindowRows]
     ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value ab.a.Population order by ab.a.Name ASC frame rows between 1 preceding and current row]
@@ -112,9 +108,7 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
         {
             new Column("a.Name", typeof(string), 0),
             new Column("a.Population", typeof(decimal), 1),
-            new Column("a.Id", typeof(int), 2),
-            new Column("b.City", typeof(string), 3),
-            new Column("b.Id", typeof(int), 4)
+            new Column("b.City", typeof(string), 2)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Population", typeof(decimal), 1), new Column("Id", typeof(int), 2) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Id", typeof(int), 1) });
@@ -370,7 +364,7 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement0.Add(a.Name, a.Population, a.Id, b.City, b.Id);
+                                    statement0.Add(a.Name, a.Population, b.City);
                                 }
                             }
                         }
@@ -395,7 +389,7 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement0.Add(a.Name, a.Population, a.Id, b.City, b.Id);
+                                    statement0.Add(a.Name, a.Population, b.City);
                                 }
                             }
                         }
@@ -418,7 +412,7 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            statement0.Add(a.Name, a.Population, a.Id, b.City, b.Id);
+                            statement0.Add(a.Name, a.Population, b.City);
                         }
                     }
                 }
@@ -492,9 +486,7 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
 
             public string a_Name => __buffer.Column0[__index];
             public decimal a_Population => __buffer.Column1[__index];
-            public int a_Id => __buffer.Column2[__index];
-            public string b_City => __buffer.Column3[__index];
-            public int b_Id => __buffer.Column4[__index];
+            public string b_City => __buffer.Column2[__index];
         }
 
         private sealed class StoredTableColumn<T>
@@ -542,27 +534,21 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
         {
             public readonly StoredTableColumn<string> Column0;
             public readonly StoredTableColumn<decimal> Column1;
-            public readonly StoredTableColumn<int> Column2;
-            public readonly StoredTableColumn<string> Column3;
-            public readonly StoredTableColumn<int> Column4;
+            public readonly StoredTableColumn<string> Column2;
             public StoredTableColumnBuffer0(int capacity = 0)
             {
                 Column0 = new StoredTableColumn<string>(capacity);
                 Column1 = new StoredTableColumn<decimal>(capacity);
-                Column2 = new StoredTableColumn<int>(capacity);
-                Column3 = new StoredTableColumn<string>(capacity);
-                Column4 = new StoredTableColumn<int>(capacity);
+                Column2 = new StoredTableColumn<string>(capacity);
             }
 
             public int Count => Column0.Count;
 
-            public void Add(string value0, decimal value1, int value2, string value3, int value4)
+            public void Add(string value0, decimal value1, string value2)
             {
                 Column0.Add(value0);
                 Column1.Add(value1);
                 Column2.Add(value2);
-                Column3.Add(value3);
-                Column4.Add(value4);
             }
 
             public void EnsureCapacity(int capacity)
@@ -570,8 +556,6 @@ namespace GeneratedSample_Q44_WindowFrameWithJoin
                 Column0.EnsureCapacity(capacity);
                 Column1.EnsureCapacity(capacity);
                 Column2.EnsureCapacity(capacity);
-                Column3.EnsureCapacity(capacity);
-                Column4.EnsureCapacity(capacity);
             }
 
             public Statement0Row0 this[int index] => new Statement0Row0(this, index);

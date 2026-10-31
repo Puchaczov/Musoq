@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Position as a.Position, a.IntKey as a.IntKey, a.Label as a.Label, b.Position as b.Position, b.LongKey as b.LongKey, b.Label as b.Label]
+  PhysicalProject [a.Position as a.Position, b.Position as b.Position]
     PhysicalHashJoin [Inner] [build: b.Label] [probe: a.Label] [residual: (a.IntKey = b.LongKey)]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -41,18 +41,10 @@ ExecutionPlan [compiled]
       Label: string <- property Label
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      a.IntKey: int? <- field a_IntKey
-      a.Label: string <- field a_Label
       b.Position: int <- field b_Position
-      b.LongKey: long? <- field b_LongKey
-      b.Label: string <- field b_Label
     TableRow [ab]
       a.Position: int <- field a_Position
-      a.IntKey: int? <- field a_IntKey
-      a.Label: string <- field a_Label
       b.Position: int <- field b_Position
-      b.LongKey: long? <- field b_LongKey
-      b.Label: string <- field b_Label
     Generated [ResultRow0]
       LeftPosition: int <- field LeftPosition
       RightPosition: int <- field RightPosition
@@ -70,15 +62,13 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Label] -> statement0BHashMatches]
         ForEach [b in statement0BHashMatches]
-          Let [intKey: int? = a.IntKey]
-          Let [longKey: long? = b.LongKey]
-          If [(intKey = longKey)]
-            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, a.IntKey: intKey, a.Label: a.Label, b.Position: b.Position, b.LongKey: longKey, b.Label: b.Label)]
+          If [(a.IntKey = b.LongKey)]
+            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: b.Position)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [ab in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(LeftPosition: ab.a.Position, RightPosition: ab.b.Position)]
-    SortShapeRows [result -> resultSorted by LeftPosition ASC, RightPosition ASC]
+    SortOwnedBuffer [result by LeftPosition ASC, RightPosition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -111,11 +101,7 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
         private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
         {
             new Column("a.Position", typeof(int), 0),
-            new Column("a.IntKey", typeof(int?), 1),
-            new Column("a.Label", typeof(string), 2),
-            new Column("b.Position", typeof(int), 3),
-            new Column("b.LongKey", typeof(long?), 4),
-            new Column("b.Label", typeof(string), 5)
+            new Column("b.Position", typeof(int), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("IntKey", typeof(int?), 1), new Column("Label", typeof(string), 2) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("LongKey", typeof(long?), 1), new Column("Label", typeof(string), 2) });
@@ -154,7 +140,6 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -169,10 +154,10 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
                     }
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(ab.a_Position, ab.b_Position));
+                    result.Add(new ResultShape0(ab.a_Position, ab.b_Position) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.LeftPosition.CompareTo(right.LeftPosition);
                     if (comparison != 0)
@@ -180,14 +165,9 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
                     comparison = left.RightPosition.CompareTo(right.RightPosition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -336,11 +316,9 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? intKey = a.IntKey;
-                                    long? longKey = b.LongKey;
-                                    if ((Operators.SqlCompare<int?, long?>(intKey, longKey, (int? __sqlLeft, long? __sqlRight) => (__sqlLeft == __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, long?>(a.IntKey, b.LongKey, (int? __sqlLeft, long? __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                     {
-                                        statement0.Add(new Statement0Row0(a.Position, intKey, a.Label, b.Position, longKey, b.Label));
+                                        statement0.Add(new Statement0Row0(a.Position, b.Position));
                                     }
                                 }
                             }
@@ -366,11 +344,9 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? intKey = a.IntKey;
-                                    long? longKey = b.LongKey;
-                                    if ((Operators.SqlCompare<int?, long?>(intKey, longKey, (int? __sqlLeft, long? __sqlRight) => (__sqlLeft == __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, long?>(a.IntKey, b.LongKey, (int? __sqlLeft, long? __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                     {
-                                        statement0.Add(new Statement0Row0(a.Position, intKey, a.Label, b.Position, longKey, b.Label));
+                                        statement0.Add(new Statement0Row0(a.Position, b.Position));
                                     }
                                 }
                             }
@@ -394,11 +370,9 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            int? intKey = a.IntKey;
-                            long? longKey = b.LongKey;
-                            if ((Operators.SqlCompare<int?, long?>(intKey, longKey, (int? __sqlLeft, long? __sqlRight) => (__sqlLeft == __sqlRight))) == true)
+                            if ((Operators.SqlCompare<int?, long?>(a.IntKey, b.LongKey, (int? __sqlLeft, long? __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, intKey, a.Label, b.Position, longKey, b.Label));
+                                statement0.Add(new Statement0Row0(a.Position, b.Position));
                             }
                         }
                     }
@@ -465,25 +439,18 @@ namespace GeneratedSample_K58_TypedMixedNumericHashKeys
 
             public int LeftPosition { get; }
             public int RightPosition { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, int? __value1, string __value2, int __value3, long? __value4, string __value5)
+            public Statement0Row0(int __value0, int __value1)
             {
                 a_Position = __value0;
-                a_IntKey = __value1;
-                a_Label = __value2;
-                b_Position = __value3;
-                b_LongKey = __value4;
-                b_Label = __value5;
+                b_Position = __value1;
             }
 
-            public int? a_IntKey { get; }
-            public string a_Label { get; }
             public int a_Position { get; }
-            public string b_Label { get; }
-            public long? b_LongKey { get; }
             public int b_Position { get; }
         }
     }

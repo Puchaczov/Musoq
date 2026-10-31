@@ -48,8 +48,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [ko3iko in ko3ikoRows]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Name: ko3iko.Name, City: ko3iko.City, __sortKey0: (ko3iko.Population + ko3iko.Money), __sortKey1: ko3iko.Country)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 DESC, __sortKey1 ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -104,7 +104,7 @@ namespace GeneratedSample_Q94_OrderByHiddenComputedKey
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -113,7 +113,6 @@ namespace GeneratedSample_Q94_OrderByHiddenComputedKey
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
@@ -173,12 +172,7 @@ namespace GeneratedSample_Q94_OrderByHiddenComputedKey
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Name, resultRecord.City));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -279,18 +273,6 @@ namespace GeneratedSample_Q94_OrderByHiddenComputedKey
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(string Name, string City)
-            {
-                this.Name = Name;
-                this.City = City;
-            }
-
-            public string City { get; }
-            public string Name { get; }
         }
     }
 }

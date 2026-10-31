@@ -159,7 +159,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      EnumerableSource [JustReturnArrayOfString() -> bRows]",
-            "      ChunkedForEach [b in bRows]",
+            "      ForEach [b in bRows]",
             "        AppendShape [result <- ResultRow0(Name: p.Name, Value: b.Value)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
@@ -191,9 +191,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.IsFalse(planText.Contains("ForEach [apply_0_i_n in apply_0_i_nTable.Rows]", StringComparison.Ordinal), planText);
         StringAssert.Contains(planText, "ChunkedForEach [i in iRows]");
         StringAssert.Contains(planText, "EnumerableSource [i.Numbers -> nRows]");
-        StringAssert.Contains(planText, "ChunkedForEach [n in nRows]");
+        StringAssert.Contains(planText, "ForEach [n in nRows]");
         StringAssert.Contains(planText, "EnumerableSource [i.Numbers -> mRows]");
-        StringAssert.Contains(planText, "ChunkedForEach [m in mRows]");
+        StringAssert.Contains(planText, "ForEach [m in mRows]");
         StringAssert.Contains(planText, "AppendShape [result <- ResultRow0(Name: i.Name, FirstValue: n.Value, SecondValue: m.Value)]");
     }
 

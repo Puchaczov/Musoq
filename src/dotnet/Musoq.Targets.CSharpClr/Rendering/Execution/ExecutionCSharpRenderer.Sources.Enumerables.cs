@@ -42,11 +42,25 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         var elementType = ResolveEnumerableElementType(enumerableType);
+        if (chunkMode == ExecutionEnumerableChunkMode.DirectScalar)
+        {
+            ExpressionSyntax rows = sourceExpression;
+            if (!enumerableType.IsValueType)
+            {
+                rows = SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression,
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.ParseTypeName($"IEnumerable<{CreateTypeSyntax(elementType)}>"),
+                        SyntaxFactory.ParenthesizedExpression(sourceExpression)),
+                    SyntaxFactory.ParseExpression($"Array.Empty<{CreateTypeSyntax(elementType)}>()"));
+            }
+            return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rows);
+        }
+
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.GenericName(ResolveTypedChunksMethodName(elementType, chunkMode))
+                    SyntaxFactory.GenericName(ResolveTypedChunksMethodName(elementType))
                         .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                             SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(elementType))))))
             .WithArgumentList(CreateArgumentList(sourceExpression));
@@ -84,11 +98,8 @@ public sealed partial class ExecutionCSharpRenderer
             : null;
     }
 
-    private static string ResolveTypedChunksMethodName(Type elementType, ExecutionEnumerableChunkMode chunkMode)
+    private static string ResolveTypedChunksMethodName(Type elementType)
     {
-        if (chunkMode == ExecutionEnumerableChunkMode.DirectScalar)
-            return nameof(EvaluationHelper.ConvertEnumerableOutputToChunks);
-
         return IsScalarEnumerableElement(elementType)
             ? nameof(EvaluationHelper.ConvertScalarEnumerableToTypedChunks)
             : nameof(EvaluationHelper.ConvertEnumerableOutputToChunks);

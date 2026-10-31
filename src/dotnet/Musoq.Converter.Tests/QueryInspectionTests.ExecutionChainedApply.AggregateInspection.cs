@@ -173,7 +173,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("SortShapeRows [result -> resultSorted by ByteTotal DESC, NumberTotal DESC]", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [result by ByteTotal DESC, NumberTotal DESC, stable sequence __musoqSequence]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -228,7 +228,7 @@ public partial class QueryInspectionTests
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
         Assert.Contains("DistinctSum: int?", result.ExecutionPlanText);
         Assert.Contains("SumDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
-        Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -244,7 +244,7 @@ public partial class QueryInspectionTests
         Assert.Contains("DistinctMax: int?", result.ExecutionPlanText);
         Assert.Contains("MinDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("MaxDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
-        Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -259,7 +259,7 @@ public partial class QueryInspectionTests
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
         Assert.Contains("DistinctAvg: decimal?", result.ExecutionPlanText);
         Assert.Contains("AverageDistinctKernel<int, decimal>.Set", result.GeneratedCSharpCode);
-        Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
+        Assert.Contains("SortOwnedBuffer [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }

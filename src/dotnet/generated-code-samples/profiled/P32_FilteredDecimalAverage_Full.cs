@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [1 as 1, AggRef(ko3iko.Count(*) filter (where Position > 1)) as ko3iko.Count(*) filter (where Position > 1), AggRef(ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)) as ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)]
+  PhysicalProject [AggRef(ko3iko.Count(*) filter (where Position > 1)) as ko3iko.Count(*) filter (where Position > 1), AggRef(ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)) as ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(*) filter (where Position > 1), Avg(Integral) filter (where Position > 1)]
       PhysicalSchemaScan [#schema.first() as ko3iko]
   PhysicalProject [ko3iko.Avg(ko3iko.Integral) filter (where Position > 1) as Average, ko3iko.Count(*) filter (where Position > 1) as Rows]

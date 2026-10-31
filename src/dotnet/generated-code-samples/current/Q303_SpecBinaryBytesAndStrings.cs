@@ -29,7 +29,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, r.FixedBytes as r.FixedBytes, r.DynamicBytes as r.DynamicBytes, r.AsciiValue as r.AsciiValue, r.Utf8Value as r.Utf8Value, r.Utf16Value as r.Utf16Value, r.LatinValue as r.LatinValue, r.NullTermValue as r.NullTermValue]
+  PhysicalProject [r.FixedBytes as r.FixedBytes, r.DynamicBytes as r.DynamicBytes, r.AsciiValue as r.AsciiValue, r.Utf8Value as r.Utf8Value, r.Utf16Value as r.Utf16Value, r.LatinValue as r.LatinValue, r.NullTermValue as r.NullTermValue]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#EncodedRecord(f.Content) as r]

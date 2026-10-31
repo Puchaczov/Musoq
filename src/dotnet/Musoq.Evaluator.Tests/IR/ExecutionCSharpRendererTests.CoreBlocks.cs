@@ -351,10 +351,9 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateScalarEnumerableLoopPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains("var nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(numbers);", code);
-        Assert.Contains("foreach (var nChunk in nRows)", code);
-        Assert.Contains("for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)", code);
-        Assert.Contains("var n = nChunk[nIndex];", code);
+        Assert.Contains("var nRows = (IEnumerable<int>)(numbers) ?? Array.Empty<int>();", code);
+        Assert.Contains("is int[] nIndexArray", code);
+        Assert.Contains("int n = nIndexArray[nIndex];", code);
         Assert.Contains("result.Add(new ResultRow0(n));", code);
         Assert.IsFalse(code.Contains("n.Value", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
@@ -364,15 +363,15 @@ public sealed partial class ExecutionCSharpRendererTests
     }
 
     [TestMethod]
-    public void RenderMethod_WhenChunkedLogicalLoopBreaks_ShouldExitAllChunks()
+    public void RenderMethod_WhenDirectScalarLoopBreaks_ShouldExitTraversal()
     {
         var renderer = new ExecutionCSharpRenderer();
         var method = renderer.RenderMethod(CreateScalarEnumerableBreakLoopPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains("goto __nChunkLoopEnd;", code);
-        Assert.Contains("__nChunkLoopEnd:", code);
-        Assert.IsFalse(code.Contains("result.Add(new ResultRow0(n)); break;", StringComparison.Ordinal));
+        Assert.Contains("break;", code);
+        Assert.Contains("int n = nIndexArray[nIndex];", code);
+        Assert.DoesNotContain("__nChunkLoopEnd", code);
     }
 
     [TestMethod]
@@ -383,10 +382,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var code = method.NormalizeWhitespace().ToFullString();
 
         Assert.Contains(
-            "var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])library0.JustReturnArrayOfString());",
+            "var sRows = (IEnumerable<string>)((string[])library0.JustReturnArrayOfString()) ?? Array.Empty<string>();",
             code);
-        Assert.Contains("foreach (var sChunk in sRows)", code);
-        Assert.Contains("for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)", code);
+        Assert.Contains("is string[] sIndexArray", code);
+        Assert.Contains("string s = sIndexArray[sIndex];", code);
         Assert.Contains("var library0 = new Musoq.Evaluator.Tests.Schema.Basic.Library();", code);
         Assert.IsFalse(code.Contains("(string[])(string[])", StringComparison.Ordinal));
     }

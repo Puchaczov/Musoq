@@ -51,8 +51,8 @@ ExecutionPlan [compiled]
       Let [value: int? = ko3iko.Value]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: ko3iko.Position, Pair: Concat(label, value), Triple: Concat(label, ':', value), Four: Concat(label, ':', value, '!'))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2, 3]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -125,7 +125,7 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -134,7 +134,6 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -201,12 +200,7 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Position, resultRecord.Pair, resultRecord.Triple, resultRecord.Four));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -221,7 +215,7 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try
@@ -233,7 +227,6 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op20Handle = profileRecorder?.GetOperatorHandle("op20", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "SourceScan") ?? OperatorProfileHandle.None;
@@ -243,7 +236,7 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
                     var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "ChunkedForEach") ?? OperatorProfileHandle.None;
                     var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "AppendRecord") ?? OperatorProfileHandle.None;
                     var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "OrderRecordList") ?? OperatorProfileHandle.None;
-                    var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "MaterializeRecordListToShapeRows") ?? OperatorProfileHandle.None;
+                    var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "TransferOwnedRows") ?? OperatorProfileHandle.None;
                     long __op28OutputRows = 0L;
                     var __op19Scope = profileRecorder?.BeginOperatorValue(__op19Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
@@ -351,16 +344,11 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
                     __op29Scope.Dispose();
                     var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                     __op30Scope.AddInputRows(resultOrderRecords.Count);
-                    foreach (var resultRecord in resultOrderRecords)
-                    {
-                        __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Position, resultRecord.Pair, resultRecord.Triple, resultRecord.Four));
-                    }
-
-                    __op30Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op30Scope.AddOutputRows(resultOrderRecords.Count);
                     __op30Scope.Dispose();
                     if (__op28OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op28Handle, __op28OutputRows);
-                    return __musoqFinalShapeRows;
+                    return resultOrderRecords;
                 }
                 finally
                 {
@@ -475,22 +463,6 @@ namespace GeneratedSample_P68_TypedFixedArityConcat_Full
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(int Position, string Pair, string Triple, string Four)
-            {
-                this.Position = Position;
-                this.Pair = Pair;
-                this.Triple = Triple;
-                this.Four = Four;
-            }
-
-            public string Four { get; }
-            public string Pair { get; }
-            public int Position { get; }
-            public string Triple { get; }
         }
     }
 }

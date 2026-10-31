@@ -5,6 +5,7 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
+using ColumnUsage = Musoq.Evaluator.IR.Optimization.Physical.PhysicalColumnUsageFacts;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -19,10 +20,7 @@ internal static class CteColumnUsageCollector
         var refsByAlias = CollectCteRefsByAlias(node, cteNames);
         if (refsByAlias.Count != 0)
         {
-            AddRequiredColumns(node, refsByAlias, outputSchemas, required);
-
-            foreach (var expression in EnumerateNodeExpressions(node))
-                AddRequiredColumns(expression, refsByAlias, outputSchemas, required);
+            AddRequiredColumns(node, new CteConsumerScope(node, refsByAlias), outputSchemas, required);
         }
 
         foreach (var child in node.Children)
@@ -76,10 +74,14 @@ internal static class CteColumnUsageCollector
 
     private static void AddRequiredColumns(
         PhysicalNode node,
-        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> refsByAlias,
+        CteConsumerScope scope,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
         IDictionary<string, HashSet<string>> required)
     {
+        var refsByAlias = scope.RefsByAlias;
+        foreach (var expression in EnumerateNodeExpressions(node))
+            AddRequiredColumns(expression, scope, outputSchemas, required);
+
         if (node is PhysicalPropertySourceNode source &&
             source.PropertiesChain.Length != 0 &&
             refsByAlias.TryGetValue(source.SourceAlias, out var refs))
@@ -92,7 +94,7 @@ internal static class CteColumnUsageCollector
         }
 
         foreach (var child in node.Children)
-            AddRequiredColumns(child, refsByAlias, outputSchemas, required);
+            AddRequiredColumns(child, scope, outputSchemas, required);
     }
 
     internal static Dictionary<string, List<PhysicalCteRefNode>> CollectCteRefsByAlias(
@@ -124,16 +126,32 @@ internal static class CteColumnUsageCollector
 
     private static void AddRequiredColumns(
         IrExpression expression,
-        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> refsByAlias,
+        CteConsumerScope scope,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
         IDictionary<string, HashSet<string>> required)
     {
+        var refsByAlias = scope.RefsByAlias;
         foreach (var column in ColumnRefExtractor.Extract(expression))
         {
             if (!string.IsNullOrWhiteSpace(column.Alias))
             {
                 if (refsByAlias.TryGetValue(column.Alias, out var refs))
+                {
                     AddRequiredColumns(column, refs, outputSchemas, required);
+                    continue;
+                }
+
+                if (ColumnUsage.ProducesAlias(scope.Root, column.Alias))
+                    continue;
+
+                var qualifiedName = $"{column.Alias}.{column.ColumnName}";
+                foreach (var reference in refsByAlias.Values.SelectMany(static references => references))
+                {
+                    if (MatchesCteColumn(reference, qualifiedName, outputSchemas))
+                        AddRequiredColumn(reference, qualifiedName, outputSchemas, required);
+                    else if (MatchesCteColumn(reference, column.ColumnName, outputSchemas))
+                        AddRequiredColumn(reference, column.ColumnName, outputSchemas, required);
+                }
 
                 continue;
             }
@@ -150,6 +168,9 @@ internal static class CteColumnUsageCollector
                     AddAllColumns(cteRef, outputSchemas, required);
         }
     }
+
+    private sealed record CteConsumerScope(PhysicalNode Root,
+        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> RefsByAlias);
 
     private static void AddRequiredColumns(
         ColumnRef column,
@@ -171,9 +192,8 @@ internal static class CteColumnUsageCollector
         IDictionary<string, HashSet<string>> required)
     {
         var normalized = NormalizeColumnName(columnName, cteRef.Alias);
-        var root = GetColumnRoot(normalized);
         var outputSchema = ResolveCteOutputSchema(cteRef, outputSchemas);
-        var match = outputSchema.FindByName(normalized) ?? outputSchema.FindByName(root);
+        var match = FindRequiredColumn(outputSchema, normalized);
 
         if (match == null)
         {
@@ -200,9 +220,14 @@ internal static class CteColumnUsageCollector
     {
         var normalized = NormalizeColumnName(columnName, cteRef.Alias);
         var outputSchema = ResolveCteOutputSchema(cteRef, outputSchemas);
-        return outputSchema.FindByName(normalized) != null ||
-               outputSchema.FindByName(GetColumnRoot(normalized)) != null;
+        return FindRequiredColumn(outputSchema, normalized) != null;
     }
+
+    private static ColumnSchema? FindRequiredColumn(OutputSchema schema, string name)
+        => schema.FindByName(name) ?? schema.Columns
+            .Where(column => name.StartsWith(column.Name + ".", StringComparison.OrdinalIgnoreCase) ||
+                             name.StartsWith(column.Name + "[", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(static column => column.Name.Length).FirstOrDefault();
 
     private static OutputSchema ResolveCteOutputSchema(
         PhysicalCteRefNode cteRef,
@@ -218,6 +243,8 @@ internal static class CteColumnUsageCollector
         return node switch
         {
             PhysicalProjectNode project => project.Fields.Select(static field => field.Expression),
+            PhysicalJoinCandidateNode join => join.TieBreak == null
+                ? [join.OnPredicate] : [join.OnPredicate, join.TieBreak.Expression],
             PhysicalFilterNode filter => [filter.Predicate],
             PhysicalHavingFilterNode filter => [filter.Predicate],
             PhysicalQualifyFilterNode filter => [filter.Predicate],
@@ -237,6 +264,7 @@ internal static class CteColumnUsageCollector
             PhysicalSingleKeyAggregateNode aggregate => [aggregate.GroupKey, ..EnumerateAggregateArguments(aggregate.Bindings)],
             PhysicalValueTupleAggregateNode aggregate => [..aggregate.GroupKeys, ..EnumerateAggregateArguments(aggregate.Bindings)],
             PhysicalAggregateOnlyNode aggregate => EnumerateAggregateArguments(aggregate.Bindings),
+            PhysicalAggregateCandidateNode aggregate => [..aggregate.GroupKeys, ..EnumerateAggregateArguments(aggregate.Bindings)],
             PhysicalWindowNode window => EnumerateWindowArguments(window.Registrations),
             PhysicalSchemaScanNode scan => scan.Arguments.Concat(scan.PushedPredicates),
             PhysicalInterpretSourceNode interpret => interpret.Arguments,

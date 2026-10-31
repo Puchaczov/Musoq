@@ -130,7 +130,7 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     source,
-                    new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
+                    new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Rows) { HasDirectScalarElements = true },
                     loopBody),
                 new ExecutionReturnTable(resultTable)
             ]));
@@ -170,7 +170,7 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     source,
-                    new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
+                    new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Rows) { HasDirectScalarElements = true },
                     new ExecutionBlock(
                     [
                         new ExecutionAppendRow(

@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.VolatileValue as a.VolatileValue, a.Middles as a.Middles, b.Value as b.Value]
+  PhysicalProject [a.VolatileValue as a.VolatileValue, b.Value as b.Value]
     PhysicalNestedLoopApply [Outer]
       PhysicalSchemaScan [#licm.outers() as a]
       PhysicalPropertySource [a.Middles as b] [apply: Cross] [type: LoopInvariantSampleMiddle[]]
@@ -41,11 +41,9 @@ ExecutionPlan [compiled]
       Leaves: LoopInvariantSampleLeaf[] <- property Leaves
     Generated [Statement0Row0]
       a.VolatileValue: int <- field a_VolatileValue
-      a.Middles: LoopInvariantSampleMiddle[] <- field a_Middles
       b.Value: int? <- field b_Value
     TableRow [ab]
       a.VolatileValue: int <- field a_VolatileValue
-      a.Middles: LoopInvariantSampleMiddle[] <- field a_Middles
       b.Value: int? <- field b_Value
     Generated [ResultRow0]
       VolatileValue: int <- field VolatileValue
@@ -62,9 +60,9 @@ ExecutionPlan [compiled]
       Let [bHasMatch: bool = FALSE]
       ChunkedForEach [b in statement0_bRows]
         Assign [bHasMatch = TRUE]
-        AppendRow [statement0 <- Statement0Row0(a.VolatileValue: a.VolatileValue, a.Middles: a.Middles, b.Value: b.Value)]
+        AppendRow [statement0 <- Statement0Row0(a.VolatileValue: a.VolatileValue, b.Value: b.Value)]
       If [NOT bHasMatch]
-        AppendRow [statement0 <- Statement0Row0(a.VolatileValue: a.VolatileValue, a.Middles: a.Middles, b.Value: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.VolatileValue: a.VolatileValue, b.Value: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
@@ -104,8 +102,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.VolatileValue", typeof(int), 0),
-            new Column("a.Middles", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[]), 1),
-            new Column("b.Value", typeof(int?), 2)
+            new Column("b.Value", typeof(int?), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("VolatileValue", typeof(int), 0), new Column("Middles", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[]), 1) });
         public ILogger Logger { get; set; }
@@ -232,7 +229,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                             bHasMatch = true;
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                         }
 
                                         continue;
@@ -250,7 +247,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
                                             bHasMatch = true;
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                         }
 
                                         continue;
@@ -266,13 +263,13 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                     var b = bChunk[bIndex];
                                     bHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                 }
                             }
 
                             if ((!bHasMatch))
                             {
-                                statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, null));
+                                statement0.Add(new Statement0Row0(a.VolatileValue, null));
                             }
                         }
 
@@ -308,7 +305,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                             bHasMatch = true;
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                         }
 
                                         continue;
@@ -326,7 +323,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
                                             bHasMatch = true;
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                         }
 
                                         continue;
@@ -342,13 +339,13 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                     var b = bChunk[bIndex];
                                     bHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                 }
                             }
 
                             if ((!bHasMatch))
                             {
-                                statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, null));
+                                statement0.Add(new Statement0Row0(a.VolatileValue, null));
                             }
                         }
 
@@ -382,7 +379,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                     bHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                 }
 
                                 continue;
@@ -400,7 +397,7 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
                                     bHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                                 }
 
                                 continue;
@@ -416,13 +413,13 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
                             var b = bChunk[bIndex];
                             bHasMatch = true;
-                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value));
+                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value));
                         }
                     }
 
                     if ((!bHasMatch))
                     {
-                        statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, null));
+                        statement0.Add(new Statement0Row0(a.VolatileValue, null));
                     }
                 }
             }
@@ -479,14 +476,12 @@ namespace GeneratedSample_Q259_GuardedVolatileOuterApplyPredicate
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] __value1, int? __value2)
+            public Statement0Row0(int __value0, int? __value1)
             {
                 a_VolatileValue = __value0;
-                a_Middles = __value1;
-                b_Value = __value2;
+                b_Value = __value1;
             }
 
-            public Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] a_Middles { get; }
             public int a_VolatileValue { get; }
             public int? b_Value { get; }
         }

@@ -53,8 +53,8 @@ ExecutionPlan [compiled]
       Let [amount: decimal? = ko3iko.Amount]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(case: position, decimal: amount, T: position, GetValue: amount, VisitColumns: ko3iko.Partition)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by case ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2, 3, 4]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -112,7 +112,7 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -121,7 +121,6 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -187,12 +186,7 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.@case, resultRecord.@decimal, resultRecord.T, resultRecord.GetValue_, resultRecord.VisitColumns_));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -311,24 +305,6 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(int @case, decimal? @decimal, int T, decimal? GetValue_, string VisitColumns_)
-            {
-                this.@case = @case;
-                this.@decimal = @decimal;
-                this.T = T;
-                this.GetValue_ = GetValue_;
-                this.VisitColumns_ = VisitColumns_;
-            }
-
-            public int @case { get; }
-            public decimal? @decimal { get; }
-            public decimal? GetValue_ { get; }
-            public int T { get; }
-            public string VisitColumns_ { get; }
         }
     }
 }

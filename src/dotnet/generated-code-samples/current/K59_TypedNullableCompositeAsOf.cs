@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Position as a.Position, a.Partition as a.Partition, a.Label as a.Label, a.Key as a.Key, b.Position as b.Position, b.Partition as b.Partition, b.Label as b.Label, b.Key as b.Key]
+  PhysicalProject [a.Position as a.Position, b.Position as b.Position]
     PhysicalNestedLoopJoin [AsofLeft] [(((a.Partition = b.Partition) AND (a.Label = b.Label)) AND (a.Key >= b.Key))] [tie: b.Position DESC]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -43,22 +43,10 @@ ExecutionPlan [compiled]
       Key: decimal? <- property Key
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      a.Partition: int? <- field a_Partition
-      a.Label: string <- field a_Label
-      a.Key: decimal? <- field a_Key
       b.Position: int? <- field b_Position
-      b.Partition: int? <- field b_Partition
-      b.Label: string <- field b_Label
-      b.Key: decimal? <- field b_Key
     TableRow [ab]
       a.Position: int <- field a_Position
-      a.Partition: int? <- field a_Partition
-      a.Label: string <- field a_Label
-      a.Key: decimal? <- field a_Key
       b.Position: int? <- field b_Position
-      b.Partition: int? <- field b_Partition
-      b.Label: string <- field b_Label
-      b.Key: decimal? <- field b_Key
     Generated [ResultRow0]
       LeftPosition: int <- field LeftPosition
       RightPosition: int? <- field RightPosition
@@ -73,14 +61,14 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [a in statement0_aRows]
       AsOfProbe [b <- statement0_bRows using statement0AsOfIndex where a.Partition = bCandidate.Partition and a.Label = bCandidate.Label and a.Key >= bCandidate.Key tie break by bCandidate.Position DESC]
-        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, a.Partition: a.Partition, a.Label: a.Label, a.Key: a.Key, b.Position: b.Position, b.Partition: b.Partition, b.Label: b.Label, b.Key: b.Key)]
+        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: b.Position)]
       AsOfProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, a.Partition: a.Partition, a.Label: a.Label, a.Key: a.Key, b.Position: NULL, b.Partition: NULL, b.Label: NULL, b.Key: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [ab in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(LeftPosition: ab.a.Position, RightPosition: ab.b.Position)]
-    SortShapeRows [result -> resultSorted by LeftPosition ASC]
+    SortOwnedBuffer [result by LeftPosition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -113,13 +101,7 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.Position", typeof(int), 0),
-            new Column("a.Partition", typeof(int?), 1),
-            new Column("a.Label", typeof(string), 2),
-            new Column("a.Key", typeof(decimal?), 3),
-            new Column("b.Position", typeof(int?), 4),
-            new Column("b.Partition", typeof(int?), 5),
-            new Column("b.Label", typeof(string), 6),
-            new Column("b.Key", typeof(decimal?), 7)
+            new Column("b.Position", typeof(int?), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Partition", typeof(int?), 1), new Column("Label", typeof(string), 2), new Column("Key", typeof(decimal?), 3) });
         public ILogger Logger { get; set; }
@@ -157,7 +139,6 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -172,22 +153,17 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
                     }
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(ab.a_Position, ab.b_Position));
+                    result.Add(new ResultShape0(ab.a_Position, ab.b_Position) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.LeftPosition.CompareTo(right.LeftPosition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -253,11 +229,11 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
                                 var b = statement0AsOfIndex.Find(bEquality, a.Key);
                                 if (b != null)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Position, a.Partition, a.Label, a.Key, b.Position, b.Partition, b.Label, b.Key));
+                                    statement0.Add(new Statement0Row0(a.Position, b.Position));
                                 }
                                 else
                                 {
-                                    statement0.Add(new Statement0Row0(a.Position, a.Partition, a.Label, a.Key, null, null, null, null));
+                                    statement0.Add(new Statement0Row0(a.Position, null));
                                 }
                             }
                         }
@@ -283,11 +259,11 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
                                 var b = statement0AsOfIndex.Find(bEquality, a.Key);
                                 if (b != null)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Position, a.Partition, a.Label, a.Key, b.Position, b.Partition, b.Label, b.Key));
+                                    statement0.Add(new Statement0Row0(a.Position, b.Position));
                                 }
                                 else
                                 {
-                                    statement0.Add(new Statement0Row0(a.Position, a.Partition, a.Label, a.Key, null, null, null, null));
+                                    statement0.Add(new Statement0Row0(a.Position, null));
                                 }
                             }
                         }
@@ -311,11 +287,11 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
                         var b = statement0AsOfIndex.Find(bEquality, a.Key);
                         if (b != null)
                         {
-                            statement0.Add(new Statement0Row0(a.Position, a.Partition, a.Label, a.Key, b.Position, b.Partition, b.Label, b.Key));
+                            statement0.Add(new Statement0Row0(a.Position, b.Position));
                         }
                         else
                         {
-                            statement0.Add(new Statement0Row0(a.Position, a.Partition, a.Label, a.Key, null, null, null, null));
+                            statement0.Add(new Statement0Row0(a.Position, null));
                         }
                     }
                 }
@@ -381,29 +357,18 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
 
             public int LeftPosition { get; }
             public int? RightPosition { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, int? __value1, string __value2, decimal? __value3, int? __value4, int? __value5, string __value6, decimal? __value7)
+            public Statement0Row0(int __value0, int? __value1)
             {
                 a_Position = __value0;
-                a_Partition = __value1;
-                a_Label = __value2;
-                a_Key = __value3;
-                b_Position = __value4;
-                b_Partition = __value5;
-                b_Label = __value6;
-                b_Key = __value7;
+                b_Position = __value1;
             }
 
-            public decimal? a_Key { get; }
-            public string a_Label { get; }
-            public int? a_Partition { get; }
             public int a_Position { get; }
-            public decimal? b_Key { get; }
-            public string b_Label { get; }
-            public int? b_Partition { get; }
             public int? b_Position { get; }
         }
     }

@@ -18,7 +18,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.Id as a.Id, b.City as b.City, b.Id as b.Id]",
+                "  PhysicalProject [a.Name as a.Name, b.City as b.City]",
                 "    PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
@@ -63,7 +63,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.Id as a.Id, b.Name as b.Name, b.Id as b.Id]",
+                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
                 "    PhysicalHashJoin [RightOuter] [build: a.Id] [probe: b.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
@@ -86,7 +86,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.Id as a.Id, b.Name as b.Name, b.Id as b.Id]",
+                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
                 "    PhysicalHashJoin [FullOuter] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
@@ -106,7 +106,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population]",
+                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
                 "    PhysicalSortMergeJoin [Inner] [left: a.Population] [right: b.Population] [op: >] [residual: (a.Population > b.Population)]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
@@ -126,7 +126,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name, a.Country as a.Country, a.Population as a.Population, b.Name as b.Name, b.Country as b.Country, b.Population as b.Population]",
+                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
                 "    PhysicalNestedLoopJoin [AsofInner] [((a.Country = b.Country) AND (a.Population >= b.Population))]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",

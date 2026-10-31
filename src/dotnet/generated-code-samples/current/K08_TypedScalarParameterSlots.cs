@@ -45,8 +45,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [ko3iko in ko3ikoRows]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: (ko3iko.Position + $factor), Amount: (ko3iko.Amount + $bonus))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -109,7 +109,7 @@ namespace GeneratedSample_K08_TypedScalarParameterSlots
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -120,7 +120,6 @@ namespace GeneratedSample_K08_TypedScalarParameterSlots
                 var paramFactor = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, "factor");
                 var paramBonus = ScriptParameterBinder.GetRequiredNullable<decimal>(__musoqExecutionState, "bonus");
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, new string[] { "factor", "bonus" });
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -180,12 +179,7 @@ namespace GeneratedSample_K08_TypedScalarParameterSlots
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Position, resultRecord.Amount));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -278,18 +272,6 @@ namespace GeneratedSample_K08_TypedScalarParameterSlots
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(int Position, decimal? Amount)
-            {
-                this.Position = Position;
-                this.Amount = Amount;
-            }
-
-            public decimal? Amount { get; }
-            public int Position { get; }
         }
     }
 }

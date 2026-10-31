@@ -191,7 +191,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ChunkedForEach [p in pRows]",
             "      EnumerableSource [JustReturnArrayOfString() -> bRows]",
             "      Let [bHasMatch: bool = FALSE]",
-            "      ChunkedForEach [b in bRows]",
+            "      ForEach [b in bRows]",
             "        Assign [bHasMatch = TRUE]",
             "        AppendShape [result <- ResultRow0(Name: p.Name, Value: b.Value)]",
             "      If [NOT bHasMatch]",

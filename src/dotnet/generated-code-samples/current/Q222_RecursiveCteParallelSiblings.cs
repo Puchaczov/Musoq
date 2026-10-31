@@ -56,7 +56,7 @@ PhysicalCte
         PhysicalCteRef [edges as e]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [r.Id as r.Id, r.Depth as r.Depth, e.SourceId as e.SourceId, e.TargetId as e.TargetId]
+          PhysicalProject [r.Id as r.Id, r.Depth as r.Depth, e.TargetId as e.TargetId]
             PhysicalHashJoin [Inner] [build: e.SourceId] [probe: r.Id]
               PhysicalCteRef [reachable as r]
               PhysicalCteRef [__recursive_reachable_invariant_0 as e]

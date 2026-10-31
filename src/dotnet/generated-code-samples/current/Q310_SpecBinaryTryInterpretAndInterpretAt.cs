@@ -30,7 +30,7 @@ PhysicalMultiStatement
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#Header(f.Content) as h]
-  PhysicalProject [fh.f.Content as f.Content, fh.h.Magic as h.Magic, fh.h.Offset as h.Offset, p.Value as p.Value]
+  PhysicalProject [fh.h.Magic as h.Magic, fh.h.Offset as h.Offset, p.Value as p.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fh as fh]
       PhysicalInterpretSource [#Payload(fh.f.Content, fh.h.Offset) as p]
@@ -240,17 +240,16 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
 
                             var f = fChunkViewArray[fChunkViewOffset + fIndex];
                             var _interpreter_Header = new Musoq.Generated.Interpreters.Header();
-                            var statement0_hRows = new Func<Musoq.Generated.Interpreters.Header?>(() =>
+                            Musoq.Generated.Interpreters.Header? statement0_hRows = null;
+                            try
                             {
-                                try
-                                {
-                                    return _interpreter_Header.Interpret(f.Content);
-                                }
-                                catch (global::Musoq.Schema.Interpreters.ParseException)
-                                {
-                                    return null;
-                                }
-                            })();
+                                statement0_hRows = _interpreter_Header.Interpret(f.Content);
+                            }
+                            catch (global::Musoq.Schema.Interpreters.ParseException)
+                            {
+                                statement0_hRows = null;
+                            }
+
                             if (statement0_hRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
@@ -274,17 +273,16 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
 
                             var f = fChunkViewList[fChunkViewOffset + fIndex];
                             var _interpreter_Header = new Musoq.Generated.Interpreters.Header();
-                            var statement0_hRows = new Func<Musoq.Generated.Interpreters.Header?>(() =>
+                            Musoq.Generated.Interpreters.Header? statement0_hRows = null;
+                            try
                             {
-                                try
-                                {
-                                    return _interpreter_Header.Interpret(f.Content);
-                                }
-                                catch (global::Musoq.Schema.Interpreters.ParseException)
-                                {
-                                    return null;
-                                }
-                            })();
+                                statement0_hRows = _interpreter_Header.Interpret(f.Content);
+                            }
+                            catch (global::Musoq.Schema.Interpreters.ParseException)
+                            {
+                                statement0_hRows = null;
+                            }
+
                             if (statement0_hRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
@@ -306,17 +304,16 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
 
                     var f = fChunk[fIndex];
                     var _interpreter_Header = new Musoq.Generated.Interpreters.Header();
-                    var statement0_hRows = new Func<Musoq.Generated.Interpreters.Header?>(() =>
+                    Musoq.Generated.Interpreters.Header? statement0_hRows = null;
+                    try
                     {
-                        try
-                        {
-                            return _interpreter_Header.Interpret(f.Content);
-                        }
-                        catch (global::Musoq.Schema.Interpreters.ParseException)
-                        {
-                            return null;
-                        }
-                    })();
+                        statement0_hRows = _interpreter_Header.Interpret(f.Content);
+                    }
+                    catch (global::Musoq.Schema.Interpreters.ParseException)
+                    {
+                        statement0_hRows = null;
+                    }
+
                     if (statement0_hRows != null)
                     {
                         token.ThrowIfCancellationRequested();

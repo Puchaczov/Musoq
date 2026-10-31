@@ -66,17 +66,17 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in apply_0_i_n_mTable_iRows]
       Let [iName: string = i.Name]
       EnumerableSource [i.Numbers -> apply_0_i_n_mTable_nRows]
-      ChunkedForEach [n in apply_0_i_n_mTable_nRows]
+      ForEach [n in apply_0_i_n_mTable_nRows]
         Let [nValue: int = n.Value]
         EnumerableSource [i.Numbers -> apply_0_i_n_mTable_mRows]
-        ChunkedForEach [m in apply_0_i_n_mTable_mRows]
+        ForEach [m in apply_0_i_n_mTable_mRows]
           AppendRowBuffer [apply_0_i_n_mTable <- apply_0_i_n_mRow0(i.Name: iName, i.Numbers: i.Numbers, n.Value: nValue, m.Value: m.Value)]
     Materialize [apply_0_i_n_mTable -> resultWindowRows]
     ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by apply_0_i_n_m.i.Name order by apply_0_i_n_m.n.Value ASC, apply_0_i_n_m.m.Value ASC]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, apply_0_i_n_m in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: apply_0_i_n_m.i.Name, FirstValue: apply_0_i_n_m.n.Value, SecondValue: apply_0_i_n_m.m.Value, RowNo: resultRowNumbers[windowIndex])]
-    SortShapeRows [result -> resultSorted by Name ASC, RowNo ASC]
+    SortOwnedBuffer [result by Name ASC, RowNo ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -150,7 +150,6 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __apply_0_i_n_mTable_iSchema = provider.GetSchema("#apply");
@@ -239,10 +238,10 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                     }
 
                     apply_0_i_n_mRow0 apply_0_i_n_m = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(apply_0_i_n_m.i_Name, apply_0_i_n_m.n_Value, apply_0_i_n_m.m_Value, (long)resultRowNumbers[windowIndex]));
+                    result.Add(new ResultShape0(apply_0_i_n_m.i_Name, apply_0_i_n_m.n_Value, apply_0_i_n_m.m_Value, (long)resultRowNumbers[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Name, right.Name);
                     if (comparison != 0)
@@ -250,14 +249,9 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                     comparison = left.RowNo.CompareTo(right.RowNo);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -300,208 +294,141 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
         {
             token.ThrowIfCancellationRequested();
             string iName = i.Name;
-            var apply_0_i_n_mTable_nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-            foreach (var nChunk in apply_0_i_n_mTable_nRows)
-            {
-                if (nChunk is global::Musoq.Schema.DataSources.RowChunk<int> nChunkView)
-                {
-                    if (nChunkView.Source is int[] nChunkViewArray)
-                    {
-                        int nChunkViewOffset = nChunkView.Offset;
-                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                        {
-                            if ((nIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                            int nValue = n;
-                            var apply_0_i_n_mTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-                            foreach (var mChunk in apply_0_i_n_mTable_mRows)
-                            {
-                                if (mChunk is global::Musoq.Schema.DataSources.RowChunk<int> mChunkView)
-                                {
-                                    if (mChunkView.Source is int[] mChunkViewArray)
-                                    {
-                                        int mChunkViewOffset = mChunkView.Offset;
-                                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                                        {
-                                            if ((mIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (mChunkView.Source is List<int> mChunkViewList)
-                                    {
-                                        int mChunkViewOffset = mChunkView.Offset;
-                                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                                        {
-                                            if ((mIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int mIndex = 0, mIndexCount = mChunk.Count; mIndex < mIndexCount; ++mIndex)
-                                {
-                                    if ((mIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var m = mChunk[mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                }
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    if (nChunkView.Source is List<int> nChunkViewList)
-                    {
-                        int nChunkViewOffset = nChunkView.Offset;
-                        for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                        {
-                            if ((nIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var n = nChunkViewList[nChunkViewOffset + nIndex];
-                            int nValue = n;
-                            var apply_0_i_n_mTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-                            foreach (var mChunk in apply_0_i_n_mTable_mRows)
-                            {
-                                if (mChunk is global::Musoq.Schema.DataSources.RowChunk<int> mChunkView)
-                                {
-                                    if (mChunkView.Source is int[] mChunkViewArray)
-                                    {
-                                        int mChunkViewOffset = mChunkView.Offset;
-                                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                                        {
-                                            if ((mIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (mChunkView.Source is List<int> mChunkViewList)
-                                    {
-                                        int mChunkViewOffset = mChunkView.Offset;
-                                        for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                                        {
-                                            if ((mIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int mIndex = 0, mIndexCount = mChunk.Count; mIndex < mIndexCount; ++mIndex)
-                                {
-                                    if ((mIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var m = mChunk[mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                }
-                            }
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+            var apply_0_i_n_mTable_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+            var nIndexRows = apply_0_i_n_mTable_nRows;
+            if (nIndexRows is int[] nIndexArray)
+                for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                 {
                     if ((nIndex & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var n = nChunk[nIndex];
+                    int n = nIndexArray[nIndex];
                     int nValue = n;
-                    var apply_0_i_n_mTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
-                    foreach (var mChunk in apply_0_i_n_mTable_mRows)
-                    {
-                        if (mChunk is global::Musoq.Schema.DataSources.RowChunk<int> mChunkView)
-                        {
-                            if (mChunkView.Source is int[] mChunkViewArray)
-                            {
-                                int mChunkViewOffset = mChunkView.Offset;
-                                for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                                {
-                                    if ((mIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                }
-
-                                continue;
-                            }
-
-                            if (mChunkView.Source is List<int> mChunkViewList)
-                            {
-                                int mChunkViewOffset = mChunkView.Offset;
-                                for (int mIndex = 0, mIndexCount = mChunkView.Count; mIndex < mIndexCount; ++mIndex)
-                                {
-                                    if ((mIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
-                                }
-
-                                continue;
-                            }
-                        }
-
-                        for (int mIndex = 0, mIndexCount = mChunk.Count; mIndex < mIndexCount; ++mIndex)
+                    var apply_0_i_n_mTable_mRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                    var mIndexRows = apply_0_i_n_mTable_mRows;
+                    if (mIndexRows is int[] mIndexArray)
+                        for (int mIndex = 0, mIndexCount = mIndexArray.Length; mIndex < mIndexCount; ++mIndex)
                         {
                             if ((mIndex & 1023) == 0)
                             {
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            var m = mChunk[mIndex];
+                            int m = mIndexArray[mIndex];
                             apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                         }
+                    else if (mIndexRows is List<int> mIndexConcreteList)
+                        for (int mIndex = 0, mIndexCount = mIndexConcreteList.Count; mIndex < mIndexCount; ++mIndex)
+                        {
+                            if ((mIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int m = mIndexConcreteList[mIndex];
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                        }
+                    else
+                    {
+                        int mIndex = 0;
+                        foreach (var m in mIndexRows)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                            ++mIndex;
+                        }
                     }
+                }
+            else if (nIndexRows is List<int> nIndexConcreteList)
+                for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                {
+                    if ((nIndex & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    int n = nIndexConcreteList[nIndex];
+                    int nValue = n;
+                    var apply_0_i_n_mTable_mRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                    var mIndexRows = apply_0_i_n_mTable_mRows;
+                    if (mIndexRows is int[] mIndexArray)
+                        for (int mIndex = 0, mIndexCount = mIndexArray.Length; mIndex < mIndexCount; ++mIndex)
+                        {
+                            if ((mIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int m = mIndexArray[mIndex];
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                        }
+                    else if (mIndexRows is List<int> mIndexConcreteList)
+                        for (int mIndex = 0, mIndexCount = mIndexConcreteList.Count; mIndex < mIndexCount; ++mIndex)
+                        {
+                            if ((mIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int m = mIndexConcreteList[mIndex];
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                        }
+                    else
+                    {
+                        int mIndex = 0;
+                        foreach (var m in mIndexRows)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                            ++mIndex;
+                        }
+                    }
+                }
+            else
+            {
+                int nIndex = 0;
+                foreach (var n in nIndexRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    int nValue = n;
+                    var apply_0_i_n_mTable_mRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                    var mIndexRows = apply_0_i_n_mTable_mRows;
+                    if (mIndexRows is int[] mIndexArray)
+                        for (int mIndex = 0, mIndexCount = mIndexArray.Length; mIndex < mIndexCount; ++mIndex)
+                        {
+                            if ((mIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int m = mIndexArray[mIndex];
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                        }
+                    else if (mIndexRows is List<int> mIndexConcreteList)
+                        for (int mIndex = 0, mIndexCount = mIndexConcreteList.Count; mIndex < mIndexCount; ++mIndex)
+                        {
+                            if ((mIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int m = mIndexConcreteList[mIndex];
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                        }
+                    else
+                    {
+                        int mIndex = 0;
+                        foreach (var m in mIndexRows)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
+                            ++mIndex;
+                        }
+                    }
+
+                    ++nIndex;
                 }
             }
         }
@@ -574,6 +501,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
             public string Name { get; }
             public long RowNo { get; }
             public int SecondValue { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultRowNumbersOrderKeysKey : System.IEquatable<WindowResultRowNumbersOrderKeysKey>, System.IComparable<WindowResultRowNumbersOrderKeysKey>

@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [s.Position as s.Position, s.Data as s.Data, p.ParsedFields as p.ParsedFields]
+  PhysicalProject [s.Position as s.Position, p.ParsedFields as p.ParsedFields]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#schema.first() as s]
       PhysicalInterpretSource [#Packet(s.Data) as p]
@@ -44,11 +44,9 @@ ExecutionPlan [compiled]
       BitOffset: int <- property BitOffset
     Generated [Statement0Row0]
       s.Position: int <- field s_Position
-      s.Data: byte[] <- field s_Data
       p.ParsedFields: object <- field p_ParsedFields
     TableRow [sp]
       s.Position: int <- field s_Position
-      s.Data: byte[] <- field s_Data
       p.ParsedFields: object <- field p_ParsedFields
     Generated [ResultRow0]
       Position: int <- field Position
@@ -64,13 +62,13 @@ ExecutionPlan [compiled]
       Let [sPosition: int = s.Position]
       InterpretSource [Packet.PartialInterpret(s.Data) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(s.Position: sPosition, s.Data: s.Data, p.ParsedFields: p.ParsedFields)]
+        AppendRow [statement0 <- Statement0Row0(s.Position: sPosition, p.ParsedFields: p.ParsedFields)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibraryBase0: LibraryBase]
     ForEach [sp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Position: sp.s.Position, Json: ToJson(sp.p.ParsedFields))]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -104,8 +102,7 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("s.Position", typeof(int), 0),
-            new Column("s.Data", typeof(byte[]), 1),
-            new Column("p.ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 2)
+            new Column("p.ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_s_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Data", typeof(byte[]), 1) });
         public ILogger Logger { get; set; }
@@ -143,7 +140,6 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -159,22 +155,17 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                     }
 
                     Statement0Row0 sp = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(sp.s_Position, (string)__resultLibraryBase0.ToJson<Musoq.Generated.Interpreters.Packet>(sp.p_ParsedFields)));
+                    result.Add(new ResultShape0(sp.s_Position, (string)__resultLibraryBase0.ToJson<Musoq.Generated.Interpreters.Packet>(sp.p_ParsedFields)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -230,7 +221,7 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
+                                statement0.Add(new Statement0Row0(sPosition, p.ParsedFields));
                             }
                         }
 
@@ -255,7 +246,7 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
+                                statement0.Add(new Statement0Row0(sPosition, p.ParsedFields));
                             }
                         }
 
@@ -278,7 +269,7 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields));
+                        statement0.Add(new Statement0Row0(sPosition, p.ParsedFields));
                     }
                 }
             }
@@ -343,19 +334,18 @@ namespace GeneratedSample_K55_TypedPartialPayloadJson
 
             public string Json { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, byte[] __value1, Musoq.Generated.Interpreters.Packet __value2)
+            public Statement0Row0(int __value0, Musoq.Generated.Interpreters.Packet __value1)
             {
                 s_Position = __value0;
-                s_Data = __value1;
-                p_ParsedFields = __value2;
+                p_ParsedFields = __value1;
             }
 
             public Musoq.Generated.Interpreters.Packet p_ParsedFields { get; }
-            public byte[] s_Data { get; }
             public int s_Position { get; }
         }
     }

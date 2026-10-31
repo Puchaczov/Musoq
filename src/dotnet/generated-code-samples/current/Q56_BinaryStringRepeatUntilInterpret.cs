@@ -28,11 +28,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.Names as p.Names]
+  PhysicalProject [p.Names as p.Names]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#StringRepeatPacket(f.Content) as p]
-  PhysicalProject [fp.f.Content as f.Content, fp.p.Names as p.Names, n.Value as n.Value]
+  PhysicalProject [n.Value as n.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fp as fp]
       PhysicalPropertySource [fp.p.Names as n] [apply: Cross] [type: String[]]
@@ -49,10 +49,8 @@ ExecutionPlan [compiled]
     SourceEntity [p: object]
       Names: string[] <- property Names
     Generated [Statement0Row0]
-      f.Content: byte[] <- field f_Content
       p.Names: string[] <- field p_Names
     TableRow [fp]
-      f.Content: byte[] <- field f_Content
       p.Names: string[] <- field p_Names
     SourceEntity [n: string]
       Value: string <- direct scalar value
@@ -67,14 +65,14 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in statement0_fRows]
       InterpretSource [StringRepeatPacket.Interpret(f.Content) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(f.Content: f.Content, p.Names: p.Names)]
+        AppendRow [statement0 <- Statement0Row0(p.Names: p.Names)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     ForEach [fp in _cteRowResults.Slot0]
       EnumerableSource [fp.p.Names -> nRows]
-      ChunkedForEach [n in nRows]
+      ForEach [n in nRows]
         AppendShape [result <- ResultRow0(Text: n.Value)]
     PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
@@ -107,8 +105,7 @@ namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("p.Names", typeof(string[]), 1)
+            new Column("p.Names", typeof(string[]), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
         public ILogger Logger { get; set; }
@@ -163,55 +160,38 @@ namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret
                         }
 
                         Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
-                        var nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>(fp.p_Names);
-                        foreach (var nChunk in nRows)
-                        {
-                            if (nChunk is global::Musoq.Schema.DataSources.RowChunk<string> nChunkView)
-                            {
-                                if (nChunkView.Source is string[] nChunkViewArray)
-                                {
-                                    int nChunkViewOffset = nChunkView.Offset;
-                                    for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                    {
-                                        if ((nIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                        __musoqFinalShapeRows.Add(new ResultRow0(n));
-                                    }
-
-                                    continue;
-                                }
-
-                                if (nChunkView.Source is List<string> nChunkViewList)
-                                {
-                                    int nChunkViewOffset = nChunkView.Offset;
-                                    for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                    {
-                                        if ((nIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                        __musoqFinalShapeRows.Add(new ResultRow0(n));
-                                    }
-
-                                    continue;
-                                }
-                            }
-
-                            for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
+                        var nRows = (IEnumerable<string>)fp.p_Names ?? Array.Empty<string>();
+                        var nIndexRows = nRows;
+                        if (nIndexRows is string[] nIndexArray)
+                            for (int nIndex = 0, nIndexCount = nIndexArray.Length; nIndex < nIndexCount; ++nIndex)
                             {
                                 if ((nIndex & 1023) == 0)
                                 {
                                     token.ThrowIfCancellationRequested();
                                 }
 
-                                var n = nChunk[nIndex];
+                                string n = nIndexArray[nIndex];
                                 __musoqFinalShapeRows.Add(new ResultRow0(n));
+                            }
+                        else if (nIndexRows is List<string> nIndexConcreteList)
+                            for (int nIndex = 0, nIndexCount = nIndexConcreteList.Count; nIndex < nIndexCount; ++nIndex)
+                            {
+                                if ((nIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                string n = nIndexConcreteList[nIndex];
+                                __musoqFinalShapeRows.Add(new ResultRow0(n));
+                            }
+                        else
+                        {
+                            int nIndex = 0;
+                            foreach (var n in nIndexRows)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                __musoqFinalShapeRows.Add(new ResultRow0(n));
+                                ++nIndex;
                             }
                         }
                     }
@@ -276,7 +256,7 @@ namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Names));
+                                statement0.Add(new Statement0Row0(p.Names));
                             }
                         }
 
@@ -300,7 +280,7 @@ namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Names));
+                                statement0.Add(new Statement0Row0(p.Names));
                             }
                         }
 
@@ -322,7 +302,7 @@ namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(f.Content, p.Names));
+                        statement0.Add(new Statement0Row0(p.Names));
                     }
                 }
             }
@@ -370,13 +350,11 @@ namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, string[] __value1)
+            public Statement0Row0(string[] __value0)
             {
-                f_Content = __value0;
-                p_Names = __value1;
+                p_Names = __value0;
             }
 
-            public byte[] f_Content { get; }
             public string[] p_Names { get; }
         }
     }

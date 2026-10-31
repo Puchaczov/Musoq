@@ -85,7 +85,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [gougbq in right_gougbqRows]
       AppendShape [result <- ResultShape0(Name: gougbq.Name)]
     PhaseBoundary [End:right]
-    SortShapeRows [result -> resultSorted by Label DESC]
+    SortOwnedBuffer [result by Label DESC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -154,7 +154,6 @@ namespace GeneratedSample_Q292_SpecCoreSetBranchLocalSlice
                 var _tableResults = new Musoq.Evaluator.Tables.Table[1];
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
@@ -246,7 +245,7 @@ namespace GeneratedSample_Q292_SpecCoreSetBranchLocalSlice
                     }
 
                     Cte0Row0 sliced = (Cte0Row0)__storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(sliced.Name));
+                    result.Add(new ResultShape0(sliced.Name) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled:left", QueryPhase.Select);
@@ -272,7 +271,7 @@ namespace GeneratedSample_Q292_SpecCoreSetBranchLocalSlice
                                 }
 
                                 var gougbq = gougbqChunkViewArray[gougbqChunkViewOffset + gougbqIndex];
-                                result.Add(new ResultShape0(gougbq.Name));
+                                result.Add(new ResultShape0(gougbq.Name) { __musoqSequence = result.Count });
                             }
 
                             continue;
@@ -289,7 +288,7 @@ namespace GeneratedSample_Q292_SpecCoreSetBranchLocalSlice
                                 }
 
                                 var gougbq = gougbqChunkViewList[gougbqChunkViewOffset + gougbqIndex];
-                                result.Add(new ResultShape0(gougbq.Name));
+                                result.Add(new ResultShape0(gougbq.Name) { __musoqSequence = result.Count });
                             }
 
                             continue;
@@ -304,25 +303,20 @@ namespace GeneratedSample_Q292_SpecCoreSetBranchLocalSlice
                         }
 
                         var gougbq = gougbqChunk[gougbqIndex];
-                        result.Add(new ResultShape0(gougbq.Name));
+                        result.Add(new ResultShape0(gougbq.Name) { __musoqSequence = result.Count });
                     }
                 }
 
                 OnPhaseChanged("compiled:right", QueryPhase.End);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Label, right.Label);
                     comparison = -comparison;
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -441,6 +435,7 @@ namespace GeneratedSample_Q292_SpecCoreSetBranchLocalSlice
             }
 
             public string Label { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

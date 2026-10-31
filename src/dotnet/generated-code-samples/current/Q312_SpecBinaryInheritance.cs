@@ -22,7 +22,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, g.Id as g.Id, g.Version as g.Version, g.Flags as g.Flags]
+  PhysicalProject [g.Id as g.Id, g.Version as g.Version, g.Flags as g.Flags]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#Grandchild(f.Content) as g]

@@ -62,7 +62,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [Records in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Position: Records.Payload.F0, Value: Records.Payload.F1.F0)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -132,7 +132,6 @@ namespace GeneratedSample_K51_TypedNativeRecordMembersThroughCte
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -147,22 +146,17 @@ namespace GeneratedSample_K51_TypedNativeRecordMembersThroughCte
                     }
 
                     Cte0Row0 Records = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(Records.Payload.F0, Records.Payload.F1.F0));
+                    result.Add(new ResultShape0(Records.Payload.F0, Records.Payload.F1.F0) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -325,6 +319,7 @@ namespace GeneratedSample_K51_TypedNativeRecordMembersThroughCte
 
             public int Position { get; }
             public int? Value { get; }
+            public int __musoqSequence { get; init; }
         }
 
         [global::System.Text.Json.Serialization.JsonConverter(typeof(__musoqStructuralCarrier_0_1JsonConverter))]

@@ -91,7 +91,7 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Id: walk.Id, Depth: depth)]
     PhaseBoundary [Where]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Depth DESC]
+    SortOwnedBuffer [result by Depth DESC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -156,7 +156,6 @@ namespace GeneratedSample_Q211_RecursiveOuterFilterOrder
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -251,26 +250,21 @@ namespace GeneratedSample_Q211_RecursiveOuterFilterOrder
                     int depth = walk.Depth;
                     if ((depth > 0))
                     {
-                        result.Add(new ResultShape0(walk.Id, depth));
+                        result.Add(new ResultShape0(walk.Id, depth) { __musoqSequence = result.Count });
                     }
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Where);
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Depth.CompareTo(right.Depth);
                     comparison = -comparison;
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -366,6 +360,7 @@ namespace GeneratedSample_Q211_RecursiveOuterFilterOrder
 
             public int Depth { get; }
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValues0C8F87F6Row0 : Row

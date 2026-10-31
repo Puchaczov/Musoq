@@ -12,10 +12,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         AssertUsesExecutionBackendWithoutRetiredHelperPatterns(result);
         Assert.Contains("ForEachWithOrdinality [nOrdinal, n in", result.ExecutionPlanText);
-        Assert.Contains("EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>", result.GeneratedCSharpCode);
-        Assert.Contains("foreach (var nChunk in statement0_nRows)", result.GeneratedCSharpCode);
-        Assert.Contains("for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)", result.GeneratedCSharpCode);
-        Assert.Contains("++nOrdinal;", result.GeneratedCSharpCode);
+        AssertDirectScalarOrdinality(result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".Select((", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("Select((n, nOrdinal)", StringComparison.Ordinal), result.GeneratedCSharpCode);
     }
@@ -42,11 +39,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(ApplyWithOrdinalitySampleFileName);
 
-        Assert.Contains("EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>", sample.Content);
-        Assert.Contains("foreach (var nChunk in statement0_nRows)", sample.Content);
-        Assert.Contains("for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)", sample.Content);
-        Assert.Contains("++nOrdinal;", sample.Content);
+        AssertDirectScalarOrdinality(sample.Content);
         Assert.IsFalse(sample.Content.Contains(".Select((", StringComparison.Ordinal), sample.Content);
         Assert.IsFalse(sample.Content.Contains("EvaluationHelper.SmartForEach(", StringComparison.Ordinal), sample.Content);
+    }
+
+    private static void AssertDirectScalarOrdinality(string code)
+    {
+        Assert.Contains("is int[] nOrdinalArray", code);
+        Assert.Contains("int n = nOrdinalArray[nOrdinal];", code);
+        Assert.Contains("is List<int> nOrdinalConcreteList", code);
+        Assert.Contains("foreach (var n in nOrdinalRows)", code);
+        Assert.DoesNotContain("ConvertScalarEnumerableToTypedChunks<int>", code);
+        Assert.DoesNotContain("ConvertEnumerableOutputToChunks<int>", code);
     }
 }

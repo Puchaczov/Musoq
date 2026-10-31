@@ -48,8 +48,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [ko3iko in ko3ikoRows]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Value: ko3iko.Value, Row: ko3iko.Row, Column: ko3iko.Column)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Row ASC, Column ASC]
-    MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2]
-    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+    TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
 */
 
 // === Generated C# ===
@@ -112,7 +112,7 @@ namespace GeneratedSample_K10_TypedNestedJsonCollections
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
@@ -123,7 +123,6 @@ namespace GeneratedSample_K10_TypedNestedJsonCollections
                 var __musoqTypedParameterCaptureState = new StructuralParameterCaptureState(token);
                 var paramValues = __musoqBindTypedJson_0(__musoqExecutionState, "values", __musoqTypedParameterCaptureState);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, new string[] { "values" });
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 IReadOnlyList<IReadOnlyList<int>> __musoqStructural_ko3iko_0 = paramValues;
                 OnPhaseChanged("compiled", QueryPhase.From);
@@ -203,12 +202,7 @@ namespace GeneratedSample_K10_TypedNestedJsonCollections
                 }
 
                 resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
-                foreach (var resultRecord in resultOrderRecords)
-                {
-                    __musoqFinalShapeRows.Add(new ResultShape0(resultRecord.Value, resultRecord.Row, resultRecord.Column));
-                }
-
-                return __musoqFinalShapeRows;
+                return resultOrderRecords;
             }
             finally
             {
@@ -410,20 +404,6 @@ namespace GeneratedSample_K10_TypedNestedJsonCollections
                     return comparison;
                 return left.__ordinal.CompareTo(right.__ordinal);
             }
-        }
-
-        private sealed class ResultShape0
-        {
-            public ResultShape0(int Value, int Row, int Column)
-            {
-                this.Value = Value;
-                this.Row = Row;
-                this.Column = Column;
-            }
-
-            public int Column { get; }
-            public int Row { get; }
-            public int Value { get; }
         }
     }
 }

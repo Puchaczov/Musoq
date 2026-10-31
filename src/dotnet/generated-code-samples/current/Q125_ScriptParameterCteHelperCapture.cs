@@ -39,7 +39,7 @@ PhysicalCte
           PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Country = $country)]
   Query
     PhysicalMultiStatement
-      PhysicalProject [l.Name as l.Name, r.Name as r.Name, r.RequestedCountry as r.RequestedCountry]
+      PhysicalProject [l.Name as l.Name, r.RequestedCountry as r.RequestedCountry]
         PhysicalHashJoin [Inner] [build: r.Name] [probe: l.Name]
           PhysicalCteRef [filtered as l]
           PhysicalCteRef [filtered as r]

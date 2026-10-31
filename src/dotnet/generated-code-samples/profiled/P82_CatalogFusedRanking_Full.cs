@@ -45,7 +45,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, Ordinal: resultRowNumbers0[windowIndex], Rank: resultRanks1[windowIndex])]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
     PhaseBoundary [Select]
 */
@@ -128,7 +128,6 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -182,23 +181,18 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                     }
 
                     Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers0[windowIndex], (long)resultRanks1[windowIndex]));
+                    result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers0[windowIndex], (long)resultRanks1[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -225,7 +219,6 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op11Handle = profileRecorder?.GetOperatorHandle("op11", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op13Handle = profileRecorder?.GetOperatorHandle("op13", "SourceScan") ?? OperatorProfileHandle.None;
@@ -234,7 +227,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                     var __op18Handle = profileRecorder?.GetOperatorHandle("op18", "CreateShapeRows") ?? OperatorProfileHandle.None;
                     var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "ForEachIndexed") ?? OperatorProfileHandle.None;
                     var __op20Handle = profileRecorder?.GetOperatorHandle("op20", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     long __op20OutputRows = 0L;
                     var __op11Scope = profileRecorder?.BeginOperatorValue(__op11Handle) ?? OperatorProfileValueScope.None;
@@ -311,7 +304,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                             Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
                             __op19InputRows++;
                             __op19OutputRows++;
-                            result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers0[windowIndex], (long)resultRanks1[windowIndex]));
+                            result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers0[windowIndex], (long)resultRanks1[windowIndex]) { __musoqSequence = result.Count });
                             __op20OutputRows += 1;
                         }
                     }
@@ -324,26 +317,21 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
 
                     var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
                     __op21Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op21Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op21Scope.AddOutputRows(result.Count);
                     __op21Scope.Dispose();
                     var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     __op23Scope.Dispose();
                     if (__op20OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op20Handle, __op20OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -446,6 +434,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
             public long Ordinal { get; }
             public int Position { get; }
             public long Rank { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultRowNumbers0OrderKeysKey : System.IEquatable<WindowResultRowNumbers0OrderKeysKey>, System.IComparable<WindowResultRowNumbers0OrderKeysKey>

@@ -21,7 +21,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Id as a.Id, a.Amount as a.Amount, a.Label as a.Label, b.Amount as b.Amount, b.Label as b.Label]
+  PhysicalProject [a.Id as a.Id, b.Amount as b.Amount, b.Label as b.Label]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#native.rows() as a]
       PhysicalSchemaScan [#native.echo(a.Amount, a.Label) as b]
@@ -43,14 +43,10 @@ ExecutionPlan [compiled]
       Label: string <- property Label
     Generated [Statement0Row0]
       a.Id: int <- field a_Id
-      a.Amount: decimal? <- field a_Amount
-      a.Label: string <- field a_Label
       b.Amount: decimal? <- field b_Amount
       b.Label: string <- field b_Label
     TableRow [ab]
       a.Id: int <- field a_Id
-      a.Amount: decimal? <- field a_Amount
-      a.Label: string <- field a_Label
       b.Amount: decimal? <- field b_Amount
       b.Label: string <- field b_Label
     Generated [ResultRow0]
@@ -65,17 +61,15 @@ ExecutionPlan [compiled]
     CreateTable [statement0: Statement0Row0]
     PhaseBoundary [Select]
     ChunkedForEach [a in statement0_aRows]
-      Let [aAmount: decimal? = a.Amount]
       Let [aId: int = a.Id]
-      Let [aLabel: string = a.Label]
       SourceScan [b: NativeEntity] -> statement0_bRows
       ChunkedForEach [b in statement0_bRows]
-        AppendRow [statement0 <- Statement0Row0(a.Id: aId, a.Amount: aAmount, a.Label: aLabel, b.Amount: b.Amount, b.Label: b.Label)]
+        AppendRow [statement0 <- Statement0Row0(a.Id: aId, b.Amount: b.Amount, b.Label: b.Label)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [ab in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: ab.a.Id, Amount: ab.b.Amount, Label: ab.b.Label)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -111,10 +105,8 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.Id", typeof(int), 0),
-            new Column("a.Amount", typeof(decimal?), 1),
-            new Column("a.Label", typeof(string), 2),
-            new Column("b.Amount", typeof(decimal?), 3),
-            new Column("b.Label", typeof(string), 4)
+            new Column("b.Amount", typeof(decimal?), 1),
+            new Column("b.Label", typeof(string), 2)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0), new Column("Amount", typeof(decimal?), 1), new Column("Label", typeof(string), 2) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Amount", typeof(decimal?), 0), new Column("Label", typeof(string), 1) });
@@ -167,7 +159,6 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -182,22 +173,17 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                     }
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(ab.a_Id, ab.b_Amount, ab.b_Label));
+                    result.Add(new ResultShape0(ab.a_Id, ab.b_Amount, ab.b_Label) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -225,31 +211,30 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
+                    var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op40Handle = profileRecorder?.GetOperatorHandle("op40", "CreateShapeRows") ?? OperatorProfileHandle.None;
-                    var __op41Handle = profileRecorder?.GetOperatorHandle("op41", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op42Handle = profileRecorder?.GetOperatorHandle("op42", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op43Handle = profileRecorder?.GetOperatorHandle("op43", "SortShapeRows") ?? OperatorProfileHandle.None;
-                    long __op42OutputRows = 0L;
-                    var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
+                    var __op34Handle = profileRecorder?.GetOperatorHandle("op34", "CreateShapeRows") ?? OperatorProfileHandle.None;
+                    var __op35Handle = profileRecorder?.GetOperatorHandle("op35", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op36Handle = profileRecorder?.GetOperatorHandle("op36", "AppendShape") ?? OperatorProfileHandle.None;
+                    var __op37Handle = profileRecorder?.GetOperatorHandle("op37", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
+                    long __op36OutputRows = 0L;
+                    var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
-                    __op27Scope.Dispose();
-                    var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
+                    __op23Scope.Dispose();
+                    var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.From);
-                    __op28Scope.Dispose();
-                    var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
+                    __op24Scope.Dispose();
+                    var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
-                    __op31Scope.Dispose();
+                    __op27Scope.Dispose();
                     _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, profileRecorder, _cteRowResults);
-                    var __op40Scope = profileRecorder?.BeginOperatorValue(__op40Handle) ?? OperatorProfileValueScope.None;
+                    var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
                     var result = new List<ResultShape0>();
-                    __op40Scope.Dispose();
-                    long __op41InputRows = 0L;
-                    long __op41OutputRows = 0L;
-                    var __op41Scope = profileRecorder?.BeginOperatorValue(__op41Handle) ?? OperatorProfileValueScope.None;
+                    __op34Scope.Dispose();
+                    long __op35InputRows = 0L;
+                    long __op35OutputRows = 0L;
+                    var __op35Scope = profileRecorder?.BeginOperatorValue(__op35Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         var __storedTable0Rows = _cteRowResults.Slot0;
@@ -261,38 +246,33 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             }
 
                             Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                            __op41InputRows++;
-                            __op41OutputRows++;
-                            result.Add(new ResultShape0(ab.a_Id, ab.b_Amount, ab.b_Label));
-                            __op42OutputRows += 1;
+                            __op35InputRows++;
+                            __op35OutputRows++;
+                            result.Add(new ResultShape0(ab.a_Id, ab.b_Amount, ab.b_Label) { __musoqSequence = result.Count });
+                            __op36OutputRows += 1;
                         }
                     }
                     finally
                     {
-                        __op41Scope.AddInputRows(__op41InputRows);
-                        __op41Scope.AddOutputRows(__op41OutputRows);
-                        __op41Scope.Dispose();
+                        __op35Scope.AddInputRows(__op35InputRows);
+                        __op35Scope.AddOutputRows(__op35OutputRows);
+                        __op35Scope.Dispose();
                     }
 
-                    var __op43Scope = profileRecorder?.BeginOperatorValue(__op43Handle) ?? OperatorProfileValueScope.None;
-                    __op43Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    var __op37Scope = profileRecorder?.BeginOperatorValue(__op37Handle) ?? OperatorProfileValueScope.None;
+                    __op37Scope.AddInputRows(result.Count);
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Id.CompareTo(right.Id);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op43Scope.AddOutputRows(__musoqFinalShapeRows.Count);
-                    __op43Scope.Dispose();
-                    if (__op42OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op42Handle, __op42OutputRows);
-                    return __musoqFinalShapeRows;
+                    __op37Scope.AddOutputRows(result.Count);
+                    __op37Scope.Dispose();
+                    if (__op36OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op36Handle, __op36OutputRows);
+                    return result;
                 }
                 finally
                 {
@@ -347,9 +327,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             }
 
                             var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                            decimal? aAmount = a.Amount;
                             int aId = a.Id;
-                            string aLabel = a.Label;
                             var __statement0_bSchema = provider.GetSchema("#native");
                             var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                             var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
@@ -368,7 +346,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -385,7 +363,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -400,7 +378,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
                             }
                         }
@@ -419,9 +397,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             }
 
                             var a = aChunkViewList[aChunkViewOffset + aIndex];
-                            decimal? aAmount = a.Amount;
                             int aId = a.Id;
-                            string aLabel = a.Label;
                             var __statement0_bSchema = provider.GetSchema("#native");
                             var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                             var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
@@ -440,7 +416,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -457,7 +433,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -472,7 +448,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
                             }
                         }
@@ -489,9 +465,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                     }
 
                     var a = aChunk[aIndex];
-                    decimal? aAmount = a.Amount;
                     int aId = a.Id;
-                    string aLabel = a.Label;
                     var __statement0_bSchema = provider.GetSchema("#native");
                     var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                     var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
@@ -510,7 +484,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     }
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
 
                                 continue;
@@ -527,7 +501,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     }
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
 
                                 continue;
@@ -542,7 +516,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             }
 
                             var b = bChunk[bIndex];
-                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                         }
                     }
                 }
@@ -557,25 +531,25 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try
             {
-                var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "SourceScan") ?? OperatorProfileHandle.None;
-                var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "CreateTable") ?? OperatorProfileHandle.None;
-                var __op32Handle = profileRecorder?.GetOperatorHandle("op32", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op36Handle = profileRecorder?.GetOperatorHandle("op36", "SourceScan") ?? OperatorProfileHandle.None;
-                var __op37Handle = profileRecorder?.GetOperatorHandle("op37", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op38Handle = profileRecorder?.GetOperatorHandle("op38", "AppendRow") ?? OperatorProfileHandle.None;
-                long __op38OutputRows = 0L;
-                var __op29Scope = profileRecorder?.BeginOperatorValue(__op29Handle) ?? OperatorProfileValueScope.None;
+                var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "SourceScan") ?? OperatorProfileHandle.None;
+                var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "CreateTable") ?? OperatorProfileHandle.None;
+                var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "ChunkedForEach") ?? OperatorProfileHandle.None;
+                var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "SourceScan") ?? OperatorProfileHandle.None;
+                var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "ChunkedForEach") ?? OperatorProfileHandle.None;
+                var __op32Handle = profileRecorder?.GetOperatorHandle("op32", "AppendRow") ?? OperatorProfileHandle.None;
+                long __op32OutputRows = 0L;
+                var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_aSchema = provider.GetSchema("#native");
                 var statement0_aRowsProfile = profileRecorder?.CreateSourceRecorder("a");
                 var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_aSchema, "rows", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Empty);
                 var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
-                __op29Scope.Dispose();
-                var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
+                __op25Scope.Dispose();
+                var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
-                __op30Scope.Dispose();
-                long __op32InputRows = 0L;
-                long __op32OutputRows = 0L;
-                var __op32Scope = profileRecorder?.BeginOperatorValue(__op32Handle) ?? OperatorProfileValueScope.None;
+                __op26Scope.Dispose();
+                long __op28InputRows = 0L;
+                long __op28OutputRows = 0L;
+                var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
                 try
                 {
                     foreach (var aChunk in statement0_aRows)
@@ -593,20 +567,18 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     }
 
                                     var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                    __op32InputRows++;
-                                    __op32OutputRows++;
-                                    decimal? aAmount = a.Amount;
+                                    __op28InputRows++;
+                                    __op28OutputRows++;
                                     int aId = a.Id;
-                                    string aLabel = a.Label;
-                                    var __op36Scope = profileRecorder?.BeginOperatorValue(__op36Handle) ?? OperatorProfileValueScope.None;
+                                    var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                                     var __statement0_bSchema = provider.GetSchema("#native");
                                     var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
                                     var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                                     var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
-                                    __op36Scope.Dispose();
-                                    long __op37InputRows = 0L;
-                                    long __op37OutputRows = 0L;
-                                    var __op37Scope = profileRecorder?.BeginOperatorValue(__op37Handle) ?? OperatorProfileValueScope.None;
+                                    __op30Scope.Dispose();
+                                    long __op31InputRows = 0L;
+                                    long __op31OutputRows = 0L;
+                                    var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
                                     try
                                     {
                                         foreach (var bChunk in statement0_bRows)
@@ -624,10 +596,10 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                         }
 
                                                         var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                                        __op37InputRows++;
-                                                        __op37OutputRows++;
-                                                        statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                        __op38OutputRows += 1;
+                                                        __op31InputRows++;
+                                                        __op31OutputRows++;
+                                                        statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                        __op32OutputRows += 1;
                                                     }
 
                                                     continue;
@@ -644,10 +616,10 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                         }
 
                                                         var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                                        __op37InputRows++;
-                                                        __op37OutputRows++;
-                                                        statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                        __op38OutputRows += 1;
+                                                        __op31InputRows++;
+                                                        __op31OutputRows++;
+                                                        statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                        __op32OutputRows += 1;
                                                     }
 
                                                     continue;
@@ -662,18 +634,18 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                 }
 
                                                 var b = bChunk[bIndex];
-                                                __op37InputRows++;
-                                                __op37OutputRows++;
-                                                statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                __op38OutputRows += 1;
+                                                __op31InputRows++;
+                                                __op31OutputRows++;
+                                                statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                __op32OutputRows += 1;
                                             }
                                         }
                                     }
                                     finally
                                     {
-                                        __op37Scope.AddInputRows(__op37InputRows);
-                                        __op37Scope.AddOutputRows(__op37OutputRows);
-                                        __op37Scope.Dispose();
+                                        __op31Scope.AddInputRows(__op31InputRows);
+                                        __op31Scope.AddOutputRows(__op31OutputRows);
+                                        __op31Scope.Dispose();
                                     }
                                 }
 
@@ -691,20 +663,18 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     }
 
                                     var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                    __op32InputRows++;
-                                    __op32OutputRows++;
-                                    decimal? aAmount = a.Amount;
+                                    __op28InputRows++;
+                                    __op28OutputRows++;
                                     int aId = a.Id;
-                                    string aLabel = a.Label;
-                                    var __op36Scope = profileRecorder?.BeginOperatorValue(__op36Handle) ?? OperatorProfileValueScope.None;
+                                    var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                                     var __statement0_bSchema = provider.GetSchema("#native");
                                     var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
                                     var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                                     var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
-                                    __op36Scope.Dispose();
-                                    long __op37InputRows = 0L;
-                                    long __op37OutputRows = 0L;
-                                    var __op37Scope = profileRecorder?.BeginOperatorValue(__op37Handle) ?? OperatorProfileValueScope.None;
+                                    __op30Scope.Dispose();
+                                    long __op31InputRows = 0L;
+                                    long __op31OutputRows = 0L;
+                                    var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
                                     try
                                     {
                                         foreach (var bChunk in statement0_bRows)
@@ -722,10 +692,10 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                         }
 
                                                         var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                                        __op37InputRows++;
-                                                        __op37OutputRows++;
-                                                        statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                        __op38OutputRows += 1;
+                                                        __op31InputRows++;
+                                                        __op31OutputRows++;
+                                                        statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                        __op32OutputRows += 1;
                                                     }
 
                                                     continue;
@@ -742,10 +712,10 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                         }
 
                                                         var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                                        __op37InputRows++;
-                                                        __op37OutputRows++;
-                                                        statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                        __op38OutputRows += 1;
+                                                        __op31InputRows++;
+                                                        __op31OutputRows++;
+                                                        statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                        __op32OutputRows += 1;
                                                     }
 
                                                     continue;
@@ -760,18 +730,18 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                 }
 
                                                 var b = bChunk[bIndex];
-                                                __op37InputRows++;
-                                                __op37OutputRows++;
-                                                statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                __op38OutputRows += 1;
+                                                __op31InputRows++;
+                                                __op31OutputRows++;
+                                                statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                __op32OutputRows += 1;
                                             }
                                         }
                                     }
                                     finally
                                     {
-                                        __op37Scope.AddInputRows(__op37InputRows);
-                                        __op37Scope.AddOutputRows(__op37OutputRows);
-                                        __op37Scope.Dispose();
+                                        __op31Scope.AddInputRows(__op31InputRows);
+                                        __op31Scope.AddOutputRows(__op31OutputRows);
+                                        __op31Scope.Dispose();
                                     }
                                 }
 
@@ -787,20 +757,18 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             }
 
                             var a = aChunk[aIndex];
-                            __op32InputRows++;
-                            __op32OutputRows++;
-                            decimal? aAmount = a.Amount;
+                            __op28InputRows++;
+                            __op28OutputRows++;
                             int aId = a.Id;
-                            string aLabel = a.Label;
-                            var __op36Scope = profileRecorder?.BeginOperatorValue(__op36Handle) ?? OperatorProfileValueScope.None;
+                            var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                             var __statement0_bSchema = provider.GetSchema("#native");
                             var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
                             var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                             var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
-                            __op36Scope.Dispose();
-                            long __op37InputRows = 0L;
-                            long __op37OutputRows = 0L;
-                            var __op37Scope = profileRecorder?.BeginOperatorValue(__op37Handle) ?? OperatorProfileValueScope.None;
+                            __op30Scope.Dispose();
+                            long __op31InputRows = 0L;
+                            long __op31OutputRows = 0L;
+                            var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;
                             try
                             {
                                 foreach (var bChunk in statement0_bRows)
@@ -818,10 +786,10 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                 }
 
                                                 var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                                __op37InputRows++;
-                                                __op37OutputRows++;
-                                                statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                __op38OutputRows += 1;
+                                                __op31InputRows++;
+                                                __op31OutputRows++;
+                                                statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                __op32OutputRows += 1;
                                             }
 
                                             continue;
@@ -838,10 +806,10 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                 }
 
                                                 var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                                __op37InputRows++;
-                                                __op37OutputRows++;
-                                                statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                                __op38OutputRows += 1;
+                                                __op31InputRows++;
+                                                __op31OutputRows++;
+                                                statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                                __op32OutputRows += 1;
                                             }
 
                                             continue;
@@ -856,31 +824,31 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                         }
 
                                         var b = bChunk[bIndex];
-                                        __op37InputRows++;
-                                        __op37OutputRows++;
-                                        statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
-                                        __op38OutputRows += 1;
+                                        __op31InputRows++;
+                                        __op31OutputRows++;
+                                        statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
+                                        __op32OutputRows += 1;
                                     }
                                 }
                             }
                             finally
                             {
-                                __op37Scope.AddInputRows(__op37InputRows);
-                                __op37Scope.AddOutputRows(__op37OutputRows);
-                                __op37Scope.Dispose();
+                                __op31Scope.AddInputRows(__op31InputRows);
+                                __op31Scope.AddOutputRows(__op31OutputRows);
+                                __op31Scope.Dispose();
                             }
                         }
                     }
                 }
                 finally
                 {
-                    __op32Scope.AddInputRows(__op32InputRows);
-                    __op32Scope.AddOutputRows(__op32OutputRows);
-                    __op32Scope.Dispose();
+                    __op28Scope.AddInputRows(__op28InputRows);
+                    __op28Scope.AddOutputRows(__op28OutputRows);
+                    __op28Scope.Dispose();
                 }
 
-                if (__op38OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op38Handle, __op38OutputRows);
+                if (__op32OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op32Handle, __op32OutputRows);
                 return statement0;
             }
             catch (Exception __profileException)when (profileRecorder != null && profileRecorder.RecordActiveOperatorException(__profileException, __profileScopeDepth))
@@ -955,22 +923,19 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
             public decimal? Amount { get; }
             public int Id { get; }
             public string Label { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, decimal? __value1, string __value2, decimal? __value3, string __value4)
+            public Statement0Row0(int __value0, decimal? __value1, string __value2)
             {
                 a_Id = __value0;
-                a_Amount = __value1;
-                a_Label = __value2;
-                b_Amount = __value3;
-                b_Label = __value4;
+                b_Amount = __value1;
+                b_Label = __value2;
             }
 
-            public decimal? a_Amount { get; }
             public int a_Id { get; }
-            public string a_Label { get; }
             public decimal? b_Amount { get; }
             public string b_Label { get; }
         }

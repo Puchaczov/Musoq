@@ -42,7 +42,7 @@ PhysicalCte
               PhysicalCteRef [walk as w]
   Query
     PhysicalMultiStatement
-      PhysicalProject [1 as 1, AggRef(walk.Max(walk.Depth)) as walk.Max(walk.Depth), AggRef(walk.Count(walk.Id)) as walk.Count(walk.Id)]
+      PhysicalProject [AggRef(walk.Max(walk.Depth)) as walk.Max(walk.Depth), AggRef(walk.Count(walk.Id)) as walk.Count(walk.Id)]
         PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Max(Depth), Count(Id)]
           PhysicalCteRef [walk as walk]
       PhysicalProject [walk.Count(walk.Id) as NodeCount, walk.Max(walk.Depth) as MaxDepth]

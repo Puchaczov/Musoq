@@ -16,7 +16,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [1 as 1, AggRef(ko3iko.Count(ko3iko.Amount)) as ko3iko.Count(ko3iko.Amount), AggRef(ko3iko.Avg(ko3iko.Amount)) as ko3iko.Avg(ko3iko.Amount), AggRef(ko3iko.Sum(ko3iko.Amount)) as ko3iko.Sum(ko3iko.Amount)]
+  PhysicalProject [AggRef(ko3iko.Count(ko3iko.Amount)) as ko3iko.Count(ko3iko.Amount), AggRef(ko3iko.Avg(ko3iko.Amount)) as ko3iko.Avg(ko3iko.Amount), AggRef(ko3iko.Sum(ko3iko.Amount)) as ko3iko.Sum(ko3iko.Amount)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(Amount), Avg(Amount), Sum(Amount)]
       PhysicalSchemaScan [#typedrows.rows() as ko3iko] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=5E3ED780A4A305BFD6D5E14D36CE121DFA0BCD3E1656CBE6D0BCAC29544458BF]
   PhysicalProject [ko3iko.Sum(ko3iko.Amount) as Total, ko3iko.Avg(ko3iko.Amount) as Average, ko3iko.Count(ko3iko.Amount) as Present]

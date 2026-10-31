@@ -38,7 +38,7 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [p in pRows]
       AppendShape [result <- ResultShape0(Position: p.Position, Value: p.Payload?.Value)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -104,7 +104,6 @@ namespace GeneratedSample_K61_NativeSourceNullablePayload
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __pSchema = provider.GetSchema("#positional");
@@ -128,7 +127,7 @@ namespace GeneratedSample_K61_NativeSourceNullablePayload
                                 }
 
                                 var p = pChunkViewArray[pChunkViewOffset + pIndex];
-                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                             }
 
                             continue;
@@ -145,7 +144,7 @@ namespace GeneratedSample_K61_NativeSourceNullablePayload
                                 }
 
                                 var p = pChunkViewList[pChunkViewOffset + pIndex];
-                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                                result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                             }
 
                             continue;
@@ -160,23 +159,18 @@ namespace GeneratedSample_K61_NativeSourceNullablePayload
                         }
 
                         var p = pChunk[pIndex];
-                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value));
+                        result.Add(new ResultShape0(p.Field1, p.Field0?.Value) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -273,6 +267,7 @@ namespace GeneratedSample_K61_NativeSourceNullablePayload
 
             public int Position { get; }
             public decimal? Value { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

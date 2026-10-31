@@ -65,7 +65,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Jan_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Jan_Orders: ko3iko.Count(*) filter (where Month = 'Jan'), Feb_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), Feb_Orders: ko3iko.Count(*) filter (where Month = 'Feb'))]
-    SortShapeRows [result -> resultSorted by City ASC]
+    SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -149,7 +149,6 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
@@ -216,22 +215,17 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg3.HasValue ? (decimal?)finalGroup.__agg3.Value : null, finalGroup.__agg2.Count, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count));
+                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg3.HasValue ? (decimal?)finalGroup.__agg3.Value : null, finalGroup.__agg2.Count, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.City, right.City);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -258,7 +252,6 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "SourceScan") ?? OperatorProfileHandle.None;
@@ -270,7 +263,7 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
                     var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "EnsureShapeCapacity") ?? OperatorProfileHandle.None;
                     var __op32Handle = profileRecorder?.GetOperatorHandle("op32", "ForEach") ?? OperatorProfileHandle.None;
                     var __op33Handle = profileRecorder?.GetOperatorHandle("op33", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op34Handle = profileRecorder?.GetOperatorHandle("op34", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op34Handle = profileRecorder?.GetOperatorHandle("op34", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op33OutputRows = 0L;
                     var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
@@ -387,7 +380,7 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
                             token.ThrowIfCancellationRequested();
                             __op32InputRows++;
                             __op32OutputRows++;
-                            result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg3.HasValue ? (decimal?)finalGroup.__agg3.Value : null, finalGroup.__agg2.Count, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count));
+                            result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg3.HasValue ? (decimal?)finalGroup.__agg3.Value : null, finalGroup.__agg2.Count, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count) { __musoqSequence = result.Count });
                             __op33OutputRows += 1;
                         }
                     }
@@ -400,23 +393,18 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
 
                     var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
                     __op34Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = StringComparer.Ordinal.Compare(left.City, right.City);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op34Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op34Scope.AddOutputRows(result.Count);
                     __op34Scope.Dispose();
                     if (__op33OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op33Handle, __op33OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -723,6 +711,7 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
             public decimal? Feb_Sales { get; }
             public long Jan_Orders { get; }
             public decimal? Jan_Sales { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

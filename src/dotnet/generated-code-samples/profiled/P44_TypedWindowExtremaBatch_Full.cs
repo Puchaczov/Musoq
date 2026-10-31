@@ -55,7 +55,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, Minimum: resultMins0[windowIndex], Maximum: resultMaxs1[windowIndex], PeerMinimum: resultMins2[windowIndex])]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
     PhaseBoundary [Select]
 */
@@ -139,7 +139,6 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -297,23 +296,18 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
                     }
 
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[windowIndex];
-                    result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultMins0[windowIndex], (double?)resultMaxs1[windowIndex], (int?)resultMins2[windowIndex]));
+                    result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultMins0[windowIndex], (double?)resultMaxs1[windowIndex], (int?)resultMins2[windowIndex]) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -340,7 +334,6 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
                 {
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "SourceScan") ?? OperatorProfileHandle.None;
@@ -351,7 +344,7 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
                     var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "CreateShapeRows") ?? OperatorProfileHandle.None;
                     var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "ForEachIndexed") ?? OperatorProfileHandle.None;
                     var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     long __op24OutputRows = 0L;
                     var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
@@ -536,7 +529,7 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
                             Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[windowIndex];
                             __op23InputRows++;
                             __op23OutputRows++;
-                            result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultMins0[windowIndex], (double?)resultMaxs1[windowIndex], (int?)resultMins2[windowIndex]));
+                            result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultMins0[windowIndex], (double?)resultMaxs1[windowIndex], (int?)resultMins2[windowIndex]) { __musoqSequence = result.Count });
                             __op24OutputRows += 1;
                         }
                     }
@@ -549,26 +542,21 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
 
                     var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                     __op25Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op25Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op25Scope.AddOutputRows(result.Count);
                     __op25Scope.Dispose();
                     var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     __op27Scope.Dispose();
                     if (__op24OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op24Handle, __op24OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -669,6 +657,7 @@ namespace GeneratedSample_P44_TypedWindowExtremaBatch_Full
             public decimal? Minimum { get; }
             public int? PeerMinimum { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private readonly struct WindowResultMins0OrderKeysKey : System.IEquatable<WindowResultMins0OrderKeysKey>, System.IComparable<WindowResultMins0OrderKeysKey>

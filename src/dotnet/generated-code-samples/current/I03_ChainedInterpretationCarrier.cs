@@ -21,11 +21,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [batch.Label as batch.Label, batch.Key as batch.Key]
+  PhysicalProject [batch.Label as batch.Label]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#fixture.batches('demo', FALSE) as batch]
       PhysicalSchemaScan [#fixture.samples(batch.Key) as sample]
-  PhysicalProject [batchsample.batch.Label as batch.Label, batchsample.batch.Key as batch.Key, reading.Score as reading.Score]
+  PhysicalProject [batchsample.batch.Label as batch.Label, reading.Score as reading.Score]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [batchsample as batchsample]
       PhysicalInterpretSource [#SampleReading(ReadPayload()) as reading]
@@ -45,10 +45,8 @@ ExecutionPlan [compiled]
       Payload: byte[] <- property Payload
     Generated [Statement0Row0]
       batch.Label: string <- field batch_Label
-      batch.Key: string <- field batch_Key
     TableRow [batchsample]
       batch.Label: string <- field batch_Label
-      batch.Key: string <- field batch_Key
     SourceEntity [reading: object]
       Score: int <- property Score
     Generated [ResultRow0]
@@ -61,11 +59,10 @@ ExecutionPlan [compiled]
     SourceScan [batch: ApplyCarrierBatch] -> statement0_batchRows
     CreateTable [statement0: Statement0Row0]
     ChunkedForEach [batch in statement0_batchRows]
-      Let [batchKey: string = batch.Key]
       Let [batchLabel: string = batch.Label]
       SourceScan [sample: ApplyCarrierSample] -> statement0_sampleRows
       ChunkedForEach [sample in statement0_sampleRows]
-        AppendRow [statement0 <- Statement0Row0(batch.Label: batchLabel, batch.Key: batchKey)]
+        AppendRow [statement0 <- Statement0Row0(batch.Label: batchLabel)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -108,8 +105,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("batch.Label", typeof(string), 0),
-            new Column("batch.Key", typeof(string), 1)
+            new Column("batch.Label", typeof(string), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_batch_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Label", typeof(string), 0), new Column("Key", typeof(string), 1) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_sample_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Key", typeof(string), 0), new Column("Payload", typeof(byte[]), 1) });
@@ -232,7 +228,6 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                             }
 
                             var batch = batchChunkViewArray[batchChunkViewOffset + batchIndex];
-                            string batchKey = batch.Key;
                             string batchLabel = batch.Label;
                             var __statement0_sampleSchema = provider.GetSchema("#fixture");
                             var statement0_sampleRowsSource = SourceInvocation<Musoq.Tests.Common.ApplyCarrierSample>.Open(__statement0_sampleSchema, "samples", new SourceExecutionContext("sample:1", sourceExecutionPlans["sample:1"], token, __schemaColumns_compiled_sample_2, sourceRuntimeSettingsBySourceContextId["sample:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(batch.Key, global::Musoq.Schema.SourceArguments.Empty));
@@ -252,7 +247,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                             }
 
                                             var sample = sampleChunkViewArray[sampleChunkViewOffset + sampleIndex];
-                                            statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                            statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                         }
 
                                         continue;
@@ -269,7 +264,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                             }
 
                                             var sample = sampleChunkViewList[sampleChunkViewOffset + sampleIndex];
-                                            statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                            statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                         }
 
                                         continue;
@@ -284,7 +279,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                     }
 
                                     var sample = sampleChunk[sampleIndex];
-                                    statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                    statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                 }
                             }
                         }
@@ -303,7 +298,6 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                             }
 
                             var batch = batchChunkViewList[batchChunkViewOffset + batchIndex];
-                            string batchKey = batch.Key;
                             string batchLabel = batch.Label;
                             var __statement0_sampleSchema = provider.GetSchema("#fixture");
                             var statement0_sampleRowsSource = SourceInvocation<Musoq.Tests.Common.ApplyCarrierSample>.Open(__statement0_sampleSchema, "samples", new SourceExecutionContext("sample:1", sourceExecutionPlans["sample:1"], token, __schemaColumns_compiled_sample_2, sourceRuntimeSettingsBySourceContextId["sample:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(batch.Key, global::Musoq.Schema.SourceArguments.Empty));
@@ -323,7 +317,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                             }
 
                                             var sample = sampleChunkViewArray[sampleChunkViewOffset + sampleIndex];
-                                            statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                            statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                         }
 
                                         continue;
@@ -340,7 +334,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                             }
 
                                             var sample = sampleChunkViewList[sampleChunkViewOffset + sampleIndex];
-                                            statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                            statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                         }
 
                                         continue;
@@ -355,7 +349,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                     }
 
                                     var sample = sampleChunk[sampleIndex];
-                                    statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                    statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                 }
                             }
                         }
@@ -372,7 +366,6 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                     }
 
                     var batch = batchChunk[batchIndex];
-                    string batchKey = batch.Key;
                     string batchLabel = batch.Label;
                     var __statement0_sampleSchema = provider.GetSchema("#fixture");
                     var statement0_sampleRowsSource = SourceInvocation<Musoq.Tests.Common.ApplyCarrierSample>.Open(__statement0_sampleSchema, "samples", new SourceExecutionContext("sample:1", sourceExecutionPlans["sample:1"], token, __schemaColumns_compiled_sample_2, sourceRuntimeSettingsBySourceContextId["sample:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(batch.Key, global::Musoq.Schema.SourceArguments.Empty));
@@ -392,7 +385,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                     }
 
                                     var sample = sampleChunkViewArray[sampleChunkViewOffset + sampleIndex];
-                                    statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                    statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                 }
 
                                 continue;
@@ -409,7 +402,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                                     }
 
                                     var sample = sampleChunkViewList[sampleChunkViewOffset + sampleIndex];
-                                    statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                                    statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                                 }
 
                                 continue;
@@ -424,7 +417,7 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
                             }
 
                             var sample = sampleChunk[sampleIndex];
-                            statement0.Add(new Statement0Row0(batchLabel, batchKey, batch, sample));
+                            statement0.Add(new Statement0Row0(batchLabel, batch, sample));
                         }
                     }
                 }
@@ -481,15 +474,13 @@ namespace GeneratedSample_I03_ChainedInterpretationCarrier
         {
             public readonly Musoq.Tests.Common.ApplyCarrierBatch __leftContext;
             public readonly Musoq.Tests.Common.ApplyCarrierSample __rightContext;
-            public Statement0Row0(string __value0, string __value1, Musoq.Tests.Common.ApplyCarrierBatch __leftContext, Musoq.Tests.Common.ApplyCarrierSample __rightContext)
+            public Statement0Row0(string __value0, Musoq.Tests.Common.ApplyCarrierBatch __leftContext, Musoq.Tests.Common.ApplyCarrierSample __rightContext)
             {
                 batch_Label = __value0;
-                batch_Key = __value1;
                 this.__leftContext = __leftContext;
                 this.__rightContext = __rightContext;
             }
 
-            public string batch_Key { get; }
             public string batch_Label { get; }
         }
     }

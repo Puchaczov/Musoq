@@ -21,7 +21,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Id as a.Id, a.Amount as a.Amount, a.Label as a.Label, b.Amount as b.Amount, b.Label as b.Label]
+  PhysicalProject [a.Id as a.Id, b.Amount as b.Amount, b.Label as b.Label]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#native.rows() as a]
       PhysicalSchemaScan [#native.echo(a.Amount, a.Label) as b]
@@ -43,14 +43,10 @@ ExecutionPlan [compiled]
       Label: string <- property Label
     Generated [Statement0Row0]
       a.Id: int <- field a_Id
-      a.Amount: decimal? <- field a_Amount
-      a.Label: string <- field a_Label
       b.Amount: decimal? <- field b_Amount
       b.Label: string <- field b_Label
     TableRow [ab]
       a.Id: int <- field a_Id
-      a.Amount: decimal? <- field a_Amount
-      a.Label: string <- field a_Label
       b.Amount: decimal? <- field b_Amount
       b.Label: string <- field b_Label
     Generated [ResultRow0]
@@ -65,17 +61,15 @@ ExecutionPlan [compiled]
     CreateTable [statement0: Statement0Row0]
     PhaseBoundary [Select]
     ChunkedForEach [a in statement0_aRows]
-      Let [aAmount: decimal? = a.Amount]
       Let [aId: int = a.Id]
-      Let [aLabel: string = a.Label]
       SourceScan [b: NativeEntity] -> statement0_bRows
       ChunkedForEach [b in statement0_bRows]
-        AppendRow [statement0 <- Statement0Row0(a.Id: aId, a.Amount: aAmount, a.Label: aLabel, b.Amount: b.Amount, b.Label: b.Label)]
+        AppendRow [statement0 <- Statement0Row0(a.Id: aId, b.Amount: b.Amount, b.Label: b.Label)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [ab in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: ab.a.Id, Amount: ab.b.Amount, Label: ab.b.Label)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -109,10 +103,8 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.Id", typeof(int), 0),
-            new Column("a.Amount", typeof(decimal?), 1),
-            new Column("a.Label", typeof(string), 2),
-            new Column("b.Amount", typeof(decimal?), 3),
-            new Column("b.Label", typeof(string), 4)
+            new Column("b.Amount", typeof(decimal?), 1),
+            new Column("b.Label", typeof(string), 2)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0), new Column("Amount", typeof(decimal?), 1), new Column("Label", typeof(string), 2) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Amount", typeof(decimal?), 0), new Column("Label", typeof(string), 1) });
@@ -151,7 +143,6 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -166,22 +157,17 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                     }
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(ab.a_Id, ab.b_Amount, ab.b_Label));
+                    result.Add(new ResultShape0(ab.a_Id, ab.b_Amount, ab.b_Label) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -230,9 +216,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                             }
 
                             var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                            decimal? aAmount = a.Amount;
                             int aId = a.Id;
-                            string aLabel = a.Label;
                             var __statement0_bSchema = provider.GetSchema("#native");
                             var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                             var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
@@ -251,7 +235,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -268,7 +252,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -283,7 +267,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
                             }
                         }
@@ -302,9 +286,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                             }
 
                             var a = aChunkViewList[aChunkViewOffset + aIndex];
-                            decimal? aAmount = a.Amount;
                             int aId = a.Id;
-                            string aLabel = a.Label;
                             var __statement0_bSchema = provider.GetSchema("#native");
                             var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                             var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
@@ -323,7 +305,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -340,7 +322,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                         }
 
                                         continue;
@@ -355,7 +337,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
                             }
                         }
@@ -372,9 +354,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                     }
 
                     var a = aChunk[aIndex];
-                    decimal? aAmount = a.Amount;
                     int aId = a.Id;
-                    string aLabel = a.Label;
                     var __statement0_bSchema = provider.GetSchema("#native");
                     var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
                     var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
@@ -393,7 +373,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                     }
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
 
                                 continue;
@@ -410,7 +390,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                                     }
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                                    statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                                 }
 
                                 continue;
@@ -425,7 +405,7 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
                             }
 
                             var b = bChunk[bIndex];
-                            statement0.Add(new Statement0Row0(aId, aAmount, aLabel, b.Amount, b.Label));
+                            statement0.Add(new Statement0Row0(aId, b.Amount, b.Label));
                         }
                     }
                 }
@@ -499,22 +479,19 @@ namespace GeneratedSample_K64_NativeApplyArgumentCarriers
             public decimal? Amount { get; }
             public int Id { get; }
             public string Label { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, decimal? __value1, string __value2, decimal? __value3, string __value4)
+            public Statement0Row0(int __value0, decimal? __value1, string __value2)
             {
                 a_Id = __value0;
-                a_Amount = __value1;
-                a_Label = __value2;
-                b_Amount = __value3;
-                b_Label = __value4;
+                b_Amount = __value1;
+                b_Label = __value2;
             }
 
-            public decimal? a_Amount { get; }
             public int a_Id { get; }
-            public string a_Label { get; }
             public decimal? b_Amount { get; }
             public string b_Label { get; }
         }

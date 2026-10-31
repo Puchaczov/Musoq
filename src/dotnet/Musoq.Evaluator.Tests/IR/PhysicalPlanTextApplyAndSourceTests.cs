@@ -23,7 +23,7 @@ public sealed class PhysicalPlanTextApplyAndSourceTests
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.City as a.City, a.Country as a.Country, b.Money as b.Money]",
+                "  PhysicalProject [a.City as a.City, b.Money as b.Money]",
                 "    PhysicalNestedLoopApply [Cross]",
                 "      PhysicalSchemaScan [#schema.first() as a]",
                 "      PhysicalSchemaScan [#schema.second(a.Country) as b]",
@@ -69,7 +69,7 @@ public sealed class PhysicalPlanTextApplyAndSourceTests
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [p.Name as p.Name, p.Tags as p.Tags, t.Value as t.Value]",
+                "  PhysicalProject [p.Name as p.Name, t.Value as t.Value]",
                 "    PhysicalNestedLoopApply [Cross]",
                 "      PhysicalSchemaScan [#schema.first() as p]",
                 "      PhysicalPropertySource [p.Tags as t] [apply: Cross] [type: String[]]",

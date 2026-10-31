@@ -25,7 +25,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.Flags as p.Flags, p.NextByte as p.NextByte, p.Signature as p.Signature]
+  PhysicalProject [p.Flags as p.Flags, p.NextByte as p.NextByte, p.Signature as p.Signature]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#PositionedFlags(f.Content) as p]

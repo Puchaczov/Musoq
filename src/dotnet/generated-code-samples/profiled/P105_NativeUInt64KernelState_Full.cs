@@ -16,7 +16,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [1 as 1, AggRef(ko3iko.Count(ko3iko.Value)) as ko3iko.Count(ko3iko.Value), AggRef(ko3iko.Max(ko3iko.Value)) as ko3iko.Max(ko3iko.Value), AggRef(ko3iko.Min(ko3iko.Value)) as ko3iko.Min(ko3iko.Value), AggRef(ko3iko.Avg(ko3iko.Value)) as ko3iko.Avg(ko3iko.Value), AggRef(ko3iko.Sum(ko3iko.Value)) as ko3iko.Sum(ko3iko.Value)]
+  PhysicalProject [AggRef(ko3iko.Count(ko3iko.Value)) as ko3iko.Count(ko3iko.Value), AggRef(ko3iko.Max(ko3iko.Value)) as ko3iko.Max(ko3iko.Value), AggRef(ko3iko.Min(ko3iko.Value)) as ko3iko.Min(ko3iko.Value), AggRef(ko3iko.Avg(ko3iko.Value)) as ko3iko.Avg(ko3iko.Value), AggRef(ko3iko.Sum(ko3iko.Value)) as ko3iko.Sum(ko3iko.Value)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(Value), Max(Value), Min(Value), Avg(Value), Sum(Value)]
       PhysicalSchemaScan [#schema.first() as ko3iko]
   PhysicalProject [ko3iko.Sum(ko3iko.Value) as Total, ko3iko.Avg(ko3iko.Value) as Average, ko3iko.Min(ko3iko.Value) as Minimum, ko3iko.Max(ko3iko.Value) as Maximum, ko3iko.Count(ko3iko.Value) as Present]

@@ -31,11 +31,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Content as f.Content, p.Count as p.Count, p.Items as p.Items]
+  PhysicalProject [p.Count as p.Count, p.Items as p.Items]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as f]
       PhysicalInterpretSource [#InlineArrayPacket(f.Content) as p]
-  PhysicalProject [fp.f.Content as f.Content, fp.p.Count as p.Count, fp.p.Items as p.Items, it.Tag as it.Tag, it.Value as it.Value]
+  PhysicalProject [fp.p.Count as p.Count, it.Tag as it.Tag, it.Value as it.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fp as fp]
       PhysicalPropertySource [fp.p.Items as it] [apply: Cross] [type: Object[]]
@@ -53,11 +53,9 @@ ExecutionPlan [compiled]
       Count: byte <- property Count
       Items: object[] <- property Items
     Generated [Statement0Row0]
-      f.Content: byte[] <- field f_Content
       p.Count: byte <- field p_Count
       p.Items: object[] <- field p_Items
     TableRow [fp]
-      f.Content: byte[] <- field f_Content
       p.Count: byte <- field p_Count
       p.Items: object[] <- field p_Items
     SourceEntity [it: object]
@@ -76,7 +74,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in statement0_fRows]
       InterpretSource [InlineArrayPacket.Interpret(f.Content) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(f.Content: f.Content, p.Count: p.Count, p.Items: p.Items)]
+        AppendRow [statement0 <- Statement0Row0(p.Count: p.Count, p.Items: p.Items)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -119,9 +117,8 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Content", typeof(byte[]), 0),
-            new Column("p.Count", typeof(byte), 1),
-            new Column("p.Items", typeof(Musoq.Generated.Interpreters.Inline_Items[]), 2)
+            new Column("p.Count", typeof(byte), 0),
+            new Column("p.Items", typeof(Musoq.Generated.Interpreters.Inline_Items[]), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Content", typeof(byte[]), 0) });
         public ILogger Logger { get; set; }
@@ -253,7 +250,7 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Count, p.Items));
+                                statement0.Add(new Statement0Row0(p.Count, p.Items));
                             }
                         }
 
@@ -277,7 +274,7 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(f.Content, p.Count, p.Items));
+                                statement0.Add(new Statement0Row0(p.Count, p.Items));
                             }
                         }
 
@@ -299,7 +296,7 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(f.Content, p.Count, p.Items));
+                        statement0.Add(new Statement0Row0(p.Count, p.Items));
                     }
                 }
             }
@@ -360,14 +357,12 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, byte __value1, Musoq.Generated.Interpreters.Inline_Items[] __value2)
+            public Statement0Row0(byte __value0, Musoq.Generated.Interpreters.Inline_Items[] __value1)
             {
-                f_Content = __value0;
-                p_Count = __value1;
-                p_Items = __value2;
+                p_Count = __value0;
+                p_Items = __value1;
             }
 
-            public byte[] f_Content { get; }
             public byte p_Count { get; }
             public Musoq.Generated.Interpreters.Inline_Items[] p_Items { get; }
         }

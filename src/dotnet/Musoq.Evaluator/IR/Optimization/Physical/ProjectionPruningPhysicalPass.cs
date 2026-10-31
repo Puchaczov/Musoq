@@ -59,12 +59,21 @@ internal sealed class ProjectionPruningPhysicalPass : IPhysicalOptimizationPass
             return node switch
             {
                 PhysicalCteNode cte => RewriteCte(cte),
+                PhysicalMultiStatementNode statements => RewriteIntermediateOutputs(statements),
                 PhysicalSetOperationNode setOperation => _boundaryPruner.RewriteSetOperation(setOperation),
                 PhysicalAggregateOnlyNode aggregateOnly => _boundaryPruner.RewriteAggregateOnly(aggregateOnly),
                 PhysicalSingleKeyAggregateNode singleKeyAggregate => _boundaryPruner.RewriteSingleKeyAggregate(singleKeyAggregate),
                 PhysicalValueTupleAggregateNode valueTupleAggregate => _boundaryPruner.RewriteValueTupleAggregate(valueTupleAggregate),
                 _ => PhysicalPlanRewriter.RewriteChildren(node, Rewrite)
             };
+        }
+
+        private PhysicalNode RewriteIntermediateOutputs(PhysicalMultiStatementNode statements)
+        {
+            var rewritten = (PhysicalMultiStatementNode)PhysicalPlanRewriter.RewriteChildren(statements, Rewrite);
+            var result = ProjectionPruningCteDefinitions.PruneIntermediateOutputs(rewritten);
+            _prunedFields += result.PrunedFields;
+            return result.Node;
         }
 
         private PhysicalNode RewriteCte(PhysicalCteNode cte)

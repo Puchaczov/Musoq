@@ -28,7 +28,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [p.Pattern as p.Pattern, m.PatternId as m.PatternId]
+  PhysicalProject [m.PatternId as m.PatternId]
     PhysicalNestedLoopApply [Cross]
       PhysicalValuesScan [1 rows as p]
       PhysicalSchemaScan [#inputs.match('TODO!', array { (Id: 'todo', Pattern: (p.Pattern || $suffix)) }) as m]
@@ -45,10 +45,8 @@ ExecutionPlan [compiled]
     SourceEntity [m: PatternMatchRow]
       PatternId: string <- property PatternId
     Generated [Statement0Row0]
-      p.Pattern: string <- field p_Pattern
       m.PatternId: string <- field m_PatternId
     TableRow [pm]
-      p.Pattern: string <- field p_Pattern
       m.PatternId: string <- field m_PatternId
     Generated [ResultRow0]
       PatternId: string <- field PatternId
@@ -61,14 +59,13 @@ ExecutionPlan [compiled]
     CreateValuesRows [statement0_pRows: pValues54644649Row0 x 1]
     CreateTable [statement0: Statement0Row0]
     ForEach [p in statement0_pRows]
-      Let [pPattern: string = p.Pattern]
       Let [__musoqStructural_statement0_m_0: string = 'todo']
-      Let [__musoqStructural_statement0_m_1: string = (pPattern || $suffix)]
+      Let [__musoqStructural_statement0_m_1: string = (p.Pattern || $suffix)]
       PrepareStructuralInput [__musoqStructural_statement0_m_2: Musoq.Examples.DataSources.StructuredInputs.PatternInput <- (Id: __musoqStructural_statement0_m_0, Pattern: __musoqStructural_statement0_m_1); lifetime Inline; shape (Id: string?, Pattern: string?)]
       Let [__musoqStructural_statement0_m_3: IReadOnlyList<PatternInput> = array { __musoqStructural_statement0_m_2 }]
       SourceScan [m: PatternMatchRow] -> statement0_mRows
       ChunkedForEach [m in statement0_mRows]
-        AppendRow [statement0 <- Statement0Row0(p.Pattern: pPattern, m.PatternId: m.PatternId)]
+        AppendRow [statement0 <- Statement0Row0(m.PatternId: m.PatternId)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
@@ -104,8 +101,7 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
         };
         private static readonly Column[] __columns_compiled_statement0_0 = new Column[]
         {
-            new Column("p.Pattern", typeof(string), 0),
-            new Column("m.PatternId", typeof(string), 1)
+            new Column("m.PatternId", typeof(string), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_m_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("PatternId", typeof(string), 0) });
         public ILogger Logger { get; set; }
@@ -205,9 +201,8 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
             foreach (var p in statement0_pRows)
             {
                 token.ThrowIfCancellationRequested();
-                string pPattern = p.Pattern;
                 string __musoqStructural_statement0_m_0 = "todo";
-                string __musoqStructural_statement0_m_1 = (pPattern + paramSuffix);
+                string __musoqStructural_statement0_m_1 = (p.Pattern + paramSuffix);
                 Musoq.Examples.DataSources.StructuredInputs.PatternInput __musoqStructural_statement0_m_2 = new Musoq.Examples.DataSources.StructuredInputs.PatternInput(__musoqStructural_statement0_m_0, __musoqStructural_statement0_m_1, "literal");
                 IReadOnlyList<Musoq.Examples.DataSources.StructuredInputs.PatternInput> __musoqStructural_statement0_m_3 = new Musoq.Examples.DataSources.StructuredInputs.PatternInput[]
                 {
@@ -250,7 +245,7 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
                                 }
 
                                 var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                statement0.Add(new Statement0Row0(pPattern, m.PatternId));
+                                statement0.Add(new Statement0Row0(m.PatternId));
                             }
 
                             continue;
@@ -267,7 +262,7 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
                                 }
 
                                 var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                statement0.Add(new Statement0Row0(pPattern, m.PatternId));
+                                statement0.Add(new Statement0Row0(m.PatternId));
                             }
 
                             continue;
@@ -282,7 +277,7 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
                         }
 
                         var m = mChunk[mIndex];
-                        statement0.Add(new Statement0Row0(pPattern, m.PatternId));
+                        statement0.Add(new Statement0Row0(m.PatternId));
                     }
                 }
             }
@@ -390,14 +385,12 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1)
+            public Statement0Row0(string __value0)
             {
-                p_Pattern = __value0;
-                m_PatternId = __value1;
+                m_PatternId = __value0;
             }
 
             public string m_PatternId { get; }
-            public string p_Pattern { get; }
         }
 
         private sealed class pValues54644649Row0 : Row

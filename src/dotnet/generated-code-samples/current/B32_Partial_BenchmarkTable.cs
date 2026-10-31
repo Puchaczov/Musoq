@@ -27,7 +27,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [r.Id as r.Id, r.Truncated as r.Truncated, p.ParsedFields as p.ParsedFields, p.ErrorField as p.ErrorField, p.BytesConsumed as p.BytesConsumed]
+  PhysicalProject [r.Id as r.Id, p.ParsedFields as p.ParsedFields, p.ErrorField as p.ErrorField, p.BytesConsumed as p.BytesConsumed]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#bench.rows() as r]
       PhysicalInterpretSource [#Header(r.Truncated) as p]
@@ -53,13 +53,11 @@ ExecutionPlan [compiled]
       BitOffset: int <- property BitOffset
     Generated [Statement0Row0]
       r.Id: int <- field r_Id
-      r.Truncated: byte[] <- field r_Truncated
       p.ParsedFields: object <- field p_ParsedFields
       p.ErrorField: string <- field p_ErrorField
       p.BytesConsumed: int <- field p_BytesConsumed
     TableRow [rp]
       r.Id: int <- field r_Id
-      r.Truncated: byte[] <- field r_Truncated
       p.ParsedFields: object <- field p_ParsedFields
       p.ErrorField: string <- field p_ErrorField
       p.BytesConsumed: int <- field p_BytesConsumed
@@ -79,12 +77,12 @@ ExecutionPlan [compiled]
       Let [rId: int = r.Id]
       InterpretSource [Header.PartialInterpret(r.Truncated) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(r.Id: rId, r.Truncated: r.Truncated, p.ParsedFields: p.ParsedFields, p.ErrorField: p.ErrorField, p.BytesConsumed: p.BytesConsumed)]
+        AppendRow [statement0 <- Statement0Row0(r.Id: rId, p.ParsedFields: p.ParsedFields, p.ErrorField: p.ErrorField, p.BytesConsumed: p.BytesConsumed)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [rp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: rp.r.Id, Kind: rp.p.ParsedFields.Kind, Consumed: rp.p.BytesConsumed, Error: rp.p.ErrorField)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -119,10 +117,9 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("r.Id", typeof(int), 0),
-            new Column("r.Truncated", typeof(byte[]), 1),
-            new Column("p.ParsedFields", typeof(Musoq.Generated.Interpreters.Header), 2),
-            new Column("p.ErrorField", typeof(string), 3),
-            new Column("p.BytesConsumed", typeof(int), 4)
+            new Column("p.ParsedFields", typeof(Musoq.Generated.Interpreters.Header), 1),
+            new Column("p.ErrorField", typeof(string), 2),
+            new Column("p.BytesConsumed", typeof(int), 3)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0), new Column("Truncated", typeof(byte[]), 1) });
         public ILogger Logger { get; set; }
@@ -160,7 +157,6 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -175,22 +171,17 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
                     }
 
                     Statement0Row0 rp = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(rp.r_Id, rp.p_ParsedFields.Kind, rp.p_BytesConsumed, rp.p_ErrorField));
+                    result.Add(new ResultShape0(rp.r_Id, rp.p_ParsedFields.Kind, rp.p_BytesConsumed, rp.p_ErrorField) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -246,7 +237,7 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(rId, r.Truncated, p.ParsedFields, p.ErrorField, p.BytesConsumed));
+                                statement0.Add(new Statement0Row0(rId, p.ParsedFields, p.ErrorField, p.BytesConsumed));
                             }
                         }
 
@@ -271,7 +262,7 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(rId, r.Truncated, p.ParsedFields, p.ErrorField, p.BytesConsumed));
+                                statement0.Add(new Statement0Row0(rId, p.ParsedFields, p.ErrorField, p.BytesConsumed));
                             }
                         }
 
@@ -294,7 +285,7 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(rId, r.Truncated, p.ParsedFields, p.ErrorField, p.BytesConsumed));
+                        statement0.Add(new Statement0Row0(rId, p.ParsedFields, p.ErrorField, p.BytesConsumed));
                     }
                 }
             }
@@ -372,24 +363,23 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
             public string Error { get; }
             public int Id { get; }
             public byte Kind { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, byte[] __value1, Musoq.Generated.Interpreters.Header __value2, string __value3, int __value4)
+            public Statement0Row0(int __value0, Musoq.Generated.Interpreters.Header __value1, string __value2, int __value3)
             {
                 r_Id = __value0;
-                r_Truncated = __value1;
-                p_ParsedFields = __value2;
-                p_ErrorField = __value3;
-                p_BytesConsumed = __value4;
+                p_ParsedFields = __value1;
+                p_ErrorField = __value2;
+                p_BytesConsumed = __value3;
             }
 
             public int p_BytesConsumed { get; }
             public string p_ErrorField { get; }
             public Musoq.Generated.Interpreters.Header p_ParsedFields { get; }
             public int r_Id { get; }
-            public byte[] r_Truncated { get; }
         }
     }
 }

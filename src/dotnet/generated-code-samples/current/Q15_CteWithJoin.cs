@@ -31,7 +31,7 @@ PhysicalCte
           PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Population > 0)]
   Query
     PhysicalMultiStatement
-      PhysicalProject [c.Name as c.Name, a.Name as a.Name, a.Country as a.Country]
+      PhysicalProject [c.Name as c.Name, a.Country as a.Country]
         PhysicalHashJoin [Inner] [build: c.Name] [probe: a.Name]
           PhysicalCteRef [cte as c]
           PhysicalSchemaScan [#A.entities() as a]

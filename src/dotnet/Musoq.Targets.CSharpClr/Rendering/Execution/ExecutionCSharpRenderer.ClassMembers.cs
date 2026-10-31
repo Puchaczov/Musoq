@@ -147,6 +147,7 @@ public sealed partial class ExecutionCSharpRenderer
 
             if (plan.FinalResult != null &&
                 !omitFinalShapeClass &&
+                output?.OwnedBuffer is not { SequenceField: null } &&
                 (session.FinalShapeYieldSink is null || !session.FinalShapeYieldSink.UsesGeneratedRowCarrier))
                 members.Add(RenderFinalSelectShapeClass(plan.FinalResult, output));
 

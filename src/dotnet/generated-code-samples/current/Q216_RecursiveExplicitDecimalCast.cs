@@ -86,7 +86,7 @@ ExecutionPlan [compiled]
     ForEach [totals in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Total: totals.Total, Depth: totals.Depth)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Depth ASC]
+    SortOwnedBuffer [result by Depth ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -151,7 +151,6 @@ namespace GeneratedSample_Q216_RecursiveExplicitDecimalCast
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -243,23 +242,18 @@ namespace GeneratedSample_Q216_RecursiveExplicitDecimalCast
                     }
 
                     Cte0Row0 totals = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(totals.Total, totals.Depth));
+                    result.Add(new ResultShape0(totals.Total, totals.Depth) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Depth.CompareTo(right.Depth);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -355,6 +349,7 @@ namespace GeneratedSample_Q216_RecursiveExplicitDecimalCast
 
             public int Depth { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValuesD6F9BDFERow0 : Row

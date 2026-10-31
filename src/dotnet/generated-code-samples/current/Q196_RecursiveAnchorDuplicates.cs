@@ -82,7 +82,7 @@ ExecutionPlan [compiled]
     ForEach [numbers in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: numbers.Id)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -146,7 +146,6 @@ namespace GeneratedSample_Q196_RecursiveAnchorDuplicates
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -248,23 +247,18 @@ namespace GeneratedSample_Q196_RecursiveAnchorDuplicates
                     }
 
                     Cte0Row0 numbers = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(numbers.Id));
+                    result.Add(new ResultShape0(numbers.Id) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -350,6 +344,7 @@ namespace GeneratedSample_Q196_RecursiveAnchorDuplicates
             }
 
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValues0C8F87F6Row0 : Row

@@ -45,11 +45,11 @@ PhysicalCte
         PhysicalCteRef [cScore as cScore]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
+      PhysicalProject [a.City as a.City, _sq_1._sq_1_value as _sq_1._sq_1_value]
         PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
-      PhysicalProject [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_value as _sq_1._sq_1_value, b.City as City]
+      PhysicalProject [a_sq_1.a.City as a.City, b.City as City]
         PhysicalHashJoin [Inner] [build: __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value)] [probe: b.City]
           PhysicalCteRef [a_sq_1 as a_sq_1]
           PhysicalSchemaScan [#B.entities() as b]
@@ -76,13 +76,9 @@ ExecutionPlan [compiled]
       _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
     Generated [Statement0Row0]
       a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
       _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     TableRow [a_sq_1]
       a.City: string <- field a_City
-      a.Country: string <- field a_Country
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
       _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     SourceEntity [b: BasicEntity]
       City: string <- property City
@@ -121,9 +117,9 @@ ExecutionPlan [compiled]
       HashProbe [statement0_sq_1Hash[a.Country] -> statement0_sq_1HashMatches] [match: statement0_sq_1HashHasMatch]
         ForEach [_sq_1 in statement0_sq_1HashMatches]
           Assign [statement0_sq_1HashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_value: _sq_1._sq_1_value)]
+          AppendRow [statement0 <- Statement0Row0(a.City: a.City, _sq_1._sq_1_value: _sq_1._sq_1_value)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
+        AppendRow [statement0 <- Statement0Row0(a.City: a.City, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
     StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
     PhaseBoundary [End:cte1]
     PhaseBoundary [Select]
@@ -175,9 +171,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
         private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
         {
             new Column("a.City", typeof(string), 0),
-            new Column("a.Country", typeof(string), 1),
-            new Column("_sq_1._sq_1_corr_0", typeof(string), 2),
-            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 3)
+            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1) });
@@ -577,13 +571,13 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
                                     {
                                         token.ThrowIfCancellationRequested();
                                         statement0_sq_1HashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.City, a.Country, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                        statement0.Add(new Statement0Row0(a.City, _sq_1._sq_1_value));
                                     }
                                 }
 
                                 if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
+                                    statement0.Add(new Statement0Row0(a.City, statement0_sq_1HashEmptyValue));
                                 }
                             }
 
@@ -609,13 +603,13 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
                                     {
                                         token.ThrowIfCancellationRequested();
                                         statement0_sq_1HashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.City, a.Country, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                        statement0.Add(new Statement0Row0(a.City, _sq_1._sq_1_value));
                                     }
                                 }
 
                                 if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
+                                    statement0.Add(new Statement0Row0(a.City, statement0_sq_1HashEmptyValue));
                                 }
                             }
 
@@ -639,13 +633,13 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
                             {
                                 token.ThrowIfCancellationRequested();
                                 statement0_sq_1HashHasMatch = true;
-                                statement0.Add(new Statement0Row0(a.City, a.Country, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                statement0.Add(new Statement0Row0(a.City, _sq_1._sq_1_value));
                             }
                         }
 
                         if (!statement0_sq_1HashHasMatch)
                         {
-                            statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
+                            statement0.Add(new Statement0Row0(a.City, statement0_sq_1HashEmptyValue));
                         }
                     }
                 }
@@ -736,18 +730,14 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1, string __value2, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value3)
+            public Statement0Row0(string __value0, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value1)
             {
                 a_City = __value0;
-                a_Country = __value1;
-                _sq_1__sq_1_corr_0 = __value2;
-                _sq_1__sq_1_value = __value3;
+                _sq_1__sq_1_value = __value1;
             }
 
-            public string _sq_1__sq_1_corr_0 { get; }
             public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1__sq_1_value { get; }
             public string a_City { get; }
-            public string a_Country { get; }
         }
     }
 }

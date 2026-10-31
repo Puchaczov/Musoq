@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Value as a.Value, a.EmptyMiddles as a.EmptyMiddles, b.VolatileValue as b.VolatileValue]
+  PhysicalProject [a.Value as a.Value, b.VolatileValue as b.VolatileValue]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#licm.outers() as a]
       PhysicalPropertySource [a.EmptyMiddles as b] [apply: Cross] [type: LoopInvariantSampleMiddle[]]

@@ -21,11 +21,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.VolatileValue as a.VolatileValue, a.Middles as a.Middles, b.Value as b.Value, b.Leaves as b.Leaves]
+  PhysicalProject [a.VolatileValue as a.VolatileValue, b.Value as b.Value, b.Leaves as b.Leaves]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#licm.outers() as a]
       PhysicalPropertySource [a.Middles as b] [apply: Cross] [type: LoopInvariantSampleMiddle[]]
-  PhysicalProject [ab.a.VolatileValue as a.VolatileValue, ab.a.Middles as a.Middles, ab.b.Value as b.Value, ab.b.Leaves as b.Leaves, c.Value as c.Value]
+  PhysicalProject [ab.a.VolatileValue as a.VolatileValue, ab.b.Value as b.Value, c.Value as c.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [ab as ab]
       PhysicalPropertySource [ab.b.Leaves as c] [apply: Cross] [type: LoopInvariantSampleLeaf[]]
@@ -47,12 +47,10 @@ ExecutionPlan [compiled]
       Leaves: LoopInvariantSampleLeaf[] <- property Leaves
     Generated [Statement0Row0]
       a.VolatileValue: int <- field a_VolatileValue
-      a.Middles: LoopInvariantSampleMiddle[] <- field a_Middles
       b.Value: int <- field b_Value
       b.Leaves: LoopInvariantSampleLeaf[] <- field b_Leaves
     TableRow [ab]
       a.VolatileValue: int <- field a_VolatileValue
-      a.Middles: LoopInvariantSampleMiddle[] <- field a_Middles
       b.Value: int <- field b_Value
       b.Leaves: LoopInvariantSampleLeaf[] <- field b_Leaves
     SourceEntity [c: LoopInvariantSampleLeaf]
@@ -71,7 +69,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       EnumerableSource [a.Middles -> statement0_bRows]
       ChunkedForEach [b in statement0_bRows]
-        AppendRow [statement0 <- Statement0Row0(a.VolatileValue: a.VolatileValue, a.Middles: a.Middles, b.Value: b.Value, b.Leaves: b.Leaves)]
+        AppendRow [statement0 <- Statement0Row0(a.VolatileValue: a.VolatileValue, b.Value: b.Value, b.Leaves: b.Leaves)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -116,9 +114,8 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.VolatileValue", typeof(int), 0),
-            new Column("a.Middles", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[]), 1),
-            new Column("b.Value", typeof(int), 2),
-            new Column("b.Leaves", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf[]), 3)
+            new Column("b.Value", typeof(int), 1),
+            new Column("b.Leaves", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf[]), 2)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("VolatileValue", typeof(int), 0), new Column("Middles", typeof(Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[]), 1) });
         public ILogger Logger { get; set; }
@@ -298,7 +295,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                         }
 
                                         continue;
@@ -315,7 +312,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                         }
 
                                         continue;
@@ -330,7 +327,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                 }
                             }
                         }
@@ -365,7 +362,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                         }
 
                                         continue;
@@ -382,7 +379,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                         }
 
                                         continue;
@@ -397,7 +394,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                     }
 
                                     var b = bChunk[bIndex];
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                 }
                             }
                         }
@@ -430,7 +427,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                     }
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                 }
 
                                 continue;
@@ -447,7 +444,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                                     }
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                                    statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                                 }
 
                                 continue;
@@ -462,7 +459,7 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
                             }
 
                             var b = bChunk[bIndex];
-                            statement0.Add(new Statement0Row0(a.VolatileValue, a.Middles, b.Value, b.Leaves));
+                            statement0.Add(new Statement0Row0(a.VolatileValue, b.Value, b.Leaves));
                         }
                     }
                 }
@@ -526,15 +523,13 @@ namespace GeneratedSample_Q249_LoopInvariantVolatileApplyProjection
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] __value1, int __value2, Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf[] __value3)
+            public Statement0Row0(int __value0, int __value1, Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf[] __value2)
             {
                 a_VolatileValue = __value0;
-                a_Middles = __value1;
-                b_Value = __value2;
-                b_Leaves = __value3;
+                b_Value = __value1;
+                b_Leaves = __value2;
             }
 
-            public Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] a_Middles { get; }
             public int a_VolatileValue { get; }
             public Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf[] b_Leaves { get; }
             public int b_Value { get; }

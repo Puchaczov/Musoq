@@ -36,7 +36,7 @@ PhysicalCte
         PhysicalSchemaScan [#B.entities() as b]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.City as a.City, a.Country as a.Country, d.City as d.City, d.Country as d.Country]
+      PhysicalProject [a.City as a.City, d.City as d.City]
         PhysicalHashJoin [Inner] [build: d.Country, d.City] [probe: a.Country, a.City]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_dt_1 as d]

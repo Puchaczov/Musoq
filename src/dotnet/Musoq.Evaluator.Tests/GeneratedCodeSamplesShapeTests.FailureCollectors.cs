@@ -140,12 +140,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = new List<string>();
 
-        if (!content.Contains("EvaluationHelper.ConvertEnumerableOutputToChunks<string>", StringComparison.Ordinal))
-            failures.Add($"{fileName}: missing direct scalar chunk conversion");
+        if (!content.Contains("Array.Empty<string>()", StringComparison.Ordinal))
+            failures.Add($"{fileName}: missing direct scalar enumerable binding");
 
-        if (!Regex.IsMatch(content, @"foreach \(var sChunk in [A-Za-z0-9_]*sRows\)") ||
-            !content.Contains("var s = sChunk[sIndex];", StringComparison.Ordinal))
-            failures.Add($"{fileName}: missing direct typed chunk loop");
+        if (!content.Contains("string s = sIndexArray[sIndex];", StringComparison.Ordinal))
+            failures.Add($"{fileName}: missing direct typed array loop");
 
         if (content.Contains("EvaluationHelper.ConvertScalarEnumerableToTypedChunks<string>", StringComparison.Ordinal))
             failures.Add($"{fileName}: scalar enumerable still allocates PrimitiveTypeEntity wrappers");

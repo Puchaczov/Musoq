@@ -16,7 +16,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [1 as 1, AggRef(ko3iko.GenericTotal(ko3iko.Amount)) as ko3iko.GenericTotal(ko3iko.Amount), AggRef(ko3iko.GenericTotal(ko3iko.Integral)) as ko3iko.GenericTotal(ko3iko.Integral)]
+  PhysicalProject [AggRef(ko3iko.GenericTotal(ko3iko.Amount)) as ko3iko.GenericTotal(ko3iko.Amount), AggRef(ko3iko.GenericTotal(ko3iko.Integral)) as ko3iko.GenericTotal(ko3iko.Integral)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: GenericTotal(Amount), GenericTotal(Integral)]
       PhysicalSchemaScan [#schema.first() as ko3iko]
   PhysicalProject [ko3iko.GenericTotal(ko3iko.Integral) as Integers, ko3iko.GenericTotal(ko3iko.Amount) as Decimals]

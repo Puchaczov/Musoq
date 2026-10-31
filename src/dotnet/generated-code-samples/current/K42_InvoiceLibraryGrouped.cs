@@ -59,7 +59,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Customer: finalGroup.Customer, Total: ko3iko.Sum(ko3iko.Amount), Positive: ko3iko.PositiveCount(ko3iko.Amount), AverageQuantity: ko3iko.Avg(ko3iko.Quantity))]
-    SortShapeRows [result -> resultSorted by Customer ASC]
+    SortOwnedBuffer [result by Customer ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -126,7 +126,6 @@ namespace GeneratedSample_K42_InvoiceLibraryGrouped
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -280,22 +279,17 @@ namespace GeneratedSample_K42_InvoiceLibraryGrouped
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.TypedLibraryExamples.SumKernel<decimal>.Get(in finalGroup.__agg2), Musoq.TypedLibraryExamples.InvoiceLibrary.PositiveCountKernel.Get(in finalGroup.__agg1), Musoq.Plugins.AverageKernel<int, decimal>.Get(in finalGroup.__agg0)));
+                    result.Add(new ResultShape0(finalGroup.__key0, Musoq.TypedLibraryExamples.SumKernel<decimal>.Get(in finalGroup.__agg2), Musoq.TypedLibraryExamples.InvoiceLibrary.PositiveCountKernel.Get(in finalGroup.__agg1), Musoq.Plugins.AverageKernel<int, decimal>.Get(in finalGroup.__agg0)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Customer, right.Customer);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -405,6 +399,7 @@ namespace GeneratedSample_K42_InvoiceLibraryGrouped
             public string Customer { get; }
             public long Positive { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

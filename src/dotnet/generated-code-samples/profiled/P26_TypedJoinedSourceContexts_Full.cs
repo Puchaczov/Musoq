@@ -20,7 +20,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Position as a.Position, b.Position as b.Position, b.Amount as b.Amount]
+  PhysicalProject [a.Position as a.Position, b.Amount as b.Amount]
     PhysicalHashJoin [LeftOuter] [build: b.Position] [probe: a.Position] [residual: (b.Position > 2)]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -40,11 +40,9 @@ ExecutionPlan [compiled]
       Amount: decimal? <- property Amount
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      b.Position: int? <- field b_Position
       b.Amount: decimal? <- field b_Amount
     TableRow [ab]
       a.Position: int <- field a_Position
-      b.Position: int? <- field b_Position
       b.Amount: decimal? <- field b_Amount
     Generated [ResultRow0]
       Position: int <- field Position
@@ -64,19 +62,18 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Position] -> statement0BHashMatches] [match: statement0BHashHasMatch]
         ForEach [b in statement0BHashMatches]
-          Let [position: int? = b.Position]
-          If [(position > 2)]
+          If [(b.Position > 2)]
             Assign [statement0BHashHasMatch = TRUE]
-            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: position, b.Amount: b.Amount)]
+            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Amount: b.Amount)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: NULL, b.Amount: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Amount: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibraryExecutionLibrary0: LibraryExecutionLibrary]
     ForEach [ab in _cteRowResults.Slot0]
       Let [b1: LibraryExecutionEntity = ab.b]
       AppendShape [result <- ResultShape0(Position: ab.a.Position, OtherPosition: CASE WHEN b1 IS NULL THEN NULL ELSE SourcePosition() END, Amount: ab.b.Amount)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -112,8 +109,7 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
         private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
         {
             new Column("a.Position", typeof(int), 0),
-            new Column("b.Position", typeof(int?), 1),
-            new Column("b.Amount", typeof(decimal?), 2)
+            new Column("b.Amount", typeof(decimal?), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Amount", typeof(decimal?), 1) });
@@ -166,7 +162,6 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -183,22 +178,17 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity b1 = (Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)ab.__rightContext;
-                    result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.SourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)b1), ab.b_Amount));
+                    result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.SourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)b1), ab.b_Amount) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -226,35 +216,34 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
-                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op40Handle = profileRecorder?.GetOperatorHandle("op40", "CreateShapeRows") ?? OperatorProfileHandle.None;
-                    var __op41Handle = profileRecorder?.GetOperatorHandle("op41", "CreateObject") ?? OperatorProfileHandle.None;
-                    var __op42Handle = profileRecorder?.GetOperatorHandle("op42", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op44Handle = profileRecorder?.GetOperatorHandle("op44", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op45Handle = profileRecorder?.GetOperatorHandle("op45", "SortShapeRows") ?? OperatorProfileHandle.None;
-                    long __op44OutputRows = 0L;
-                    var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
+                    var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op20Handle = profileRecorder?.GetOperatorHandle("op20", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op37Handle = profileRecorder?.GetOperatorHandle("op37", "CreateShapeRows") ?? OperatorProfileHandle.None;
+                    var __op38Handle = profileRecorder?.GetOperatorHandle("op38", "CreateObject") ?? OperatorProfileHandle.None;
+                    var __op39Handle = profileRecorder?.GetOperatorHandle("op39", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op41Handle = profileRecorder?.GetOperatorHandle("op41", "AppendShape") ?? OperatorProfileHandle.None;
+                    var __op42Handle = profileRecorder?.GetOperatorHandle("op42", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
+                    long __op41OutputRows = 0L;
+                    var __op19Scope = profileRecorder?.BeginOperatorValue(__op19Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
-                    __op21Scope.Dispose();
-                    var __op22Scope = profileRecorder?.BeginOperatorValue(__op22Handle) ?? OperatorProfileValueScope.None;
+                    __op19Scope.Dispose();
+                    var __op20Scope = profileRecorder?.BeginOperatorValue(__op20Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.From);
-                    __op22Scope.Dispose();
-                    var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
+                    __op20Scope.Dispose();
+                    var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
-                    __op27Scope.Dispose();
+                    __op25Scope.Dispose();
                     _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, profileRecorder, _cteRowResults);
-                    var __op40Scope = profileRecorder?.BeginOperatorValue(__op40Handle) ?? OperatorProfileValueScope.None;
+                    var __op37Scope = profileRecorder?.BeginOperatorValue(__op37Handle) ?? OperatorProfileValueScope.None;
                     var result = new List<ResultShape0>();
-                    __op40Scope.Dispose();
-                    var __op41Scope = profileRecorder?.BeginOperatorValue(__op41Handle) ?? OperatorProfileValueScope.None;
+                    __op37Scope.Dispose();
+                    var __op38Scope = profileRecorder?.BeginOperatorValue(__op38Handle) ?? OperatorProfileValueScope.None;
                     var __resultLibraryExecutionLibrary0 = new Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionLibrary();
-                    __op41Scope.Dispose();
-                    long __op42InputRows = 0L;
-                    long __op42OutputRows = 0L;
-                    var __op42Scope = profileRecorder?.BeginOperatorValue(__op42Handle) ?? OperatorProfileValueScope.None;
+                    __op38Scope.Dispose();
+                    long __op39InputRows = 0L;
+                    long __op39OutputRows = 0L;
+                    var __op39Scope = profileRecorder?.BeginOperatorValue(__op39Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         var __storedTable0Rows = _cteRowResults.Slot0;
@@ -266,39 +255,34 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                             }
 
                             Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                            __op42InputRows++;
-                            __op42OutputRows++;
+                            __op39InputRows++;
+                            __op39OutputRows++;
                             Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity b1 = (Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)ab.__rightContext;
-                            result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.SourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)b1), ab.b_Amount));
-                            __op44OutputRows += 1;
+                            result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.SourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)b1), ab.b_Amount) { __musoqSequence = result.Count });
+                            __op41OutputRows += 1;
                         }
                     }
                     finally
                     {
-                        __op42Scope.AddInputRows(__op42InputRows);
-                        __op42Scope.AddOutputRows(__op42OutputRows);
-                        __op42Scope.Dispose();
+                        __op39Scope.AddInputRows(__op39InputRows);
+                        __op39Scope.AddOutputRows(__op39OutputRows);
+                        __op39Scope.Dispose();
                     }
 
-                    var __op45Scope = profileRecorder?.BeginOperatorValue(__op45Handle) ?? OperatorProfileValueScope.None;
-                    __op45Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    var __op42Scope = profileRecorder?.BeginOperatorValue(__op42Handle) ?? OperatorProfileValueScope.None;
+                    __op42Scope.AddInputRows(result.Count);
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Position.CompareTo(right.Position);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op45Scope.AddOutputRows(__musoqFinalShapeRows.Count);
-                    __op45Scope.Dispose();
-                    if (__op44OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op44Handle, __op44OutputRows);
-                    return __musoqFinalShapeRows;
+                    __op42Scope.AddOutputRows(result.Count);
+                    __op42Scope.Dispose();
+                    if (__op41OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op41Handle, __op41OutputRows);
+                    return result;
                 }
                 finally
                 {
@@ -454,18 +438,17 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
+                                        statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
                             }
                         }
 
@@ -490,18 +473,17 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
+                                        statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
                             }
                         }
 
@@ -524,18 +506,17 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            int? position = b.Position;
-                            if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                            if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                             {
                                 statement0BHashHasMatch = true;
-                                statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
+                                statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
                             }
                         }
                     }
 
                     if (!statement0BHashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
+                        statement0.Add(new Statement0Row0(a.Position, null, a, null));
                     }
                 }
             }
@@ -549,44 +530,44 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try
             {
-                var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "SourceScan") ?? OperatorProfileHandle.None;
-                var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "SourceScan") ?? OperatorProfileHandle.None;
-                var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "CreateTable") ?? OperatorProfileHandle.None;
-                var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "CreateHash") ?? OperatorProfileHandle.None;
+                var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "SourceScan") ?? OperatorProfileHandle.None;
+                var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "SourceScan") ?? OperatorProfileHandle.None;
+                var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "CreateTable") ?? OperatorProfileHandle.None;
+                var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "CreateHash") ?? OperatorProfileHandle.None;
+                var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "ChunkedForEach") ?? OperatorProfileHandle.None;
+                var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "HashAdd") ?? OperatorProfileHandle.None;
                 var __op28Handle = profileRecorder?.GetOperatorHandle("op28", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "HashAdd") ?? OperatorProfileHandle.None;
-                var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op31Handle = profileRecorder?.GetOperatorHandle("op31", "HashProbe") ?? OperatorProfileHandle.None;
-                var __op32Handle = profileRecorder?.GetOperatorHandle("op32", "ForEach") ?? OperatorProfileHandle.None;
-                var __op36Handle = profileRecorder?.GetOperatorHandle("op36", "AppendRow") ?? OperatorProfileHandle.None;
-                var __op38Handle = profileRecorder?.GetOperatorHandle("op38", "AppendRow") ?? OperatorProfileHandle.None;
-                long __op29OutputRows = 0L;
-                long __op31InputRows = 0L;
-                long __op32InputRows = 0L;
-                long __op32OutputRows = 0L;
-                long __op36OutputRows = 0L;
-                long __op38OutputRows = 0L;
-                var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
+                var __op29Handle = profileRecorder?.GetOperatorHandle("op29", "HashProbe") ?? OperatorProfileHandle.None;
+                var __op30Handle = profileRecorder?.GetOperatorHandle("op30", "ForEach") ?? OperatorProfileHandle.None;
+                var __op33Handle = profileRecorder?.GetOperatorHandle("op33", "AppendRow") ?? OperatorProfileHandle.None;
+                var __op35Handle = profileRecorder?.GetOperatorHandle("op35", "AppendRow") ?? OperatorProfileHandle.None;
+                long __op27OutputRows = 0L;
+                long __op29InputRows = 0L;
+                long __op30InputRows = 0L;
+                long __op30OutputRows = 0L;
+                long __op33OutputRows = 0L;
+                long __op35OutputRows = 0L;
+                var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_aSchema = provider.GetSchema("#schema");
                 var statement0_aRowsProfile = profileRecorder?.CreateSourceRecorder("a");
                 var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Empty);
                 var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
-                __op23Scope.Dispose();
-                var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
+                __op21Scope.Dispose();
+                var __op22Scope = profileRecorder?.BeginOperatorValue(__op22Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_bSchema = provider.GetSchema("#schema");
                 var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
                 var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Empty);
                 var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
-                __op24Scope.Dispose();
-                var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
+                __op22Scope.Dispose();
+                var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
-                __op25Scope.Dispose();
-                var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
+                __op23Scope.Dispose();
+                var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
                 var statement0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>>();
-                __op26Scope.Dispose();
-                long __op28InputRows = 0L;
-                long __op28OutputRows = 0L;
-                var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
+                __op24Scope.Dispose();
+                long __op26InputRows = 0L;
+                long __op26OutputRows = 0L;
+                var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                 try
                 {
                     foreach (var bChunk in statement0_bRows)
@@ -604,8 +585,8 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                     }
 
                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                    __op28InputRows++;
-                                    __op28OutputRows++;
+                                    __op26InputRows++;
+                                    __op26OutputRows++;
                                     int? key = b.Position;
                                     if (key == null)
                                         continue;
@@ -621,7 +602,7 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                         }
                                     }
 
-                                    __op29OutputRows += 1;
+                                    __op27OutputRows += 1;
                                 }
 
                                 continue;
@@ -638,8 +619,8 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                     }
 
                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                    __op28InputRows++;
-                                    __op28OutputRows++;
+                                    __op26InputRows++;
+                                    __op26OutputRows++;
                                     int? key = b.Position;
                                     if (key == null)
                                         continue;
@@ -655,7 +636,7 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                         }
                                     }
 
-                                    __op29OutputRows += 1;
+                                    __op27OutputRows += 1;
                                 }
 
                                 continue;
@@ -670,8 +651,8 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                             }
 
                             var b = bChunk[bIndex];
-                            __op28InputRows++;
-                            __op28OutputRows++;
+                            __op26InputRows++;
+                            __op26OutputRows++;
                             int? key = b.Position;
                             if (key == null)
                                 continue;
@@ -687,20 +668,20 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                 }
                             }
 
-                            __op29OutputRows += 1;
+                            __op27OutputRows += 1;
                         }
                     }
                 }
                 finally
                 {
-                    __op28Scope.AddInputRows(__op28InputRows);
-                    __op28Scope.AddOutputRows(__op28OutputRows);
-                    __op28Scope.Dispose();
+                    __op26Scope.AddInputRows(__op26InputRows);
+                    __op26Scope.AddOutputRows(__op26OutputRows);
+                    __op26Scope.Dispose();
                 }
 
-                long __op30InputRows = 0L;
-                long __op30OutputRows = 0L;
-                var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
+                long __op28InputRows = 0L;
+                long __op28OutputRows = 0L;
+                var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
                 try
                 {
                     foreach (var aChunk in statement0_aRows)
@@ -718,9 +699,9 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                     }
 
                                     var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                    __op30InputRows++;
-                                    __op30OutputRows++;
-                                    __op31InputRows += 1;
+                                    __op28InputRows++;
+                                    __op28OutputRows++;
+                                    __op29InputRows += 1;
                                     bool statement0BHashHasMatch = false;
                                     int? key = a.Position;
                                     if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
@@ -728,22 +709,21 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                         foreach (var b in statement0BHashMatches)
                                         {
                                             token.ThrowIfCancellationRequested();
-                                            __op32InputRows++;
-                                            __op32OutputRows++;
-                                            int? position = b.Position;
-                                            if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                            __op30InputRows++;
+                                            __op30OutputRows++;
+                                            if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                             {
                                                 statement0BHashHasMatch = true;
-                                                statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
-                                                __op36OutputRows += 1;
+                                                statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
+                                                __op33OutputRows += 1;
                                             }
                                         }
                                     }
 
                                     if (!statement0BHashHasMatch)
                                     {
-                                        statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
-                                        __op38OutputRows += 1;
+                                        statement0.Add(new Statement0Row0(a.Position, null, a, null));
+                                        __op35OutputRows += 1;
                                     }
                                 }
 
@@ -761,9 +741,9 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                     }
 
                                     var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                    __op30InputRows++;
-                                    __op30OutputRows++;
-                                    __op31InputRows += 1;
+                                    __op28InputRows++;
+                                    __op28OutputRows++;
+                                    __op29InputRows += 1;
                                     bool statement0BHashHasMatch = false;
                                     int? key = a.Position;
                                     if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
@@ -771,22 +751,21 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                         foreach (var b in statement0BHashMatches)
                                         {
                                             token.ThrowIfCancellationRequested();
-                                            __op32InputRows++;
-                                            __op32OutputRows++;
-                                            int? position = b.Position;
-                                            if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                            __op30InputRows++;
+                                            __op30OutputRows++;
+                                            if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                             {
                                                 statement0BHashHasMatch = true;
-                                                statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
-                                                __op36OutputRows += 1;
+                                                statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
+                                                __op33OutputRows += 1;
                                             }
                                         }
                                     }
 
                                     if (!statement0BHashHasMatch)
                                     {
-                                        statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
-                                        __op38OutputRows += 1;
+                                        statement0.Add(new Statement0Row0(a.Position, null, a, null));
+                                        __op35OutputRows += 1;
                                     }
                                 }
 
@@ -802,9 +781,9 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                             }
 
                             var a = aChunk[aIndex];
-                            __op30InputRows++;
-                            __op30OutputRows++;
-                            __op31InputRows += 1;
+                            __op28InputRows++;
+                            __op28OutputRows++;
+                            __op29InputRows += 1;
                             bool statement0BHashHasMatch = false;
                             int? key = a.Position;
                             if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
@@ -812,45 +791,44 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    __op32InputRows++;
-                                    __op32OutputRows++;
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    __op30InputRows++;
+                                    __op30OutputRows++;
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
-                                        __op36OutputRows += 1;
+                                        statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
+                                        __op33OutputRows += 1;
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
-                                __op38OutputRows += 1;
+                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
+                                __op35OutputRows += 1;
                             }
                         }
                     }
                 }
                 finally
                 {
-                    __op30Scope.AddInputRows(__op30InputRows);
-                    __op30Scope.AddOutputRows(__op30OutputRows);
-                    __op30Scope.Dispose();
+                    __op28Scope.AddInputRows(__op28InputRows);
+                    __op28Scope.AddOutputRows(__op28OutputRows);
+                    __op28Scope.Dispose();
                 }
 
-                if (__op29OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op29Handle, __op29OutputRows);
-                if (__op31InputRows > 0L)
-                    profileRecorder?.AddOperatorInputRows(__op31Handle, __op31InputRows);
-                if (__op32InputRows > 0L)
-                    profileRecorder?.AddOperatorInputRows(__op32Handle, __op32InputRows);
-                if (__op32OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op32Handle, __op32OutputRows);
-                if (__op36OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op36Handle, __op36OutputRows);
-                if (__op38OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op38Handle, __op38OutputRows);
+                if (__op27OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op27Handle, __op27OutputRows);
+                if (__op29InputRows > 0L)
+                    profileRecorder?.AddOperatorInputRows(__op29Handle, __op29InputRows);
+                if (__op30InputRows > 0L)
+                    profileRecorder?.AddOperatorInputRows(__op30Handle, __op30InputRows);
+                if (__op30OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op30Handle, __op30OutputRows);
+                if (__op33OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op33Handle, __op33OutputRows);
+                if (__op35OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op35Handle, __op35OutputRows);
                 return statement0;
             }
             catch (Exception __profileException)when (profileRecorder != null && profileRecorder.RecordActiveOperatorException(__profileException, __profileScopeDepth))
@@ -925,24 +903,23 @@ namespace GeneratedSample_P26_TypedJoinedSourceContexts_Full
             public decimal? Amount { get; }
             public int? OtherPosition { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
             public readonly Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __leftContext;
             public readonly Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __rightContext;
-            public Statement0Row0(int __value0, int? __value1, decimal? __value2, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __leftContext, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __rightContext)
+            public Statement0Row0(int __value0, decimal? __value1, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __leftContext, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __rightContext)
             {
                 a_Position = __value0;
-                b_Position = __value1;
-                b_Amount = __value2;
+                b_Amount = __value1;
                 this.__leftContext = __leftContext;
                 this.__rightContext = __rightContext;
             }
 
             public int a_Position { get; }
             public decimal? b_Amount { get; }
-            public int? b_Position { get; }
         }
     }
 }

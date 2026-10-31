@@ -20,6 +20,9 @@ internal sealed record FinalOutputPlan(
     FrozenDictionary<string, string> SourceBuffers,
     FrozenDictionary<string, string> SortedRowBufferSources)
 {
+    public OwnedTerminalBuffer? OwnedBuffer { get; init; }
     public bool UsesGeneratedRow => RowRepresentation == FinalOutputRowRepresentation.GeneratedRow;
-    public string RowTypeName => UsesGeneratedRow ? Result.RowTypeName : Result.ShapeTypeName;
+    public string RowTypeName => OwnedBuffer?.CarrierTypeName ?? (UsesGeneratedRow ? Result.RowTypeName : Result.ShapeTypeName);
 }
+
+internal sealed record OwnedTerminalBuffer(string SourceName, string CarrierTypeName, string? SequenceField);

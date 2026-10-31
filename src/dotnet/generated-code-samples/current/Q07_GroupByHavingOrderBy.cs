@@ -59,7 +59,7 @@ ExecutionPlan [compiled]
     ForEach [finalGroup in groupsToFinalize]
       If [(ko3iko.Count(ko3iko.City) > 0)]
         AppendShape [result <- ResultShape0(City: finalGroup.City, Country: finalGroup.Country, Sum(Population): ko3iko.Sum(ko3iko.Population))]
-    SortShapeRows [result -> resultSorted by Sum(Population) DESC]
+    SortOwnedBuffer [result by Sum(Population) DESC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -125,7 +125,6 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
@@ -268,24 +267,19 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                     token.ThrowIfCancellationRequested();
                     if ((finalGroup.__agg1.Count > 0))
                     {
-                        result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
+                        result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = Nullable.Compare(left.Sum_Population_, right.Sum_Population_);
                     comparison = -comparison;
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -394,6 +388,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
             public string City { get; }
             public string Country { get; }
             public decimal? Sum_Population_ { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

@@ -64,7 +64,7 @@ ExecutionPlan [compiled]
     ForEach [finalGroup in groupsToFinalize]
       If [PREPARED_LIKE(finalGroup.City, __likeMatcher1)]
         AppendShape [result <- ResultShape0(City: finalGroup.City, IsPolish: PREPARED_LIKE(finalGroup.City, __likeMatcher1), MatchingNames: ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%'))]
-    SortShapeRows [result -> resultSorted by City ASC]
+    SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -133,7 +133,6 @@ namespace GeneratedSample_Q371_UnicodeLikeClauseContexts
                 Musoq.Evaluator.PreparedLikeMatcher __likeMatcher0 = Operators.PrepareLike("%ó%", TimeSpan.FromTicks(20000000L));
                 Musoq.Evaluator.PreparedLikeMatcher __likeMatcher1 = Operators.PrepareLike("Ł%", TimeSpan.FromTicks(20000000L));
                 Musoq.Evaluator.PreparedLikeMatcher __likeMatcher2 = Operators.PrepareLike("Ż%", TimeSpan.FromTicks(20000000L));
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
@@ -308,23 +307,18 @@ namespace GeneratedSample_Q371_UnicodeLikeClauseContexts
                     token.ThrowIfCancellationRequested();
                     if (Operators.LikePrepared(finalGroup.__key0, __likeMatcher1))
                     {
-                        result.Add(new ResultShape0(finalGroup.__key0, Operators.LikePrepared(finalGroup.__key0, __likeMatcher1), finalGroup.__agg0.Count));
+                        result.Add(new ResultShape0(finalGroup.__key0, Operators.LikePrepared(finalGroup.__key0, __likeMatcher1), finalGroup.__agg0.Count) { __musoqSequence = result.Count });
                     }
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.City, right.City);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -427,6 +421,7 @@ namespace GeneratedSample_Q371_UnicodeLikeClauseContexts
             public string City { get; }
             public bool IsPolish { get; }
             public long MatchingNames { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

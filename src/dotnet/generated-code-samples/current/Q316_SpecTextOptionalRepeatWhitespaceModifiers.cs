@@ -33,11 +33,11 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [f.Line as f.Line, d.Prefix as d.Prefix, d.OptionalCode as d.OptionalCode, d.Items as d.Items, d.Tail as d.Tail]
+  PhysicalProject [d.Prefix as d.Prefix, d.OptionalCode as d.OptionalCode, d.Items as d.Items, d.Tail as d.Tail]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.lines() as f]
       PhysicalInterpretSource [#Document(f.Line) as d]
-  PhysicalProject [fd.f.Line as f.Line, fd.d.Prefix as d.Prefix, fd.d.OptionalCode as d.OptionalCode, fd.d.Items as d.Items, fd.d.Tail as d.Tail, i.Value as i.Value]
+  PhysicalProject [fd.d.Prefix as d.Prefix, fd.d.OptionalCode as d.OptionalCode, fd.d.Tail as d.Tail, i.Value as i.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [fd as fd]
       PhysicalPropertySource [fd.d.Items as i] [apply: Cross] [type: Object[]]
@@ -57,13 +57,11 @@ ExecutionPlan [compiled]
       Items: object[] <- property Items
       Tail: string <- property Tail
     Generated [Statement0Row0]
-      f.Line: string <- field f_Line
       d.Prefix: string <- field d_Prefix
       d.OptionalCode: string <- field d_OptionalCode
       d.Items: object[] <- field d_Items
       d.Tail: string <- field d_Tail
     TableRow [fd]
-      f.Line: string <- field f_Line
       d.Prefix: string <- field d_Prefix
       d.OptionalCode: string <- field d_OptionalCode
       d.Items: object[] <- field d_Items
@@ -82,10 +80,9 @@ ExecutionPlan [compiled]
     SourceScan [f: TextEntity] -> statement0_fRows
     CreateTable [statement0: Statement0Row0]
     ChunkedForEach [f in statement0_fRows]
-      Let [fLine: string = f.Line]
       InterpretSource [Document.Parse(f.Line) -> statement0_dRows]
       ScalarForEach [d in statement0_dRows]
-        AppendRow [statement0 <- Statement0Row0(f.Line: fLine, d.Prefix: d.Prefix, d.OptionalCode: d.OptionalCode, d.Items: d.Items, d.Tail: d.Tail)]
+        AppendRow [statement0 <- Statement0Row0(d.Prefix: d.Prefix, d.OptionalCode: d.OptionalCode, d.Items: d.Items, d.Tail: d.Tail)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     PhaseBoundary [Select]
     PhaseBoundary [Begin:cte1]
@@ -131,11 +128,10 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("f.Line", typeof(string), 0),
-            new Column("d.Prefix", typeof(string), 1),
-            new Column("d.OptionalCode", typeof(string), 2),
-            new Column("d.Items", typeof(Musoq.Generated.Interpreters.Item[]), 3),
-            new Column("d.Tail", typeof(string), 4)
+            new Column("d.Prefix", typeof(string), 0),
+            new Column("d.OptionalCode", typeof(string), 1),
+            new Column("d.Items", typeof(Musoq.Generated.Interpreters.Item[]), 2),
+            new Column("d.Tail", typeof(string), 3)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_f_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Line", typeof(string), 0) });
         public ILogger Logger { get; set; }
@@ -263,14 +259,13 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
                             }
 
                             var f = fChunkViewArray[fChunkViewOffset + fIndex];
-                            string fLine = f.Line;
                             var _interpreter_Document = new Musoq.Generated.Interpreters.Document();
                             var statement0_dRows = _interpreter_Document.Parse(f.Line);
                             if (statement0_dRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var d = statement0_dRows;
-                                statement0.Add(new Statement0Row0(fLine, d.Prefix, d.OptionalCode, d.Items, d.Tail));
+                                statement0.Add(new Statement0Row0(d.Prefix, d.OptionalCode, d.Items, d.Tail));
                             }
                         }
 
@@ -288,14 +283,13 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
                             }
 
                             var f = fChunkViewList[fChunkViewOffset + fIndex];
-                            string fLine = f.Line;
                             var _interpreter_Document = new Musoq.Generated.Interpreters.Document();
                             var statement0_dRows = _interpreter_Document.Parse(f.Line);
                             if (statement0_dRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var d = statement0_dRows;
-                                statement0.Add(new Statement0Row0(fLine, d.Prefix, d.OptionalCode, d.Items, d.Tail));
+                                statement0.Add(new Statement0Row0(d.Prefix, d.OptionalCode, d.Items, d.Tail));
                             }
                         }
 
@@ -311,14 +305,13 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
                     }
 
                     var f = fChunk[fIndex];
-                    string fLine = f.Line;
                     var _interpreter_Document = new Musoq.Generated.Interpreters.Document();
                     var statement0_dRows = _interpreter_Document.Parse(f.Line);
                     if (statement0_dRows != null)
                     {
                         token.ThrowIfCancellationRequested();
                         var d = statement0_dRows;
-                        statement0.Add(new Statement0Row0(fLine, d.Prefix, d.OptionalCode, d.Items, d.Tail));
+                        statement0.Add(new Statement0Row0(d.Prefix, d.OptionalCode, d.Items, d.Tail));
                     }
                 }
             }
@@ -384,20 +377,18 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1, string __value2, Musoq.Generated.Interpreters.Item[] __value3, string __value4)
+            public Statement0Row0(string __value0, string __value1, Musoq.Generated.Interpreters.Item[] __value2, string __value3)
             {
-                f_Line = __value0;
-                d_Prefix = __value1;
-                d_OptionalCode = __value2;
-                d_Items = __value3;
-                d_Tail = __value4;
+                d_Prefix = __value0;
+                d_OptionalCode = __value1;
+                d_Items = __value2;
+                d_Tail = __value3;
             }
 
             public Musoq.Generated.Interpreters.Item[] d_Items { get; }
             public string d_OptionalCode { get; }
             public string d_Prefix { get; }
             public string d_Tail { get; }
-            public string f_Line { get; }
         }
     }
 }

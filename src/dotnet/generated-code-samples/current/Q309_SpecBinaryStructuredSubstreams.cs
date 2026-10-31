@@ -28,7 +28,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [src.Content as src.Content, f.Exact as f.Exact, f.Lax as f.Lax, f.Inline as f.Inline]
+  PhysicalProject [f.Exact as f.Exact, f.Lax as f.Lax, f.Inline as f.Inline]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#test.files() as src]
       PhysicalInterpretSource [#Frame(src.Content) as f]

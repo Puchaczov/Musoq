@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [i.Name as i.Name, i.Numbers as i.Numbers, n.Value as n.Value, n.Ordinal as n.Ordinal]
+  PhysicalProject [i.Name as i.Name, n.Value as n.Value, n.Ordinal as n.Ordinal]
     PhysicalNestedLoopApply [Cross, with ordinality]
       PhysicalSchemaScan [#apply.items() as i]
       PhysicalPropertySource [i.Numbers as n] [apply: Cross] [type: Int32[]]
@@ -34,17 +34,15 @@ ExecutionPlan [compiled]
     SourceEntity [i: GeneratedApplySampleEntity]
       Name: string <- property Name
       Numbers: int[] <- property Numbers
-    SourceEntity [n: PrimitiveTypeEntity<int>]
-      Value: int <- property Value
+    SourceEntity [n: int]
+      Value: int <- direct scalar value
       Ordinal: int <- apply ordinality nOrdinal
     Generated [Statement0Row0]
       i.Name: string <- field i_Name
-      i.Numbers: int[] <- field i_Numbers
       n.Value: int <- field n_Value
       n.Ordinal: int <- field n_Ordinal
     TableRow [in]
       i.Name: string <- field i_Name
-      i.Numbers: int[] <- field i_Numbers
       n.Value: int <- field n_Value
       n.Ordinal: int <- field n_Ordinal
     Generated [ResultRow0]
@@ -61,13 +59,13 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in statement0_iRows]
       Let [iName: string = i.Name]
       EnumerableSource [i.Numbers -> statement0_nRows]
-      ChunkedForEachWithOrdinality [nOrdinal, n in statement0_nRows]
-        AppendRow [statement0 <- Statement0Row0(i.Name: iName, i.Numbers: i.Numbers, n.Value: n.Value, n.Ordinal: n.Ordinal)]
+      ForEachWithOrdinality [nOrdinal, n in statement0_nRows]
+        AppendRow [statement0 <- Statement0Row0(i.Name: iName, n.Value: n.Value, n.Ordinal: n.Ordinal)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [in in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Name: in.i.Name, Number: in.n.Value, NumberOrdinal: in.n.Ordinal)]
-    SortShapeRows [result -> resultSorted by Name ASC, NumberOrdinal ASC]
+    SortOwnedBuffer [result by Name ASC, NumberOrdinal ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -101,9 +99,8 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("i.Name", typeof(string), 0),
-            new Column("i.Numbers", typeof(int[]), 1),
-            new Column("n.Value", typeof(int), 2),
-            new Column("n.Ordinal", typeof(int), 3)
+            new Column("n.Value", typeof(int), 1),
+            new Column("n.Ordinal", typeof(int), 2)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_i_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Numbers", typeof(int[]), 1) });
         public ILogger Logger { get; set; }
@@ -141,7 +138,6 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -156,10 +152,10 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                     }
 
                     Statement0Row0 @in = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(@in.i_Name, @in.n_Value, @in.n_Ordinal));
+                    result.Add(new ResultShape0(@in.i_Name, @in.n_Value, @in.n_Ordinal) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Name, right.Name);
                     if (comparison != 0)
@@ -167,14 +163,9 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                     comparison = left.NumberOrdinal.CompareTo(right.NumberOrdinal);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -224,61 +215,38 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
 
                             var i = iChunkViewArray[iChunkViewOffset + iIndex];
                             string iName = i.Name;
-                            var statement0_nRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(i.Numbers);
+                            var statement0_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                            var nOrdinalRows = statement0_nRows;
+                            if (nOrdinalRows is int[] nOrdinalArray)
+                                for (int nOrdinal = 0, nOrdinalCount = nOrdinalArray.Length; nOrdinal < nOrdinalCount; ++nOrdinal)
+                                {
+                                    if ((nOrdinal & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    int n = nOrdinalArray[nOrdinal];
+                                    statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                                }
+                            else if (nOrdinalRows is List<int> nOrdinalConcreteList)
+                                for (int nOrdinal = 0, nOrdinalCount = nOrdinalConcreteList.Count; nOrdinal < nOrdinalCount; ++nOrdinal)
+                                {
+                                    if ((nOrdinal & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    int n = nOrdinalConcreteList[nOrdinal];
+                                    statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                                }
+                            else
                             {
                                 int nOrdinal = 0;
-                                foreach (var nChunk in statement0_nRows)
+                                foreach (var n in nOrdinalRows)
                                 {
-                                    if (nChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Plugins.PrimitiveTypeEntity<int>> nChunkView)
-                                    {
-                                        if (nChunkView.Source is Musoq.Plugins.PrimitiveTypeEntity<int>[] nChunkViewArray)
-                                        {
-                                            int nChunkViewOffset = nChunkView.Offset;
-                                            for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                            {
-                                                if ((nIndex & 1023) == 0)
-                                                {
-                                                    token.ThrowIfCancellationRequested();
-                                                }
-
-                                                var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                                ++nOrdinal;
-                                            }
-
-                                            continue;
-                                        }
-
-                                        if (nChunkView.Source is List<Musoq.Plugins.PrimitiveTypeEntity<int>> nChunkViewList)
-                                        {
-                                            int nChunkViewOffset = nChunkView.Offset;
-                                            for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                            {
-                                                if ((nIndex & 1023) == 0)
-                                                {
-                                                    token.ThrowIfCancellationRequested();
-                                                }
-
-                                                var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                                ++nOrdinal;
-                                            }
-
-                                            continue;
-                                        }
-                                    }
-
-                                    for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
-                                    {
-                                        if ((nIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var n = nChunk[nIndex];
-                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                        ++nOrdinal;
-                                    }
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                                    ++nOrdinal;
                                 }
                             }
                         }
@@ -298,61 +266,38 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
 
                             var i = iChunkViewList[iChunkViewOffset + iIndex];
                             string iName = i.Name;
-                            var statement0_nRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(i.Numbers);
+                            var statement0_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                            var nOrdinalRows = statement0_nRows;
+                            if (nOrdinalRows is int[] nOrdinalArray)
+                                for (int nOrdinal = 0, nOrdinalCount = nOrdinalArray.Length; nOrdinal < nOrdinalCount; ++nOrdinal)
+                                {
+                                    if ((nOrdinal & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    int n = nOrdinalArray[nOrdinal];
+                                    statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                                }
+                            else if (nOrdinalRows is List<int> nOrdinalConcreteList)
+                                for (int nOrdinal = 0, nOrdinalCount = nOrdinalConcreteList.Count; nOrdinal < nOrdinalCount; ++nOrdinal)
+                                {
+                                    if ((nOrdinal & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    int n = nOrdinalConcreteList[nOrdinal];
+                                    statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                                }
+                            else
                             {
                                 int nOrdinal = 0;
-                                foreach (var nChunk in statement0_nRows)
+                                foreach (var n in nOrdinalRows)
                                 {
-                                    if (nChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Plugins.PrimitiveTypeEntity<int>> nChunkView)
-                                    {
-                                        if (nChunkView.Source is Musoq.Plugins.PrimitiveTypeEntity<int>[] nChunkViewArray)
-                                        {
-                                            int nChunkViewOffset = nChunkView.Offset;
-                                            for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                            {
-                                                if ((nIndex & 1023) == 0)
-                                                {
-                                                    token.ThrowIfCancellationRequested();
-                                                }
-
-                                                var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                                ++nOrdinal;
-                                            }
-
-                                            continue;
-                                        }
-
-                                        if (nChunkView.Source is List<Musoq.Plugins.PrimitiveTypeEntity<int>> nChunkViewList)
-                                        {
-                                            int nChunkViewOffset = nChunkView.Offset;
-                                            for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                            {
-                                                if ((nIndex & 1023) == 0)
-                                                {
-                                                    token.ThrowIfCancellationRequested();
-                                                }
-
-                                                var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                                ++nOrdinal;
-                                            }
-
-                                            continue;
-                                        }
-                                    }
-
-                                    for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
-                                    {
-                                        if ((nIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var n = nChunk[nIndex];
-                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                        ++nOrdinal;
-                                    }
+                                    token.ThrowIfCancellationRequested();
+                                    statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                                    ++nOrdinal;
                                 }
                             }
                         }
@@ -370,61 +315,38 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
 
                     var i = iChunk[iIndex];
                     string iName = i.Name;
-                    var statement0_nRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(i.Numbers);
+                    var statement0_nRows = (IEnumerable<int>)i.Numbers ?? Array.Empty<int>();
+                    var nOrdinalRows = statement0_nRows;
+                    if (nOrdinalRows is int[] nOrdinalArray)
+                        for (int nOrdinal = 0, nOrdinalCount = nOrdinalArray.Length; nOrdinal < nOrdinalCount; ++nOrdinal)
+                        {
+                            if ((nOrdinal & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int n = nOrdinalArray[nOrdinal];
+                            statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                        }
+                    else if (nOrdinalRows is List<int> nOrdinalConcreteList)
+                        for (int nOrdinal = 0, nOrdinalCount = nOrdinalConcreteList.Count; nOrdinal < nOrdinalCount; ++nOrdinal)
+                        {
+                            if ((nOrdinal & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            int n = nOrdinalConcreteList[nOrdinal];
+                            statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                        }
+                    else
                     {
                         int nOrdinal = 0;
-                        foreach (var nChunk in statement0_nRows)
+                        foreach (var n in nOrdinalRows)
                         {
-                            if (nChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Plugins.PrimitiveTypeEntity<int>> nChunkView)
-                            {
-                                if (nChunkView.Source is Musoq.Plugins.PrimitiveTypeEntity<int>[] nChunkViewArray)
-                                {
-                                    int nChunkViewOffset = nChunkView.Offset;
-                                    for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                    {
-                                        if ((nIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                        ++nOrdinal;
-                                    }
-
-                                    continue;
-                                }
-
-                                if (nChunkView.Source is List<Musoq.Plugins.PrimitiveTypeEntity<int>> nChunkViewList)
-                                {
-                                    int nChunkViewOffset = nChunkView.Offset;
-                                    for (int nIndex = 0, nIndexCount = nChunkView.Count; nIndex < nIndexCount; ++nIndex)
-                                    {
-                                        if ((nIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                        ++nOrdinal;
-                                    }
-
-                                    continue;
-                                }
-                            }
-
-                            for (int nIndex = 0, nIndexCount = nChunk.Count; nIndex < nIndexCount; ++nIndex)
-                            {
-                                if ((nIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var n = nChunk[nIndex];
-                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
-                                ++nOrdinal;
-                            }
+                            token.ThrowIfCancellationRequested();
+                            statement0.Add(new Statement0Row0(iName, n, nOrdinal));
+                            ++nOrdinal;
                         }
                     }
                 }
@@ -498,20 +420,19 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
             public string Name { get; }
             public int Number { get; }
             public int NumberOrdinal { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, int[] __value1, int __value2, int __value3)
+            public Statement0Row0(string __value0, int __value1, int __value2)
             {
                 i_Name = __value0;
-                i_Numbers = __value1;
-                n_Value = __value2;
-                n_Ordinal = __value3;
+                n_Value = __value1;
+                n_Ordinal = __value2;
             }
 
             public string i_Name { get; }
-            public int[] i_Numbers { get; }
             public int n_Ordinal { get; }
             public int n_Value { get; }
         }

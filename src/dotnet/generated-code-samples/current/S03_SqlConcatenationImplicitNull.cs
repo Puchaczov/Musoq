@@ -1,4 +1,4 @@
-// === Parsed Query ===
+﻿// === Parsed Query ===
 /*
 select (case when Population > 0 then Name end) || City || Name || City || Name as A from #A.entities()
 */

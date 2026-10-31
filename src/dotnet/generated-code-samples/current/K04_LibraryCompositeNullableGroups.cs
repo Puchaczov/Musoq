@@ -57,7 +57,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Partition: finalGroup.Partition, Integral: finalGroup.Integral, Total: ko3iko.Sum(ko3iko.Amount), Rows: ko3iko.Count(*))]
-    SortShapeRows [result -> resultSorted by Partition ASC, Integral ASC]
+    SortOwnedBuffer [result by Partition ASC, Integral ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -124,7 +124,6 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
             {
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
@@ -250,10 +249,10 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count));
+                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.Count) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Partition, right.Partition);
                     if (comparison != 0)
@@ -261,14 +260,9 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
                     comparison = Nullable.Compare(left.Integral, right.Integral);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -384,6 +378,7 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
             public string Partition { get; }
             public long Rows { get; }
             public decimal? Total { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

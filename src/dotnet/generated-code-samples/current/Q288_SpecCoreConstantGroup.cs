@@ -16,7 +16,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject ['const' as 'const', AggRef(ko3iko.AggregateValues(ko3iko.Name, ', ')) as ko3iko.AggregateValues(ko3iko.Name, ', ')]
+  PhysicalProject [AggRef(ko3iko.AggregateValues(ko3iko.Name, ', ')) as ko3iko.AggregateValues(ko3iko.Name, ', ')]
     PhysicalSingleKeyAggregate [key: const (String)] [aggs: AggregateValues(Name, ', ')]
       PhysicalSchemaScan [#A.entities() as ko3iko]
   PhysicalProject [ko3iko.AggregateValues(ko3iko.Name, ', ') as Names]

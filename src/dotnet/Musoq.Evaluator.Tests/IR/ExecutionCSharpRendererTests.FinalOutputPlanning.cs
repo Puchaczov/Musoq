@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
@@ -8,6 +9,49 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class ExecutionCSharpRendererTests
 {
+    [TestMethod]
+    public void FinalOutputPlanning_FreshExclusiveSortBuffer_TransfersOwnership()
+    {
+        var plan = CreateOwnedSortPlan();
+
+        Assert.IsTrue(TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var render));
+        var owned = render.FinalSinkPlans.TypedOutput.OwnedBuffer;
+        Assert.IsNotNull(owned);
+        Assert.AreEqual("result", owned.SourceName);
+        Assert.AreEqual("__musoqSequence", owned.SequenceField);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void FinalOutputPlanning_BufferHasAnotherConsumer_KeepsCopyingPath(bool afterSort)
+    {
+        var plan = CreateOwnedSortPlan();
+        var nodes = plan.Body.Nodes.ToList();
+        var source = new ExecutionVariable(afterSort ? "resultSorted" : "result", typeof(object));
+        var position = afterSort ? nodes.Count - 1 : nodes.Count - 2;
+        nodes.Insert(position, new ExecutionStoreTable(source, 0));
+        plan = plan with { Body = new ExecutionBlock(nodes) };
+
+        Assert.IsTrue(TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var render));
+        Assert.IsNull(render.FinalSinkPlans.TypedOutput.OwnedBuffer);
+        Assert.IsNull(render.FinalSinkPlans.TableOutput.OwnedBuffer);
+    }
+
+    private static ExecutionPlan CreateOwnedSortPlan()
+    {
+        var plan = CreatePlan();
+        var result = plan.FinalResult!;
+        var target = new ExecutionVariable("resultSorted", typeof(object));
+        var body = new ExecutionBlock(
+        [
+            ..plan.Body.Nodes.SkipLast(1),
+            new ExecutionSortTable(result.Source, target, [new ExecutionOrderField("Name", 0, typeof(string), false)]),
+            new ExecutionReturnTable(target)
+        ]);
+        return plan with { Body = body, FinalResult = result with { TableName = target.Name, Source = target } };
+    }
+
     [TestMethod]
     public void FinalOutputPlanning_ReusesOneResultForTheSameImmutablePlan()
     {

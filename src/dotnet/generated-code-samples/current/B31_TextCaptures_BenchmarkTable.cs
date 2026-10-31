@@ -24,7 +24,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [r.Id as r.Id, r.Text as r.Text, p.Fields as p.Fields]
+  PhysicalProject [r.Id as r.Id, p.Fields as p.Fields]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#bench.rows() as r]
       PhysicalInterpretSource [#Captured(r.Text) as p]
@@ -44,11 +44,9 @@ ExecutionPlan [compiled]
       Fields: object <- property Fields
     Generated [Statement0Row0]
       r.Id: int <- field r_Id
-      r.Text: string <- field r_Text
       p.Fields: object <- field p_Fields
     TableRow [rp]
       r.Id: int <- field r_Id
-      r.Text: string <- field r_Text
       p.Fields: object <- field p_Fields
     Generated [ResultRow0]
       Id: int <- field Id
@@ -62,15 +60,14 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     ChunkedForEach [r in statement0_rRows]
       Let [rId: int = r.Id]
-      Let [rText: string = r.Text]
       InterpretSource [Captured.Parse(r.Text) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(r.Id: rId, r.Text: rText, p.Fields: p.Fields)]
+        AppendRow [statement0 <- Statement0Row0(r.Id: rId, p.Fields: p.Fields)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [rp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: rp.r.Id, Label: rp.p.Fields?.Label)]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -103,8 +100,7 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("r.Id", typeof(int), 0),
-            new Column("r.Text", typeof(string), 1),
-            new Column("p.Fields", typeof(Musoq.Generated.Interpreters.Captured.CaptureResult_Fields), 2)
+            new Column("p.Fields", typeof(Musoq.Generated.Interpreters.Captured.CaptureResult_Fields), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0), new Column("Text", typeof(string), 1) });
         public ILogger Logger { get; set; }
@@ -142,7 +138,6 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -157,22 +152,17 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
                     }
 
                     Statement0Row0 rp = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(rp.r_Id, rp.p_Fields?.Label));
+                    result.Add(new ResultShape0(rp.r_Id, rp.p_Fields?.Label) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -222,14 +212,13 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
 
                             var r = rChunkViewArray[rChunkViewOffset + rIndex];
                             int rId = r.Id;
-                            string rText = r.Text;
                             var _interpreter_Captured = new Musoq.Generated.Interpreters.Captured();
                             var statement0_pRows = _interpreter_Captured.Parse(r.Text);
                             if (statement0_pRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(rId, rText, p.Fields));
+                                statement0.Add(new Statement0Row0(rId, p.Fields));
                             }
                         }
 
@@ -248,14 +237,13 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
 
                             var r = rChunkViewList[rChunkViewOffset + rIndex];
                             int rId = r.Id;
-                            string rText = r.Text;
                             var _interpreter_Captured = new Musoq.Generated.Interpreters.Captured();
                             var statement0_pRows = _interpreter_Captured.Parse(r.Text);
                             if (statement0_pRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(rId, rText, p.Fields));
+                                statement0.Add(new Statement0Row0(rId, p.Fields));
                             }
                         }
 
@@ -272,14 +260,13 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
 
                     var r = rChunk[rIndex];
                     int rId = r.Id;
-                    string rText = r.Text;
                     var _interpreter_Captured = new Musoq.Generated.Interpreters.Captured();
                     var statement0_pRows = _interpreter_Captured.Parse(r.Text);
                     if (statement0_pRows != null)
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(rId, rText, p.Fields));
+                        statement0.Add(new Statement0Row0(rId, p.Fields));
                     }
                 }
             }
@@ -341,20 +328,19 @@ namespace GeneratedSample_B31_TextCaptures_BenchmarkTable
 
             public int Id { get; }
             public string Label { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, string __value1, Musoq.Generated.Interpreters.Captured.CaptureResult_Fields __value2)
+            public Statement0Row0(int __value0, Musoq.Generated.Interpreters.Captured.CaptureResult_Fields __value1)
             {
                 r_Id = __value0;
-                r_Text = __value1;
-                p_Fields = __value2;
+                p_Fields = __value1;
             }
 
             public Musoq.Generated.Interpreters.Captured.CaptureResult_Fields p_Fields { get; }
             public int r_Id { get; }
-            public string r_Text { get; }
         }
     }
 }

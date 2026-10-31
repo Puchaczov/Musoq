@@ -21,7 +21,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Assert.Contains("GeneratedRecord [ResultRow0WithSortKeys]", sample.Content);
             Assert.Contains("CreateRecordList [resultOrderRecords: ResultRow0WithSortKeys]", sample.Content);
             Assert.Contains("OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys", sample.Content);
-            Assert.Contains("MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0", sample.Content);
+            Assert.Contains("TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys", sample.Content);
             Assert.Contains("private sealed class ResultRow0WithSortKeys", sample.Content);
             Assert.Contains("private sealed class ResultRow0 : Row", sample.Content);
             Assert.IsFalse(sample.Content.Contains("ResultRow0WithSortKeys : Row", StringComparison.Ordinal));
@@ -192,12 +192,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains(StaticColumnMetadataPattern, sample);
         Assert.IsFalse(sample.Contains("var resultSorted = new Table(\"resultSorted\", __columns_", StringComparison.Ordinal));
-        Assert.Contains("var __musoqFinalShapeRows = new List<ResultShape0>();", sample);
+        Assert.Contains("var result = new List<ResultShape0>", sample);
         Assert.Contains(
-            "var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create",
+            "result.Sort(Comparer<ResultShape0>.Create",
             sample);
-        Assert.Contains("__musoqFinalShapeRows.Add(resultSortedRowsRow);", sample);
-        Assert.Contains("return __musoqFinalShapeRows;", sample);
+        Assert.Contains("return left.__musoqSequence.CompareTo(right.__musoqSequence);", sample);
+        Assert.Contains("return result;", sample);
+        Assert.DoesNotContain("__musoqFinalShapeRows", sample);
         Assert.IsFalse(sample.Contains("private sealed class ResultRow0OrderBy_2DComparer : IComparer<ResultRow0>", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("result.Columns.ToArray()", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("result.Rows.OrderByDescending((row) => (decimal?)row[2])", StringComparison.Ordinal));
@@ -279,9 +280,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(complex.Contains("void PopulateResultGroups()", StringComparison.Ordinal));
         Assert.IsFalse(complex.Contains("void FinalizeResultGroups()", StringComparison.Ordinal));
         Assert.Contains("public Musoq.Plugins.CountReferenceAggregateKernel<string>.State __agg0", complex);
-        Assert.Contains("SortShapeRows [result -> resultSorted by Population DESC]", complex);
+        Assert.Contains("SortOwnedBuffer [result by Population DESC, stable sequence __musoqSequence]", complex);
         Assert.Contains(
-            "var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create",
+            "result.Sort(Comparer<ResultShape0>.Create",
             complex);
         Assert.IsFalse(complex.Contains("private sealed class ResultRow0OrderBy_2DComparer : IComparer<ResultRow0>", StringComparison.Ordinal));
         Assert.IsFalse(complex.Contains("Statement0Row0", StringComparison.Ordinal));

@@ -122,6 +122,9 @@ internal static class PhysicalColumnUsageFacts
             PhysicalSchemaScanNode scan => NameEquals(scan.Alias, alias),
             PhysicalCteRefNode cteRef => NameEquals(cteRef.Alias, alias),
             PhysicalValuesScanNode values => NameEquals(values.Alias, alias),
+            PhysicalPropertySourceNode property => NameEquals(property.Alias, alias),
+            PhysicalAccessMethodSourceNode method => NameEquals(method.Alias, alias),
+            PhysicalInterpretSourceNode interpret => NameEquals(interpret.Alias, alias),
             _ => node.Children.Any(child => ProducesAlias(child, alias))
         };
     }

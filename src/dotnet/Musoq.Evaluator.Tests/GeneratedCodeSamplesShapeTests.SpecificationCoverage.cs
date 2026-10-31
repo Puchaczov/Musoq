@@ -61,7 +61,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         var branchSet = ExecutionPlan("Q292_SpecCoreSetBranchLocalSlice.cs");
         Assert.Contains("TopNTable [cte0 -> cte0TopN", branchSet);
-        Assert.Contains("SortShapeRows [result -> resultSorted", branchSet);
+        Assert.Contains("SortOwnedBuffer [result by", branchSet);
     }
 
     [TestMethod]

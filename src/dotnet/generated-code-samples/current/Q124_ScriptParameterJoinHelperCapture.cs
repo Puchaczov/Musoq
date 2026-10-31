@@ -20,7 +20,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Name as a.Name, a.City as a.City, b.Name as b.Name, b.City as b.City]
+  PhysicalProject [a.Name as a.Name, b.Name as b.Name]
     PhysicalHashJoin [LeftOuter] [build: (b.City || $suffix)] [probe: (a.City || $suffix)]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#B.entities() as b]
@@ -40,14 +40,10 @@ ExecutionPlan [compiled]
       City: string <- property City
     Generated [Statement0Row0]
       a.Name: string <- field a_Name
-      a.City: string <- field a_City
       b.Name: string <- field b_Name
-      b.City: string <- field b_City
     TableRow [ab]
       a.Name: string <- field a_Name
-      a.City: string <- field a_City
       b.Name: string <- field b_Name
-      b.City: string <- field b_City
     Generated [ResultRow0]
       Name: string <- field Name
       MatchedName: string <- field MatchedName
@@ -65,9 +61,9 @@ ExecutionPlan [compiled]
       HashProbe [statement0BHash[(a.City || $suffix)] -> statement0BHashMatches] [match: statement0BHashHasMatch]
         ForEach [b in statement0BHashMatches]
           Assign [statement0BHashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, b.Name: b.Name, b.City: b.City)]
+          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, b.Name: b.Name)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, b.Name: NULL, b.City: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, b.Name: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     CreateObject [__resultLibraryBase0: LibraryBase]
@@ -106,9 +102,7 @@ namespace GeneratedSample_Q124_ScriptParameterJoinHelperCapture
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.Name", typeof(string), 0),
-            new Column("a.City", typeof(string), 1),
-            new Column("b.Name", typeof(string), 2),
-            new Column("b.City", typeof(string), 3)
+            new Column("b.Name", typeof(string), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1) });
         public ILogger Logger { get; set; }
@@ -325,13 +319,13 @@ namespace GeneratedSample_Q124_ScriptParameterJoinHelperCapture
                                 {
                                     token.ThrowIfCancellationRequested();
                                     statement0BHashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, b.Name, b.City));
+                                    statement0.Add(new Statement0Row0(a.Name, b.Name));
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Name, a.City, null, null));
+                                statement0.Add(new Statement0Row0(a.Name, null));
                             }
                         }
 
@@ -357,13 +351,13 @@ namespace GeneratedSample_Q124_ScriptParameterJoinHelperCapture
                                 {
                                     token.ThrowIfCancellationRequested();
                                     statement0BHashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, b.Name, b.City));
+                                    statement0.Add(new Statement0Row0(a.Name, b.Name));
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Name, a.City, null, null));
+                                statement0.Add(new Statement0Row0(a.Name, null));
                             }
                         }
 
@@ -387,13 +381,13 @@ namespace GeneratedSample_Q124_ScriptParameterJoinHelperCapture
                         {
                             token.ThrowIfCancellationRequested();
                             statement0BHashHasMatch = true;
-                            statement0.Add(new Statement0Row0(a.Name, a.City, b.Name, b.City));
+                            statement0.Add(new Statement0Row0(a.Name, b.Name));
                         }
                     }
 
                     if (!statement0BHashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.Name, a.City, null, null));
+                        statement0.Add(new Statement0Row0(a.Name, null));
                     }
                 }
             }
@@ -450,17 +444,13 @@ namespace GeneratedSample_Q124_ScriptParameterJoinHelperCapture
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1, string __value2, string __value3)
+            public Statement0Row0(string __value0, string __value1)
             {
                 a_Name = __value0;
-                a_City = __value1;
-                b_Name = __value2;
-                b_City = __value3;
+                b_Name = __value1;
             }
 
-            public string a_City { get; }
             public string a_Name { get; }
-            public string b_City { get; }
             public string b_Name { get; }
         }
     }

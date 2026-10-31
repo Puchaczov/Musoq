@@ -25,7 +25,7 @@ Cte
 PhysicalCte
   Definition [c]
     PhysicalMultiStatement
-      PhysicalProject [f.Content as f.Content, s.Items as s.Items]
+      PhysicalProject [s.Items as s.Items]
         PhysicalNestedLoopApply [Cross]
           PhysicalSchemaScan [#test.files() as f]
           PhysicalInterpretSource [#Outer(f.Content) as s]

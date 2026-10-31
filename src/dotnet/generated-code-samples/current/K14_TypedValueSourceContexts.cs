@@ -20,7 +20,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Position as a.Position, b.Position as b.Position]
+  PhysicalProject [a.Position as a.Position]
     PhysicalHashJoin [LeftOuter] [build: b.Position] [probe: a.Position] [residual: (b.Position > 0)]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -39,10 +39,8 @@ ExecutionPlan [compiled]
       Position: int <- property Position
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      b.Position: int? <- field b_Position
     TableRow [ab]
       a.Position: int <- field a_Position
-      b.Position: int? <- field b_Position
     Generated [ResultRow0]
       Position: int <- field Position
       OtherPosition: int? <- field OtherPosition
@@ -60,19 +58,18 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Position] -> statement0BHashMatches] [match: statement0BHashHasMatch]
         ForEach [b in statement0BHashMatches]
-          Let [position: int? = b.Position]
-          If [(position > 0)]
+          If [(b.Position > 0)]
             Assign [statement0BHashHasMatch = TRUE]
-            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: position)]
+            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibraryExecutionLibrary0: LibraryExecutionLibrary]
     ForEach [ab in _cteRowResults.Slot0]
       Let [b1: LibraryExecutionValueEntity? = ab.b]
       AppendShape [result <- ResultShape0(Position: ab.a.Position, OtherPosition: CASE WHEN b1 IS NULL THEN NULL ELSE ValueSourcePosition() END)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -104,8 +101,7 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
         };
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
-            new Column("a.Position", typeof(int), 0),
-            new Column("b.Position", typeof(int?), 1)
+            new Column("a.Position", typeof(int), 0)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0) });
         public ILogger Logger { get; set; }
@@ -143,7 +139,6 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -160,22 +155,17 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity? b1 = (Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity?)ab.__rightContext;
-                    result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.ValueSourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity)b1)));
+                    result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.ValueSourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity)b1)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -325,18 +315,17 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, a, b));
+                                        statement0.Add(new Statement0Row0(a.Position, a, b));
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Position, a, null));
                             }
                         }
 
@@ -361,18 +350,17 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, a, b));
+                                        statement0.Add(new Statement0Row0(a.Position, a, b));
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Position, a, null));
                             }
                         }
 
@@ -395,18 +383,17 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            int? position = b.Position;
-                            if ((Operators.SqlCompare<int?, int>(position, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                            if ((Operators.SqlCompare<int?, int>(b.Position, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                             {
                                 statement0BHashHasMatch = true;
-                                statement0.Add(new Statement0Row0(a.Position, position, a, b));
+                                statement0.Add(new Statement0Row0(a.Position, a, b));
                             }
                         }
                     }
 
                     if (!statement0BHashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.Position, null, a, null));
+                        statement0.Add(new Statement0Row0(a.Position, a, null));
                     }
                 }
             }
@@ -471,22 +458,21 @@ namespace GeneratedSample_K14_TypedValueSourceContexts
 
             public int? OtherPosition { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
             public readonly Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity __leftContext;
             public readonly Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity? __rightContext;
-            public Statement0Row0(int __value0, int? __value1, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity __leftContext, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity? __rightContext)
+            public Statement0Row0(int __value0, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity __leftContext, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionValueEntity? __rightContext)
             {
                 a_Position = __value0;
-                b_Position = __value1;
                 this.__leftContext = __leftContext;
                 this.__rightContext = __rightContext;
             }
 
             public int a_Position { get; }
-            public int? b_Position { get; }
         }
     }
 }

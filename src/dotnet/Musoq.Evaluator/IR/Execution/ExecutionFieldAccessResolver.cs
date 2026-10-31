@@ -411,7 +411,7 @@ internal static class ExecutionFieldAccessResolver
     }
 
     private static bool IsDirectScalarSource(SourceEntityShape source) =>
-        source.Fields is [{ AccessStrategy: DirectScalarValueAccess }];
+        source.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess);
 
     private static IReadOnlyList<RuntimeDynamicMemberPathSegment> CreateRuntimeDynamicPathSegments(
         Type rootType,

@@ -20,7 +20,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Position as a.Position, b.Position as b.Position, b.Amount as b.Amount]
+  PhysicalProject [a.Position as a.Position, b.Amount as b.Amount]
     PhysicalHashJoin [LeftOuter] [build: b.Position] [probe: a.Position] [residual: (b.Position > 2)]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -40,11 +40,9 @@ ExecutionPlan [compiled]
       Amount: decimal? <- property Amount
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      b.Position: int? <- field b_Position
       b.Amount: decimal? <- field b_Amount
     TableRow [ab]
       a.Position: int <- field a_Position
-      b.Position: int? <- field b_Position
       b.Amount: decimal? <- field b_Amount
     Generated [ResultRow0]
       Position: int <- field Position
@@ -64,19 +62,18 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[a.Position] -> statement0BHashMatches] [match: statement0BHashHasMatch]
         ForEach [b in statement0BHashMatches]
-          Let [position: int? = b.Position]
-          If [(position > 2)]
+          If [(b.Position > 2)]
             Assign [statement0BHashHasMatch = TRUE]
-            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: position, b.Amount: b.Amount)]
+            AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Amount: b.Amount)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: NULL, b.Amount: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Amount: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibraryExecutionLibrary0: LibraryExecutionLibrary]
     ForEach [ab in _cteRowResults.Slot0]
       Let [b1: LibraryExecutionEntity = ab.b]
       AppendShape [result <- ResultShape0(Position: ab.a.Position, OtherPosition: CASE WHEN b1 IS NULL THEN NULL ELSE SourcePosition() END, Amount: ab.b.Amount)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -110,8 +107,7 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
         private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
         {
             new Column("a.Position", typeof(int), 0),
-            new Column("b.Position", typeof(int?), 1),
-            new Column("b.Amount", typeof(decimal?), 2)
+            new Column("b.Amount", typeof(decimal?), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Amount", typeof(decimal?), 1) });
@@ -150,7 +146,6 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -167,22 +162,17 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity b1 = (Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)ab.__rightContext;
-                    result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.SourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)b1), ab.b_Amount));
+                    result.Add(new ResultShape0(ab.a_Position, (b1 == null) ? (int?)null : (int?)(int)__resultLibraryExecutionLibrary0.SourcePosition((Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity)b1), ab.b_Amount) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -332,18 +322,17 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
+                                        statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
                             }
                         }
 
@@ -368,18 +357,17 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    int? position = b.Position;
-                                    if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                                    if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                     {
                                         statement0BHashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
+                                        statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
                                     }
                                 }
                             }
 
                             if (!statement0BHashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
+                                statement0.Add(new Statement0Row0(a.Position, null, a, null));
                             }
                         }
 
@@ -402,18 +390,17 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            int? position = b.Position;
-                            if ((Operators.SqlCompare<int?, int>(position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
+                            if ((Operators.SqlCompare<int?, int>(b.Position, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                             {
                                 statement0BHashHasMatch = true;
-                                statement0.Add(new Statement0Row0(a.Position, position, b.Amount, a, b));
+                                statement0.Add(new Statement0Row0(a.Position, b.Amount, a, b));
                             }
                         }
                     }
 
                     if (!statement0BHashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.Position, null, null, a, null));
+                        statement0.Add(new Statement0Row0(a.Position, null, a, null));
                     }
                 }
             }
@@ -486,24 +473,23 @@ namespace GeneratedSample_K13_TypedJoinedSourceContexts
             public decimal? Amount { get; }
             public int? OtherPosition { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
             public readonly Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __leftContext;
             public readonly Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __rightContext;
-            public Statement0Row0(int __value0, int? __value1, decimal? __value2, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __leftContext, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __rightContext)
+            public Statement0Row0(int __value0, decimal? __value1, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __leftContext, Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity __rightContext)
             {
                 a_Position = __value0;
-                b_Position = __value1;
-                b_Amount = __value2;
+                b_Amount = __value1;
                 this.__leftContext = __leftContext;
                 this.__rightContext = __rightContext;
             }
 
             public int a_Position { get; }
             public decimal? b_Amount { get; }
-            public int? b_Position { get; }
         }
     }
 }

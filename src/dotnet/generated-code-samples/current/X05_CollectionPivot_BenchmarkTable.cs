@@ -38,11 +38,11 @@ Cte
 PhysicalCte
   Definition [expanded]
     PhysicalMultiStatement
-      PhysicalProject [r.Key as r.Key, r.Amount as r.Amount, r.Items as r.Items, i.Value as i.Value, i.Ordinal as i.Ordinal]
+      PhysicalProject [r.Key as r.Key, r.Amount as r.Amount, i.Value as i.Value, i.Ordinal as i.Ordinal]
         PhysicalNestedLoopApply [Outer, with ordinality]
           PhysicalSchemaScan [#bench.rows() as r]
           PhysicalPropertySource [r.Items as i] [apply: Cross] [type: Int32[]]
-      PhysicalProject [ri.r.Key as r.Key, ri.r.Amount as r.Amount, ri.r.Items as r.Items, ri.i.Value as i.Value, ri.i.Ordinal as i.Ordinal, d.Id as Id]
+      PhysicalProject [ri.r.Key as r.Key, ri.r.Amount as r.Amount, ri.i.Ordinal as i.Ordinal]
         PhysicalHashJoin [LeftOuter] [build: d.Id] [probe: ri.i.Value]
           PhysicalCteRef [ri as ri]
           PhysicalSchemaScan [#bench.lookup() as d]
@@ -66,19 +66,17 @@ ExecutionPlan [compiled]
       Key: int <- property Key
       Amount: decimal <- property Amount
       Items: int[] <- property Items
-    SourceEntity [i: PrimitiveTypeEntity<int>]
-      Value: int <- property Value
+    SourceEntity [i: int]
+      Value: int <- direct scalar value
       Ordinal: int <- apply ordinality iOrdinal
     Generated [Cte0Statement0Row0]
       r.Key: int <- field r_Key
       r.Amount: decimal <- field r_Amount
-      r.Items: int[] <- field r_Items
       i.Value: int? <- field i_Value
       i.Ordinal: int? <- field i_Ordinal
     TableRow [ri]
       r.Key: int <- field r_Key
       r.Amount: decimal <- field r_Amount
-      r.Items: int[] <- field r_Items
       i.Value: int? <- field i_Value
       i.Ordinal: int? <- field i_Ordinal
     SourceEntity [d: BenchmarkSampleRow]
@@ -111,11 +109,11 @@ ExecutionPlan [compiled]
       Let [rKey: int = r.Key]
       EnumerableSource [r.Items -> cte0_statement0_iRows]
       Let [iHasMatch: bool = FALSE]
-      ChunkedForEachWithOrdinality [iOrdinal, i in cte0_statement0_iRows]
+      ForEachWithOrdinality [iOrdinal, i in cte0_statement0_iRows]
         Assign [iHasMatch = TRUE]
-        AppendRow [cte0_statement0 <- Cte0Statement0Row0(r.Key: rKey, r.Amount: rAmount, r.Items: r.Items, i.Value: i.Value, i.Ordinal: i.Ordinal)]
+        AppendRow [cte0_statement0 <- Cte0Statement0Row0(r.Key: rKey, r.Amount: rAmount, i.Value: i.Value, i.Ordinal: i.Ordinal)]
       If [NOT iHasMatch]
-        AppendRow [cte0_statement0 <- Cte0Statement0Row0(r.Key: rKey, r.Amount: rAmount, r.Items: r.Items, i.Value: NULL, i.Ordinal: NULL)]
+        AppendRow [cte0_statement0 <- Cte0Statement0Row0(r.Key: rKey, r.Amount: rAmount, i.Value: NULL, i.Ordinal: NULL)]
     StoreTable [cte0_statement0 -> _cteRowResults.Slot1: List<Cte0Statement0Row0>]
     PhaseBoundary [End:cte1]
     PhaseBoundary [Begin:cte0]
@@ -146,7 +144,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Id: finalGroup.e.Id, Even: e.Sum(e.Amount) filter (where e.Bucket = 0), Odd: e.Sum(e.Amount) filter (where e.Bucket = 1))]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -181,9 +179,8 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
         {
             new Column("r.Key", typeof(int), 0),
             new Column("r.Amount", typeof(decimal), 1),
-            new Column("r.Items", typeof(int[]), 2),
-            new Column("i.Value", typeof(int?), 3),
-            new Column("i.Ordinal", typeof(int?), 4)
+            new Column("i.Value", typeof(int?), 2),
+            new Column("i.Ordinal", typeof(int?), 3)
         };
         private static readonly Column[] __columns_compiled_result_4 = new Column[]
         {
@@ -228,7 +225,6 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -254,22 +250,17 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
+                    result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg1.HasValue ? (decimal?)finalGroup.__agg1.Value : null, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -459,71 +450,48 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
                                 var r = rChunkViewArray[rChunkViewOffset + rIndex];
                                 decimal rAmount = r.Amount;
                                 int rKey = r.Key;
-                                var cte0_statement0_iRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(r.Items);
+                                var cte0_statement0_iRows = (IEnumerable<int>)r.Items ?? Array.Empty<int>();
                                 bool iHasMatch = false;
+                                var iOrdinalRows = cte0_statement0_iRows;
+                                if (iOrdinalRows is int[] iOrdinalArray)
+                                    for (int iOrdinal = 0, iOrdinalCount = iOrdinalArray.Length; iOrdinal < iOrdinalCount; ++iOrdinal)
+                                    {
+                                        if ((iOrdinal & 1023) == 0)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                        }
+
+                                        int i = iOrdinalArray[iOrdinal];
+                                        iHasMatch = true;
+                                        cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                    }
+                                else if (iOrdinalRows is List<int> iOrdinalConcreteList)
+                                    for (int iOrdinal = 0, iOrdinalCount = iOrdinalConcreteList.Count; iOrdinal < iOrdinalCount; ++iOrdinal)
+                                    {
+                                        if ((iOrdinal & 1023) == 0)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                        }
+
+                                        int i = iOrdinalConcreteList[iOrdinal];
+                                        iHasMatch = true;
+                                        cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                    }
+                                else
                                 {
                                     int iOrdinal = 0;
-                                    foreach (var iChunk in cte0_statement0_iRows)
+                                    foreach (var i in iOrdinalRows)
                                     {
-                                        if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Plugins.PrimitiveTypeEntity<int>> iChunkView)
-                                        {
-                                            if (iChunkView.Source is Musoq.Plugins.PrimitiveTypeEntity<int>[] iChunkViewArray)
-                                            {
-                                                int iChunkViewOffset = iChunkView.Offset;
-                                                for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                                                {
-                                                    if ((iIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                                                    iHasMatch = true;
-                                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                                    ++iOrdinal;
-                                                }
-
-                                                continue;
-                                            }
-
-                                            if (iChunkView.Source is List<Musoq.Plugins.PrimitiveTypeEntity<int>> iChunkViewList)
-                                            {
-                                                int iChunkViewOffset = iChunkView.Offset;
-                                                for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                                                {
-                                                    if ((iIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var i = iChunkViewList[iChunkViewOffset + iIndex];
-                                                    iHasMatch = true;
-                                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                                    ++iOrdinal;
-                                                }
-
-                                                continue;
-                                            }
-                                        }
-
-                                        for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
-                                        {
-                                            if ((iIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var i = iChunk[iIndex];
-                                            iHasMatch = true;
-                                            cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                            ++iOrdinal;
-                                        }
+                                        token.ThrowIfCancellationRequested();
+                                        iHasMatch = true;
+                                        cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                        ++iOrdinal;
                                     }
                                 }
 
                                 if ((!iHasMatch))
                                 {
-                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, null, null));
+                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, null, null));
                                 }
                             }
 
@@ -543,71 +511,48 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
                                 var r = rChunkViewList[rChunkViewOffset + rIndex];
                                 decimal rAmount = r.Amount;
                                 int rKey = r.Key;
-                                var cte0_statement0_iRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(r.Items);
+                                var cte0_statement0_iRows = (IEnumerable<int>)r.Items ?? Array.Empty<int>();
                                 bool iHasMatch = false;
+                                var iOrdinalRows = cte0_statement0_iRows;
+                                if (iOrdinalRows is int[] iOrdinalArray)
+                                    for (int iOrdinal = 0, iOrdinalCount = iOrdinalArray.Length; iOrdinal < iOrdinalCount; ++iOrdinal)
+                                    {
+                                        if ((iOrdinal & 1023) == 0)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                        }
+
+                                        int i = iOrdinalArray[iOrdinal];
+                                        iHasMatch = true;
+                                        cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                    }
+                                else if (iOrdinalRows is List<int> iOrdinalConcreteList)
+                                    for (int iOrdinal = 0, iOrdinalCount = iOrdinalConcreteList.Count; iOrdinal < iOrdinalCount; ++iOrdinal)
+                                    {
+                                        if ((iOrdinal & 1023) == 0)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                        }
+
+                                        int i = iOrdinalConcreteList[iOrdinal];
+                                        iHasMatch = true;
+                                        cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                    }
+                                else
                                 {
                                     int iOrdinal = 0;
-                                    foreach (var iChunk in cte0_statement0_iRows)
+                                    foreach (var i in iOrdinalRows)
                                     {
-                                        if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Plugins.PrimitiveTypeEntity<int>> iChunkView)
-                                        {
-                                            if (iChunkView.Source is Musoq.Plugins.PrimitiveTypeEntity<int>[] iChunkViewArray)
-                                            {
-                                                int iChunkViewOffset = iChunkView.Offset;
-                                                for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                                                {
-                                                    if ((iIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                                                    iHasMatch = true;
-                                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                                    ++iOrdinal;
-                                                }
-
-                                                continue;
-                                            }
-
-                                            if (iChunkView.Source is List<Musoq.Plugins.PrimitiveTypeEntity<int>> iChunkViewList)
-                                            {
-                                                int iChunkViewOffset = iChunkView.Offset;
-                                                for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                                                {
-                                                    if ((iIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var i = iChunkViewList[iChunkViewOffset + iIndex];
-                                                    iHasMatch = true;
-                                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                                    ++iOrdinal;
-                                                }
-
-                                                continue;
-                                            }
-                                        }
-
-                                        for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
-                                        {
-                                            if ((iIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var i = iChunk[iIndex];
-                                            iHasMatch = true;
-                                            cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                            ++iOrdinal;
-                                        }
+                                        token.ThrowIfCancellationRequested();
+                                        iHasMatch = true;
+                                        cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                        ++iOrdinal;
                                     }
                                 }
 
                                 if ((!iHasMatch))
                                 {
-                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, null, null));
+                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, null, null));
                                 }
                             }
 
@@ -625,71 +570,48 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
                         var r = rChunk[rIndex];
                         decimal rAmount = r.Amount;
                         int rKey = r.Key;
-                        var cte0_statement0_iRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(r.Items);
+                        var cte0_statement0_iRows = (IEnumerable<int>)r.Items ?? Array.Empty<int>();
                         bool iHasMatch = false;
+                        var iOrdinalRows = cte0_statement0_iRows;
+                        if (iOrdinalRows is int[] iOrdinalArray)
+                            for (int iOrdinal = 0, iOrdinalCount = iOrdinalArray.Length; iOrdinal < iOrdinalCount; ++iOrdinal)
+                            {
+                                if ((iOrdinal & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                int i = iOrdinalArray[iOrdinal];
+                                iHasMatch = true;
+                                cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                            }
+                        else if (iOrdinalRows is List<int> iOrdinalConcreteList)
+                            for (int iOrdinal = 0, iOrdinalCount = iOrdinalConcreteList.Count; iOrdinal < iOrdinalCount; ++iOrdinal)
+                            {
+                                if ((iOrdinal & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                int i = iOrdinalConcreteList[iOrdinal];
+                                iHasMatch = true;
+                                cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                            }
+                        else
                         {
                             int iOrdinal = 0;
-                            foreach (var iChunk in cte0_statement0_iRows)
+                            foreach (var i in iOrdinalRows)
                             {
-                                if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Plugins.PrimitiveTypeEntity<int>> iChunkView)
-                                {
-                                    if (iChunkView.Source is Musoq.Plugins.PrimitiveTypeEntity<int>[] iChunkViewArray)
-                                    {
-                                        int iChunkViewOffset = iChunkView.Offset;
-                                        for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                                        {
-                                            if ((iIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                                            iHasMatch = true;
-                                            cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                            ++iOrdinal;
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (iChunkView.Source is List<Musoq.Plugins.PrimitiveTypeEntity<int>> iChunkViewList)
-                                    {
-                                        int iChunkViewOffset = iChunkView.Offset;
-                                        for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                                        {
-                                            if ((iIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var i = iChunkViewList[iChunkViewOffset + iIndex];
-                                            iHasMatch = true;
-                                            cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                            ++iOrdinal;
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
-                                {
-                                    if ((iIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var i = iChunk[iIndex];
-                                    iHasMatch = true;
-                                    cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, i.Value, iOrdinal));
-                                    ++iOrdinal;
-                                }
+                                token.ThrowIfCancellationRequested();
+                                iHasMatch = true;
+                                cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, i, iOrdinal));
+                                ++iOrdinal;
                             }
                         }
 
                         if ((!iHasMatch))
                         {
-                            cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, r.Items, null, null));
+                            cte0_statement0.Add(new Cte0Statement0Row0(rKey, rAmount, null, null));
                         }
                     }
                 }
@@ -758,19 +680,17 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
 
         private sealed class Cte0Statement0Row0
         {
-            public Cte0Statement0Row0(int __value0, decimal __value1, int[] __value2, int? __value3, int? __value4)
+            public Cte0Statement0Row0(int __value0, decimal __value1, int? __value2, int? __value3)
             {
                 r_Key = __value0;
                 r_Amount = __value1;
-                r_Items = __value2;
-                i_Value = __value3;
-                i_Ordinal = __value4;
+                i_Value = __value2;
+                i_Ordinal = __value3;
             }
 
             public int? i_Ordinal { get; }
             public int? i_Value { get; }
             public decimal r_Amount { get; }
-            public int[] r_Items { get; }
             public int r_Key { get; }
         }
 
@@ -856,6 +776,7 @@ namespace GeneratedSample_X05_CollectionPivot_BenchmarkTable
             public decimal? Even { get; }
             public int Id { get; }
             public decimal? Odd { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

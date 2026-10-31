@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Position as a.Position, a.Number as a.Number, a.Text as a.Text, b.Position as b.Position, b.Number as b.Number, b.Text as b.Text]
+  PhysicalProject [a.Position as a.Position, b.Position as b.Position]
     PhysicalHashJoin [Inner] [build: b.Number, b.Text] [probe: a.Number, a.Text]
       PhysicalSchemaScan [#schema.first() as a]
       PhysicalSchemaScan [#schema.first() as b]
@@ -41,18 +41,10 @@ ExecutionPlan [compiled]
       Text: string <- property Text
     Generated [Statement0Row0]
       a.Position: int <- field a_Position
-      a.Number: int? <- field a_Number
-      a.Text: string <- field a_Text
       b.Position: int <- field b_Position
-      b.Number: int? <- field b_Number
-      b.Text: string <- field b_Text
     TableRow [ab]
       a.Position: int <- field a_Position
-      a.Number: int? <- field a_Number
-      a.Text: string <- field a_Text
       b.Position: int <- field b_Position
-      b.Number: int? <- field b_Number
-      b.Text: string <- field b_Text
     Generated [ResultRow0]
       LeftPosition: int <- field LeftPosition
       RightPosition: int <- field RightPosition
@@ -70,12 +62,12 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in statement0_aRows]
       HashProbe [statement0BHash[(a.Number, a.Text)] -> statement0BHashMatches]
         ForEach [b in statement0BHashMatches]
-          AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, a.Number: a.Number, a.Text: a.Text, b.Position: b.Position, b.Number: b.Number, b.Text: b.Text)]
+          AppendRow [statement0 <- Statement0Row0(a.Position: a.Position, b.Position: b.Position)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [ab in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(LeftPosition: ab.a.Position, RightPosition: ab.b.Position)]
-    SortShapeRows [result -> resultSorted by LeftPosition ASC, RightPosition ASC]
+    SortOwnedBuffer [result by LeftPosition ASC, RightPosition ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -108,11 +100,7 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("a.Position", typeof(int), 0),
-            new Column("a.Number", typeof(int?), 1),
-            new Column("a.Text", typeof(string), 2),
-            new Column("b.Position", typeof(int), 3),
-            new Column("b.Number", typeof(int?), 4),
-            new Column("b.Text", typeof(string), 5)
+            new Column("b.Position", typeof(int), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Number", typeof(int?), 1), new Column("Text", typeof(string), 2) });
         public ILogger Logger { get; set; }
@@ -150,7 +138,6 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -165,10 +152,10 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
                     }
 
                     Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(ab.a_Position, ab.b_Position));
+                    result.Add(new ResultShape0(ab.a_Position, ab.b_Position) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.LeftPosition.CompareTo(right.LeftPosition);
                     if (comparison != 0)
@@ -176,14 +163,9 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
                     comparison = left.RightPosition.CompareTo(right.RightPosition);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -340,7 +322,7 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement0.Add(new Statement0Row0(a.Position, a.Number, a.Text, b.Position, b.Number, b.Text));
+                                    statement0.Add(new Statement0Row0(a.Position, b.Position));
                                 }
                             }
                         }
@@ -367,7 +349,7 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
                                 foreach (var b in statement0BHashMatches)
                                 {
                                     token.ThrowIfCancellationRequested();
-                                    statement0.Add(new Statement0Row0(a.Position, a.Number, a.Text, b.Position, b.Number, b.Text));
+                                    statement0.Add(new Statement0Row0(a.Position, b.Position));
                                 }
                             }
                         }
@@ -392,7 +374,7 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
                         foreach (var b in statement0BHashMatches)
                         {
                             token.ThrowIfCancellationRequested();
-                            statement0.Add(new Statement0Row0(a.Position, a.Number, a.Text, b.Position, b.Number, b.Text));
+                            statement0.Add(new Statement0Row0(a.Position, b.Position));
                         }
                     }
                 }
@@ -458,26 +440,19 @@ namespace GeneratedSample_K60_NativeResultCompositeJoin
 
             public int LeftPosition { get; }
             public int RightPosition { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, int? __value1, string __value2, int __value3, int? __value4, string __value5)
+            public Statement0Row0(int __value0, int __value1)
             {
                 a_Position = __value0;
-                a_Number = __value1;
-                a_Text = __value2;
-                b_Position = __value3;
-                b_Number = __value4;
-                b_Text = __value5;
+                b_Position = __value1;
             }
 
-            public int? a_Number { get; }
             public int a_Position { get; }
-            public string a_Text { get; }
-            public int? b_Number { get; }
             public int b_Position { get; }
-            public string b_Text { get; }
         }
     }
 }

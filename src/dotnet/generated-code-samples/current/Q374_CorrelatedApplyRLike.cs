@@ -51,7 +51,7 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in iRows]
       Let [__rlikeMatcher0: PreparedRLikeMatcher = PREPARE_RLIKE(i.Name, strategy=runtime-classified, anchors=runtime, literal-span=runtime, fallback=runtime)]
       EnumerableSource [JustReturnArrayOfString() -> sRows]
-      ChunkedForEach [s in sRows]
+      ForEach [s in sRows]
         Let [value: string = s.Value]
         If [PREPARED_RLIKE(value, __rlikeMatcher0)]
           AppendShape [result <- ResultRow0(Name: i.Name, Value: value)]
@@ -149,67 +149,51 @@ namespace GeneratedSample_Q374_CorrelatedApplyRLike
 
                                     var i = iChunkViewArray[iChunkViewOffset + iIndex];
                                     Musoq.Evaluator.PreparedRLikeMatcher __rlikeMatcher0 = Operators.PrepareRLike(i.Name, TimeSpan.FromTicks(20000000L));
-                                    var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
-                                    foreach (var sChunk in sRows)
-                                    {
-                                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                        {
-                                            if (sChunkView.Source is string[] sChunkViewArray)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                                    string value = s;
-                                                    if (Operators.RLikePrepared(value, __rlikeMatcher0))
-                                                    {
-                                                        __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
-                                                    }
-                                                }
-
-                                                continue;
-                                            }
-
-                                            if (sChunkView.Source is List<string> sChunkViewList)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                                    string value = s;
-                                                    if (Operators.RLikePrepared(value, __rlikeMatcher0))
-                                                    {
-                                                        __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
-                                                    }
-                                                }
-
-                                                continue;
-                                            }
-                                        }
-
-                                        for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                                    var sRows = (IEnumerable<string>)(string[])__resultLibrary0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                                    var sIndexRows = sRows;
+                                    if (sIndexRows is string[] sIndexArray)
+                                        for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                         {
                                             if ((sIndex & 1023) == 0)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                             }
 
-                                            var s = sChunk[sIndex];
+                                            string s = sIndexArray[sIndex];
                                             string value = s;
                                             if (Operators.RLikePrepared(value, __rlikeMatcher0))
                                             {
                                                 __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
                                             }
+                                        }
+                                    else if (sIndexRows is List<string> sIndexConcreteList)
+                                        for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                        {
+                                            if ((sIndex & 1023) == 0)
+                                            {
+                                                token.ThrowIfCancellationRequested();
+                                            }
+
+                                            string s = sIndexConcreteList[sIndex];
+                                            string value = s;
+                                            if (Operators.RLikePrepared(value, __rlikeMatcher0))
+                                            {
+                                                __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
+                                            }
+                                        }
+                                    else
+                                    {
+                                        int sIndex = 0;
+                                        foreach (var s in sIndexRows)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            string value = s;
+                                            if (Operators.RLikePrepared(value, __rlikeMatcher0))
+                                            {
+                                                __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
+                                            }
+
+                                            ++sIndex;
                                         }
                                     }
                                 }
@@ -229,67 +213,51 @@ namespace GeneratedSample_Q374_CorrelatedApplyRLike
 
                                     var i = iChunkViewList[iChunkViewOffset + iIndex];
                                     Musoq.Evaluator.PreparedRLikeMatcher __rlikeMatcher0 = Operators.PrepareRLike(i.Name, TimeSpan.FromTicks(20000000L));
-                                    var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
-                                    foreach (var sChunk in sRows)
-                                    {
-                                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                        {
-                                            if (sChunkView.Source is string[] sChunkViewArray)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                                    string value = s;
-                                                    if (Operators.RLikePrepared(value, __rlikeMatcher0))
-                                                    {
-                                                        __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
-                                                    }
-                                                }
-
-                                                continue;
-                                            }
-
-                                            if (sChunkView.Source is List<string> sChunkViewList)
-                                            {
-                                                int sChunkViewOffset = sChunkView.Offset;
-                                                for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                                {
-                                                    if ((sIndex & 1023) == 0)
-                                                    {
-                                                        token.ThrowIfCancellationRequested();
-                                                    }
-
-                                                    var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                                    string value = s;
-                                                    if (Operators.RLikePrepared(value, __rlikeMatcher0))
-                                                    {
-                                                        __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
-                                                    }
-                                                }
-
-                                                continue;
-                                            }
-                                        }
-
-                                        for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                                    var sRows = (IEnumerable<string>)(string[])__resultLibrary0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                                    var sIndexRows = sRows;
+                                    if (sIndexRows is string[] sIndexArray)
+                                        for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                         {
                                             if ((sIndex & 1023) == 0)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                             }
 
-                                            var s = sChunk[sIndex];
+                                            string s = sIndexArray[sIndex];
                                             string value = s;
                                             if (Operators.RLikePrepared(value, __rlikeMatcher0))
                                             {
                                                 __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
                                             }
+                                        }
+                                    else if (sIndexRows is List<string> sIndexConcreteList)
+                                        for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                        {
+                                            if ((sIndex & 1023) == 0)
+                                            {
+                                                token.ThrowIfCancellationRequested();
+                                            }
+
+                                            string s = sIndexConcreteList[sIndex];
+                                            string value = s;
+                                            if (Operators.RLikePrepared(value, __rlikeMatcher0))
+                                            {
+                                                __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
+                                            }
+                                        }
+                                    else
+                                    {
+                                        int sIndex = 0;
+                                        foreach (var s in sIndexRows)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            string value = s;
+                                            if (Operators.RLikePrepared(value, __rlikeMatcher0))
+                                            {
+                                                __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
+                                            }
+
+                                            ++sIndex;
                                         }
                                     }
                                 }
@@ -307,67 +275,51 @@ namespace GeneratedSample_Q374_CorrelatedApplyRLike
 
                             var i = iChunk[iIndex];
                             Musoq.Evaluator.PreparedRLikeMatcher __rlikeMatcher0 = Operators.PrepareRLike(i.Name, TimeSpan.FromTicks(20000000L));
-                            var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
-                            foreach (var sChunk in sRows)
-                            {
-                                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<string> sChunkView)
-                                {
-                                    if (sChunkView.Source is string[] sChunkViewArray)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            string value = s;
-                                            if (Operators.RLikePrepared(value, __rlikeMatcher0))
-                                            {
-                                                __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
-                                            }
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (sChunkView.Source is List<string> sChunkViewList)
-                                    {
-                                        int sChunkViewOffset = sChunkView.Offset;
-                                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
-                                        {
-                                            if ((sIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            string value = s;
-                                            if (Operators.RLikePrepared(value, __rlikeMatcher0))
-                                            {
-                                                __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
-                                            }
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
-                                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
+                            var sRows = (IEnumerable<string>)(string[])__resultLibrary0.JustReturnArrayOfString() ?? Array.Empty<string>();
+                            var sIndexRows = sRows;
+                            if (sIndexRows is string[] sIndexArray)
+                                for (int sIndex = 0, sIndexCount = sIndexArray.Length; sIndex < sIndexCount; ++sIndex)
                                 {
                                     if ((sIndex & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var s = sChunk[sIndex];
+                                    string s = sIndexArray[sIndex];
                                     string value = s;
                                     if (Operators.RLikePrepared(value, __rlikeMatcher0))
                                     {
                                         __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
                                     }
+                                }
+                            else if (sIndexRows is List<string> sIndexConcreteList)
+                                for (int sIndex = 0, sIndexCount = sIndexConcreteList.Count; sIndex < sIndexCount; ++sIndex)
+                                {
+                                    if ((sIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    string s = sIndexConcreteList[sIndex];
+                                    string value = s;
+                                    if (Operators.RLikePrepared(value, __rlikeMatcher0))
+                                    {
+                                        __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
+                                    }
+                                }
+                            else
+                            {
+                                int sIndex = 0;
+                                foreach (var s in sIndexRows)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    string value = s;
+                                    if (Operators.RLikePrepared(value, __rlikeMatcher0))
+                                    {
+                                        __musoqFinalShapeRows.Add(new ResultRow0(i.Name, value));
+                                    }
+
+                                    ++sIndex;
                                 }
                             }
                         }

@@ -53,7 +53,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
-            "    SortShapeRows [result -> resultSorted by Count DESC; capacity: Candidate(resultSorted <- result.Count)]",
+            "    SortOwnedBuffer [result by Count DESC, stable sequence __musoqSequence]",
             "    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));

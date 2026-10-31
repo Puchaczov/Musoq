@@ -32,7 +32,7 @@ PhysicalMultiStatement
     PhysicalNestedLoopApply [Outer]
       PhysicalSchemaScan [#test.lines() as f]
       PhysicalInterpretSource [#KeyValue(f.Line) as t]
-  PhysicalProject [ft.f.Line as f.Line, ft.t.Key as t.Key, ft.t.Value as t.Value, p.ErrorField as p.ErrorField, p.ErrorMessage as p.ErrorMessage, p.BytesConsumed as p.BytesConsumed]
+  PhysicalProject [ft.t.Key as t.Key, ft.t.Value as t.Value, p.ErrorField as p.ErrorField, p.ErrorMessage as p.ErrorMessage, p.BytesConsumed as p.BytesConsumed]
     PhysicalNestedLoopApply [Cross]
       PhysicalCteRef [ft as ft]
       PhysicalInterpretSource [#KeyValue(ft.f.Line) as p]
@@ -258,17 +258,16 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                             var f = fChunkViewArray[fChunkViewOffset + fIndex];
                             string fLine = f.Line;
                             var _interpreter_KeyValue = new Musoq.Generated.Interpreters.KeyValue();
-                            var statement0_tRows = new Func<Musoq.Generated.Interpreters.KeyValue?>(() =>
+                            Musoq.Generated.Interpreters.KeyValue? statement0_tRows = null;
+                            try
                             {
-                                try
-                                {
-                                    return _interpreter_KeyValue.Parse(f.Line);
-                                }
-                                catch (global::Musoq.Schema.Interpreters.ParseException)
-                                {
-                                    return null;
-                                }
-                            })();
+                                statement0_tRows = _interpreter_KeyValue.Parse(f.Line);
+                            }
+                            catch (global::Musoq.Schema.Interpreters.ParseException)
+                            {
+                                statement0_tRows = null;
+                            }
+
                             bool tHasMatch = false;
                             if (statement0_tRows != null)
                             {
@@ -300,17 +299,16 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                             var f = fChunkViewList[fChunkViewOffset + fIndex];
                             string fLine = f.Line;
                             var _interpreter_KeyValue = new Musoq.Generated.Interpreters.KeyValue();
-                            var statement0_tRows = new Func<Musoq.Generated.Interpreters.KeyValue?>(() =>
+                            Musoq.Generated.Interpreters.KeyValue? statement0_tRows = null;
+                            try
                             {
-                                try
-                                {
-                                    return _interpreter_KeyValue.Parse(f.Line);
-                                }
-                                catch (global::Musoq.Schema.Interpreters.ParseException)
-                                {
-                                    return null;
-                                }
-                            })();
+                                statement0_tRows = _interpreter_KeyValue.Parse(f.Line);
+                            }
+                            catch (global::Musoq.Schema.Interpreters.ParseException)
+                            {
+                                statement0_tRows = null;
+                            }
+
                             bool tHasMatch = false;
                             if (statement0_tRows != null)
                             {
@@ -340,17 +338,16 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                     var f = fChunk[fIndex];
                     string fLine = f.Line;
                     var _interpreter_KeyValue = new Musoq.Generated.Interpreters.KeyValue();
-                    var statement0_tRows = new Func<Musoq.Generated.Interpreters.KeyValue?>(() =>
+                    Musoq.Generated.Interpreters.KeyValue? statement0_tRows = null;
+                    try
                     {
-                        try
-                        {
-                            return _interpreter_KeyValue.Parse(f.Line);
-                        }
-                        catch (global::Musoq.Schema.Interpreters.ParseException)
-                        {
-                            return null;
-                        }
-                    })();
+                        statement0_tRows = _interpreter_KeyValue.Parse(f.Line);
+                    }
+                    catch (global::Musoq.Schema.Interpreters.ParseException)
+                    {
+                        statement0_tRows = null;
+                    }
+
                     bool tHasMatch = false;
                     if (statement0_tRows != null)
                     {

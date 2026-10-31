@@ -40,7 +40,7 @@ PhysicalCte
         PhysicalSchemaScan [#graph.edges() as e]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [r.Id as r.Id, r.Depth as r.Depth, e.SourceId as e.SourceId, e.TargetId as e.TargetId]
+          PhysicalProject [r.Id as r.Id, r.Depth as r.Depth, e.TargetId as e.TargetId]
             PhysicalHashJoin [Inner] [build: e.SourceId] [probe: r.Id]
               PhysicalCteRef [reachable as r]
               PhysicalCteRef [__recursive_reachable_invariant_0 as e]
@@ -108,7 +108,7 @@ ExecutionPlan [compiled]
     ForEach [reachable in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: reachable.Id, Depth: reachable.Depth)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Id ASC]
+    SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -191,7 +191,6 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -480,23 +479,18 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                     }
 
                     Cte0Row0 reachable = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(reachable.Id, reachable.Depth));
+                    result.Add(new ResultShape0(reachable.Id, reachable.Depth) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -524,7 +518,6 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                     var _cteRowResults = new CteRowResults();
                     var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                    var __musoqFinalShapeRows = new List<ResultShape0>();
                     var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "PhaseBoundary") ?? OperatorProfileHandle.None;
@@ -551,7 +544,7 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                     var __op50Handle = profileRecorder?.GetOperatorHandle("op50", "ForEach") ?? OperatorProfileHandle.None;
                     var __op51Handle = profileRecorder?.GetOperatorHandle("op51", "AppendShape") ?? OperatorProfileHandle.None;
                     var __op52Handle = profileRecorder?.GetOperatorHandle("op52", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op53Handle = profileRecorder?.GetOperatorHandle("op53", "SortShapeRows") ?? OperatorProfileHandle.None;
+                    var __op53Handle = profileRecorder?.GetOperatorHandle("op53", "SortOwnedBuffer") ?? OperatorProfileHandle.None;
                     long __op31InputRows = 0L;
                     long __op31OutputRows = 0L;
                     long __op39OutputRows = 0L;
@@ -990,7 +983,7 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                             Cte0Row0 reachable = __storedTable0Rows[__storedTable0Index];
                             __op50InputRows++;
                             __op50OutputRows++;
-                            result.Add(new ResultShape0(reachable.Id, reachable.Depth));
+                            result.Add(new ResultShape0(reachable.Id, reachable.Depth) { __musoqSequence = result.Count });
                             __op51OutputRows += 1;
                         }
                     }
@@ -1006,19 +999,14 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                     __op52Scope.Dispose();
                     var __op53Scope = profileRecorder?.BeginOperatorValue(__op53Handle) ?? OperatorProfileValueScope.None;
                     __op53Scope.AddInputRows(result.Count);
-                    var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                    result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                     {
                         var comparison = left.Id.CompareTo(right.Id);
                         if (comparison != 0)
                             return comparison;
-                        return 0;
+                        return left.__musoqSequence.CompareTo(right.__musoqSequence);
                     }));
-                    foreach (var resultSortedRowsRow in resultSortedRows)
-                    {
-                        __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                    }
-
-                    __op53Scope.AddOutputRows(__musoqFinalShapeRows.Count);
+                    __op53Scope.AddOutputRows(result.Count);
                     __op53Scope.Dispose();
                     if (__op31InputRows > 0L)
                         profileRecorder?.AddOperatorInputRows(__op31Handle, __op31InputRows);
@@ -1038,7 +1026,7 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
                         profileRecorder?.AddOperatorOutputRows(__op44Handle, __op44OutputRows);
                     if (__op51OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op51Handle, __op51OutputRows);
-                    return __musoqFinalShapeRows;
+                    return result;
                 }
                 finally
                 {
@@ -1152,6 +1140,7 @@ namespace GeneratedSample_P12_RecursiveInvariantIndexedEdges_Full
 
             public int Depth { get; }
             public int Id { get; }
+            public int __musoqSequence { get; init; }
         }
     }
 }

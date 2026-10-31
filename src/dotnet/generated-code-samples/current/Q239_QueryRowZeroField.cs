@@ -16,7 +16,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [1 as 1, AggRef(r.Count(*)) as r.Count(*)]
+  PhysicalProject [AggRef(r.Count(*)) as r.Count(*)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(*)]
       PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=59E11789C84DE0D1692B9659AC357F88F42A5D6546AD03D5C432215D85D62406]
   PhysicalProject [r.Count(*) as Total]

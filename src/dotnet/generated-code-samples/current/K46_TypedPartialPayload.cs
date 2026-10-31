@@ -18,7 +18,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [s.Position as s.Position, s.Data as s.Data, p.ParsedFields as p.ParsedFields, p.ErrorField as p.ErrorField, p.BytesConsumed as p.BytesConsumed]
+  PhysicalProject [s.Position as s.Position, p.ParsedFields as p.ParsedFields, p.ErrorField as p.ErrorField, p.BytesConsumed as p.BytesConsumed]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#schema.first() as s]
       PhysicalInterpretSource [#Packet(s.Data) as p]
@@ -44,13 +44,11 @@ ExecutionPlan [compiled]
       BitOffset: int <- property BitOffset
     Generated [Statement0Row0]
       s.Position: int <- field s_Position
-      s.Data: byte[] <- field s_Data
       p.ParsedFields: object <- field p_ParsedFields
       p.ErrorField: string <- field p_ErrorField
       p.BytesConsumed: int <- field p_BytesConsumed
     TableRow [sp]
       s.Position: int <- field s_Position
-      s.Data: byte[] <- field s_Data
       p.ParsedFields: object <- field p_ParsedFields
       p.ErrorField: string <- field p_ErrorField
       p.BytesConsumed: int <- field p_BytesConsumed
@@ -70,12 +68,12 @@ ExecutionPlan [compiled]
       Let [sPosition: int = s.Position]
       InterpretSource [Packet.PartialInterpret(s.Data) -> statement0_pRows]
       ScalarForEach [p in statement0_pRows]
-        AppendRow [statement0 <- Statement0Row0(s.Position: sPosition, s.Data: s.Data, p.ParsedFields: p.ParsedFields, p.ErrorField: p.ErrorField, p.BytesConsumed: p.BytesConsumed)]
+        AppendRow [statement0 <- Statement0Row0(s.Position: sPosition, p.ParsedFields: p.ParsedFields, p.ErrorField: p.ErrorField, p.BytesConsumed: p.BytesConsumed)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [sp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Position: sp.s.Position, ParsedFields: sp.p.ParsedFields, ErrorField: sp.p.ErrorField, BytesConsumed: sp.p.BytesConsumed)]
-    SortShapeRows [result -> resultSorted by Position ASC]
+    SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -111,10 +109,9 @@ namespace GeneratedSample_K46_TypedPartialPayload
         private static readonly Column[] __columns_compiled_statement0_1 = new Column[]
         {
             new Column("s.Position", typeof(int), 0),
-            new Column("s.Data", typeof(byte[]), 1),
-            new Column("p.ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 2),
-            new Column("p.ErrorField", typeof(string), 3),
-            new Column("p.BytesConsumed", typeof(int), 4)
+            new Column("p.ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 1),
+            new Column("p.ErrorField", typeof(string), 2),
+            new Column("p.BytesConsumed", typeof(int), 3)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_s_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Data", typeof(byte[]), 1) });
         public ILogger Logger { get; set; }
@@ -154,7 +151,6 @@ namespace GeneratedSample_K46_TypedPartialPayload
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -169,22 +165,17 @@ namespace GeneratedSample_K46_TypedPartialPayload
                     }
 
                     Statement0Row0 sp = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(sp.s_Position, sp.p_ParsedFields, sp.p_ErrorField, sp.p_BytesConsumed));
+                    result.Add(new ResultShape0(sp.s_Position, sp.p_ParsedFields, sp.p_ErrorField, sp.p_BytesConsumed) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Position.CompareTo(right.Position);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -240,7 +231,7 @@ namespace GeneratedSample_K46_TypedPartialPayload
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields, p.ErrorField, p.BytesConsumed));
+                                statement0.Add(new Statement0Row0(sPosition, p.ParsedFields, p.ErrorField, p.BytesConsumed));
                             }
                         }
 
@@ -265,7 +256,7 @@ namespace GeneratedSample_K46_TypedPartialPayload
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = statement0_pRows;
-                                statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields, p.ErrorField, p.BytesConsumed));
+                                statement0.Add(new Statement0Row0(sPosition, p.ParsedFields, p.ErrorField, p.BytesConsumed));
                             }
                         }
 
@@ -288,7 +279,7 @@ namespace GeneratedSample_K46_TypedPartialPayload
                     {
                         token.ThrowIfCancellationRequested();
                         var p = statement0_pRows;
-                        statement0.Add(new Statement0Row0(sPosition, s.Data, p.ParsedFields, p.ErrorField, p.BytesConsumed));
+                        statement0.Add(new Statement0Row0(sPosition, p.ParsedFields, p.ErrorField, p.BytesConsumed));
                     }
                 }
             }
@@ -369,23 +360,22 @@ namespace GeneratedSample_K46_TypedPartialPayload
             public string ErrorField { get; }
             public Musoq.Generated.Interpreters.Packet ParsedFields { get; }
             public int Position { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(int __value0, byte[] __value1, Musoq.Generated.Interpreters.Packet __value2, string __value3, int __value4)
+            public Statement0Row0(int __value0, Musoq.Generated.Interpreters.Packet __value1, string __value2, int __value3)
             {
                 s_Position = __value0;
-                s_Data = __value1;
-                p_ParsedFields = __value2;
-                p_ErrorField = __value3;
-                p_BytesConsumed = __value4;
+                p_ParsedFields = __value1;
+                p_ErrorField = __value2;
+                p_BytesConsumed = __value3;
             }
 
             public int p_BytesConsumed { get; }
             public string p_ErrorField { get; }
             public Musoq.Generated.Interpreters.Packet p_ParsedFields { get; }
-            public byte[] s_Data { get; }
             public int s_Position { get; }
         }
     }

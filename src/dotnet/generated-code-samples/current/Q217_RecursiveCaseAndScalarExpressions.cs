@@ -90,7 +90,7 @@ ExecutionPlan [compiled]
     ForEach [labels in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Value: labels.Value, Depth: labels.Depth, Label: labels.Label)]
     PhaseBoundary [Select]
-    SortShapeRows [result -> resultSorted by Depth ASC]
+    SortOwnedBuffer [result by Depth ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
 
@@ -156,7 +156,6 @@ namespace GeneratedSample_Q217_RecursiveCaseAndScalarExpressions
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 try
@@ -248,23 +247,18 @@ namespace GeneratedSample_Q217_RecursiveCaseAndScalarExpressions
                     }
 
                     Cte0Row0 labels = __storedTable0Rows[__storedTable0Index];
-                    result.Add(new ResultShape0(labels.Value, labels.Depth, labels.Label));
+                    result.Add(new ResultShape0(labels.Value, labels.Depth, labels.Label) { __musoqSequence = result.Count });
                 }
 
                 OnPhaseChanged("compiled", QueryPhase.Select);
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Depth.CompareTo(right.Depth);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -370,6 +364,7 @@ namespace GeneratedSample_Q217_RecursiveCaseAndScalarExpressions
             public int Depth { get; }
             public string Label { get; }
             public int Value { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class seedValuesD6F9BDFERow0 : Row

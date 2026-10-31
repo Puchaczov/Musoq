@@ -53,15 +53,15 @@ PhysicalCte
         PhysicalSchemaScan [#A.entities() as gougbq]
   Query
     PhysicalMultiStatement
-      PhysicalProject [b.Name as b.Name, b.Id as b.Id, n.Id as n.Id, n.Name as n.Name]
+      PhysicalProject [b.Name as b.Name, b.Id as b.Id, n.Name as n.Name]
         PhysicalHashJoin [Inner] [build: n.Id] [probe: b.Id]
           PhysicalSchemaScan [#B.entities() as b]
           PhysicalCteRef [names as n]
-      PhysicalProject [bn.b.Name as b.Name, bn.b.Id as b.Id, bn.n.Id as n.Id, bn.n.Name as n.Name, c.Id as c.Id, c.City as c.City]
+      PhysicalProject [bn.b.Name as b.Name, bn.b.Id as b.Id, bn.n.Name as n.Name, c.City as c.City]
         PhysicalHashJoin [Inner] [build: c.Id] [probe: bn.b.Id]
           PhysicalCteRef [bn as bn]
           PhysicalCteRef [cities as c]
-      PhysicalProject [bnc.b.Name as b.Name, bnc.b.Id as b.Id, bnc.n.Id as n.Id, bnc.n.Name as n.Name, bnc.c.Id as c.Id, bnc.c.City as c.City, co.Id as Id, co.Country as Country]
+      PhysicalProject [bnc.b.Name as b.Name, bnc.n.Name as n.Name, bnc.c.City as c.City, co.Country as Country]
         PhysicalHashJoin [Inner] [build: co.Id] [probe: bnc.b.Id]
           PhysicalCteRef [bnc as bnc]
           PhysicalCteRef [countries as co]

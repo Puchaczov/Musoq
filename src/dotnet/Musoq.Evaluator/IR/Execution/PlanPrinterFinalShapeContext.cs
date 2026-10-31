@@ -14,7 +14,8 @@ public static partial class ExecutionPlanPrinter
             output.Result.TableName,
             output.Result.RowTypeName,
             output.RowTypeName,
-            output.SourceBuffers);
+            output.SourceBuffers,
+            output.OwnedBuffer);
     }
 
     private static bool TryGetFinalShapeContext(out FinalShapePrintContext context)

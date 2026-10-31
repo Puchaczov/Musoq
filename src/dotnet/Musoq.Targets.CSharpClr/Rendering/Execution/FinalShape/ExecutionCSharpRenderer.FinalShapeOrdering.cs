@@ -102,6 +102,17 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context,
         out List<StatementSyntax> statements)
     {
+        if (context.Session.FinalShapeYieldSink?.OwnedBuffer is { SequenceField: not null } owned &&
+            owned.SourceName == sort.Source.Name && IsFinalShapeTarget(sort.Target, context) &&
+            TryCreateFinalShapeComparerExpression(sort.Keys, context, out var ownedComparer))
+        {
+            statements = [SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(owned.SourceName), SyntaxFactory.IdentifierName("Sort")))
+                .WithArgumentList(CreateArgumentList(ownedComparer)))];
+            return true;
+        }
+
         if (TryGetFinalShapeSourceBuffer(sort.Target.Name, context, out _) &&
             TryGetFinalShapeSourceBuffer(sort.Source.Name, context, out _) &&
             TryCreateFinalShapeOrderedRowsExpression(sort.Source.Name, sort.Keys, context, out var bufferedRowsExpression))
@@ -421,7 +432,10 @@ public sealed partial class ExecutionCSharpRenderer
             AddOrderRecordComparisonStatements(body, index, key, sink.Fields[key.OutputIndex]);
         }
 
-        body.Add("        return 0;");
+        if (sink.OwnedBuffer?.SequenceField is { } sequence)
+            body.Add($"        return left.{sequence}.CompareTo(right.{sequence});");
+        else
+            body.Add("        return 0;");
         body.Add("})");
         comparer = SyntaxFactory.ParseExpression(string.Join(Environment.NewLine, body));
         return true;

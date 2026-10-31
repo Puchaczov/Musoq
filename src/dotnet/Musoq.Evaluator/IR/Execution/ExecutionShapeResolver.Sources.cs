@@ -125,7 +125,7 @@ public sealed partial class ExecutionShapeResolver
     {
         var elementType = ResolveEnumerableElementType(resultType);
         var scalarShape = IsScalar(elementType)
-            ? CreateDirectScalarSourceShapeOrNull(alias, elementType, columns)
+            ? CreateEnumerableScalarSourceShape(alias, elementType, columns)
             : null;
         if (scalarShape != null)
             return scalarShape;
@@ -134,5 +134,21 @@ public sealed partial class ExecutionShapeResolver
             return CreateSourceShape(alias, typeof(PrimitiveTypeEntity<>).MakeGenericType(elementType), columns);
 
         return CreateSourceShape(alias, elementType, columns);
+    }
+
+    private static SourceEntityShape? CreateEnumerableScalarSourceShape(
+        string alias, Type elementType, IReadOnlyList<ColumnSchema> columns)
+    {
+        var resolvedColumns = ResolveColumns(elementType, columns);
+        if (!CanUseSourceEntityShape(elementType) ||
+            !resolvedColumns.Any(static column => column.ColumnName == nameof(PrimitiveTypeEntity<int>.Value)) ||
+            resolvedColumns.Any(static column => column.ColumnName is not ("Value" or "Ordinal")))
+            return null;
+
+        var fields = CreateFieldBindings(alias, resolvedColumns,
+            static column => column.ColumnName == nameof(PrimitiveTypeEntity<int>.Value)
+                ? new DirectScalarValueAccess()
+                : new ClrPropertyAccess(column.ColumnName));
+        return new SourceEntityShape(alias, elementType, fields);
     }
 }

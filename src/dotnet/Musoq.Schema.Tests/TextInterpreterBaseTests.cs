@@ -16,7 +16,7 @@ public partial class TextInterpreterBaseTests
     /// <summary>
     ///     Test interpreter that exposes protected methods for testing.
     /// </summary>
-    private sealed class TestTextInterpreter : TextInterpreterBase<string>
+    private sealed partial class TestTextInterpreter : TextInterpreterBase<string>
     {
         public override string SchemaName => "TestSchema";
 

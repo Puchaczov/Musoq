@@ -20,7 +20,15 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.Argument(RenderRowConstructorValue(value.Value, targetType, context));
         });
 
-        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(shapeTypeName))
+        var creation = SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(shapeTypeName))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
+        var owned = context.Session.FinalShapeYieldSink?.OwnedBuffer;
+        if (owned?.SequenceField == null || owned.SourceName != appendRow.Table.Name)
+            return creation;
+        return creation.WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression,
+            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression, SyntaxFactory.IdentifierName(owned.SequenceField),
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(owned.SourceName), SyntaxFactory.IdentifierName("Count"))))));
     }
 }

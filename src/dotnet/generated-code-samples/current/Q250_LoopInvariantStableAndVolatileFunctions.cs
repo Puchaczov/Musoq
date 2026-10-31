@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.Value as a.Value, a.Middles as a.Middles, b.Value as b.Value]
+  PhysicalProject [a.Value as a.Value, b.Value as b.Value]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#licm.outers() as a]
       PhysicalPropertySource [a.Middles as b] [apply: Cross] [type: LoopInvariantSampleMiddle[]]

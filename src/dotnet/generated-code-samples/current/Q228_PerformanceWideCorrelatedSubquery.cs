@@ -77,7 +77,7 @@ PhysicalCte
         PhysicalCteRef [bScore as bScore]
   Query
     PhysicalMultiStatement
-      PhysicalProject [a.Name as a.Name, a.City as a.City, a.Country as a.Country, a.Population as a.Population, a.Money as a.Money, a.Month as a.Month, a.Id as a.Id, a.NullableValue as a.NullableValue, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1 as _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2 as _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3 as _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4 as _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5 as _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6 as _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7 as _sq_1._sq_1_corr_7, _sq_1._sq_1_value as _sq_1._sq_1_value]
+      PhysicalProject [a.Name as a.Name, a.City as a.City, a.Country as a.Country, a.Population as a.Population, a.Money as a.Money, a.Month as a.Month, a.Id as a.Id, a.NullableValue as a.NullableValue, _sq_1._sq_1_value as _sq_1._sq_1_value]
         PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7] [probe: a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
@@ -144,14 +144,6 @@ ExecutionPlan [compiled]
       a.Month: string <- field a_Month
       a.Id: int <- field a_Id
       a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
-      _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
-      _sq_1._sq_1_corr_3: decimal? <- field _sq_1__sq_1_corr_3
-      _sq_1._sq_1_corr_4: string <- field _sq_1__sq_1_corr_4
-      _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
-      _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
-      _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
       _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     TableRow [a_sq_1]
       a.Name: string <- field a_Name
@@ -162,14 +154,6 @@ ExecutionPlan [compiled]
       a.Month: string <- field a_Month
       a.Id: int <- field a_Id
       a.NullableValue: int? <- field a_NullableValue
-      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_corr_1: string <- field _sq_1__sq_1_corr_1
-      _sq_1._sq_1_corr_2: string <- field _sq_1__sq_1_corr_2
-      _sq_1._sq_1_corr_3: decimal? <- field _sq_1__sq_1_corr_3
-      _sq_1._sq_1_corr_4: string <- field _sq_1__sq_1_corr_4
-      _sq_1._sq_1_corr_5: decimal? <- field _sq_1__sq_1_corr_5
-      _sq_1._sq_1_corr_6: int? <- field _sq_1__sq_1_corr_6
-      _sq_1._sq_1_corr_7: int? <- field _sq_1__sq_1_corr_7
       _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     Generated [ResultRow0]
       Name: string <- field Name
@@ -209,9 +193,9 @@ ExecutionPlan [compiled]
       HashProbe [statement0_sq_1Hash[(a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue)] -> statement0_sq_1HashMatches] [match: statement0_sq_1HashHasMatch]
         ForEach [_sq_1 in statement0_sq_1HashMatches]
           Assign [statement0_sq_1HashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: _sq_1._sq_1_corr_7, _sq_1._sq_1_value: _sq_1._sq_1_value)]
+          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_value: _sq_1._sq_1_value)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_corr_1: NULL, _sq_1._sq_1_corr_2: NULL, _sq_1._sq_1_corr_3: NULL, _sq_1._sq_1_corr_4: NULL, _sq_1._sq_1_corr_5: NULL, _sq_1._sq_1_corr_6: NULL, _sq_1._sq_1_corr_7: NULL, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
+        AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
     StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
     PhaseBoundary [End:cte1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -225,7 +209,7 @@ ExecutionPlan [compiled]
       Let [a_Id: int = a_sq_1.a.Id]
       Let [a_NullableValue: int? = a_sq_1.a.NullableValue]
       AppendShape [result <- ResultShape0(Name: a_Name, ExistsResult: CASE WHEN ApplyExists[Subquery0](a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue) THEN 'Y' ELSE 'N' END, NotExistsResult: CASE WHEN NOT ApplyExists[Subquery1](a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue) THEN 'Y' ELSE 'N' END, Lookup: __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value))]
-    SortShapeRows [result -> resultSorted by Name ASC]
+    SortOwnedBuffer [result by Name ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 
   Subquery
@@ -341,15 +325,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             new Column("a.Month", typeof(string), 5),
             new Column("a.Id", typeof(int), 6),
             new Column("a.NullableValue", typeof(int?), 7),
-            new Column("_sq_1._sq_1_corr_0", typeof(string), 8),
-            new Column("_sq_1._sq_1_corr_1", typeof(string), 9),
-            new Column("_sq_1._sq_1_corr_2", typeof(string), 10),
-            new Column("_sq_1._sq_1_corr_3", typeof(decimal?), 11),
-            new Column("_sq_1._sq_1_corr_4", typeof(string), 12),
-            new Column("_sq_1._sq_1_corr_5", typeof(decimal?), 13),
-            new Column("_sq_1._sq_1_corr_6", typeof(int?), 14),
-            new Column("_sq_1._sq_1_corr_7", typeof(int?), 15),
-            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 16)
+            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 8)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Subquery0_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Id", typeof(int), 6), new Column("NullableValue", typeof(int?), 7) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Subquery1_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Id", typeof(int), 6), new Column("NullableValue", typeof(int?), 7) });
@@ -389,7 +365,6 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.Select);
@@ -413,22 +388,17 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                     decimal a_Money = a_sq_1.a_Money;
                     int a_Id = a_sq_1.a_Id;
                     int? a_NullableValue = a_sq_1.a_NullableValue;
-                    result.Add(new ResultShape0(a_Name, global::Musoq.Evaluator.Runtime.SubqueryExecution.Exists<Subquery0ResultRow0>(__ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue), token) ? (string)"Y" : (string)"N", (!global::Musoq.Evaluator.Runtime.SubqueryExecution.Exists<Subquery1ResultRow0>(__ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue), token)) ? (string)"Y" : (string)"N", (string)Musoq.Plugins.CorrelatedScalarSubqueryResultExtractor.GetValue(a_sq_1._sq_1__sq_1_value)));
+                    result.Add(new ResultShape0(a_Name, global::Musoq.Evaluator.Runtime.SubqueryExecution.Exists<Subquery0ResultRow0>(__ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue), token) ? (string)"Y" : (string)"N", (!global::Musoq.Evaluator.Runtime.SubqueryExecution.Exists<Subquery1ResultRow0>(__ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue), token)) ? (string)"Y" : (string)"N", (string)Musoq.Plugins.CorrelatedScalarSubqueryResultExtractor.GetValue(a_sq_1._sq_1__sq_1_value)) { __musoqSequence = result.Count });
                 }
 
-                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                result.Sort(Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = StringComparer.Ordinal.Compare(left.Name, right.Name);
                     if (comparison != 0)
                         return comparison;
-                    return 0;
+                    return left.__musoqSequence.CompareTo(right.__musoqSequence);
                 }));
-                foreach (var resultSortedRowsRow in resultSortedRows)
-                {
-                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
-                }
-
-                return __musoqFinalShapeRows;
+                return result;
             }
             finally
             {
@@ -662,13 +632,13 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                     {
                                         token.ThrowIfCancellationRequested();
                                         statement0_sq_1HashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7, _sq_1._sq_1_value));
+                                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_value));
                                     }
                                 }
 
                                 if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, statement0_sq_1HashEmptyValue));
+                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, statement0_sq_1HashEmptyValue));
                                 }
                             }
 
@@ -702,13 +672,13 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                     {
                                         token.ThrowIfCancellationRequested();
                                         statement0_sq_1HashHasMatch = true;
-                                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7, _sq_1._sq_1_value));
+                                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_value));
                                     }
                                 }
 
                                 if (!statement0_sq_1HashHasMatch)
                                 {
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, statement0_sq_1HashEmptyValue));
+                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, statement0_sq_1HashEmptyValue));
                                 }
                             }
 
@@ -740,13 +710,13 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             {
                                 token.ThrowIfCancellationRequested();
                                 statement0_sq_1HashHasMatch = true;
-                                statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7, _sq_1._sq_1_value));
+                                statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_value));
                             }
                         }
 
                         if (!statement0_sq_1HashHasMatch)
                         {
-                            statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, statement0_sq_1HashEmptyValue));
+                            statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, statement0_sq_1HashEmptyValue));
                         }
                     }
                 }
@@ -1264,11 +1234,12 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             public string Lookup { get; }
             public string Name { get; }
             public string NotExistsResult { get; }
+            public int __musoqSequence { get; init; }
         }
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1, string __value2, decimal __value3, decimal __value4, string __value5, int __value6, int? __value7, string __value8, string __value9, string __value10, decimal? __value11, string __value12, decimal? __value13, int? __value14, int? __value15, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value16)
+            public Statement0Row0(string __value0, string __value1, string __value2, decimal __value3, decimal __value4, string __value5, int __value6, int? __value7, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value8)
             {
                 a_Name = __value0;
                 a_City = __value1;
@@ -1278,25 +1249,9 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 a_Month = __value5;
                 a_Id = __value6;
                 a_NullableValue = __value7;
-                _sq_1__sq_1_corr_0 = __value8;
-                _sq_1__sq_1_corr_1 = __value9;
-                _sq_1__sq_1_corr_2 = __value10;
-                _sq_1__sq_1_corr_3 = __value11;
-                _sq_1__sq_1_corr_4 = __value12;
-                _sq_1__sq_1_corr_5 = __value13;
-                _sq_1__sq_1_corr_6 = __value14;
-                _sq_1__sq_1_corr_7 = __value15;
-                _sq_1__sq_1_value = __value16;
+                _sq_1__sq_1_value = __value8;
             }
 
-            public string _sq_1__sq_1_corr_0 { get; }
-            public string _sq_1__sq_1_corr_1 { get; }
-            public string _sq_1__sq_1_corr_2 { get; }
-            public decimal? _sq_1__sq_1_corr_3 { get; }
-            public string _sq_1__sq_1_corr_4 { get; }
-            public decimal? _sq_1__sq_1_corr_5 { get; }
-            public int? _sq_1__sq_1_corr_6 { get; }
-            public int? _sq_1__sq_1_corr_7 { get; }
             public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1__sq_1_value { get; }
             public string a_City { get; }
             public string a_Country { get; }

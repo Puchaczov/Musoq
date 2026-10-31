@@ -12,8 +12,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         AddChainedApplyLateMaterializationFailures(ChainedApplyWindowSampleFileName, content, failures);
 
-        if (!content.Contains("EvaluationHelper.ConvertEnumerableOutputToChunks<int>", StringComparison.Ordinal))
-            failures.Add($"{ChainedApplyWindowSampleFileName}: missing direct scalar chunk conversion");
+        if (!content.Contains("Array.Empty<int>()", StringComparison.Ordinal))
+            failures.Add($"{ChainedApplyWindowSampleFileName}: missing direct scalar enumerable binding");
 
         if (content.Contains("EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>", StringComparison.Ordinal))
             failures.Add($"{ChainedApplyWindowSampleFileName}: scalar enumerable still allocates PrimitiveTypeEntity wrappers");
@@ -139,7 +139,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (content.Contains("AggregateGroup : Group", StringComparison.Ordinal))
             failures.Add($"{fileName}: distinct aggregate group still inherits legacy Group");
 
-        if (!content.Contains("resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create", StringComparison.Ordinal))
+        if (!content.Contains("result.Sort(Comparer<ResultShape0>.Create", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing post-aggregate sort");
 
         if (content.Contains("_tableResults[0] = statement0", StringComparison.Ordinal))
@@ -205,10 +205,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (content.Contains("apply_0_i_n_mTable.AddDirect", StringComparison.Ordinal))
             failures.Add($"{fileName}: still appends final chained-apply window rows through Table.AddDirect");
 
-        if (!content.Contains("foreach (var nChunk in apply_0_i_n_mTable_nRows)", StringComparison.Ordinal) ||
-            !content.Contains("foreach (var mChunk in apply_0_i_n_mTable_mRows)", StringComparison.Ordinal) ||
-            !content.Contains("var n = nChunk[nIndex];", StringComparison.Ordinal) ||
-            !content.Contains("var m = mChunk[mIndex];", StringComparison.Ordinal))
+        if (!content.Contains("int n = nIndexArray[nIndex];", StringComparison.Ordinal) ||
+            !content.Contains("int m = mIndexArray[mIndex];", StringComparison.Ordinal))
         {
             failures.Add($"{fileName}: missing nested direct apply loops");
         }
@@ -236,10 +234,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (content.Contains("foreach (var apply_0_i_n_m in apply_0_i_n_mTable.Rows)", StringComparison.Ordinal))
             failures.Add($"{fileName}: still aggregates by scanning the final chained-apply table");
 
-        if (!content.Contains("foreach (var nChunk in ", StringComparison.Ordinal) ||
-            !content.Contains("foreach (var mChunk in ", StringComparison.Ordinal) ||
-            !content.Contains("var n = nChunk[nIndex];", StringComparison.Ordinal) ||
-            !content.Contains("var m = mChunk[mIndex];", StringComparison.Ordinal))
+        if (!content.Contains("int n = nIndexArray[nIndex];", StringComparison.Ordinal) ||
+            !content.Contains("int m = mIndexArray[mIndex];", StringComparison.Ordinal))
         {
             failures.Add($"{fileName}: missing direct nested apply loops");
         }

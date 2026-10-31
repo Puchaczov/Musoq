@@ -40,7 +40,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("new Column(\"City\", typeof(string), 0)", single);
         Assert.Contains("new Column(\"Jan\", typeof(decimal?), 1)", single);
         Assert.Contains("new Column(\"Feb\", typeof(decimal?), 2)", single);
-        Assert.Contains("SortShapeRows [result -> resultSorted by City ASC]", single);
+        Assert.Contains("SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]", single);
 
         Assert.Contains("new Column(\"Jan_Sales\", typeof(decimal?), 1)", multiple);
         Assert.Contains("new Column(\"Jan_Orders\", typeof(long), 2)", multiple);

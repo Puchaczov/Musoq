@@ -132,7 +132,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(3, CountOccurrences(combined, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population)"));
         Assert.Contains("finalGroup.__agg1.Count > 1", combined);
         Assert.Contains("result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count", combined);
-        Assert.Contains("__musoqFinalShapeRows.Add(resultSortedRowsRow);", combined);
+        Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", combined);
+        Assert.Contains("return result;", combined);
     }
 
     private static System.Collections.Generic.IReadOnlyDictionary<string, string> ReadRuntimeV2CastGroupingFeatureSamples()

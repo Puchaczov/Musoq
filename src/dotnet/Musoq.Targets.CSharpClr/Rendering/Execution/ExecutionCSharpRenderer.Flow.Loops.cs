@@ -13,6 +13,16 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var session = context.Session;
+        if (forEach.Source is ExecutionRowStream
+            { Kind: ExecutionRowStreamKind.Rows, HasDirectScalarElements: true, IsValueEnumerable: false })
+        {
+            var ordinal = new ExecutionVariable(CreateIdentifierCandidate($"{forEach.Item.Name}Index", 0), typeof(int));
+            foreach (var statement in RenderForEachWithOrdinality(
+                         new ExecutionForEachWithOrdinality(forEach.Item, forEach.Source, ordinal, forEach.Body), context))
+                yield return statement;
+            yield break;
+        }
+
         if (TryCreateStoredGeneratedRowsIndexedLoop(forEach, context, out var storedGeneratedRowsLoop))
         {
             foreach (var statement in storedGeneratedRowsLoop)
@@ -43,6 +53,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var rowsVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}Rows", 0);
         var listVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}List", 0);
+        var arrayVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}Array", 0);
+        var concreteListVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}ConcreteList", 0);
         var itemType = CreateVariableTypeSyntax(forEach.Item);
 
         yield return CreateLocalDeclaration(
@@ -50,27 +62,51 @@ public sealed partial class ExecutionCSharpRenderer
             rowsVariableName,
             RenderExpression(forEach.Source, context));
 
-        yield return StatementEmitter.CreateIf(
+        if (forEach.Source is ExecutionRowStream { IsValueEnumerable: true })
+        {
+            yield return RenderOrdinalityForeachLoop(forEach, rowsVariableName, context);
+            yield break;
+        }
+
+        if (forEach.Source is not ExecutionRowStream { HasDirectScalarElements: true })
+        {
+            yield return StatementEmitter.CreateIf(
             SyntaxFactory.IsPatternExpression(
                 SyntaxFactory.IdentifierName(rowsVariableName),
                 SyntaxFactory.DeclarationPattern(
                     SyntaxFactory.ParseTypeName($"IReadOnlyList<{itemType}>"),
                     SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(listVariableName)))),
-            RenderOrdinalityIndexedLoop(forEach, listVariableName, itemType, context),
+            RenderOrdinalityIndexedLoop(forEach, listVariableName, context),
             RenderOrdinalityForeachLoop(forEach, rowsVariableName, context));
+            yield break;
+        }
+
+        var fallback = RenderOrdinalityForeachLoop(forEach, rowsVariableName, context);
+
+        var concreteList = StatementEmitter.CreateIf(
+            SyntaxFactory.IsPatternExpression(SyntaxFactory.IdentifierName(rowsVariableName),
+                SyntaxFactory.DeclarationPattern(SyntaxFactory.ParseTypeName($"List<{itemType}>"),
+                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(concreteListVariableName)))),
+            RenderOrdinalityIndexedLoop(forEach, concreteListVariableName, context), fallback);
+
+        yield return StatementEmitter.CreateIf(
+            SyntaxFactory.IsPatternExpression(SyntaxFactory.IdentifierName(rowsVariableName),
+                SyntaxFactory.DeclarationPattern(SyntaxFactory.ParseTypeName($"{itemType}[]"),
+                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(arrayVariableName)))),
+            RenderOrdinalityIndexedLoop(forEach, arrayVariableName, context, "Length"), concreteList);
     }
 
     private ForStatementSyntax RenderOrdinalityIndexedLoop(
         ExecutionForEachWithOrdinality forEach,
         string listVariableName,
-        TypeSyntax itemType,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context,
+        string countMember = "Count")
     {
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>
         {
             CreateLocalDeclaration(
-                itemType,
+                CreateVariableTypeSyntax(forEach.Item),
                 forEach.Item.Name,
                 CreateElementAccess(
                     SyntaxFactory.IdentifierName(listVariableName),
@@ -84,20 +120,28 @@ public sealed partial class ExecutionCSharpRenderer
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
         bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
-        return StatementEmitter.CreateForLoop(
-            forEach.Ordinal.Name,
-            0,
-            SyntaxFactory.BinaryExpression(
+        var count = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName(listVariableName), SyntaxFactory.IdentifierName(countMember));
+        var declaration = SyntaxFactory.VariableDeclaration(CreateTypeSyntax(typeof(int)))
+            .AddVariables(SyntaxFactory.VariableDeclarator(forEach.Ordinal.Name)
+                .WithInitializer(SyntaxFactory.EqualsValueClause(CreateIntLiteral(0))));
+        ExpressionSyntax bound = count;
+        if (forEach.Source is ExecutionRowStream { HasDirectScalarElements: true })
+        {
+            var countVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}Count", 0);
+            declaration = declaration.AddVariables(SyntaxFactory.VariableDeclarator(countVariableName)
+                .WithInitializer(SyntaxFactory.EqualsValueClause(count)));
+            bound = SyntaxFactory.IdentifierName(countVariableName);
+        }
+        return SyntaxFactory.ForStatement(StatementEmitter.CreateBlock(bodyStatements))
+            .WithDeclaration(declaration)
+            .WithCondition(SyntaxFactory.BinaryExpression(
                 SyntaxKind.LessThanExpression,
                 SyntaxFactory.IdentifierName(forEach.Ordinal.Name),
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(listVariableName),
-                    SyntaxFactory.IdentifierName("Count"))),
-            SyntaxFactory.PrefixUnaryExpression(
+                bound))
+            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(forEach.Ordinal.Name)),
-            StatementEmitter.CreateBlock(bodyStatements));
+                SyntaxFactory.IdentifierName(forEach.Ordinal.Name))));
     }
 
     private StatementSyntax RenderOrdinalityForeachLoop(
@@ -107,7 +151,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
-        if (session.EmitChunkLoopCancellationChecks && !session.SkipInitialLoopCancellationCheck)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
