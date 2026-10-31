@@ -178,13 +178,11 @@ node/helper coverage matched the previous traversal; incidental runtime array
 wrappers and source-span types are not declarations. These measurements describe
 this verification corpus, not production formatting throughput or peak memory.
 
-The package has its own `MusoqFormatterVersion`, initially matching Parser.
-Release tooling verifies package/symbol contents and runs a private consumer
-whose complete package closure is Formatter plus Parser. Available candidate DLL hashes
-are checked against the archives; a formatter-only release may instead consume
-its versioned published Parser dependency. Full release checks run it separately from
-the existing execution consumer and a Parser-only forwarding-lexer consumer,
-each in its own temporary directory and package cache. See the [release guide](releasing.md#formatter-package-qualification).
+The package has its own `MusoqFormatterVersion`, aligned with Parser for this
+release train. Its production package dependency is Parser; Roslyn remains
+private to the test project. CI runs the ordinary formatter/parser tests,
+release-tooling checks, and package creation. See the
+[release guide](releasing.md#formatter-package-qualification).
 
 Focused checks:
 
