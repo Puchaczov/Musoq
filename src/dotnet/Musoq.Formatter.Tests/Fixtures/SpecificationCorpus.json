@@ -1,0 +1,1174 @@
+[
+  {
+    "id": "musoq-core-language-spec.md:1",
+    "source": "select [case], [order], [Column With Spaces] from values { ([case]: 'item', [order]: 1, [Column With Spaces]: 'value') } names\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:2",
+    "source": "-- This is a line comment (everything after -- to end of line)\n\n/* This is a\n   block comment\n   spanning multiple lines */\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:3",
+    "source": "select 'Hello, World!' from values { (Seed: 0) } seed\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:8",
+    "source": "select '{', '}', '[', ']', '(', ')' from values { (Seed: 0) } seed\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:15",
+    "source": "select null from values { (Seed: 0) } seed\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:20",
+    "source": "-- If outer apply produces no match, b.Population becomes decimal? (nullable)\nselect a.Name, b.Population\nfrom schema.records() a\nouter apply schema.byCountry(a.Country) b\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:23",
+    "source": "enum JobStatus : int {\n    Queued = 10,\n    Running = 20,\n    Finished = 30\n};\n\nflags enum FileAccess : uint {\n    None = 0ui,\n    Read = 1ui,\n    Write = 2ui,\n    ReadWrite = 3ui\n};\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:25",
+    "source": "table MyTable { Name: string };\ncouple schema.records with table MyTable as Source;\nselect Name from Source();\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:26",
+    "source": "param(author: string, minStars: int = 10)\nselect Name, Stars\nfrom values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects\nwhere Author = $author and Stars >= $minStars\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:29",
+    "source": "param(createdAt: datetime = '2024-01-02T03:04:05', country: string, minPopulation: int = 1000000, since: datetime? = null)\n\nselect City\nfrom values { (Id: 1, Name: 'WARSAW', City: 'WARSAW', Country: 'Poland', Population: 1800000, CreatedAt: $createdAt), (Id: 2, Name: 'BERLIN', City: 'BERLIN', Country: 'Germany', Population: 3700000, CreatedAt: $createdAt) } cities\nwhere Country = $country\n  and Population >= $minPopulation\n  and ($since is null or CreatedAt >= $since)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:30",
+    "source": "params(author: string)\nselect Name, Stars\nfrom values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects\nwhere Author = $author\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:31",
+    "source": "param(createdAt: datetime = '2024-01-02T03:04:05', ids: int[])\nselect Name\nfrom values { (Id: 1, Name: 'WARSAW', City: 'WARSAW', Country: 'Poland', Population: 1800000, CreatedAt: $createdAt), (Id: 2, Name: 'BERLIN', City: 'BERLIN', Country: 'Germany', Population: 3700000, CreatedAt: $createdAt) } cities\nwhere Id in $ids\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:33",
+    "source": "param(\n    flag: bool = true,\n    code: char = 'x',\n    limit: int? = null,\n    id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985',\n    created: datetime = '2024-01-02T03:04:05'\n)\nselect $flag, $code, $limit, $id, $created from values { (Seed: 0) } seed\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:34",
+    "source": "param(minStars: int)\nselect Name\nfrom values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects\nwhere Stars >= $minStars\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:35",
+    "source": "-- INVALID: string parameters do not implicitly become numeric operands.\nparam(minStars: string)\nselect Name\nfrom values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects\nwhere Stars >= $minStars\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:36",
+    "source": "param(minStarsText: string)\nselect Name\nfrom values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects\nwhere Stars >= $minStarsText::Int32\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:37",
+    "source": "param(root: string = 'repo')\nselect Name from schema.files($root + '/src')\n\n-- Also valid without a default when metadata does not depend on the path.\nparam(root: string)\nselect Name from schema.files($root + '/src')\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:40",
+    "source": "let topic: string = 'important'\nlet minimumStars: int = 10 + 5\n\nselect Name, Stars\nfrom values { (Name: 'Compiler', Author: 'Ada', Stars: 20, Description: 'important package'), (Name: 'Parser', Author: 'Bob', Stars: 5, Description: 'small package') } projects\nwhere Description like '%' + $topic + '%'\n    and Stars >= $minimumStars\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:41",
+    "source": "let name: type = initializer\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:42",
+    "source": "let root: string = 'repo'\nlet sourcePath: string = $root + '/src'\nlet maxRows: int = 100 * 2\nlet hasLimit: bool = $maxRows > 0\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:43",
+    "source": "param(root: string = 'repo')\n\n-- invalid: runtime parameter used in a compile-time variable initializer\nlet sourcePath: string = $root + '/src'\n\n-- invalid: forward reference\nlet laterCopy: int = $later\nlet later: int = 1\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:44",
+    "source": "let root: string = 'repo'\nselect Name from schema.files($root + '/src')\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:45",
+    "source": "select p.Id\nfrom values { (Id: 'todo'), (Id: 'fixme'), } p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:46",
+    "source": "let patterns = array {\n    (Id: 'todo', Pattern: 'TODO'),\n    (Pattern: 'FIXME', Id: 'fixme'),\n};\n\nselect m.PatternId\nfrom schema.match('TODO FIXME', patterns: $patterns) m\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:51",
+    "source": "with p as (\n    select a.City as [a.City] from values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a\n)\nselect [a.City] from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:55",
+    "source": "with p as (select City, Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows)\nselect * from p       -- expands to City, Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:56",
+    "source": "with p as (select a.* from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a)\nselect City, Country from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:61",
+    "source": "select * like '%o%' exclude (Country) replace (Population * 3 as Population) rename (Population as Population3x) from values {\n    (Country: 'Poland', Population: 100d),\n    (Country: 'Germany', Population: 200d),\n    (Country: 'Poland', Population: 200d),\n    (Country: 'Germany', Population: 400d)\n} a\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:63",
+    "source": "select distinct ToLower(Country) from values {\n    (Country: 'Poland'),\n    (Country: 'Germany'),\n    (Country: 'Poland'),\n    (Country: 'Germany')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:64",
+    "source": "select RowNumber(), Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:65",
+    "source": "select Country, RowNumber() from values { (Country: 'Poland'), (Country: 'Germany') } countries order by Country\n-- Rows are sorted alphabetically, then numbered 1, 2, 3, ...\n-- Germany → 1, Poland → 2 (sorted order determines numbering)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:66",
+    "source": "select Country, RowNumber() from values { (Country: 'Poland'), (Country: 'Germany') } countries order by Country skip 1\n-- Full result: Germany=1, Poland=2; after SKIP 1: Poland=2 (number preserved)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:67",
+    "source": "select Country, RowNumber() from values { (Country: 'Poland'), (Country: 'Germany') } countries where Country = 'Poland'\n-- Returns rows numbered 1, 2, ... (only matching rows counted)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:69",
+    "source": "select * from schema.arguments(1, 2d, true, false, 'text')\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:73",
+    "source": "select a.Name, b.City\nfrom schema.records() a\ninner join schema.byCountry() b on a.Id = b.Id\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:74",
+    "source": "select a1.Name, item.Value\nfrom schema.collections() a1\ncross apply a1.Column item\ntake 10\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:76",
+    "source": "select [take].Name, [where].Name\nfrom schema.records() [take]\ncross apply [take].Children [where]\ntake 10\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:78",
+    "source": "with cte as (select City, Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows)\nselect * from cte\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:79",
+    "source": "with cte as (select City from values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} rows)\nselect p.City from cte p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:81",
+    "source": "with source as (select City from values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a)\nselect source.City, rightSide.City\nfrom source\ncross join values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'HAMBURG'),\n    (City: 'ROME')\n} rightSide\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:83",
+    "source": "-- INVALID: plain JOIN derived tables are independent\nselect a.City, d.City\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\ninner join (\n    select b.City\n    from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'HAMBURG', Country: 'Germany'),\n    (City: 'ROME', Country: 'Italy')\n} b\n    where b.Country = a.Country\n) d on 1 = 1\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:84",
+    "source": "from values {\n    (Name: 'Newtonsoft.Json', Approved: true, Score: 10ui),\n    (Name: 'Legacy.Package', Approved: false, Score: 20ui)\n} packages\nselect packages.Name, packages.Score\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:85",
+    "source": "param(defaultScore: int)\nlet boost: int = 5\n\nfrom values {\n    (Name: 'Pinned', Score: $defaultScore + $boost),\n    (Name: 'Fallback', Score: 0)\n} packages\nselect packages.Name, packages.Score\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:86",
+    "source": "with policy as (\n    from values {\n        (Name: 'Newtonsoft.Json', Approved: true),\n        (Name: 'Legacy.Package', Approved: false)\n    } p\n    select p.Name, p.Approved\n)\nselect leftPolicy.Name\nfrom policy leftPolicy\ninner join policy rightPolicy on leftPolicy.Name = rightPolicy.Name\nwhere rightPolicy.Approved = false\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:93",
+    "source": "select a.Name, b.Name\nfrom values {\n    (Name: 'Ada', OptionalCode: 7),\n    (Name: 'Bob', OptionalCode: null),\n    (Name: 'Cara', OptionalCode: 7),\n    (Name: 'Dan', OptionalCode: 9)\n} a\ninner join values {\n    (Name: 'Eve', OptionalCode: 7),\n    (Name: 'Finn', OptionalCode: null),\n    (Name: 'Gia', OptionalCode: 7),\n    (Name: 'Hugo', OptionalCode: 9)\n} b on a.OptionalCode is not distinct from b.OptionalCode\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:101",
+    "source": "param(ids: int[])\nselect Name\nfrom values {\n    (Id: 1, Name: 'Ada'),\n    (Id: 2, Name: 'Bob'),\n    (Id: 3, Name: 'Cara'),\n    (Id: 4, Name: 'Dan')\n} rows\nwhere Id in $ids\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:103",
+    "source": "-- ERROR: MQ3049 — subquery returns two columns\nselect a.City from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\nwhere a.City in (select b.City, b.Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'HAMBURG', Country: 'Germany'),\n    (City: 'ROME', Country: 'Italy')\n} b)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:106",
+    "source": "select a.City\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\nwhere a.City in (\n    select b.City\n    from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'HAMBURG', Country: 'Germany'),\n    (City: 'ROME', Country: 'Italy')\n} b\n    where b.Country = a.Country\n)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:108",
+    "source": "select a.City,\n       (select b.City\n        from values { (City: 'WARSAW', Country: 'Poland'), (City: 'BERLIN', Country: 'Germany') } b\n        where b.Country = a.Country) as MatchCity\nfrom values { (City: 'KRAKOW', Country: 'Poland'), (City: 'MUNICH', Country: 'Germany') } a\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:112",
+    "source": "select a.City, b.Population\nfrom values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} a\ninner join values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'HAMBURG', Population: 200d),\n    (City: 'ROME', Population: 400d)\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:114",
+    "source": "select a.City, b.Population\nfrom values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} a\nleft join values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'HAMBURG', Population: 200d),\n    (City: 'ROME', Population: 400d)\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:115",
+    "source": "select a.City, b.Population\nfrom values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} a\nright join values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'HAMBURG', Population: 200d),\n    (City: 'ROME', Population: 400d)\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:116",
+    "source": "select a.City, b.Population\nfrom values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} a\nfull outer join values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'HAMBURG', Population: 200d),\n    (City: 'ROME', Population: 400d)\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:117",
+    "source": "select\n    case\n        when b is missing then 'Added'\n        when a is missing then 'Removed'\n        when b.Hash <> a.Hash then 'Changed'\n        else 'Unchanged'\n    end as State\nfrom values {\n    (RelativePath: 'a.txt', Hash: 'new'),\n    (RelativePath: 'b.txt', Hash: 'same'),\n    (RelativePath: 'c.txt', Hash: 'third'),\n    (RelativePath: 'd.txt', Hash: 'fourth')\n} a\nfull outer join values {\n    (RelativePath: 'a.txt', Hash: 'old'),\n    (RelativePath: 'b.txt', Hash: 'same'),\n    (RelativePath: 'c.txt', Hash: 'third'),\n    (RelativePath: 'd.txt', Hash: 'fourth')\n} b on a.RelativePath = b.RelativePath\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:118",
+    "source": "select a.City\nfrom values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a\nsemi join values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'HAMBURG'),\n    (City: 'ROME')\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:119",
+    "source": "select a.City\nfrom values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a\nleft semi join values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'HAMBURG'),\n    (City: 'ROME')\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:120",
+    "source": "select a.City\nfrom values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a\nanti join values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'HAMBURG'),\n    (City: 'ROME')\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:121",
+    "source": "select a.City\nfrom values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a\nleft anti semi join values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'HAMBURG'),\n    (City: 'ROME')\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:122",
+    "source": "select a.Name, b.Name\nfrom values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} a\ncross join values {\n    (Name: 'Eve'),\n    (Name: 'Finn'),\n    (Name: 'Gia'),\n    (Name: 'Hugo')\n} b\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:123",
+    "source": "select a.Name, b.Name\nfrom values {\n    (Name: 'Ada', Country: 'Poland'),\n    (Name: 'Bob', Country: 'Germany'),\n    (Name: 'Cara', Country: 'Poland'),\n    (Name: 'Dan', Country: 'Germany')\n} a\ncross join values {\n    (Name: 'Eve', Country: 'Poland'),\n    (Name: 'Finn', Country: 'Germany'),\n    (Name: 'Gia', Country: 'Germany'),\n    (Name: 'Hugo', Country: 'Italy')\n} b\nwhere a.Country = b.Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:124",
+    "source": "select a.City, b.Population, c.Area\nfrom values {\n    (City: 'WARSAW', Population: 100d, Area: 50d),\n    (City: 'BERLIN', Population: 200d, Area: 150d),\n    (City: 'WARSAW', Population: 200d, Area: 250d),\n    (City: 'MUNICH', Population: 400d, Area: 350d)\n} a\ninner join values {\n    (City: 'WARSAW', Population: 100d, Area: 50d),\n    (City: 'BERLIN', Population: 200d, Area: 150d),\n    (City: 'HAMBURG', Population: 200d, Area: 250d),\n    (City: 'ROME', Population: 400d, Area: 350d)\n} b on a.City = b.City\ninner join values {\n    (City: 'WARSAW', Population: 100d, Area: 50d),\n    (City: 'BERLIN', Population: 200d, Area: 150d),\n    (City: 'WARSAW', Population: 200d, Area: 250d),\n    (City: 'MUNICH', Population: 400d, Area: 350d)\n} c on a.City = c.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:126",
+    "source": "select e.Department, Sum(t.Amount) as total_amount\nfrom values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e\ninner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t\n    on e.Id = t.EmployeeId\ngroup by e.Department\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:127",
+    "source": "select SpecialParse(a.RawData), b.Name\nfrom schema.records() a\ninner join schema.byCountry() b on a.Id = b.Id\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:129",
+    "source": "select cities.Country, countries.Sum(population.Population)\nfrom values {\n    (City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'WARSAW', Country: 'Poland', Population: 200d),\n    (City: 'MUNICH', Country: 'Germany', Population: 400d)\n} countries\ninner join values {\n    (City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'HAMBURG', Country: 'Germany', Population: 200d),\n    (City: 'ROME', Country: 'Italy', Population: 400d)\n} cities on countries.Country = cities.Country\ninner join values {\n    (City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'WARSAW', Country: 'Poland', Population: 200d),\n    (City: 'MUNICH', Country: 'Germany', Population: 400d)\n} population on cities.City = population.City\ngroup by cities.Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:131",
+    "source": "select\n    e.Department as department,\n    Sum(t.Amount) as total_amount\nfrom values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e\ninner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t\n    on e.Id = t.EmployeeId\ngroup by e.Department\norder by total_amount desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:132",
+    "source": "with joined as (\n    select a.City as City, b.Population as Population\n    from values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} a\n    inner join values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'HAMBURG', Population: 200d),\n    (City: 'ROME', Population: 400d)\n} b on a.City = b.City\n)\nselect j.City, Sum(j.Population) as TotalPop\nfrom joined j\ngroup by j.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:134",
+    "source": "select a.Name, a.Population, b.Name, b.Population\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} a\nasof join values {\n    (Name: 'Eve', Population: 100d),\n    (Name: 'Finn', Population: 200d),\n    (Name: 'Gia', Population: 200d),\n    (Name: 'Hugo', Population: 400d)\n} b on a.Population >= b.Population\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:135",
+    "source": "param(errorTime: datetime = '2024-01-02T12:00:00', commitTime: datetime = '2024-01-02T11:00:00')\nwith errors as (\n    select ErrorTime, Service, Message\n    from values { (ErrorTime: $errorTime, Service: 'api', Message: 'timeout') } inputErrors\n), commits as (\n    select AuthorDate, Project, Sha, Message\n    from values { (AuthorDate: $commitTime, Project: 'api', Sha: 'abc123', Message: 'fix') } inputCommits\n)\nselect e.ErrorTime, e.Service, c.Sha\nfrom errors e\nasof join commits c on e.Service = c.Project and e.ErrorTime >= c.AuthorDate\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:136",
+    "source": "param(errorTime: datetime = '2024-01-02T12:00:00', commitTime: datetime = '2024-01-02T11:00:00')\nwith errors as (\n    select ErrorTime, Service, Message\n    from values { (ErrorTime: $errorTime, Service: 'api', Message: 'timeout') } inputErrors\n), commits as (\n    select AuthorDate, Project, Sha, Message\n    from values { (AuthorDate: $commitTime, Project: 'api', Sha: 'abc123', Message: 'fix') } inputCommits\n)\nselect c.AuthorDate, c.Sha, e.ErrorTime, e.Message\nfrom commits c\nasof join errors e on c.AuthorDate <= e.ErrorTime\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:137",
+    "source": "param(errorTime: datetime = '2024-01-02T12:00:00', commitTime: datetime = '2024-01-02T11:00:00')\nwith errors as (\n    select ErrorTime, Service, Message\n    from values { (ErrorTime: $errorTime, Service: 'api', Message: 'timeout') } inputErrors\n), commits as (\n    select AuthorDate, Project, Sha, Message\n    from values { (AuthorDate: $commitTime, Project: 'api', Sha: 'abc123', Message: 'fix') } inputCommits\n)\nselect c.Sha, c.Message, e.ErrorTime\nfrom commits c\nasof left join errors e on c.AuthorDate <= e.ErrorTime\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:138",
+    "source": "select a.Name, b.Name\nfrom values {\n    (Name: 'Ada', Population: 100d, UpdatedAt: 1),\n    (Name: 'Bob', Population: 200d, UpdatedAt: 2),\n    (Name: 'Cara', Population: 200d, UpdatedAt: 3),\n    (Name: 'Dan', Population: 400d, UpdatedAt: 4)\n} a\nasof join values {\n    (Name: 'Eve', Population: 100d, UpdatedAt: 1),\n    (Name: 'Finn', Population: 200d, UpdatedAt: 2),\n    (Name: 'Gia', Population: 200d, UpdatedAt: 3),\n    (Name: 'Hugo', Population: 400d, UpdatedAt: 4)\n} b on a.Population >= b.Population\ntie break by b.UpdatedAt desc nulls last\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:139",
+    "source": "select a.Name, b.Population, c.Area\nfrom values {\n    (Name: 'Ada', Population: 100d, Area: 50d),\n    (Name: 'Bob', Population: 200d, Area: 150d),\n    (Name: 'Cara', Population: 200d, Area: 250d),\n    (Name: 'Dan', Population: 400d, Area: 350d)\n} a\nasof join values {\n    (Name: 'Eve', Population: 100d, Area: 50d),\n    (Name: 'Finn', Population: 200d, Area: 150d),\n    (Name: 'Gia', Population: 200d, Area: 250d),\n    (Name: 'Hugo', Population: 400d, Area: 350d)\n} b on a.Population >= b.Population\nasof join values {\n    (Name: 'Ada', Population: 100d, Area: 50d),\n    (Name: 'Bob', Population: 200d, Area: 150d),\n    (Name: 'Cara', Population: 200d, Area: 250d),\n    (Name: 'Dan', Population: 400d, Area: 350d)\n} c on a.Population >= c.Area\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:141",
+    "source": "select a.Country, b.City\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\ncross apply schema.byCountry(a.Country) b\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:142",
+    "source": "select a1.Name, item.Value\nfrom schema.collections() a1\ncross apply a1.Column item\ntake 10\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:144",
+    "source": "select a.Country, b.City\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\nouter apply schema.byCountry(a.Country) b\n-- If no match for a.Country, b.City is null\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:146",
+    "source": "-- Skip first element, take next 6\nselect b.Value\nfrom schema.texts() a\ncross apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) as b\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:148",
+    "source": "select a.City, b.Value, b.Ordinal\nfrom schema.values() a\ncross apply a.Values b with ordinality\norder by a.City, b.Ordinal\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:151",
+    "source": "select a.City, d.City\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\ncross apply (\n    select b.City, b.Country\n    from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'HAMBURG', Country: 'Germany'),\n    (City: 'ROME', Country: 'Italy')\n} b\n    where b.Country = a.Country\n    union (City, Country)\n    select c.City, c.Country\n    from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} c\n    where c.Country = a.Country\n) d\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:152",
+    "source": "select b.Value, c.Value\nfrom schema.texts() a\ncross apply a.Split(a.Numbers, ',') as b\ncross apply a.Split(a.Words, ' ') as c\n-- Every combination of b and c values\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:154",
+    "source": "desc functions schema.records()\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:155",
+    "source": "select Country, Sum(Population) from values {\n    (Country: 'Poland', Population: 100d),\n    (Country: 'Germany', Population: 200d),\n    (Country: 'Poland', Population: 200d),\n    (Country: 'Germany', Population: 400d)\n} rows group by Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:156",
+    "source": "select e.Department, Sum(t.Amount)\nfrom values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e\ninner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t\n    on e.Id = t.EmployeeId\ngroup by e.Department\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:157",
+    "source": "select e.Department, t.Sum(t.Amount)\nfrom values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e\ninner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t\n    on e.Id = t.EmployeeId\ngroup by e.Department\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:160",
+    "source": "select City, Count(*)\nfrom values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} rows\ngroup by 1\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:161",
+    "source": "select City, Country, Count(*)\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows\ngroup by 1, 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:162",
+    "source": "select City, Country, Count(Name)\nfrom values {\n    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),\n    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),\n    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),\n    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')\n} rows\ngroup by all\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:163",
+    "source": "select City, Country, Count(Name)\nfrom values {\n    (Name: 'Ada', City: 'WARSAW', Country: 'Poland'),\n    (Name: 'Bob', City: 'BERLIN', Country: 'Germany'),\n    (Name: 'Cara', City: 'WARSAW', Country: 'Poland'),\n    (Name: 'Dan', City: 'MUNICH', Country: 'Germany')\n} rows\ngroup by City, Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:164",
+    "source": "select * like 'C%', Count(Name) as Rows\nfrom values { (Id: 1, Name: 'Ada', City: 'WARSAW', Country: 'Poland') } rows\ngroup by all\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:165",
+    "source": "select ToLower(City) as CityKey, Sum(Population) as TotalPopulation\nfrom values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} rows\ngroup by all\nhaving Sum(Population) > 1000\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:166",
+    "source": "-- Group by Month, City but aggregate at Month level\nselect SumIncome(Money, 1), SumOutcome(Money, 1)\nfrom values {\n    (City: 'WARSAW', Money: 100d, Month: 'January'),\n    (City: 'BERLIN', Money: 200d, Month: 'January'),\n    (City: 'WARSAW', Money: 300d, Month: 'February'),\n    (City: 'MUNICH', Money: 400d, Month: 'February')\n} rows\ngroup by Month, City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:167",
+    "source": "select Count(Name), Sum(Population) from values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\n-- Returns one row with totals\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:168",
+    "source": "select Count(Country) from values {\n    (Country: 'Poland'),\n    (Country: 'Germany'),\n    (Country: 'Poland'),\n    (Country: 'Germany')\n} rows group by 'fake'\n-- Equivalent to aggregate without GROUP BY\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:169",
+    "source": "select Name, Count(Name) from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Ada'),\n    (Name: 'Dan')\n} rows\ngroup by Name\nhaving Count(Name) >= 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:170",
+    "source": "select City, Sum(Money) from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows\ngroup by City\nhaving Sum(Money) >= 400\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:171",
+    "source": "select City as c, Count(*) as cnt\nfrom values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} rows\ngroup by c\nhaving cnt > 1 and c is not null\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:173",
+    "source": "select Country, Count(Country) from values { (Country: 'Poland'), (Country: null), (Country: null) } countries group by Country\n-- The NULL group has Count(Country) = 0.\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:174",
+    "source": "select Country, City, Count(City) from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows group by Country, City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:177",
+    "source": "select Count(City) filter (where Population > 200) from values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:178",
+    "source": "select\n    Count(City) filter (where Country = 'Poland') as PolishCities,\n    Count(City) filter (where Country = 'Germany') as GermanCities\nfrom values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:179",
+    "source": "select Country,\n       Count(City) filter (where Population > 200) as LargeCities\nfrom values {\n    (City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'WARSAW', Country: 'Poland', Population: 200d),\n    (City: 'MUNICH', Country: 'Germany', Population: 400d)\n} rows\ngroup by Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:180",
+    "source": "select Country,\n       Count(City) filter (where Population > 200) as LargeCities\nfrom values {\n    (City: 'WARSAW', Country: 'Poland', Population: 300d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'WARSAW', Country: 'Poland', Population: 600d),\n    (City: 'MUNICH', Country: 'Germany', Population: 400d)\n} rows\ngroup by Country\nhaving Count(City) filter (where Population > 200) >= 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:182",
+    "source": "pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\non Quarter in ('Q1' as Q1, 'Q2' as Q2)\nusing Sum(Amount) as Sales, Count(*) as Orders\ngroup by Region\norder by Region\ntake 100\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:183",
+    "source": "pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\non Quarter in ('Q1' as Q1)\nusing Sum(Amount) as Sales\ngroup by Region\n-- Output: Region, Q1\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:184",
+    "source": "pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\non Quarter in ('Q1' as Q1)\nusing Sum(Amount) as Sales, Count(*) as Orders\ngroup by Region\n-- Output: Region, Q1_Sales, Q1_Orders\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:185",
+    "source": "pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\non Quarter in ('Q1' as Q1)\nusing Count(distinct CustomerId) as Customers\ngroup by Region\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:186",
+    "source": "pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\non Quarter in ('Q1' as Q1, 'Q2' as Q2)\nusing Count(*) as Orders\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:187",
+    "source": "pivot values { (Year: 2000, Country: 'NL', Population: 100, Name: 'City'), (Year: 2020, Country: 'PL', Population: 200, Name: 'City') } cities\non Year, Country in ((2000, 'NL') as y2000_nl, (2020, 'PL') as y2020_pl)\nusing Sum(Population) as Total\ngroup by Name\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:188",
+    "source": "pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\non Quarter in (null as Missing, 'Q1' as Q1)\nusing Count(*) as Orders\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:189",
+    "source": "with p as (\n    pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\n    on Quarter in ('Q1' as Q1)\n    using Sum(Amount) as Sales\n    group by Region\n)\nselect Region, Q1 from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:190",
+    "source": "select p.Region, p.Q1\nfrom (\n    pivot values { (Quarter: 'Q1', Amount: 10d, CustomerId: 1, Region: 'North'), (Quarter: 'Q2', Amount: 20d, CustomerId: 2, Region: 'North'), (Quarter: null, Amount: 5d, CustomerId: 1, Region: 'South') } sales\n    on Quarter in ('Q1' as Q1)\n    using Sum(Amount) as Sales\n    group by Region\n) p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:192",
+    "source": "unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s\non Quarter in (s.Q1 as Q1, s.Q2 as Q2, s.Q3 as Q3)\nusing Sales\nkeep s.Region as Region\norder by Region, Quarter\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:193",
+    "source": "unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s\non Metric in (s.Population as Population, s.Money as Money)\nusing Amount\nkeep s.Country as Country, s.Name as City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:197",
+    "source": "with u as (\n    unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s\n    on Quarter in (s.Q1 as Q1, s.Q2 as Q2)\n    using Sales\n    keep s.Region as Region\n)\nselect Region, Quarter, Sales from u\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:198",
+    "source": "select u.Region, u.Quarter, u.Sales\nfrom (\n    unpivot values { (Region: 'North', Country: 'Poland', Name: 'WARSAW', Q1: 10d, Q2: 20d, Q3: 30d, Population: 100d, Money: 50d) } s\n    on Quarter in (s.Q1 as Q1)\n    using Sales\n    keep s.Region as Region\n) u\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:202",
+    "source": "SELECT col, Sum(col2) OVER w\nFROM values { (col: 1, col2: 10, col3: 'x', col4: 1), (col: 2, col2: 20, col3: 'x', col4: 2) } data\nWINDOW w AS (PARTITION BY col3 ORDER BY col4)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:203",
+    "source": "-- Count employees per department\nselect Name, City, Count(Name) over (partition by City) from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:204",
+    "source": "select Name, Sum(Population) over (partition by Country, City) from values {\n    (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (Name: 'Cara', City: 'WARSAW', Country: 'Poland', Population: 200d),\n    (Name: 'Dan', City: 'MUNICH', Country: 'Germany', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:205",
+    "source": "-- Running sum across all rows\nselect Name, Sum(Population) over (order by Name) from values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:212",
+    "source": "-- Only rows with Population > 150 participate in the window\nselect Name, RowNumber() over (order by Name)\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\nwhere Population > 150\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:213",
+    "source": "select Name, RunningProduct(Population) over (partition by City order by Name)\nfrom values { (Name: 'Ada', City: 'WARSAW', Country: 'Poland', Population: 100d), (Name: 'Bob', City: 'BERLIN', Country: 'Germany', Population: 200d) } people\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:216",
+    "source": "select Name, Population,\n       Sum(Population) over (order by Name rows between 1 preceding and 1 following)\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:217",
+    "source": "select Name, Population,\n       Avg(Population) over (order by Name rows between 2 preceding and current row)\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:218",
+    "source": "select Name, Population,\n       Sum(Population) over (rows between unbounded preceding and unbounded following) as Total\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:219",
+    "source": "select Name, City, Population,\n       Sum(Population) over (\n           partition by City\n           order by Name\n           rows between 1 preceding and 1 following\n       )\nfrom values {\n    (Name: 'Ada', City: 'WARSAW', Population: 100d),\n    (Name: 'Bob', City: 'BERLIN', Population: 200d),\n    (Name: 'Cara', City: 'WARSAW', Population: 200d),\n    (Name: 'Dan', City: 'MUNICH', Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:221",
+    "source": "select Name, City, RowNumber() over (partition by City order by Name) as rn\nfrom values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\nqualify rn <= 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:222",
+    "source": "select Name, Population, DenseRank() over (order by Population desc) as dr\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows\nqualify dr <= 3\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:223",
+    "source": "select Name, City, RowNumber() over (order by Name) as rn\nfrom values {\n    (Name: 'Ada', City: 'WARSAW', Population: 100d),\n    (Name: 'Bob', City: 'BERLIN', Population: 200d),\n    (Name: 'Cara', City: 'WARSAW', Population: 200d),\n    (Name: 'Dan', City: 'MUNICH', Population: 400d)\n} rows\nwhere Population > 100\nqualify rn <= 3\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:224",
+    "source": "select Name, RowNumber() over (order by Name) as rn\nfrom values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nqualify rn <= 5\nskip 1 take 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:227",
+    "source": "select Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\nunion\nselect Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'ROME'),\n    (Name: 'Eve', City: 'HAMBURG'),\n    (Name: 'Finn', City: 'ROME')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:228",
+    "source": "select Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\nunion (Name)\nselect Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'ROME'),\n    (Name: 'Eve', City: 'HAMBURG'),\n    (Name: 'Finn', City: 'ROME')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:229",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion all\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Eve'),\n    (Name: 'Finn')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:230",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion all (Name)\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Eve'),\n    (Name: 'Finn')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:231",
+    "source": "select Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\nexcept\nselect Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'ROME'),\n    (Name: 'Eve', City: 'HAMBURG'),\n    (Name: 'Finn', City: 'ROME')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:232",
+    "source": "select Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\nintersect\nselect Name, City from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'ROME'),\n    (Name: 'Eve', City: 'HAMBURG'),\n    (Name: 'Finn', City: 'ROME')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:233",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion all (Name)\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion all (Name)\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion all (Name)\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion all (Name)\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:234",
+    "source": "select Name from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} rows\nunion (Name)\nselect City as Name from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'ROME'),\n    (Name: 'Eve', City: 'HAMBURG'),\n    (Name: 'Finn', City: 'ROME')\n} rows   -- City aliased as Name\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:235",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion (Name)\nselect Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Eve'),\n    (Name: 'Finn')\n} rows order by Name skip 2 take 5\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:236",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\nunion (Name)\nselect Name from (\n    select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Eve'),\n    (Name: 'Finn')\n} rows order by Name skip 2 take 5\n) sliced_branch\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:237",
+    "source": "with p as (\n    select 1 as Id, 'First' as Name from values {\n    (Id: 1, Name: 'Ada'),\n    (Id: 2, Name: 'Bob'),\n    (Id: 3, Name: 'Cara'),\n    (Id: 4, Name: 'Dan')\n} rows\n    union all (Name)\n    select 2 as Id, 'Second' as Name from values {\n    (Id: 1, Name: 'Ada'),\n    (Id: 2, Name: 'Bob'),\n    (Id: 3, Name: 'Cara'),\n    (Id: 4, Name: 'Dan')\n} rows\n    union all (Name)\n    select 3 as Id, 'Third' as Name from values {\n    (Id: 1, Name: 'Ada'),\n    (Id: 2, Name: 'Bob'),\n    (Id: 3, Name: 'Cara'),\n    (Id: 4, Name: 'Dan')\n} rows\n)\nselect Id, Name from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:238",
+    "source": "-- SQL comparison fragment; A is the relation defined for this illustration.\nSELECT City FROM A WHERE Money > 200\nUNION\nSELECT City FROM A WHERE Money <= 200\nORDER BY City DESC\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:239",
+    "source": "-- Musoq interpretation:\n-- ORDER BY sorts the combined UNION result\nselect City from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows where Money > 200\nunion (City)\nselect City from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows where Money <= 200\norder by City desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:240",
+    "source": "with combined as (\n    select City from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows where Money > 200\n    union (City)\n    select City from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows where Money <= 200\n)\nselect City from combined order by City desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:242",
+    "source": "select City, Population from values {\n    (City: 'WARSAW', Population: 100d),\n    (City: 'BERLIN', Population: 200d),\n    (City: 'WARSAW', Population: 200d),\n    (City: 'MUNICH', Population: 400d)\n} rows\norder by Population desc, City asc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:243",
+    "source": "select Name, Population from values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} rows order by Population * -1\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:244",
+    "source": "select City, Money as Amount from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows order by Amount desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:245",
+    "source": "select City, Money * 2 as DoubledMoney from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows order by DoubledMoney desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:246",
+    "source": "select City, Sum(Money) as TotalRevenue\nfrom values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows\ngroup by City\norder by TotalRevenue desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:247",
+    "source": "select\n    e.Department as department,\n    t.Sum(t.Amount) as total_amount\nfrom values { (Id: 1, Department: 'Engineering'), (Id: 2, Department: 'Support') } e\ninner join values { (EmployeeId: 1, Amount: 120d), (EmployeeId: 1, Amount: 80d), (EmployeeId: 2, Amount: 50d) } t\n    on e.Id = t.EmployeeId\ngroup by e.Department\norder by total_amount desc\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:248",
+    "source": "select City as CITYNAME, Money as amount from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows order by Amount desc\n-- \"Amount\" matches alias \"amount\"\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:249",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows skip 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:250",
+    "source": "select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows take 3\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:251",
+    "source": "select Name from values {\n    (Name: 'Person01'),\n    (Name: 'Person02'),\n    (Name: 'Person03'),\n    (Name: 'Person04'),\n    (Name: 'Person05'),\n    (Name: 'Person06'),\n    (Name: 'Person07'),\n    (Name: 'Person08'),\n    (Name: 'Person09'),\n    (Name: 'Person10'),\n    (Name: 'Person11'),\n    (Name: 'Person12'),\n    (Name: 'Person13'),\n    (Name: 'Person14'),\n    (Name: 'Person15')\n} people order by Name skip 10 take 5\n-- Returns Person11 through Person15.\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:252",
+    "source": "params(offset: int = 0, limit: int = 100)\nselect r.Value\nfrom values { (Value: 3), (Value: 1), (Value: 2) } r\norder by r.Value\nskip $offset take $limit\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:253",
+    "source": "select City, Sum(Money) from values {\n    (City: 'WARSAW', Money: 100d),\n    (City: 'BERLIN', Money: 200d),\n    (City: 'WARSAW', Money: 300d),\n    (City: 'MUNICH', Money: 400d)\n} rows\ngroup by City\nhaving Sum(Money) >= 400\norder by City\nskip 1\ntake 2\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:255",
+    "source": "with p as (\n    select City, Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows\n)\nselect Country, City from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:257",
+    "source": "with p as (\n    select a.City as [a.City] from values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} a\n)\nselect [a.City] from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:258",
+    "source": "with p as (\n    select\n        a.Country as LeftCountry,\n        b.Country as RightCountry\n    from values {\n    (Id: 1, Country: 'Poland'),\n    (Id: 2, Country: 'Germany'),\n    (Id: 3, Country: 'Poland'),\n    (Id: 4, Country: 'Germany')\n} a\n    inner join values {\n    (Id: 1, Country: 'Poland'),\n    (Id: 2, Country: 'Germany'),\n    (Id: 3, Country: 'Germany'),\n    (Id: 4, Country: 'Italy')\n} b on a.Id = b.Id\n)\nselect LeftCountry, RightCountry from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:259",
+    "source": "with matched as (\n    select a.City\n    from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\n    where exists (\n        select b.City\n        from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'HAMBURG', Country: 'Germany'),\n    (City: 'ROME', Country: 'Italy')\n} b\n        where b.Country = a.Country\n    )\n)\nselect City from matched\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:260",
+    "source": "with p as (\n    select City, Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows\n)\nselect * from p    -- expands to City, Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:261",
+    "source": "with p as (\n    select a.* from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} a\n)\nselect * from p    -- expands to the source column names, for example City, Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:262",
+    "source": "with summary as (\n    select Country, Sum(Population) from values {\n    (Country: 'Poland', Population: 100d),\n    (Country: 'Germany', Population: 200d),\n    (Country: 'Poland', Population: 200d),\n    (Country: 'Germany', Population: 400d)\n} rows group by Country\n)\nselect * from summary\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:263",
+    "source": "with raw as (\n    select Population, Country from values {\n    (Country: 'Poland', Population: 100d),\n    (Country: 'Germany', Population: 200d),\n    (Country: 'Poland', Population: 200d),\n    (Country: 'Germany', Population: 400d)\n} rows\n)\nselect Country, Sum(Population) from raw group by Country\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:264",
+    "source": "with\n    cities as (select City, Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows),\n    countries as (select distinct Country from values {\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'BERLIN', Country: 'Germany'),\n    (City: 'WARSAW', Country: 'Poland'),\n    (City: 'MUNICH', Country: 'Germany')\n} rows)\nselect * from cities\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:265",
+    "source": "with combined as (\n    select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Cara'),\n    (Name: 'Dan')\n} rows\n    union (Name)\n    select Name from values {\n    (Name: 'Ada'),\n    (Name: 'Bob'),\n    (Name: 'Eve'),\n    (Name: 'Finn')\n} rows\n)\nselect * from combined\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:266",
+    "source": "with p as (select City, Country from values {\n    (City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'WARSAW', Country: 'Poland', Population: 200d),\n    (City: 'MUNICH', Country: 'Germany', Population: 400d)\n} rows)\nselect p.City, b.Population\nfrom p\ninner join values {\n    (City: 'WARSAW', Country: 'Poland', Population: 100d),\n    (City: 'BERLIN', Country: 'Germany', Population: 200d),\n    (City: 'HAMBURG', Country: 'Germany', Population: 200d),\n    (City: 'ROME', Country: 'Italy', Population: 400d)\n} b on p.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:268",
+    "source": "with cte as (\n    select City as cte from values {\n    (City: 'WARSAW'),\n    (City: 'BERLIN'),\n    (City: 'WARSAW'),\n    (City: 'MUNICH')\n} rows\n)\nselect cte from cte          -- reads the column named cte\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:269",
+    "source": "-- ERROR: Duplicate alias 'a'\nwith p as (\n    select 1 from values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} a inner join values {\n    (Name: 'Ada', City: 'WARSAW'),\n    (Name: 'Bob', City: 'BERLIN'),\n    (Name: 'Cara', City: 'WARSAW'),\n    (Name: 'Dan', City: 'MUNICH')\n} a on 1 = 1\n)\nselect * from p\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:270",
+    "source": "table TableName {\n    Column1: type1,\n    Column2: type2,\n    Column3: type3?       -- ? suffix for nullable\n};\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:271",
+    "source": "table Invoice {\n    ProductName: string,\n    Price: decimal,\n    Date: datetimeoffset?\n};\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:272",
+    "source": "couple schema.method with table TableName as AliasName;\ncouple schema.method with settings ProfileName as AliasName;\ncouple schema.method with table TableName and settings ProfileName as AliasName;\ncouple schema.method with settings ProfileName and table TableName as AliasName;\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:273",
+    "source": "table DummyTable {\n    Name: string\n};\ncouple schema.records with table DummyTable as SourceOfDummyRows;\nselect Name from SourceOfDummyRows();\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:274",
+    "source": "table DummyTable { Name: string };\ncouple schema.records with table DummyTable as SourceOfDummyRows;\nselect Name from SourceOfDummyRows(true, 'filter');\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:275",
+    "source": "couple schema.items with settings prod as ProdItems;\nselect Id, Name from ProdItems();\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:276",
+    "source": "desc schema\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:277",
+    "source": "desc schema.records\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:278",
+    "source": "desc schema.records()\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:279",
+    "source": "desc schema.dynamicRows(0, 'test', 10.5d)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:280",
+    "source": "desc schema.records() column Array             -- describe an array column\ndesc schema.records() column Self              -- describe a complex object column\ndesc schema.records() column Children          -- describe a complex type column\ndesc schema.records() column Self.Children     -- nested property path\ndesc schema.records() column Self.Other.Children  -- deep nested path\ndesc schema.records() column Self.Dictionary   -- collection path\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:281",
+    "source": "desc functions schema\ndesc functions schema.records\ndesc functions schema.records()\ndesc functions schema.records('filter')    -- with arguments\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:282",
+    "source": "desc settings schema.records;\ndesc settings CoupledAlias;\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:283",
+    "source": "couple schema.items with settings prod as ProdItems;\ndesc settings ProdItems;\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:284",
+    "source": "desc query (select Name as PersonName, Population + Money as Total from values { (Name: 'Ada', Population: 100d, Money: 50d) } people)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:285",
+    "source": "desc arguments schema.match\ndesc arguments schema.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') })\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:286",
+    "source": "param(patterns: (Id: string, Pattern: string)[])\ndesc arguments schema.match('TODO', patterns: $patterns)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:287",
+    "source": "table MatchRows { PatternId: string };\ncouple schema.match with table MatchRows as Matches;\ndesc arguments Matches\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:289",
+    "source": "-- Simple\nfrom values {\n    (City: 'WARSAW', Country: 'POLAND', Population: 100d),\n    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),\n    (City: 'WARSAW', Country: 'POLAND', Population: 200d),\n    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)\n} rows select City, Country\n\n-- With WHERE\nfrom values {\n    (City: 'WARSAW', Country: 'POLAND', Population: 100d),\n    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),\n    (City: 'WARSAW', Country: 'POLAND', Population: 200d),\n    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)\n} rows where Country = 'POLAND' select City, Country\n\n-- With GROUP BY\nfrom values {\n    (City: 'WARSAW', Country: 'POLAND', Population: 100d),\n    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),\n    (City: 'WARSAW', Country: 'POLAND', Population: 200d),\n    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)\n} rows group by Country select Country, Sum(Population)\n\n-- Full combination\nfrom values {\n    (City: 'WARSAW', Country: 'POLAND', Population: 100d),\n    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),\n    (City: 'WARSAW', Country: 'POLAND', Population: 200d),\n    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)\n} a\ninner join values {\n    (City: 'WARSAW', Country: 'POLAND', Population: 100d),\n    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),\n    (City: 'HAMBURG', Country: 'Germany', Population: 200d),\n    (City: 'ROME', Country: 'Italy', Population: 400d)\n} b on a.City = b.City\nwhere a.Country = 'POLAND'\ngroup by a.Country\nselect a.Country, Sum(b.Population)\norder by a.Country\nskip 1\ntake 5\n\n-- Inside a CTE\nwith cte as (\n    from values {\n    (City: 'WARSAW', Country: 'POLAND', Population: 100d),\n    (City: 'BERLIN', Country: 'GERMANY', Population: 200d),\n    (City: 'WARSAW', Country: 'POLAND', Population: 200d),\n    (City: 'MUNICH', Country: 'GERMANY', Population: 400d)\n} rows where Country = 'POLAND' select City, Country\n)\nselect * from cte\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:290",
+    "source": "-- List all functions available for a schema\ndesc functions schema\n\n-- List all functions available in the context of a specific method\ndesc functions schema.records()\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:294",
+    "source": "select Country, City, Count(1) from values { (Country: 'POLAND', City: 'WARSAW'), (Country: 'POLAND', City: null), (Country: 'GERMANY', City: 'BERLIN') } places group by Country, City\n-- Groups: (POLAND, WARSAW), (POLAND, null), (GERMANY, BERLIN)\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:295",
+    "source": "-- If no match, b.Population becomes decimal? with value null\nselect a.City, b.Population\nfrom values {\n    (City: 'WARSAW', Population: 100d, Value: 1),\n    (City: 'BERLIN', Population: 200d, Value: 2),\n    (City: 'WARSAW', Population: 200d, Value: 3),\n    (City: 'MUNICH', Population: 400d, Value: 4)\n} a\nleft join values {\n    (City: 'WARSAW', Population: 100d, Value: 1),\n    (City: 'BERLIN', Population: 200d, Value: 2),\n    (City: 'HAMBURG', Population: 200d, Value: 3),\n    (City: 'ROME', Population: 400d, Value: 4)\n} b on a.City = b.City\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:297",
+    "source": "-- Left row with NULL inequality key produces no match\nselect a.Name, b.Name\nfrom values {\n    (Name: 'Ada', Population: 100d),\n    (Name: 'Bob', Population: 200d),\n    (Name: 'Cara', Population: 200d),\n    (Name: 'Dan', Population: 400d)\n} a\nasof left join values {\n    (Name: 'Eve', Population: 100d),\n    (Name: 'Finn', Population: 200d),\n    (Name: 'Gia', Population: 200d),\n    (Name: 'Hugo', Population: 400d)\n} b on a.Population >= b.Population\n-- If a.Population is NULL, b columns are NULL\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:304",
+    "source": "select Dict['key_name'] from schema.records()\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:309",
+    "source": "param(eventDate: datetime = '2023-03-15')\nselect Name from values { (Name: 'event', EventDate: $eventDate) } events where '2023-03-15' < EventDate\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:310",
+    "source": "param(eventDate: datetime = '2023-03-15')\nselect Name,\n    case when EventDate > '2023-03-15' then 'Future'\n         when EventDate = '2023-03-15' then 'Present'\n         else 'Past'\n    end as TimeCategory\nfrom values { (Name: 'event', EventDate: $eventDate) } events\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:313",
+    "source": "select\n    case\n        when Population >= 1000 then 'large'\n        when Population >= 500 then 'medium'\n        when Population >= 100 then 'small'\n        else 'tiny'\n    end\nfrom values {\n    (Population: 100d),\n    (Population: 200d),\n    (Population: 200d),\n    (Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:314",
+    "source": "select\n    case Population\n        when 100 then 'small'\n        when 1000 then 'large'\n        else 'other'\n    end\nfrom values {\n    (Population: 100d),\n    (Population: 200d),\n    (Population: 200d),\n    (Population: 400d)\n} rows\n"
+  },
+  {
+    "id": "musoq-core-language-spec.md:315",
+    "source": "select\n    case when x > 0 then\n        case when x > 100 then 'very large' else 'moderate' end\n    else 'non-positive'\n    end\nfrom values { (x: 101), (x: 1), (x: -1) } numbers\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:0",
+    "source": "-- Existing Musoq table definition\ntable Invoice {\n    ProductName: string,\n    Price: decimal\n};\n\n-- New binary schema definition (analogous structure)\nbinary Header {\n    Magic: int le,\n    Version: short le\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:1",
+    "source": "-- Good: Declarative structure\nbinary Header {\n    Magic:   int le,\n    Version: short le,\n    Length:  int le\n}\n\n-- Not supported: Imperative parsing\n-- read 4 bytes into Magic\n-- if Magic <> 0xDEADBEEF then fail\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:2",
+    "source": "binary CustomerRecord {\n    -- Magic number identifying record type\n    -- Must be 0x43555354 ('CUST' in ASCII)\n    Magic:        int le,\n\n    -- Format version for backward compatibility\n    -- Current version: 3\n    Version:      short le,\n\n    -- Customer identifier (unique, sequential)\n    CustomerId:   long le\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:3",
+    "source": "binary Point { X: float le, Y: float le }\n\nbinary Color { R: byte, G: byte, B: byte, A: byte }\n\nbinary Vertex {\n    Position: Point,\n    Color:    Color,\n    Uv:       Point\n}\n\nbinary Mesh {\n    VertexCount: int le,\n    Vertices:    Vertex[VertexCount]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:4",
+    "source": "-- Schema definitions come first\nbinary Header {\n    Magic: int le,\n    Version: short le\n}\n\nbinary Record {\n    Id: int le,\n    Value: double le\n}\n\n-- Query follows schema definitions\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub, 0ub, 7ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 248ub, 63ub };\nSELECT h.Magic, r.Id, r.Value\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Header>($content) h\nCROSS APPLY InterpretAt<Record>($content, 6) r\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:5",
+    "source": "binary Header { Magic: int le, Version: short le };\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub, 0ub };\nSELECT h.Magic, h.Version FROM values { (Seed: 0) } seed CROSS APPLY Interpret<Header>($content) h\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:6",
+    "source": "text LogEntry { Timestamp: between '[' ']', _: literal ' ', Level: until ':', _: literal ' ', Message: rest };\nSELECT log.Timestamp, log.Level FROM values { (Line: '[2024-01-02] INFO: ready'), (Line: 'malformed') } lines OUTER APPLY TryParse<LogEntry>(lines.Line) log\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:8",
+    "source": "binary PacketHeader {\n    Magic:      int le,\n    Version:    short be,\n    Flags:      byte,\n    Length:     int le,\n    Checksum:   int le\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:9",
+    "source": "binary Example {\n    FixedData:    byte[16],              -- Fixed 16 bytes\n    Length:       int le,\n    DynamicData:  byte[Length],          -- Size from previous field\n    Computed:     byte[Length * 2]       -- Computed size\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:10",
+    "source": "binary Record {\n    Name:     string[32] utf8,              -- UTF-8, 32 bytes\n    Code:     string[8] ascii trim,         -- ASCII, trimmed\n    Legacy:   string[80] ebcdic,            -- EBCDIC mainframe text\n    Label:    string[64] utf8 nullterm      -- Null-terminated within 64-byte buffer\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:11",
+    "source": "binary Inner {\n    X: int le,\n    Y: int le\n}\n\nbinary Outer {\n    Header:  Inner,          -- Embedded schema (parsed inline)\n    Count:   int le,\n    Items:   Inner[Count]    -- Array of schemas\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:12",
+    "source": "binary SubRecord { Id: byte };\nbinary Example {\n    Count:      int le,\n    Ids:        long le[Count],              -- Array of integers\n    Names:      string[32] utf8[Count],      -- Array of fixed strings\n    Records:    SubRecord[Count]             -- Array of nested schemas\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:13",
+    "source": "binary Message {\n    MsgType:    byte,\n    HasPayload: byte,\n\n    -- Only present when HasPayload is non-zero\n    PayloadLen: int le when HasPayload <> 0,\n    Payload:    byte[PayloadLen] when HasPayload <> 0,\n\n    -- Type-based conditions\n    ErrorCode:  short le when MsgType = 0xFF\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:14",
+    "source": "binary Example {\n    HasData: byte,\n    Length: int le when HasData <> 0,\n    -- Absent when HasData is zero; Length is not evaluated as a size.\n    Absent: byte[Length] when HasData <> 0,\n    -- Present and empty when Length is null.\n    Empty: byte[Length ?? 0]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:15",
+    "source": "binary Packet {\n    RawFlags:   short le,\n\n    -- Computed from RawFlags, no bytes consumed\n    IsCompressed: (RawFlags & 0x01) <> 0,\n    IsEncrypted:  (RawFlags & 0x02) <> 0,\n    Priority:     (RawFlags >> 4) & 0x0F,\n\n    Length:     int le,\n    Data:       byte[Length]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:16",
+    "source": "binary TcpFlags {\n    -- Packed into 2 bytes total (16 bits)\n    Reserved:  bits[4],    -- bits 0-3 of byte 0\n    DataOff:   bits[4],    -- bits 4-7 of byte 0\n    Fin:       bits[1],    -- bit 0 of byte 1\n    Syn:       bits[1],    -- bit 1 of byte 1\n    Rst:       bits[1],    -- bit 2 of byte 1\n    Psh:       bits[1],    -- bit 3 of byte 1\n    Ack:       bits[1],    -- bit 4 of byte 1\n    Urg:       bits[1],    -- bit 5 of byte 1\n    Ece:       bits[1],    -- bit 6 of byte 1\n    Cwr:       bits[1]     -- bit 7 of byte 1\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:17",
+    "source": "binary Example {\n    Flags:     bits[3],     -- 3 bits\n    _:         align[8],    -- Skip to next byte boundary (5 bits padding)\n    NextByte:  byte         -- Starts at next byte\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:18",
+    "source": "binary PeHeader {\n    DosMagic:      string[2] ascii at 0,          -- Always at offset 0\n    PeOffset:      int le at 0x3C,                -- PE header pointer at fixed offset\n    PeSignature:   string[4] ascii at PeOffset,   -- Dynamic position from field\n    Machine:       short le at PeOffset + 4       -- Computed position\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:19",
+    "source": "binary ValidatedHeader {\n    Magic:    uint le check Magic = 0xDEADBEEF,\n    Version:  short le check Version >= 1 AND Version <= 5,\n    Length:   int le check Length <= 1048576,\n    Data:     byte[Length],\n    Checksum: int le check Checksum = Crc32(Data)\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:20",
+    "source": "binary PngFile {\n    Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],\n    Width:     int be,\n    Height:    int be\n}\n\nbinary Header {\n    Version:  byte const 1,\n    Reserved: byte const 0\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:21",
+    "source": "binary Chunk {\n    Length:    int be,\n    ChunkType: string[4] ascii oneOf ['IHDR', 'IDAT', 'IEND']\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:22",
+    "source": "binary TlvRecord {\n    Type:   byte,\n    Length: short le,\n    Value:  byte[Length]\n}\n\nbinary TlvStream {\n    -- Read TLV records until type is 0x00 (terminator)\n    Records: TlvRecord repeat until Records[-1].Type = 0x00\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:23",
+    "source": "binary TlvRecord {\n    Type:   byte,\n    Length: short le,\n    Value:  byte[Length]\n}\n\nbinary Inner {\n    -- Read records until the current input span is exhausted\n    Records: TlvRecord repeat until eof\n}\n\nbinary Frame {\n    Length:  byte,\n    Payload: substream[Length] as Inner,\n    Trailer: byte\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:24",
+    "source": "binary Example {\n    Magic:    int le,\n    _:        byte[4],     -- Skip 4 bytes, unnamed\n    _:        short le,    -- Skip 2 bytes\n    Payload:  byte[16]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:25",
+    "source": "binary LoginPayload { UserId: int le };\nbinary DataPayload { Value: byte };\nbinary ErrorPayload { Code: byte };\nbinary Packet {\n    Type:    byte,\n    Length:  short le,\n    Payload: switch Type {\n        1 => Login: LoginPayload,\n        2 => Data:  DataPayload,\n        3 => Error: ErrorPayload,\n        _ => Raw:   byte[Length]\n    }\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:26",
+    "source": "binary LoginPayload { UserId: int le };\nbinary DataPayload { Value: byte };\nbinary ErrorPayload { Code: byte };\nbinary Packet {\n    Type:    byte,\n    Length:  short le,\n    Payload: switch Type {\n        1 => Login: LoginPayload,\n        2 => Data:  DataPayload,\n        3 => Error: ErrorPayload,\n        _ => Raw:   byte[Length]\n    }\n};\nlet content: byte[] = array { 1ub, 4ub, 0ub, 7ub, 0ub, 0ub, 0ub };\nSELECT\n    p.Type,\n    p.Payload.Case,            -- selected branch alias, e.g. 'Login'\n    p.Payload.Login.UserId,    -- non-null only when Type = 1\n    p.Payload.Raw              -- non-null only when no case matched\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Packet>($content) p\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:27",
+    "source": "binary PayloadBody { Value: byte };\nbinary Packet {\n    Kind:     byte,\n    Length:   uint le,\n    Payload:  substream[Length] as PayloadBody,\n    Checksum: uint le\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:28",
+    "source": "text LogEntry {\n    Timestamp: between '[' ']',\n    _:         literal ' ',\n    Level:     until ':',\n    _:         literal ' ',\n    Message:   rest\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:29",
+    "source": "text Example {\n    -- Simple pattern\n    Ip:       pattern '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}',\n\n    -- Pattern with named captures (creates a capture-only record)\n    Coords:   pattern '(?<Lat>-?\\d+\\.\\d+),(?<Lon>-?\\d+\\.\\d+)'\n              capture (Lat, Lon),\n\n    -- Quantified patterns\n    Digits:   pattern '\\d+',\n    Hex:      pattern '[0-9A-Fa-f]+'\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:30",
+    "source": "text HttpRequest {\n    Method:   until ' ',\n    Path:     until ' ',\n    Version:  until '\\r\\n',\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:31",
+    "source": "text Example {\n    Key:   until ':',\n    _:     literal ' ',\n    Value: until '\\n'\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:32",
+    "source": "text Example {\n    Quoted:    between '\"' '\"',\n    Bracketed: between '[' ']',\n    Parens:    between '(' ')' nested\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:33",
+    "source": "text Example {\n    -- Default: backslash escapes (\\\" within quotes)\n    String1: between '\"' '\"' escaped,\n\n    -- Custom escape: doubling ('' within single quotes)\n    String2: between '\\'' '\\'' escaped '\\''\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:34",
+    "source": "text CobolRecord {\n    CustomerId:  chars[10],\n    Name:        chars[30] trim,\n    Balance:     chars[12] rtrim,\n    Status:      chars[1]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:35",
+    "source": "text SpaceSeparated {\n    First:  token,\n    _:      whitespace,\n    Second: token,\n    _:      whitespace,\n    Third:  rest\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:36",
+    "source": "text KeyValue {\n    Key:   until '=',\n    Value: rest trim\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:37",
+    "source": "text LogLine {\n    Timestamp: between '[' ']',\n    _:         literal ' ',\n    Level:     until ':',\n    _:         literal ' ',\n    Message:   until '\\t',\n\n    -- Message consumes its trailing tab; optional trace ID follows\n    TraceId:   optional pattern '[a-f0-9]{32}'\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:38",
+    "source": "text HeaderLine {\n    Name:  until ':',\n    _:     literal ' ',\n    Value: until '\\r\\n',\n}\n\ntext HttpHeaders {\n    -- Repeat until empty line\n    Headers: repeat HeaderLine until '\\r\\n'\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:39",
+    "source": "text SectionHeader {\n    _:    pattern '\\s*',\n    _:    literal '[',\n    Name: until ']'\n}\n\ntext KeyValue {\n    _:     pattern '\\s*',\n    Key:   until '=',\n    Value: rest trim\n}\n\ntext Comment {\n    _:    pattern '\\s*[#;]',\n    Text: rest\n}\n\ntext Empty {}\n\ntext ConfigLine {\n    Content: switch {\n        pattern '\\s*\\[' => SectionHeader,\n        pattern '\\s*#'  => Comment,\n        pattern '\\s*;'  => Comment,\n        pattern '\\s*$'  => Empty,\n        _               => KeyValue\n    }\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:40",
+    "source": "text Tokens {\n    A: token,\n    _: whitespace*,    -- Optional spacing\n    B: token\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:41",
+    "source": "binary Example {\n    -- Single line comment\n    Field1: int le,\n\n    /* Multi-line\n       comment */\n    Field2: short le,\n\n    Field3: byte   -- Inline comment\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:42",
+    "source": "binary Item { Value: byte };\nbinary Body { Items: Item[parent.Count] };\nbinary Record { Count: byte, Payload: Body };\n\nlet content: byte[] = array { 2ub, 10ub, 20ub };\nSELECT i.Value\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Record>($content) r\nCROSS APPLY r.Payload.Items i\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:43",
+    "source": "binary Inner { Payload: byte[parent.Len] };\nbinary Rec { Len: byte, Body: Inner };\n\nlet content: byte[] = array { 2ub, 10ub, 20ub };\nSELECT r.Len, r.Body.Payload[0], r.Body.Payload[1]\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Rec>($content) r\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:44",
+    "source": "binary Header { Magic: int le, Version: short le };\n-- Schema type referenced by name, no parentheses\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub, 0ub };\nSELECT h.Magic, h.Version\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Header>($content) h\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:46",
+    "source": "binary Header { Magic: int le, Version: short le };\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub, 0ub };\nSELECT h.Magic, h.Version\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Header>($content) h\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:47",
+    "source": "binary Inner { X: byte, Y: byte }\nbinary Outer { Inner: Inner }\nlet content: byte[] = array { 10ub, 20ub };\nwith c (Renamed) as (\n    select s.Inner as Inner\n    from values { (Seed: 0) } seed\n    cross apply Interpret<Outer>($content) s\n)\nselect c.Renamed.X as X, c.Renamed.Y as Y from c c\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:49",
+    "source": "text LogEntry { Timestamp: between '[' ']', _: literal ' ', Level: until ':', _: literal ' ', Message: rest };\nSELECT log.Timestamp, log.Level, log.Message\nFROM values { (Line: '[2024-01-02] INFO: ready'), (Line: '[2024-01-03] WARN: retry') } lines\nCROSS APPLY Parse<LogEntry>(lines.Line) log\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:51",
+    "source": "binary Header { Magic: int le, Version: short le };\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub, 0ub };\nlet shortContent: byte[] = array { 1ub };\nSELECT input.Name, CASE WHEN h.Magic IS NOT NULL THEN 'Valid' ELSE 'Invalid' END AS Status\nFROM values { (Name: 'valid', IsValid: true), (Name: 'truncated', IsValid: false) } input\nOUTER APPLY TryInterpret<Header>(case when input.IsValid then $content else $shortContent end) h\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:53",
+    "source": "binary Header { Magic: int le, Version: short le, DataOffset: int le };\nbinary DataSection { RecordCount: int le };\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub, 0ub, 10ub, 0ub, 0ub, 0ub, 7ub, 0ub, 0ub, 0ub };\nSELECT\n    h.Magic,\n    d.RecordCount\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<Header>($content) h\nCROSS APPLY InterpretAt<DataSection>($content, h.DataOffset) d\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:54",
+    "source": "binary Record { Id: int le, Value: double le };\nbinary RecordFile {\n    Count:   int le,\n    Records: Record[Count]\n}\n\nlet content: byte[] = array { 2ub, 0ub, 0ub, 0ub, 7ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 248ub, 63ub, 8ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 4ub, 64ub };\nSELECT r.Id, r.Value\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<RecordFile>($content) file\nCROSS APPLY file.Records r\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:55",
+    "source": "binary Record { Id: int le, Value: double le };\nlet content: byte[] = array { 7ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 248ub, 63ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 8ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 4ub, 64ub };\nWITH RecordOffsets AS (\n    SELECT n.Value * 64 AS Offset FROM values { (Value: 0), (Value: 1) } n\n)\nSELECT r.Id, r.Value\nFROM values { (Name: 'records') } input\nCROSS JOIN RecordOffsets o\nCROSS APPLY InterpretAt<Record>($content, o.Offset) r\nWHERE o.Offset < Length($content)\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:56",
+    "source": "binary Point { X: float le, Y: float le }\n\nbinary Triangle {\n    A: Point,\n    B: Point,\n    C: Point\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:57",
+    "source": "binary Packet {\n    Header: {\n        Magic: int le,\n        Version: short le\n    },\n    Body: byte[64]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:58",
+    "source": "binary BaseMessage {\n    MsgType: byte,\n    Length:  short le\n}\n\nbinary TextMessage extends BaseMessage {\n    Content: string[Length] utf8\n}\n\nbinary BinaryMessage extends BaseMessage {\n    Data: byte[Length]\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:59",
+    "source": "binary Header { Magic: int le, Version: short le };\nbinary Record { Id: int le, Value: double le };\nbinary LengthPrefixed<T> {\n    Length: int le,\n    Data:   T[Length]\n}\n\nbinary Message {\n    Header:   Header,\n    Records:  LengthPrefixed<Record>\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:60",
+    "source": "text KeyValue {\n    Key:   until '=',\n    Value: rest trim\n}\n\nbinary ConfigBlock {\n    Magic:      int le,\n    ConfigLen:  short le,\n    Config:     string[ConfigLen] utf8 as KeyValue\n}\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:61",
+    "source": "binary Header { Magic: int le, Version: short le };\nlet content: byte[] = array { 120ub, 86ub, 52ub, 18ub, 1ub };\nSELECT\n    p.ParsedFields,\n    p.ErrorField,\n    p.ErrorMessage,\n    p.BytesConsumed\nFROM values { (Seed: 0) } seed\nCROSS APPLY PartialInterpret<Header>($content) p\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:62",
+    "source": "binary PngSignature {\n    Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47,\n                                          0x0D, 0x0A, 0x1A, 0x0A]\n}\n\nbinary PngChunk {\n    Length:     int be,\n    ChunkType:  string[4] ascii,\n    Data:       byte[Length],\n    Crc:        int be\n}\n\nbinary IhdrData {\n    Width:              int be,\n    Height:             int be,\n    BitDepth:           byte,\n    ColorType:          byte,\n    CompressionMethod:  byte,\n    FilterMethod:       byte,\n    InterlaceMethod:    byte\n}\n\nlet content: byte[] = array { 137ub, 80ub, 78ub, 71ub, 13ub, 10ub, 26ub, 10ub, 0ub, 0ub, 0ub, 13ub, 73ub, 72ub, 68ub, 82ub, 0ub, 0ub, 0ub, 1ub, 0ub, 0ub, 0ub, 2ub, 8ub, 6ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub };\nSELECT\n    input.Name,\n    ihdr.Width,\n    ihdr.Height,\n    ihdr.BitDepth,\n    ihdr.ColorType\nFROM values { (Name: 'image') } input\nCROSS APPLY Interpret<PngSignature>($content) sig\nCROSS APPLY InterpretAt<PngChunk>($content, 8) chunk\nCROSS APPLY Interpret<IhdrData>(chunk.Data) ihdr\nWHERE chunk.ChunkType = 'IHDR'\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:63",
+    "source": "text ApacheLog {\n    RemoteHost:    until ' ',\n    Identity:      until ' ',\n    User:          until ' ',\n    Timestamp:     between '[' ']',\n    _:             literal ' \"',\n    Method:        until ' ',\n    Path:          until ' ',\n    Protocol:      until '\"',\n    _:             literal ' ',\n    Status:        pattern '\\d{3}',\n    _:             literal ' ',\n    Size:          pattern '\\d+|-',\n    _:             optional literal ' ',\n    Referrer:      optional between '\"' '\"',\n    _:             optional literal ' ',\n    UserAgent:     optional between '\"' '\"'\n}\n\nSELECT\n    log.Path,\n    Count(*) AS ErrorCount,\n    MaxDateTime(ToDateTimeWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz')) AS LastSeen\nFROM values { (Line: '127.0.0.1 - - [02/Jan/2024:03:04:05 +0000] \"GET /missing HTTP/1.1\" 404 10 \"-\" \"agent\"') } input\nCROSS APPLY Parse<ApacheLog>(input.Line) log\nWHERE log.Status = '404'\nGROUP BY log.Path\nORDER BY ErrorCount DESC\nTAKE 20\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:64",
+    "source": "binary MessageFrame {\n    Sync:        ushort le check Sync = 0xAA55,\n    MsgType:     byte,\n    PayloadLen:  short le,\n    Payload:     byte[PayloadLen],\n    Checksum:    short le\n}\n\ntext CommandPayload {\n    Command:   until ' ',\n    _:         whitespace*,\n    Args:      rest\n}\n\nbinary TelemetryPayload {\n    Timestamp:   long le,\n    SensorId:    short le,\n    Value:       double le,\n    Flags:       byte\n}\n\nlet content: byte[] = array { 85ub, 170ub, 1ub, 6ub, 0ub, 80ub, 73ub, 78ub, 71ub, 32ub, 49ub, 0ub, 0ub };\nSELECT\n    frame.MsgType,\n    CASE frame.MsgType\n        WHEN 0x01 THEN command.Command\n        WHEN 0x02 THEN ToString(telemetry.SensorId)\n        ELSE 'Unknown'\n    END AS Identifier\nFROM values { (Seed: 0) } seed\nCROSS APPLY InterpretAt<MessageFrame>($content, 0) frame\nOUTER APPLY TryParse<CommandPayload>(ToText(frame.Payload, 'utf8')) command\nOUTER APPLY TryInterpret<TelemetryPayload>(frame.Payload) telemetry\nWHERE frame.MsgType IN (0x01, 0x02)\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:65",
+    "source": "text CobolCustomerRecord {\n    CustomerId:      chars[10],\n    CustomerName:    chars[30] trim,\n    AddressLine1:    chars[40] trim,\n    AddressLine2:    chars[40] trim,\n    City:            chars[20] trim,\n    State:           chars[2],\n    ZipCode:         chars[10] trim,\n    Balance:         chars[12],\n    StatusCode:      chars[1],\n    LastUpdate:      chars[8]\n}\n\nSELECT\n    r.CustomerId,\n    r.CustomerName,\n    Concat(r.AddressLine1, ', ', r.City, ', ', r.State, ' ', r.ZipCode) AS Address,\n    ToDecimal(r.Balance) / 100.0 AS Balance,\n    ToDateTimeWithFormat(r.LastUpdate, 'yyyyMMdd') AS LastUpdated\nFROM values { (Line: '0000000001Ada                           Main Street                                                                     WARSAW              PL00-001    000000012345A20240102') } input\nCROSS APPLY Parse<CobolCustomerRecord>(input.Line) r\nWHERE r.StatusCode = 'A'\n"
+  },
+  {
+    "id": "musoq-binary-text-spec.md:66",
+    "source": "binary ToyParameters {\n    Revision:       short le,\n    Options:        byte,\n    HasHint:        (Options & 0x20) <> 0,\n    UsesAlternateValues: (Options & 0x04) <> 0,\n    SampleCount:    int le,\n    Hint:           long le when HasHint,\n    SampleStart:    long le\n}\n\nbinary ToyLabel {\n    Name: string[5] ascii nullterm,\n    Note: string[9] utf8 nullterm\n}\n\nbinary ToySample {\n    Choice:         byte,\n    TextCount:      short le when Choice = 7,\n    TextValue:      string[TextCount] utf8 when Choice = 7,\n    ByteCount:      byte when Choice = 9,\n    ByteValues:     byte[ByteCount] when Choice = 9,\n    LabelCount:     byte when Choice = 11,\n    Labels:         ToyLabel[LabelCount] when Choice = 11\n}\n\nlet content: byte[] = array { 3ub, 0ub, 0ub, 1ub, 0ub, 0ub, 0ub, 15ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 0ub, 7ub, 3ub, 0ub, 116ub, 111ub, 121ub };\n\nSELECT\n    parameters.Revision,\n    parameters.SampleCount,\n    sample.Choice,\n    CASE sample.Choice\n        WHEN 7 THEN sample.TextValue\n        WHEN 9 THEN ToHex(sample.ByteValues)\n        WHEN 11 THEN 'Labels: ' + ToString(sample.LabelCount)\n        ELSE 'Other sample'\n    END AS Content\nFROM values { (Seed: 0) } seed\nCROSS APPLY Interpret<ToyParameters>($content) parameters\nCROSS APPLY InterpretAt<ToySample>($content, ToInt32(parameters.SampleStart) ?? 0) sample\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:0",
+    "source": "table TableName {\n    Column1: type1,\n    Column2: type2,\n    Column3: type3?\n};\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:2",
+    "source": "table LegacyRecord {\n    Id: int,\n    Name: string encoding 'windows-1250' trim,\n    Amount: decimal culture 'pl-PL' format '#,##0.00',\n    Payload: string source codec 'base64'\n};\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:4",
+    "source": "enum JobStatus : int {\n    Queued = 10,\n    Running = 20\n};\n\ntable JobRows {\n    Id: long,\n    Status: JobStatus?\n};\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:5",
+    "source": "couple schema.method with table TableName as AliasName;\ncouple schema.method with settings ProfileName as AliasName;\ncouple schema.method with table TableName and settings ProfileName as AliasName;\ncouple schema.method with settings ProfileName and table TableName as AliasName;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:6",
+    "source": "table MyTable { Name: string };\ncouple schema.rows with table MyTable as Source;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:9",
+    "source": "table Items {\n    Name: string,\n    Price: decimal\n};\ncouple schema.products with table Items as Products;\nselect Name, Price from Products();\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:10",
+    "source": "table CustomerTable {\n    Id: int,\n    Name: string\n};\ntable OrderTable {\n    OrderId: int,\n    CustomerId: int,\n    Amount: decimal\n};\ncouple schema.customers with table CustomerTable as Customers;\ncouple schema.orders with table OrderTable as Orders;\n\nselect c.Name, o.Amount \nfrom Customers() c \ninner join Orders() o on c.Id = o.CustomerId;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:11",
+    "source": "table FilteredData {\n    Value: string\n};\ncouple schema.filtered with table FilteredData as Data;\nselect Value from Data(true, 'filter-pattern');\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:12",
+    "source": "table TypedRow {\n    Id: int,\n    Name: string\n};\ncouple schema.rows with table TypedRow as TypedSource;\n\nwith FilteredData as (\n    select Id, Name from TypedSource() where Id > 10\n)\nselect * from FilteredData;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:13",
+    "source": "table TypedRow { Id: int, Name: string };\ncouple schema.rows with table TypedRow as TypedSource;\nwith FilteredData as (\n    select t.Id, t.Name from TypedSource() t where t.Id > 10\n)\nselect Id, Name from FilteredData;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:14",
+    "source": "table OutputSchema {\n    Text: string\n};\ncouple schema.transform with table OutputSchema as Transformer;\n\nwith InputData as (\n    select Value from values { (Value: 'alpha'), (Value: 'beta') } input\n)\nselect Text from Transformer(InputData);\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:15",
+    "source": "couple schema.items with settings prod as Items;\nselect Id, Name from Items();\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:16",
+    "source": "table Item {\n    Id: string,\n    Name: string,\n    Price: decimal?\n};\ncouple schema.items with table Item and settings prod as Items;\nselect Id, Name, Price from Items();\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:17",
+    "source": "table Item { Id: string, Name: string, Price: decimal? };\ncouple schema.items with settings prod and table Item as Items;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:18",
+    "source": "couple schema.items with settings prod as ProdItems;\ncouple schema.items with settings staging as StagingItems;\n\nselect p.Id, s.Id\nfrom ProdItems() p\ninner join StagingItems() s on p.Id = s.Id;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:19",
+    "source": "couple schema.items with settings prod as ProdItems;\ndesc settings schema.items;\ndesc settings ProdItems;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:20",
+    "source": "table Example {\n    Col1: STRING,\n    Col2: Int,\n    Col3: DECIMAL\n};\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:21",
+    "source": "table DummyTable {\n    Name: string\n};\ncouple schema.rows with table DummyTable as SourceOfDummyRows;\nselect Name from SourceOfDummyRows();\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:22",
+    "source": "table DataTable {\n    Country: string,\n    Population: decimal\n};\ncouple schema.countries with table DataTable as Countries;\nselect Country, Population from Countries() where Population > 100;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:23",
+    "source": "table FirstTable {\n    Country: string,\n    Population: decimal\n};\ntable SecondTable {\n    Name: string\n};\ncouple schema.rows with table FirstTable as Source1;\ncouple schema.namedCountries with table SecondTable as Source2;\n\nselect s1.Country, s2.Name \nfrom Source1() s1 \ninner join Source2() s2 on s1.Country = s2.Name;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:24",
+    "source": "table Parameters {\n    Parameter0: bool,\n    Parameter1: string\n};\ncouple schema.parameters with table Parameters as Config;\nselect Parameter0, Parameter1 from Config(true, 'test');\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:25",
+    "source": "table AllTypes {\n    ByteCol: byte,\n    SByteCol: sbyte,\n    ShortCol: short,\n    IntCol: int,\n    LongCol: long,\n    UShortCol: ushort,\n    UIntCol: uint,\n    ULongCol: ulong,\n    FloatCol: float,\n    DoubleCol: double,\n    DecimalCol: decimal,\n    MoneyCol: money,\n    BoolCol: bool,\n    CharCol: char,\n    StringCol: string,\n    DateTimeCol: datetime,\n    DateTimeOffsetCol: datetimeoffset,\n    TimeSpanCol: timespan,\n    GuidCol: guid,\n    ObjectCol: object\n};\n\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:26",
+    "source": "table NullableExample {\n    Id: int?,\n    Name: string,\n    IsActive: bool?,\n};\ncouple schema.nullableRows with table NullableExample as Data;\nselect Id, Name, IsActive from Data();\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:27",
+    "source": "table ApiItem {\n    Id: string,\n    Name: string,\n    Price: decimal?\n};\n\ncouple schema.items with table ApiItem and settings prod as ProdItems;\ncouple schema.items with settings staging as StagingItems;\n\nselect p.Id, p.Price\nfrom ProdItems() p\ninner join StagingItems() s on p.Id = s.Id;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:28",
+    "source": "table LegacyInvoiceRow {\n    InvoiceNo: string encoding 'windows-1250' trim,\n    CustomerName: string encoding 'windows-1250' trim,\n    Total: decimal culture 'pl-PL' format '#,##0.00',\n    Attachment: string source codec 'base64'\n};\n\ncouple schema.invoices with table LegacyInvoiceRow as Invoices;\n\nselect InvoiceNo, CustomerName, Total, Attachment\nfrom Invoices('legacy-batch');\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:29",
+    "source": "-- Correct order\ntable TypedRow { Id: int, Name: string };\ncouple schema.rows with table TypedRow as TypedSource;\n\nwith FilteredData as (\n    select Id, Name from TypedSource()\n)\nselect * from FilteredData;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:30",
+    "source": "table TypedRow { Id: int, Name: string };\ncouple schema.rows with table TypedRow as TypedSource;\nwith FilteredData as (\n    select t.Id, t.Name from TypedSource() t\n)\nselect Id, Name from FilteredData;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:31",
+    "source": "table T1 { Key: string, Value1: int };\ntable T2 { Key: string, Value2: int };\ncouple schema.leftRows with table T1 as Left;\ncouple schema.rightRows with table T2 as Right;\n\n-- INNER JOIN\nselect l.Value1, r.Value2 \nfrom Left() l \ninner join Right() r on l.Key = r.Key;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:32",
+    "source": "table T1 { Key: string, Value1: int };\ntable T2 { Key: string, Value2: int };\ncouple schema.leftRows with table T1 as Left;\ncouple schema.rightRows with table T2 as Right;\n\n-- LEFT JOIN\nselect l.Value1, r.Value2 \nfrom Left() l \nleft join Right() r on l.Key = r.Key;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:33",
+    "source": "table Events { Time: int, Name: string };\ntable Snapshots { Time: int, State: string };\ncouple schema.events with table Events as Events;\ncouple schema.snapshots with table Snapshots as Snapshots;\n\nselect e.Name, s.State\nfrom Events() e\nasof join Snapshots() s on e.Time >= s.Time;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:34",
+    "source": "table Container { Id: int };\ntable Item { Name: string, Price: decimal };\ncouple schema.containers with table Container as Containers;\ncouple schema.containerItems with table Item as Items;\n\nselect c.*, i.Name, i.Price\nfrom Containers() c\ncross apply Items(c.Id) i;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:35",
+    "source": "table Sales { Product: string, Amount: decimal };\ncouple schema.sales with table Sales as SalesData;\n\nselect Product, Sum(Amount) as Total\nfrom SalesData()\ngroup by Product\nhaving Sum(Amount) > 1000\norder by Total desc;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:36",
+    "source": "table Record { Id: int, Name: string };\ncouple schema.firstRows with table Record as SourceA;\ncouple schema.secondRows with table Record as SourceB;\n\nselect Id, Name from SourceA()\nunion (Id)\nselect Id, Name from SourceB();\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:37",
+    "source": "-- Correct order\ntable T1 { Col1: string };           -- 1. TABLE\ntable T2 { Col2: int };              -- 1. TABLE\n\ncouple schema.labels with table T1 as X;     -- 2. COUPLE\ncouple schema.keys with table T2 as Y;     -- 2. COUPLE\n\nwith CTE as (                       -- 3. CTE\n    select * from X()\n)\nselect * from CTE                   -- 4. Query\ninner join Y() y on CTE.Col1::Int32 = y.Col2;\n"
+  },
+  {
+    "id": "musoq-table-couple-spec.md:39",
+    "source": "select columns from AliasName([args]) [alias]\n"
+  }
+]

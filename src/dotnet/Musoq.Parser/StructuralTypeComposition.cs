@@ -10,6 +10,7 @@ public partial class Parser
 {
     private StructuralTypeSyntaxNode ComposeStructuralTypeSyntax(bool allowFieldDefaults = true)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TypeSyntax, Current);
         var type = ComposeStructuralTypePrimary(allowFieldDefaults);
 
         while (true)

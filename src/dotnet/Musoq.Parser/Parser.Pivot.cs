@@ -135,6 +135,7 @@ public partial class Parser
     }
     private void ConsumePivotUsingKeyword()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Keyword, Current);
         if (!IsContextualKeyword("using"))
             throw PivotSyntax(
                 "PIVOT requires a USING clause with aggregate measures. Example: using Sum(Amount) as Sales.",

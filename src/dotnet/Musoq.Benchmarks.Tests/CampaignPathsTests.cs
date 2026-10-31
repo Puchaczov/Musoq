@@ -13,7 +13,7 @@ public sealed class CampaignPathsTests
         var cases = CampaignCases.Create(new CampaignOptions(), Path.GetTempPath());
         var directory = Path.Combine(Repository, "benchmarks", "history", "engine-v3", "20261028T235933572Z-507c7340ade4");
         CampaignPaths.Validate(Repository, directory, cases);
-        Assert.AreEqual(216, cases.Length);
+        Assert.AreEqual(225, cases.Length);
     }
 
     [TestMethod]

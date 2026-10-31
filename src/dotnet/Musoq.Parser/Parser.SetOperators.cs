@@ -7,11 +7,13 @@ public partial class Parser
 {
     private Node ComposeSetOperators(int nestingLevel)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.SetExpression, Current);
         return ComposeSetOperators(nestingLevel, composeResultModifiers: true);
     }
 
     private Node ComposeSetOperators(int nestingLevel, bool composeResultModifiers)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.SetExpression, Current);
         var isSet = false;
         var query = ComposeQuery();
 

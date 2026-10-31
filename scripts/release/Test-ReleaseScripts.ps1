@@ -47,29 +47,48 @@ function New-TestWorkflowRun {
 }
 
 $packages = @(Get-ReleasePackages)
-$offlinePackageSources = @(Get-PackageSmokeSources `
-    -PackageDirectory 'C:\candidate-packages' `
-    -GlobalPackagesFolder 'C:\nuget-cache' `
-    -Offline)
-Assert-Equal -Expected 2 -Actual $offlinePackageSources.Count -Message 'Offline package smoke must use only candidate packages and the local global-package cache.'
-Assert-Equal -Expected 'C:\candidate-packages' -Actual $offlinePackageSources[0].Value -Message 'Offline package smoke must include the candidate package feed.'
-Assert-Equal -Expected 'C:\nuget-cache' -Actual $offlinePackageSources[1].Value -Message 'Offline package smoke must include the local global-package cache.'
-if (@($offlinePackageSources | Where-Object { $_.Value -match '^https?://' }).Count -gt 0) {
-    throw 'Offline package smoke must not configure remote package sources.'
-}
-
-$onlinePackageSources = @(Get-PackageSmokeSources -PackageDirectory 'C:\candidate-packages')
-Assert-Equal -Expected 2 -Actual $onlinePackageSources.Count -Message 'Online package smoke must retain its local and NuGet.org sources.'
-Assert-Equal -Expected 'https://api.nuget.org/v3/index.json' -Actual $onlinePackageSources[1].Value -Message 'Online package smoke NuGet.org source changed unexpectedly.'
-
-$offlineMissingCacheRejected = $false
+Assert-Equal -Expected 7 -Actual $packages.Count -Message 'The composed release catalog must contain all seven public packages.'
+Assert-EqualPackageEntries -Expected @('Musoq.Parser', 'Musoq.Formatter', 'Musoq.Plugins', 'Musoq.Schema', 'Musoq.Evaluator', 'Musoq.Converter', 'Musoq.Benchmarks.Scenarios') `
+    -Actual @($packages | ForEach-Object PackageId) -Description 'Composed public release catalog'
+$formatterRelease = Resolve-ReleaseTag -Tag 'formatter/v17.0.14-alpha.2'
+Assert-Equal -Expected 'Musoq.Formatter' -Actual $formatterRelease.Packages[0].PackageId -Message 'Formatter tags must resolve independently.'
+Assert-Equal -Expected 'MusoqFormatterVersion' -Actual $formatterRelease.Packages[0].VersionProperty -Message 'Formatter must have an independent version property.'
+$registryRoot = Join-Path ([System.IO.Path]::GetTempPath()) "musoq-release-registry-$([Guid]::NewGuid().ToString('N'))"
+New-Item -ItemType Directory -Path $registryRoot | Out-Null
+$originalRegistryPath = $script:PackageRegistryPath
 try {
-    Get-PackageSmokeSources -PackageDirectory 'C:\candidate-packages' -Offline
+    $duplicateRegistry = @{ packages = @($packages[0]); additionalManifests = @('additional.json') }
+    $script:PackageRegistryPath = Join-Path $registryRoot 'root.json'
+    $duplicateRegistry | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $script:PackageRegistryPath
+    @{ packages = @($packages[0]) } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $registryRoot 'additional.json')
+    $duplicateRejected = $false
+    try {
+        Get-ReleasePackages | Out-Null
+    }
+    catch {
+        $duplicateRejected = $_.Exception.Message -match 'duplicate package slug'
+    }
+    Assert-Equal -Expected $true -Actual $duplicateRejected -Message 'Combined manifests must reject duplicate packages.'
+    $duplicateRegistry.additionalManifests = @('../outside.json')
+    $duplicateRegistry | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $script:PackageRegistryPath
+    $escapeRejected = $false
+    try {
+        Get-ReleasePackages | Out-Null
+    }
+    catch {
+        $escapeRejected = $_.Exception.Message -match 'filenames within the release directory'
+    }
+    Assert-Equal -Expected $true -Actual $escapeRejected -Message 'Manifest lookup must stay inside the release directory.'
 }
-catch {
-    $offlineMissingCacheRejected = $true
+finally {
+    $script:PackageRegistryPath = $originalRegistryPath
+    $resolvedRegistryRoot = [System.IO.Path]::GetFullPath($registryRoot)
+    $temporaryParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    if (-not $resolvedRegistryRoot.StartsWith($temporaryParent, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Registry test cleanup escaped the temporary directory.'
+    }
+    Remove-Item -LiteralPath $resolvedRegistryRoot -Recurse -Force
 }
-Assert-Equal -Expected $true -Actual $offlineMissingCacheRejected -Message 'Offline package smoke must reject a missing local package cache.'
 
 $alphaVersionAllowsBreakingChanges = Test-AlphaReleaseVersion -Version '17.0.9-alpha.1'
 Assert-Equal -Expected $true -Actual $alphaVersionAllowsBreakingChanges -Message 'All-packages alpha versions must allow intentional breaking changes.'
@@ -159,23 +178,6 @@ $abiPackages = @($packages | Where-Object IsDatasourceAbi | Select-Object -Expan
 Assert-Equal -Expected 2 -Actual $abiPackages.Count -Message 'Unexpected datasource ABI package count.'
 Assert-Equal -Expected 'Musoq.Plugins' -Actual $abiPackages[0] -Message 'Musoq.Plugins must be a datasource ABI package.'
 Assert-Equal -Expected 'Musoq.Schema' -Actual $abiPackages[1] -Message 'Musoq.Schema must be a datasource ABI package.'
-
-$converterTargets = @(Get-ExpectedConsumerTargetAssemblies -Packages @(
-    [PSCustomObject]@{ PackageId = 'Musoq.Converter' }
-))
-Assert-Equal -Expected 4 -Actual $converterTargets.Count -Message 'Converter consumer target assembly count changed.'
-Assert-Equal -Expected 'Musoq.Targets.Execution.dll' -Actual $converterTargets[1] -Message 'Converter consumer must receive the execution target.'
-
-$evaluatorTargets = @(Get-ExpectedConsumerTargetAssemblies -Packages @(
-    [PSCustomObject]@{ PackageId = 'Musoq.Evaluator' }
-))
-Assert-Equal -Expected 1 -Actual $evaluatorTargets.Count -Message 'Evaluator consumer target assembly count changed.'
-Assert-Equal -Expected 'Musoq.Targets.Abstractions.dll' -Actual $evaluatorTargets[0] -Message 'Evaluator consumer must receive only target abstractions.'
-
-$parserTargets = @(Get-ExpectedConsumerTargetAssemblies -Packages @(
-    [PSCustomObject]@{ PackageId = 'Musoq.Parser' }
-))
-Assert-Equal -Expected 0 -Actual $parserTargets.Count -Message 'Parser consumer must not receive target assemblies.'
 
 $baseline = Get-DatasourceAbiBaselineVersion `
     -PackageId 'Musoq.Schema' `

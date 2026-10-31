@@ -9,6 +9,7 @@ public partial class SchemaParser
 {
     private string[]? ComposeOptionalTypeParameters()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TypeArgumentList, Current);
         if (Current.TokenType != TokenType.Less)
             return null;
 

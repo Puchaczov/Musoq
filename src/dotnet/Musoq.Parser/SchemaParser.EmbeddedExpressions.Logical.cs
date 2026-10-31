@@ -7,6 +7,7 @@ public partial class SchemaParser
 {
     private Node ComposeComparisonExpression()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Predicate, Current);
         return ComposeLogicalOrExpression();
     }
 

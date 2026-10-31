@@ -217,12 +217,14 @@ public partial class Parser
 
     private WordNode ComposeSchemaTokenAsWord()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         var token = ConsumeAndGetToken();
         return new WordNode(token.Value, token.Span);
     }
 
     private IdentifierNode ComposeContextualKeywordIdentifier()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         return CreateContextualKeywordIdentifier(ConsumeAndGetToken());
     }
 

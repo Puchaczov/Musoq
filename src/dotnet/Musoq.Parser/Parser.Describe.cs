@@ -10,6 +10,7 @@ public partial class Parser
 {
     private DescNode ComposeDesc()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.UtilityStatement, Current);
         Consume(Current.TokenType);
 
         if (IsSettingsOption())
@@ -196,6 +197,7 @@ public partial class Parser
 
     private CoupleNode ComposeCouple()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.CoupleDeclaration, Current);
         var coupleToken = ConsumeAndGetToken(TokenType.Couple);
 
         if (Current.TokenType == TokenType.MethodAccess)

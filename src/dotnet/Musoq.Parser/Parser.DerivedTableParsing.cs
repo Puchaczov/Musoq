@@ -9,6 +9,7 @@ public partial class Parser
 {
     private ParsedSource ComposeDerivedTableFrom(SourceParseContext context)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Subquery, Current);
         var opening = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
         if (Current.TokenType != TokenType.Select && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Pivot && Current.TokenType != TokenType.Unpivot && Current.TokenType != TokenType.With)

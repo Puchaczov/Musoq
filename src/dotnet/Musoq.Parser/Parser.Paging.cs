@@ -9,6 +9,7 @@ public partial class Parser
 {
     private Node ComposeSliceCount(string clause)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.PagingClause, Current);
         if (Current.TokenType == TokenType.ParameterReference)
         {
             var reference = ConsumeAndGetToken(TokenType.ParameterReference);

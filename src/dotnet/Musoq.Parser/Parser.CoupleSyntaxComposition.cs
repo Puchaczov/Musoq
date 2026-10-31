@@ -8,6 +8,7 @@ public partial class Parser
 {
     private (string? TableName, string? ProfileName) ComposeCoupleOptions()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Keyword, Current);
         string? tableName = null;
         string? profileName = null;
 
@@ -34,6 +35,7 @@ public partial class Parser
                         DiagnosticCode.MQ2001_UnexpectedToken,
                         Current.Span);
 
+                _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
                 Consume(Current.TokenType);
                 profileName = ComposeCoupleOptionName("settings");
             }
@@ -55,6 +57,7 @@ public partial class Parser
 
     private string ComposeCoupleOptionName(string optionName)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         if (Current.TokenType != TokenType.Identifier)
             throw new SyntaxException(
                 $"Expected {optionName} name in couple statement.",

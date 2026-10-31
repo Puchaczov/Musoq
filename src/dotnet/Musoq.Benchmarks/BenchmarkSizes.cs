@@ -1,4 +1,5 @@
 using System.Globalization;
+using Musoq.Benchmarks.Scenarios;
 
 namespace Musoq.Benchmarks;
 
@@ -18,9 +19,9 @@ public static class BenchmarkSizes
 
     public static int Count(string size) => size switch
     {
-        "Small" => 1_000,
-        "Medium" => 10_000,
-        "Large" => 100_000,
+        "Small" => BenchmarkInputSizes.Small,
+        "Medium" => BenchmarkInputSizes.Medium,
+        "Large" => BenchmarkInputSizes.Large,
         _ when size.StartsWith("Custom-", StringComparison.Ordinal) => Parse(size[7..]),
         _ => throw new ArgumentException($"Unknown execution size '{size}'.")
     };

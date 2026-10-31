@@ -10,6 +10,7 @@ public partial class SchemaParser
 {
     private TextFieldDefinitionNode ComposeTextField()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.SchemaField, Current);
         var nameToken = Current;
         var name = ComposeIdentifierOrWord();
         Consume(TokenType.Colon);

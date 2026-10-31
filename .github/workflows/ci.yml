@@ -66,6 +66,8 @@ jobs:
         run: |
           dotnet build src/dotnet/Musoq.Parser/Musoq.Parser.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Formatter/Musoq.Formatter.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Formatter.Tests/Musoq.Formatter.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Schema.Tests/Musoq.Schema.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-restore --no-dependencies -warnaserror
@@ -90,6 +92,12 @@ jobs:
           $packScript = Join-Path $env:GITHUB_WORKSPACE 'scripts/release/Pack-Release.ps1'
           $outputPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts/ci-nupkgs'
           & $packScript -AllPackages -OutputPath $outputPath
+
+      - name: Check release tooling
+        if: matrix.warning_ratchet == true
+        shell: pwsh
+        run: |
+          & ./scripts/release/Test-ReleaseScripts.ps1
 
       - name: Publish TRX artifacts
         if: always()

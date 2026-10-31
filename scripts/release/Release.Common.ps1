@@ -46,7 +46,22 @@ function Get-ReleasePackages {
     $seenPackageIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     $packages = @()
 
-    foreach ($package in $registry.packages) {
+    $registeredPackages = @($registry.packages)
+    if ($registry.PSObject.Properties.Name -contains 'additionalManifests') {
+        foreach ($manifestName in $registry.additionalManifests) {
+            if ($manifestName -notmatch '^[a-z][a-z0-9-]*\.json$') {
+                throw 'Additional package manifests must be filenames within the release directory.'
+            }
+            $manifestPath = Join-Path (Split-Path -Parent $script:PackageRegistryPath) $manifestName
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+            if ($null -eq $manifest.packages -or $manifest.packages.Count -eq 0) {
+                throw 'An additional package manifest contains no packages.'
+            }
+            $registeredPackages += @($manifest.packages)
+        }
+    }
+
+    foreach ($package in $registeredPackages) {
         if ($package.slug -notmatch '^[a-z][a-z0-9-]*$') {
             throw "Release package registry contains an invalid package slug."
         }
@@ -67,10 +82,6 @@ function Get-ReleasePackages {
             throw "Release package registry contains an invalid version property."
         }
 
-        if ($package.smokeTestMode -notin @('assembly-load', 'typed-query')) {
-            throw "Release package registry contains an invalid smoke test mode."
-        }
-
         $isDatasourceAbi = $package.PSObject.Properties.Name -contains 'datasourceAbi' -and
             [bool]$package.datasourceAbi
 
@@ -85,35 +96,11 @@ function Get-ReleasePackages {
             ProjectPath = [string]$package.projectPath
             FullProjectPath = $fullProjectPath
             VersionProperty = [string]$package.versionProperty
-            SmokeTestMode = [string]$package.smokeTestMode
             IsDatasourceAbi = $isDatasourceAbi
         }
     }
 
     return $packages
-}
-
-function Get-ExpectedConsumerTargetAssemblies {
-    param(
-        [Parameter(Mandatory)]
-        [object[]] $Packages
-    )
-
-    $packageIds = @($Packages | ForEach-Object { [string]$_.PackageId })
-    if ($packageIds -contains 'Musoq.Converter') {
-        return @(
-            'Musoq.Targets.Abstractions.dll',
-            'Musoq.Targets.Execution.dll',
-            'Musoq.Targets.Execution.Analysis.dll',
-            'Musoq.Targets.CSharpClr.dll'
-        )
-    }
-
-    if ($packageIds -contains 'Musoq.Evaluator') {
-        return @('Musoq.Targets.Abstractions.dll')
-    }
-
-    return @()
 }
 
 function ConvertTo-MusoqSemanticVersion {
@@ -497,41 +484,21 @@ function Get-NuGetGlobalPackagesFolder {
     return [System.IO.Path]::GetFullPath($globalPackagesMatch.Groups['path'].Value.Trim())
 }
 
-function Get-PackageSmokeSources {
+function Assert-EqualPackageEntries {
     param(
         [Parameter(Mandatory)]
-        [string] $PackageDirectory,
+        [string[]] $Expected,
 
-        [string] $GlobalPackagesFolder,
+        [Parameter(Mandatory)]
+        [string[]] $Actual,
 
-        [switch] $Offline
+        [Parameter(Mandatory)]
+        [string] $Description
     )
 
-    $sources = [System.Collections.Generic.List[object]]::new()
-    $sources.Add([PSCustomObject]@{
-        Key = 'candidate-packages'
-        Value = $PackageDirectory
-        ProtocolVersion = $null
-    })
-
-    if ($Offline) {
-        if ([string]::IsNullOrWhiteSpace($GlobalPackagesFolder)) {
-            throw 'Offline package smoke requires the local NuGet global packages folder.'
-        }
-
-        $sources.Add([PSCustomObject]@{
-            Key = 'global-packages-cache'
-            Value = $GlobalPackagesFolder
-            ProtocolVersion = $null
-        })
-        return @($sources.ToArray())
+    $difference = Compare-Object -ReferenceObject @($Expected | Sort-Object) -DifferenceObject @($Actual | Sort-Object)
+    if ($null -ne $difference) {
+        $formattedDifference = ($difference | ForEach-Object { "$($_.SideIndicator) $($_.InputObject)" }) -join [Environment]::NewLine
+        throw "$Description did not match the expected package contents.$([Environment]::NewLine)$formattedDifference"
     }
-
-    $sources.Add([PSCustomObject]@{
-        Key = 'nuget.org'
-        Value = 'https://api.nuget.org/v3/index.json'
-        ProtocolVersion = '3'
-    })
-
-    return @($sources.ToArray())
 }

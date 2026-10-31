@@ -9,6 +9,7 @@ public partial class Parser
 {
     private GroupByNode ComposeGroupByAllNode()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.GroupByClause, Current);
         var allToken = ConsumeAndGetToken(TokenType.All);
         if (Current.TokenType == TokenType.Comma)
             throw GroupByAllWithExplicitFields(Current.Span);

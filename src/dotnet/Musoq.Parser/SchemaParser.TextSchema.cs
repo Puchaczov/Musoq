@@ -21,6 +21,7 @@ public partial class SchemaParser
 
     private TextSchemaNode ComposeTextSchemaBody(TextSpan schemaStartSpan = default)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TextSchema, Current);
         var name = ComposeIdentifierOrWord();
         var extends = ComposeOptionalExtends(out var extendsSpan);
 

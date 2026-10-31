@@ -1,0 +1,8 @@
+[
+  {"id":"coverage:operators","source":"select a.Value-1, a.Value%2, a.Value|1, a.Value^1, a.Value<<1, 0b10, 0o10, 'a'||'b' from #s.rows() a where not a.Value between 1 and 3 and a.Name rlike '^a' and a.Value contains (1,2)"},
+  {"id":"coverage:key-access","source":"select Map['key'] Value from #s.rows() a"},
+  {"id":"coverage:quantified","source":"select Value from #s.rows() a where Value > any (select Other from #t.rows() b)"},
+  {"id":"coverage:referential","source":"select Name from #existing a"},
+  {"id":"coverage:profile","source":"profile select Name from #s.rows()"},
+  {"id":"coverage:explain","source":"explain analyze select Name from #s.rows()"}
+]

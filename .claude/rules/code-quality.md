@@ -2,6 +2,19 @@
 
 **Your job is not just to deliver working features — it is to deliver MAINTAINABLE code.** Every human who reads your output must be able to understand, modify, and extend it without a guide. Code is read ~10x more than it's written, so optimize for the reader, not the writer. Always ask: "Would a teammate new to this codebase understand what I just wrote without asking me?"
 
+### Reflection Policy
+
+- **Reflection is prohibited by default in implementation and tests.** Do not use reflection for fixture traversal, member or assembly discovery, private-member inspection, or invocation, including in test helpers. Tests are not an exception to the rule.
+- **Prefer explicit, statically checked designs.** Use typed APIs, interfaces, visitors, pattern matching, and explicit fixtures or registries instead of discovering or invoking members at runtime.
+- **Existing reflection is not precedent.** Assess existing uses when touching the affected area and replace them where a typed design can meet the requirement. Any unavoidable exception must be explicitly justified in the task design and documented with its scope, performance impact, and maintenance cost; never introduce an exception silently.
+
+### Performance and Maintainability
+
+- **Performance and maintainability are acceptance criteria from the start.** Review algorithmic complexity, allocations, repeated work, dependency boundaries, duplication, and clarity before adding implementation. Passing correctness tests alone does not establish acceptable engineering quality.
+- **Clean up before extending.** Start each wave with the scoped cleanup and refactoring review defined in the implementation-wave workflow. Complete changes that simplify the upcoming implementation before building on that code; do not defer necessary cleanup to a final wave.
+- **Support performance claims with measurements.** Follow the mandatory baseline rule for optimizations, use representative workloads for performance-sensitive changes, and investigate regressions. Prefer clear typed code over unmeasured shortcuts or unnecessary abstractions.
+- **Keep quality gates meaningful.** Do not raise maintainability budgets, weaken assertions, or hide regressions to make a change pass. Improve the implementation and retain appropriate regression coverage.
+
 ### Control Flow
 - **Fail fast / return early.** Validate at the top and bail out. Don't wrap the entire method body in a success branch — the happy path should have the least indentation.
 - **No `else` after `return` / `throw` / `continue`.** It's redundant nesting. The early exit already handled the branch.

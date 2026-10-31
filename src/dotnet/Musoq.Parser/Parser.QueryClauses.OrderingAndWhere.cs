@@ -49,23 +49,5 @@ public partial class Parser
         return ErrorCatalog.GetDidYouMeanSuggestion(identifier, ClauseKeywords, maxDistance: maxDistance) != null;
     }
 
-    private WhereNode? ComposeWhere(bool withoutWhereToken)
-    {
-        if (Current.TokenType == TokenType.Where)
-        {
-            Consume(TokenType.Where);
-            if (Current.TokenType == TokenType.EndOfFile)
-                throw new SyntaxException(
-                    "The WHERE clause ends unexpectedly at end of input.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-                    new TextSpan(Current.Span.Start, 0));
-            return new WhereNode(ComposeOperations());
-        }
 
-        if (withoutWhereToken)
-            return new WhereNode(ComposeOperations());
-
-        return null;
-    }
 }

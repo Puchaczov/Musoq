@@ -11,6 +11,7 @@ public partial class Parser
 
     private OrderingSpec ComposeOrdering(bool allowClauseBoundaries = false)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Keyword, Current);
         var order = ComposeOrder(allowClauseBoundaries);
         var nullOrdering = ComposeNullOrdering();
         return new OrderingSpec(order, nullOrdering);

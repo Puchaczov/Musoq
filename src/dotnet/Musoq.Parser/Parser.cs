@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
@@ -11,8 +10,6 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private static readonly Regex ColumnRegex = new(@"\[[^\]]+\]|(\w+)|(\*)", RegexOptions.Compiled);
-
     private static readonly TokenType[] SetOperators =
         [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
 
@@ -201,33 +198,38 @@ public partial class Parser
     {
         try
         {
-            _lexer.Next();
-            var statements = new List<StatementNode>();
-            while (Current.TokenType != TokenType.EndOfFile)
-            {
-                EnsureStatementSeparator(statements);
-                var statement = ComposeStatement();
-                if (statement == null)
-                    throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.",
-                        _lexer.AlreadyResolvedQueryPart);
-
-                statements.Add(statement);
-            }
-
-            if (statements.Count == 1 && statements[0].Node is ParameterBlockNode)
-                throw new SyntaxException(
-                    "A parameter block must be followed by a query or another script statement.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ2016_IncompleteStatement,
-                    Current.Span);
-
-            return new RootNode(new StatementsArrayNode(statements.ToArray()));
+            return ComposeAllCore();
         }
-        catch (Exception ex) when (!(ex is SyntaxException))
+        catch (Exception exception) when (exception is not SyntaxException)
         {
-            throw new SyntaxException($"An error occurred while parsing the SQL query: {ex.Message}",
-                _lexer.AlreadyResolvedQueryPart, ex);
+            throw new SyntaxException($"An error occurred while parsing the SQL query: {exception.Message}",
+                _lexer.AlreadyResolvedQueryPart, exception);
         }
+    }
+
+    internal RootNode ComposeAllCore()
+    {
+        _lexer.Next();
+        var statements = new List<StatementNode>();
+        while (Current.TokenType != TokenType.EndOfFile)
+        {
+            EnsureStatementSeparator(statements);
+            var statement = ComposeStatement();
+            if (statement == null)
+                throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.",
+                    _lexer.AlreadyResolvedQueryPart);
+
+            statements.Add(statement);
+        }
+
+        if (statements.Count == 1 && statements[0].Node is ParameterBlockNode)
+            throw new SyntaxException(
+                "A parameter block must be followed by a query or another script statement.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2016_IncompleteStatement,
+                Current.Span);
+
+        return new RootNode(new StatementsArrayNode(statements.ToArray()));
     }
 
     private void EnsureStatementSeparator(IReadOnlyList<StatementNode> statements)

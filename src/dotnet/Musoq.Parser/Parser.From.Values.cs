@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
 
@@ -13,6 +13,7 @@ public partial class Parser
 
     private ParsedSource ComposeValuesFrom()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.ValuesSource, Current);
         var valuesToken = ConsumeAndGetToken(Current.TokenType);
         Consume(TokenType.LBracket);
 

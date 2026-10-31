@@ -43,18 +43,21 @@ public partial class Parser
 
         if (IsContextSensitiveKeyword("exclude"))
         {
+            _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
             Consume(Current.TokenType);
             excludeColumns = ComposeExcludeList();
         }
 
         if (IsContextSensitiveKeyword("replace"))
         {
+            _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
             Consume(Current.TokenType);
             replaceItems = ComposeReplaceList();
         }
 
         if (IsContextSensitiveKeyword("rename"))
         {
+            _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
             Consume(Current.TokenType);
             renameItems = ComposeRenameList();
         }

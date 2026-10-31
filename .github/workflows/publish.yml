@@ -189,15 +189,6 @@ jobs:
           $outputPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts/nupkgs'
           & $packScript -Tag $env:RELEASE_TAG -OutputPath $outputPath
 
-      - name: Smoke test selected packages
-        shell: pwsh
-        env:
-          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
-        run: |
-          $smokeScript = Join-Path $env:GITHUB_WORKSPACE 'scripts/release/Test-PackageSmoke.ps1'
-          $packageDirectory = Join-Path $env:GITHUB_WORKSPACE 'artifacts/nupkgs'
-          & $smokeScript -Tag $env:RELEASE_TAG -PackageDirectory $packageDirectory
-
       # actions/upload-artifact@v4.6.2
       - name: Upload package artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

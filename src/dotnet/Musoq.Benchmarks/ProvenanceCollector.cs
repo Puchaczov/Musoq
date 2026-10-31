@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using BenchmarkDotNet.Running;
 using Musoq.Converter;
+using Musoq.Benchmarks.Scenarios;
 
 namespace Musoq.Benchmarks;
 
@@ -19,9 +20,10 @@ public static class ProvenanceCollector
             ProcessCommand.Require(root, "dotnet", "--version"), typeof(BenchmarkRunner).Assembly.GetName().Version!.ToString(),
             options.InProcess ? GCSettings.IsServerGC : true, true, System.Environment.ProcessorCount,
             options.Mode, options.Official ? "Official" : options.Job, options.InProcess, RuntimeVariables());
+        // Read loaded dependency identities outside timing: build constants cannot detect a different engine or BDN binary.
         var engineVersion = typeof(InstanceCreator).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
             ?? typeof(InstanceCreator).Assembly.GetName().Version!.ToString();
-        var suiteVersion = typeof(MeasuredProcess).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        var suiteVersion = ScenarioCatalog.InformationalVersion;
         var build = new BuildStamp(engineVersion, suiteVersion.Split('+').Last(),
             typeof(InstanceCreator).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion,
             suiteVersion);

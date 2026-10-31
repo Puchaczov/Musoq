@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
@@ -48,6 +48,7 @@ public partial class Parser
 
     private ArrayLiteralNode ComposeArrayLiteral()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.ArrayLiteral, Current);
         var keyword = ConsumeAndGetToken(Current.TokenType);
         Consume(TokenType.LBracket);
         var elements = new List<Node>();
@@ -142,6 +143,7 @@ public partial class Parser
 
     private RecordLiteralNode ComposeRecordLiteral(Token opening)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.RecordLiteral, Current);
         var (parsedFields, closing) = ComposeNamedFields(false, "structural record");
         var fields = new List<RecordFieldNode>(parsedFields.Count);
         foreach (var field in parsedFields)

@@ -8,6 +8,7 @@ public partial class Parser
 {
     private Token ConsumeCastTypeName()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         if (Current.TokenType == TokenType.Identifier)
             return ConsumeAndGetToken(TokenType.Identifier);
 

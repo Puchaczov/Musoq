@@ -9,6 +9,7 @@ public partial class Parser
 {
     private WindowNode? ComposeWindowClause()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.WindowClause, Current);
         if (Current.TokenType != TokenType.Window) return null;
 
         var windowToken = ConsumeAndGetToken(TokenType.Window);
@@ -21,6 +22,7 @@ public partial class Parser
                 Consume(TokenType.Comma);
 
             var nameToken = Current;
+            _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Identifier);
             Consume(Current.TokenType);
             var windowName = nameToken.Value;
 
@@ -38,6 +40,7 @@ public partial class Parser
 
     private WindowSpecificationNode ComposeWindowSpecification()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.WindowSpecification, Current);
         var openingToken = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
         FieldNode[]? partitionFields = null;
@@ -66,8 +69,10 @@ public partial class Parser
 
     private QualifyNode? ComposeQualify()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.QualifyClause, Current);
         if (!IsContextualKeyword("qualify")) return null;
 
+        _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         Consume(Current.TokenType);
 
         return new QualifyNode(ComposeOperations());
@@ -76,6 +81,7 @@ public partial class Parser
 
     private WindowFrameNode? ComposeWindowFrame()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.WindowFrame, Current);
         if (!IsContextualKeyword("rows") && !IsContextualKeyword("range"))
             return null;
 
@@ -184,6 +190,7 @@ public partial class Parser
                     .WithSpan(methodNode.Span.Through(spec.Span));
             }
 
+            _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Identifier);
             var windowNameToken = ConsumeAndGetToken(Current.TokenType);
             return ((WindowFunctionNode)new WindowFunctionNode(methodNode, windowNameToken.Value))
                 .WithSpan(methodNode.Span.Through(windowNameToken.Span));
@@ -191,6 +198,7 @@ public partial class Parser
 
         if (Current is FunctionToken { Value: var funcName } && funcName.Equals("over", StringComparison.OrdinalIgnoreCase))
         {
+            _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
             Consume(TokenType.Function);
             var spec = ComposeWindowSpecification();
             return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec))

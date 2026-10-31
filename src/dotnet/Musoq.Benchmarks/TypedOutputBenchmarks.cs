@@ -26,8 +26,7 @@ public abstract class TypedOutputBenchmark<T>
         var scenario = ScenarioCatalog.Get(ScenarioId);
         var count = BenchmarkSizes.Count(Size);
         MeasuredProcess.Record(scenario, count);
-        _query = InstanceCreator.CompileForTypedExecution<T>(scenario.Sql, "typed", new FixtureProvider(
-            count), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, count));
+        _query = InstanceCreator.CompileForTypedExecution<T>(scenario.Sql, "typed", FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, count));
     }
 
     [Benchmark]

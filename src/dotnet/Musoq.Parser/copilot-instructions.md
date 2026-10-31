@@ -102,6 +102,25 @@ All nodes extend `Node` (abstract base). Key specializations:
 - **Set operation nodes**: `UnionNode`, `ExceptNode`, `IntersectNode`
 - **Window nodes**: `WindowFunctionNode`, `WindowSpecificationNode`, `WindowFrameNode`
 
+## Source-preserving syntax
+
+`Parser.ParseSyntax(string)` returns immutable grammar regions, original tokens,
+trivia, contextual roles, and source diagnostics. It shares script composition
+with ordinary parsing before AST normalization can discard source choices.
+
+Capture is supplied explicitly to internal parser/schema constructors. The lexer
+receives an internal construction-time observation callback; `Peek` suppresses
+observations and restores significant-token context and lexer history. Grammar
+consumers use `ILexer` directly, including ordinary tokenization of qualified
+source-method names. Keep `ILexer` unchanged and avoid concrete lexer type checks.
+Significant-token context survives returned and skipped trivia, including
+subtraction and parameter-index delimiters. Observation callbacks run after
+current-token context has been assigned.
+
+The public `ComposeAll` entry point retains legacy exception wrapping. Syntax
+parsing uses the shared composition core and only converts typed input errors to
+diagnostics; unexpected implementation exceptions propagate.
+
 ## Dependencies
 
 ```

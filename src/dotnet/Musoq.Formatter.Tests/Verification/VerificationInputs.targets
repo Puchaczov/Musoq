@@ -1,0 +1,17 @@
+<Project>
+    <Target Name="ExportFormatterVerificationInputs" AfterTargets="Build">
+        <PropertyGroup>
+            <_VerificationDirectory>$(TargetDir)VerificationInputs/</_VerificationDirectory>
+        </PropertyGroup>
+        <MakeDir Directories="$(_VerificationDirectory)" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.sources" Lines="@(Compile->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.references" Lines="@(ReferencePath->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.options" Lines="$(LangVersion);$(Nullable);$(DefineConstants)" Overwrite="true" Encoding="UTF-8" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.target" Lines="$(TargetPath)" Overwrite="true" Encoding="UTF-8" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.assets" Lines="$(ProjectAssetsFile)" Overwrite="true" Encoding="UTF-8" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.projects" Lines="@(ProjectReference->'%(FullPath)')" Overwrite="true" Encoding="UTF-8" />
+        <WriteLinesToFile File="$(_VerificationDirectory)Tests.packages" Lines="@(PackageReference->'%(Identity)|%(PrivateAssets)')" Overwrite="true" Encoding="UTF-8" />
+        <Exec Command="dotnet msbuild &quot;$(MSBuildProjectDirectory)/../Musoq.Parser/Musoq.Parser.csproj&quot; -p:Configuration=$(Configuration) -t:ResolveReferences -getItem:Compile,ReferencePath,ProjectReference,PackageReference -getProperty:DefineConstants,LangVersion,Nullable,TargetPath,ProjectAssetsFile -nologo -verbosity:quiet &gt; &quot;$(_VerificationDirectory)Parser.json&quot;" />
+        <Exec Command="dotnet msbuild &quot;$(MSBuildProjectDirectory)/../Musoq.Formatter/Musoq.Formatter.csproj&quot; -p:Configuration=$(Configuration) -t:ResolveReferences -getItem:Compile,ReferencePath,ProjectReference,PackageReference -getProperty:DefineConstants,LangVersion,Nullable,TargetPath,ProjectAssetsFile -nologo -verbosity:quiet &gt; &quot;$(_VerificationDirectory)Formatter.json&quot;" />
+    </Target>
+</Project>

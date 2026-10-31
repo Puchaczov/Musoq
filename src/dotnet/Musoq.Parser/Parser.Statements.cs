@@ -10,6 +10,7 @@ public partial class Parser
 {
     private StatementNode ComposeStatement()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Statement, Current);
         if (TryComposeEnumDeclarationStatement(out var enumStatement)) return enumStatement;
 
         if (IsParameterBlockStart())
@@ -92,15 +93,18 @@ public partial class Parser
     }
 
 
-    private Node ComposeInterpretationSchema() => new SchemaParser(_lexer).ParseSchemaFromCurrentPosition();
+    private Node ComposeInterpretationSchema() => new SchemaParser(_lexer, _sourceCapture).ParseSchemaFromCurrentPosition();
 
 
     private CteExpressionNode ComposeCteExpression()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Cte, Current);
         var withToken = ConsumeAndGetToken(TokenType.With);
         var recursiveToken = IsContextualRecursiveKeyword() ? ConsumeAndGetToken() : null;
         var isRecursive = recursiveToken != null && Current.TokenType is not TokenType.As and not TokenType.LeftParenthesis;
 
+        if (isRecursive && recursiveToken != null)
+            _sourceCapture?.Mark(recursiveToken, Syntax.SyntaxTokenRole.Keyword);
         PushFromAliasesScope();
         try
         {

@@ -9,6 +9,7 @@ public partial class Parser
 {
     private QueryNode ComposeQuery()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Query, Current);
         QueryNode query;
         if (Current.TokenType == TokenType.Select)
             query = ComposeRegularQuery();
@@ -29,6 +30,7 @@ public partial class Parser
 
     private QueryNode ComposeRegularQuery()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Query, Current);
         PushFromAliasesScope();
         try
         {
@@ -66,6 +68,7 @@ public partial class Parser
 
     private QueryNode ComposeReorderedQuery()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Query, Current);
         PushFromAliasesScope();
         try
         {
@@ -87,6 +90,7 @@ public partial class Parser
 
     private OrderByNode? ComposeOrderBy()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.OrderByClause, Current);
         if (Current.TokenType != TokenType.OrderBy) return null;
 
         Consume(TokenType.OrderBy);
@@ -121,6 +125,7 @@ public partial class Parser
 
     private GroupByNode? ComposeGroupByNode()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.GroupByClause, Current);
         if (Current.TokenType != TokenType.GroupBy) return null;
         Consume(TokenType.GroupBy);
         if (Current.TokenType == TokenType.Comma)

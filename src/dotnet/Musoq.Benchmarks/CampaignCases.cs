@@ -77,7 +77,7 @@ public static class CampaignCases
         };
         return new CaseDefinition(key, scenario.Id, scenario.Category, phase, api, size, count,
             scenario.Sql, scenario.Specification, consumption,
-            Distribution: FixtureData.Description, InputUnit: scenario.InputUnit,
+            Distribution: FixtureCatalog.GetDistribution(scenario), InputUnit: scenario.InputUnit,
             Arguments: ExecutionSettings.Arguments(scenario, count));
     }
 

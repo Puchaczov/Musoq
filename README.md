@@ -681,6 +681,7 @@ See the [architecture reference](.claude/rules/architecture.md) for the current 
 
 ## Language references and further documentation
 
+- [Script formatting](docs/formatter.md): parser-only library, options, preservation, and diagnostics.
 - [Core SQL language](specs/musoq-core-language-spec.md): syntax, relational behavior, functions, and diagnostics.
 - [Text and binary interpretation](specs/musoq-binary-text-spec.md): format declarations and interpretation functions.
 - [TABLE and COUPLE](specs/musoq-table-couple-spec.md): source contracts and query-local bindings.

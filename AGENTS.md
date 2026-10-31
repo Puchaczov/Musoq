@@ -8,6 +8,11 @@ Musoq is a .NET SQL query engine. The solution is `src/dotnet/Musoq.sln`; produc
 
 Start with the repo-wide [Copilot guide](.github/copilot-instructions.md). Before editing a covered module, read its dedicated guide: [Parser](src/dotnet/Musoq.Parser/copilot-instructions.md), [Evaluator](src/dotnet/Musoq.Evaluator/copilot-instructions.md), [Converter](src/dotnet/Musoq.Converter/copilot-instructions.md), [Schema](src/dotnet/Musoq.Schema/copilot-instructions.md), [Plugins](src/dotnet/Musoq.Plugins/copilot-instructions.md), [Playground](src/dotnet/Musoq.Playground/copilot-instructions.md), or [Benchmarks](src/dotnet/Musoq.Benchmarks/copilot-instructions.md). `Musoq.Targets.*`, `Musoq.Tests.Common`, and examples currently follow the repo-wide guide. For planner, Execution IR, or renderer work, also read the [architecture rules](.claude/rules/architecture.md).
 
+## Engineering Constraints
+
+- Reflection is prohibited by default in implementation, tests, and test helpers. Prefer typed APIs, visitors, pattern matching, and explicit fixtures or registries. Existing uses are not precedent; unavoidable exceptions require an explicit, documented justification. Follow the [reflection policy](.claude/rules/code-quality.md#reflection-policy).
+- Start every wave with scoped cleanup and refactoring that supports its upcoming work. Performance and maintainability are acceptance criteria in every wave, not deferred cleanup tasks. Record when no preparatory refactoring is needed and avoid unrelated churn. Follow the [implementation-wave workflow](.claude/rules/multi-session.md#implementation-wave-workflow) and [performance and maintainability criteria](.claude/rules/code-quality.md#performance-and-maintainability).
+
 ## Build, Test, and Development Commands
 
 Use the .NET SDK pinned by `global.json` (10.0.401 or a compatible newer 10.0 feature band):

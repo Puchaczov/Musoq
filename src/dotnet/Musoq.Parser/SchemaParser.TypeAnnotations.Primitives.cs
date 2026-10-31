@@ -19,6 +19,7 @@ public partial class SchemaParser
 
     private TypeAnnotationNode ComposeTypeAnnotation(string? fieldName = null)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TypeSyntax, Current);
         var type = Current.TokenType switch
         {
             TokenType.ByteType when PeekNextTokenType() == TokenType.LeftSquareBracket =>

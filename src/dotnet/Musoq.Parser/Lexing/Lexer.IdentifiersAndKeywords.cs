@@ -16,9 +16,12 @@ public sealed partial class Lexer
         if (Input[start] is 'r' or 'R' && start + 1 < Input.Length && Input[start + 1] == '\'')
             return ScanRawStringLiteral();
 
-        var multiWordToken = TryMatchMultiWordKeyword();
-        if (multiWordToken != null)
-            return AssignToken(multiWordToken);
+        if (_significantTokenType != TokenType.Dot)
+        {
+            var multiWordToken = TryMatchMultiWordKeyword();
+            if (multiWordToken != null)
+                return AssignToken(multiWordToken);
+        }
 
         var input = Input.AsSpan();
         var identifierEnd = start + FastCharacterClassifier.GetIdentifierCodePointLength(input, start);
@@ -55,7 +58,7 @@ public sealed partial class Lexer
 
         if (IsSchemaContext && KeywordLookup.TryGetSchemaKeyword(textSpan, out var schemaKeywordType))
         {
-            if (_currentToken?.TokenType == TokenType.Dot)
+            if (_significantTokenType == TokenType.Dot)
                 return AssignToken(new PropertyToken(textSpan.ToString(), span));
 
             return AssignToken(new SchemaToken(textSpan.ToString(), schemaKeywordType, span));
@@ -63,7 +66,7 @@ public sealed partial class Lexer
 
         if (KeywordLookup.TryGetKeyword(textSpan, out var keywordType))
         {
-            if (_currentToken?.TokenType == TokenType.Dot)
+            if (_significantTokenType == TokenType.Dot)
                 return AssignToken(new PropertyToken(textSpan.ToString(), span));
 
             return AssignToken(CreateKeywordToken(keywordType, span));
@@ -72,7 +75,7 @@ public sealed partial class Lexer
         if (KeywordLookup.TryGetSchemaKeyword(textSpan, out var nonContextSchemaType))
         {
             var text = textSpan.ToString();
-            if (_currentToken?.TokenType == TokenType.Dot)
+            if (_significantTokenType == TokenType.Dot)
                 return AssignToken(new PropertyToken(text, span));
 
             if (!IsSchemaContext)
@@ -81,7 +84,7 @@ public sealed partial class Lexer
             return AssignToken(new SchemaToken(text, nonContextSchemaType, span));
         }
 
-        if (_currentToken?.TokenType == TokenType.Dot)
+        if (_significantTokenType == TokenType.Dot)
             return AssignToken(new PropertyToken(textSpan.ToString(), span));
 
         return AssignToken(new ColumnToken(textSpan.ToString(), span));

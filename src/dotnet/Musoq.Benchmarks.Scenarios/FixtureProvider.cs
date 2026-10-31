@@ -7,9 +7,14 @@ using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Benchmarks.Scenarios;
 
-public sealed class FixtureProvider(int count, int payloadValueOffset = 0) : ISchemaProvider
+public sealed class FixtureProvider : ISchemaProvider
 {
-    private readonly FixtureSchema _schema = new(count, payloadValueOffset);
+    private readonly FixtureSchema _schema;
+
+    public FixtureProvider(int count, int payloadValueOffset = 0)
+        : this(new FixtureSchema(count, payloadValueOffset)) { }
+
+    internal FixtureProvider(FixtureSchema schema) => _schema = schema;
 
     public ISchema GetSchema(string schema) => string.Equals(schema.TrimStart('#'), "bench", StringComparison.OrdinalIgnoreCase)
         ? _schema : throw new InvalidOperationException($"Unknown benchmark schema '{schema}'.");
@@ -21,23 +26,13 @@ public sealed partial class FixtureSchema : SchemaBase
     private const int NumberInputNodesPerRecord = 3;
     private readonly Dictionary<string, FixtureRows> _sources;
 
-    public FixtureSchema(int count, int payloadValueOffset = 0) : base("bench", CreateLibrary())
+    public FixtureSchema(int count, int payloadValueOffset = 0)
+        : this(FixtureInputs.Create(count, payloadValueOffset), StructuredLimits(count)) { }
+
+    internal FixtureSchema(FixtureInputs inputs, StructuralInputLimits limits) : base("bench", CreateLibrary())
     {
-        AddTypedSource<StructuredRows>("structured", new TypedSourceRegistrationOptions(StructuredLimits(count)));
-        var lookup = FixtureData.Rows(3);
-        _sources = new Dictionary<string, FixtureRows>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["rows"] = new(FixtureData.Rows(count, payloadValueOffset)),
-            ["skewed"] = new(FixtureData.Rows(count, payloadValueOffset).Select(row => row with { Key = row.Id % 10 == 0 ? row.Id % 4 : 0 }).ToArray()),
-            ["planned"] = new(FixtureData.Rows(count, payloadValueOffset)),
-            ["lookup"] = new(lookup),
-            ["reconcile"] = new([.. lookup, FixtureData.Create(4) with { Key = 4 }]),
-            ["twice"] = new(lookup.SelectMany(row => new[] { row, row }).ToArray()),
-            ["empty"] = new([])
-        };
-        var stream = FixtureData.Rows(count, payloadValueOffset).SelectMany(row => row.Payload)
-            .Concat(FixtureData.Create(0, payloadValueOffset).Truncated).ToArray();
-        _sources.Add("stream", new FixtureRows([FixtureData.Create(0, payloadValueOffset) with { Payload = stream }]));
+        AddTypedSource<StructuredRows>("structured", new TypedSourceRegistrationOptions(limits));
+        _sources = inputs.Sources;
     }
 
     /// <summary>Allows a collection of NumberInput records with two scalar fields, keeping other safety defaults.</summary>
@@ -53,8 +48,8 @@ public sealed partial class FixtureSchema : SchemaBase
         params object?[] parameters)
     {
         if (name.Equals("structured", StringComparison.OrdinalIgnoreCase))
-            return new FixtureTable(typeof(NumberInput));
-        return new FixtureTable(typeof(FixtureRow));
+            return FixtureTable.NumberInput();
+        return FixtureTable.Rows();
     }
 
     public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext context,
@@ -73,11 +68,37 @@ public sealed partial class FixtureSchema : SchemaBase
     }
 }
 
-public sealed class FixtureTable(Type rowType) : ISchemaTable
+public sealed class FixtureTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns { get; } = rowType.GetProperties()
-        .Select((property, index) => (ISchemaColumn)new SchemaColumn(property.Name, index, property.PropertyType)).ToArray();
-    public SchemaTableMetadata Metadata { get; } = new(rowType);
+    private FixtureTable(Type rowType, ISchemaColumn[] columns)
+    {
+        Columns = columns;
+        Metadata = new(rowType);
+    }
+
+    public static FixtureTable Rows() => new(typeof(FixtureRow),
+    [
+        new SchemaColumn(nameof(FixtureRow.Id), 0, typeof(int)),
+        new SchemaColumn(nameof(FixtureRow.Key), 1, typeof(int)),
+        new SchemaColumn(nameof(FixtureRow.Amount), 2, typeof(decimal)),
+        new SchemaColumn(nameof(FixtureRow.Name), 3, typeof(string)),
+        new SchemaColumn(nameof(FixtureRow.Optional), 4, typeof(int?)),
+        new SchemaColumn(nameof(FixtureRow.Items), 5, typeof(int[])),
+        new SchemaColumn(nameof(FixtureRow.Payload), 6, typeof(byte[])),
+        new SchemaColumn(nameof(FixtureRow.Text), 7, typeof(string)),
+        new SchemaColumn(nameof(FixtureRow.Time), 8, typeof(DateTime)),
+        new SchemaColumn(nameof(FixtureRow.State), 9, typeof(JobState)),
+        new SchemaColumn(nameof(FixtureRow.Truncated), 10, typeof(byte[]))
+    ]);
+
+    public static FixtureTable NumberInput() => new(typeof(global::Musoq.Benchmarks.Scenarios.NumberInput),
+    [
+        new SchemaColumn(nameof(global::Musoq.Benchmarks.Scenarios.NumberInput.Id), 0, typeof(int)),
+        new SchemaColumn(nameof(global::Musoq.Benchmarks.Scenarios.NumberInput.Amount), 1, typeof(decimal))
+    ]);
+
+    public ISchemaColumn[] Columns { get; }
+    public SchemaTableMetadata Metadata { get; }
     public ISchemaColumn? GetColumnByName(string name) => Columns.FirstOrDefault(column => column.ColumnName == name);
     public ISchemaColumn[] GetColumnsByName(string name) => Columns.Where(column => column.ColumnName == name).ToArray();
 }

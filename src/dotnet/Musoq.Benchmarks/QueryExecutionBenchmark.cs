@@ -27,7 +27,7 @@ public class QueryExecutionBenchmark
         var scenario = ScenarioCatalog.Get(ScenarioId);
         var count = BenchmarkSizes.Count(Size);
         MeasuredProcess.Record(scenario, count);
-        _query = InstanceCreator.CompileForExecution(scenario.Sql, "benchmark", new FixtureProvider(count),
+        _query = InstanceCreator.CompileForExecution(scenario.Sql, "benchmark", FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(),
             BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, count));
     }
 

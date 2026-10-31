@@ -9,6 +9,7 @@ public partial class Parser
 {
     private AccessMethodNode ComposeAccessMethod(string alias, bool allowNamedArguments = false)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.FunctionCall, Current);
         ArgsListNode args;
         bool isDistinct;
 
@@ -52,6 +53,7 @@ public partial class Parser
 
     private (bool HasFilter, Node? FilterExpression, string? FilterExpressionText) TryApplyFilterClause()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Keyword, Current);
         if (!IsContextualKeyword("filter"))
             return (false, null, null);
 

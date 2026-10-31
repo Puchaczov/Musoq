@@ -111,6 +111,7 @@ public partial class Parser
                 DiagnosticCode.MQ2002_MissingToken,
                 Current.Span);
 
+        _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         Consume(Current.TokenType);
     }
 
@@ -119,6 +120,7 @@ public partial class Parser
         if (!IsContextualKeyword("keep"))
             return [];
 
+        _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         Consume(Current.TokenType);
         var fields = new List<FieldNode>();
         var order = 0;

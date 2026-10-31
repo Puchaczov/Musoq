@@ -55,21 +55,26 @@ public partial class SchemaParser
         TokenType.Extends
     }.ToFrozenSet();
 
+    private readonly Syntax.SourceCapture? _sourceCapture;
     private readonly ILexer _lexer;
     private readonly SchemaTokenStream _tokens;
-    private int _pendingGenericGreaterTokens;
 
     /// <summary>
     ///     Creates a new schema parser.
     /// </summary>
     /// <param name="lexer">The lexer to use for tokenization.</param>
-    public SchemaParser(ILexer lexer)
+    public SchemaParser(ILexer lexer) : this(lexer, null)
     {
-        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
-        _tokens = new SchemaTokenStream(_lexer);
     }
 
-    private Token Current => _pendingGenericGreaterTokens > 0 ? new GreaterToken(TextSpan.Empty) : _tokens.Current;
+    internal SchemaParser(ILexer lexer, Syntax.SourceCapture? capture)
+    {
+        _sourceCapture = capture;
+        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
+        _tokens = new SchemaTokenStream(_lexer, capture);
+    }
+
+    private Token Current => _tokens.Current;
 
     private IReadOnlyList<SchemaComment> GetSchemaComments(TextSpan schemaSpan)
     {
@@ -131,6 +136,7 @@ public partial class SchemaParser
             if (isBinary)
             {
                 var schemaStartSpan = Current.Span;
+                _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
                 Consume(Current.TokenType);
                 return ComposeBinarySchemaBody(schemaStartSpan);
             }
@@ -138,6 +144,7 @@ public partial class SchemaParser
             if (isText)
             {
                 var schemaStartSpan = Current.Span;
+                _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
                 Consume(Current.TokenType);
                 return ComposeTextSchemaBody(schemaStartSpan);
             }

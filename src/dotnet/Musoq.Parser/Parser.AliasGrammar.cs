@@ -37,6 +37,7 @@ public partial class Parser
 {
     private AliasParseResult ComposeAlias(AliasContext context)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Alias, Current);
         if (Current.TokenType == TokenType.As)
         {
             var asToken = ConsumeAndGetToken(TokenType.As);

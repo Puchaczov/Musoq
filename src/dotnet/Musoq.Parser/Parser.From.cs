@@ -11,6 +11,7 @@ public partial class Parser
 {
     private ParsedSource ComposeFrom()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.FromClause, Current);
         Consume(TokenType.From);
         return ComposeSource(SourceParseContext.Primary);
     }

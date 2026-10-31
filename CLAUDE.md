@@ -12,6 +12,8 @@ Every time you generate a plan for a task, the **penultimate step** (second-to-l
 
 This is non-negotiable. Delivering working code that violates project standards is not acceptable. The final step of any plan should be running the relevant validation selected by the Validation by Change Impact policy; the step immediately before that is the compliance check against these instructions. Documentation and instruction-only changes can finish with diff, link, formatting, and consistency checks without running tests.
 
+The project-wide [reflection and engineering-quality rules](.claude/rules/code-quality.md#reflection-policy) apply to implementation and tests. Follow the [implementation-wave workflow](.claude/rules/multi-session.md#implementation-wave-workflow): every wave begins with scoped cleanup and refactoring that supports its upcoming work. Descriptions of legacy patterns in module guides are not implicit exemptions from these constraints.
+
 ## What is Musoq?
 
 **Core Concept**: Musoq transforms SQL queries through typed intermediate plans into compiled C# code that executes against arbitrary data sources. It's designed for developers who want SQL's declarative power for everyday scripting tasks (file processing, git analysis, data transformation) instead of writing throwaway scripts.

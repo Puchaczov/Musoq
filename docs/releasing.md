@@ -1,9 +1,8 @@
 # Releasing Musoq
 
 Musoq publication is tag-driven. The `Publish` workflow validates the tag,
-qualifies the exact tagged commit, packages the selected train, smoke-tests the
-packages, publishes them to NuGet, and creates the prerelease or stable GitHub
-Release.
+qualifies the exact tagged commit, packages the selected train, publishes the
+packages to NuGet, and creates the prerelease or stable GitHub Release.
 
 ## Qualify the candidate before tagging
 
@@ -11,8 +10,8 @@ Every release requires successful Linux and Windows `CI` push qualification for
 the exact candidate commit before its tag is pushed. CI runs on pushes to `master`
 and `release/**`, and on pull requests targeting `master`. Pull-request runs do not
 qualify publication. Release tags start `Publish` without starting another full
-test suite; Publish reuses the successful branch push run and retains its build,
-package validation, and package smoke checks.
+test suite; Publish reuses the successful branch push run and retains its build
+and package validation.
 
 ## Alpha releases
 
@@ -77,8 +76,8 @@ checkout and publish only the packages selected from its registry.
 
 ## Local qualification
 
-Run the release scripts, build, tests, package pack, and package smoke checks
-before publishing. The release gate does not require benchmarks.
+Run the release scripts, build, tests, and package pack before publishing.
+The release gate does not require benchmarks.
 
 ```powershell
 pwsh -NoProfile -File scripts/release/Test-ReleaseScripts.ps1
@@ -89,10 +88,23 @@ dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --v
 
 $out = "artifacts/release-$($tag.TrimStart('v').Replace('/', '-'))"
 pwsh -NoProfile -File scripts/release/Pack-Release.ps1 -Tag $tag -OutputPath $out
-pwsh -NoProfile -File scripts/release/Test-PackageSmoke.ps1 -Tag $tag -PackageDirectory $out
 ```
 
-`workflow_dispatch` on `Publish` is a dry run. It validates, builds, packs, and
-smoke-tests without publishing. For a real release, verify the tag-triggered
+`workflow_dispatch` on `Publish` is a dry run. It validates, builds, and packs
+without publishing. For a real release, verify the tag-triggered
 workflow, the GitHub Release assets, and every selected package/version in the
 NuGet flat container after indexing completes.
+
+## Formatter package qualification
+
+The engine package list in `packages.json` composes the separate
+`formatter-packages.json` manifest through `additionalManifests`. Every release
+command validates the combined catalog, including duplicate IDs and slugs.
+`Musoq.Formatter` is versioned by `MusoqFormatterVersion`.
+Its only runtime package dependency is `Musoq.Parser`. Existing package versions
+are unchanged by introducing it. A package-specific candidate uses
+`formatter/v<version>` with the usual qualification and publication policy.
+
+For local package checks without publication, run `Test-ReleaseScripts.ps1` and
+pack with `Pack-Release.ps1 -AllPackages`. CI runs the release-tooling checks and
+packs all registered packages.

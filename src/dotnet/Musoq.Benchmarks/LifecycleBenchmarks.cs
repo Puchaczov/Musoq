@@ -7,7 +7,7 @@ namespace Musoq.Benchmarks;
 
 public abstract class CompilationCase
 {
-    protected FixtureProvider Provider = null!;
+    protected Musoq.Schema.ISchemaProvider Provider = null!;
     protected Scenario Scenario = null!;
     protected CompilationOptions Options = null!;
     public IEnumerable<string> Scenarios => ScenarioCatalog.CompilationIds;
@@ -18,7 +18,7 @@ public abstract class CompilationCase
     {
         Scenario = ScenarioCatalog.Get(ScenarioId);
         MeasuredProcess.Record(Scenario, FixtureData.TestSize);
-        Provider = new FixtureProvider(FixtureData.TestSize);
+        Provider = FixtureCatalog.Prepare(Scenario, FixtureData.TestSize).CreateSchemaProvider();
         Options = ExecutionSettings.Create(Scenario, FixtureData.TestSize);
     }
 
@@ -53,7 +53,7 @@ public class WarmCompilationBenchmark : CompilationCase
 [MemoryDiagnoser]
 public class ArtifactLoadBenchmark
 {
-    private FixtureProvider _provider = null!;
+    private Musoq.Schema.ISchemaProvider _provider = null!;
     private Scenario _scenario = null!;
     private ICompiledQueryArtifact _artifact = null!;
     public IEnumerable<string> Scenarios => ScenarioCatalog.ArtifactIds;
@@ -65,7 +65,7 @@ public class ArtifactLoadBenchmark
     {
         _scenario = ScenarioCatalog.Get(ScenarioId);
         MeasuredProcess.Record(_scenario, FixtureData.TestSize);
-        _provider = new FixtureProvider(FixtureData.TestSize);
+        _provider = FixtureCatalog.Prepare(_scenario, FixtureData.TestSize).CreateSchemaProvider();
         _artifact = QueryArtifacts.Create(_scenario, _provider);
     }
 
@@ -78,14 +78,14 @@ public class ArtifactLoadBenchmark
 
 public static class QueryArtifacts
 {
-    public static ICompiledQueryArtifact Create(Scenario scenario, FixtureProvider provider)
+    public static ICompiledQueryArtifact Create(Scenario scenario, Musoq.Schema.ISchemaProvider provider)
     {
         var result = InstanceCreator.CompileArtifactWithDiagnostics(scenario.Sql, "artifact", provider,
             BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, FixtureData.TestSize));
         return result.Artifact ?? throw new InvalidOperationException(string.Join(Environment.NewLine, result.Diagnostics));
     }
 
-    public static CompiledQuery Load(Scenario scenario, ICompiledQueryArtifact artifact, FixtureProvider provider)
+    public static CompiledQuery Load(Scenario scenario, ICompiledQueryArtifact artifact, Musoq.Schema.ISchemaProvider provider)
     {
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(scenario.Sql, artifact, provider,
             BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, FixtureData.TestSize));

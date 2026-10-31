@@ -28,7 +28,7 @@ public static class MeasuredProcess
         var root = ProvenanceCollector.RepositoryRoot();
         return new(Environment.ProcessId, DateTimeOffset.UtcNow,
             RuntimeInformation.FrameworkDescription, GCSettings.IsServerGC, Environment.ProcessorCount,
-            InformationalVersion(typeof(InstanceCreator).Assembly), InformationalVersion(typeof(MeasuredProcess).Assembly),
+            InformationalVersion(typeof(InstanceCreator).Assembly), ScenarioCatalog.InformationalVersion,
             ProvenanceCollector.Source(root));
     }
 

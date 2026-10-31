@@ -12,6 +12,8 @@ public sealed partial class Lexer
         if (lookahead < 1)
             throw new ArgumentOutOfRangeException(nameof(lookahead));
 
+        var significantTokenType = _significantTokenType;
+        var peekDepth = _peekDepth;
         var position = Position;
         var current = _currentToken;
         var last = _lastToken;
@@ -29,6 +31,7 @@ public sealed partial class Lexer
         var recoverOnError = RecoverOnError;
 
         RecoverOnError = false;
+        _peekDepth++;
         try
         {
             Token token = current;
@@ -39,6 +42,8 @@ public sealed partial class Lexer
         }
         finally
         {
+            _peekDepth = peekDepth;
+            _significantTokenType = significantTokenType;
             Position = position;
             _currentToken = current;
             _lastToken = last;

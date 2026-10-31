@@ -10,6 +10,7 @@ public partial class Parser
 {
     private SelectNode ComposeSelectNode()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.SelectClause, Current);
         Consume(TokenType.Select);
         ConsumeWhiteSpaces();
 

@@ -16,7 +16,7 @@ public sealed class QueryResultTests
     {
         var scenario = ScenarioCatalog.Get(id);
         var expected = Expectations.Get(id);
-        using var query = InstanceCreator.CompileForExecution(scenario.Sql, "correctness", new FixtureProvider(FixtureData.TestSize),
+        using var query = InstanceCreator.CompileForExecution(scenario.Sql, "correctness", FixtureCatalog.Prepare(scenario, FixtureData.TestSize).CreateSchemaProvider(),
             BenchmarkLogger.Instance, ExecutionSettings.Create(scenario));
         ResultAssertions.Execution(expected, query, scenario);
         ResultAssertions.Execution(expected, query, scenario);
@@ -55,6 +55,7 @@ public static partial class Expectations
         results.Add("B01_Wide", new(new[] { ("Id", typeof(int)) }.Concat(Enumerable.Range(0, 64)
             .Select(index => ($"C{index}", typeof(decimal)))).ToArray(), Enumerable.Range(0, 4)
             .Select(row => new object?[] { row }.Concat(Enumerable.Range(0, 64).Select(column => (object?)(row + 1m + column))).ToArray()).ToArray()));
+        AddProfiles(results);
         return results;
     }
 }

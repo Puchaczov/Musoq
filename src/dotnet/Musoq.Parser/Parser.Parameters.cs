@@ -17,6 +17,7 @@ public partial class Parser
 
     private ParameterBlockNode ComposeParameterBlock()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.ParameterBlock, Current);
         var start = ConsumeAndGetToken(Current.TokenType);
         Consume(TokenType.LeftParenthesis);
 

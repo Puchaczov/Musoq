@@ -21,7 +21,7 @@ public sealed class CampaignTests
     {
         var options = CampaignOptions.Parse(["--size", "1_007"]);
         var cases = CampaignCases.Create(options, Path.GetTempPath());
-        Assert.AreEqual(66, cases.Count(item => item.Definition.Phase == "execution"));
+        Assert.AreEqual(69, cases.Count(item => item.Definition.Phase == "execution"));
         Assert.IsTrue(cases.Where(item => item.Definition.Phase == "execution").All(item => item.Definition.InputCount == 1007));
         Assert.IsTrue(cases.Where(item => item.Definition.Phase != "execution").All(item => item.Definition.InputCount == FixtureData.TestSize));
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--size", "0"]));
@@ -77,8 +77,11 @@ public sealed class CampaignTests
         var families = ScenarioCatalog.All.Where(item => item.Id.StartsWith('B')).Select(item => int.Parse(item.Id.AsSpan(1, 2))).Distinct().Order().ToArray();
         CollectionAssert.AreEqual(Enumerable.Range(1, 32).ToArray(), families);
         Assert.AreEqual(10, ScenarioCatalog.All.Count(item => item.Id.StartsWith('X')));
-        var actual = typeof(QueryExecutionBenchmark).Assembly.GetTypes().Where(type => !type.IsAbstract &&
-            type.GetMethods().Any(method => method.GetCustomAttributes(typeof(BenchmarkDotNet.Attributes.BenchmarkAttribute), true).Length > 0)).ToArray();
+        Type[] actual =
+        [
+            typeof(QueryExecutionBenchmark), typeof(ColdCompilationBenchmark), typeof(WarmCompilationBenchmark),
+            typeof(ArtifactLoadBenchmark), typeof(TypedProjectionBenchmark), typeof(TypedGroupBenchmark), typeof(TypedWindowBenchmark)
+        ];
         CollectionAssert.AreEquivalent(actual, CampaignCases.Types.ToArray());
         var cases = CampaignCases.Create(new CampaignOptions(), Path.GetTempPath());
         Assert.AreEqual(cases.Length, cases.Select(item => item.Definition.Id).Distinct().Count());

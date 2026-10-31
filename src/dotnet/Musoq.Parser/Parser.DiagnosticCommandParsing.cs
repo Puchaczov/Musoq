@@ -22,6 +22,7 @@ public partial class Parser
 
     private DiagnosticCommandNode ComposeDiagnosticCommand()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.UtilityStatement, Current);
         if (IsContextWord("profile"))
             return ComposeProfileCommand();
 
@@ -54,6 +55,7 @@ public partial class Parser
                 Current.Span.IsEmpty ? explainToken.Span : Current.Span);
         }
 
+        _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         var analyzeToken = ConsumeAndGetToken();
         return ComposeDiagnosticCommandBody(
             DiagnosticCommandKind.ExplainAnalyze,
@@ -105,6 +107,7 @@ public partial class Parser
 
     private int ConsumeDiagnosticInnerStatement()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Subquery, Current);
         var innerEnd = Current.Span.Start;
 
         while (Current.TokenType is not TokenType.EndOfFile and not TokenType.Semicolon)

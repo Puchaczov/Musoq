@@ -15,6 +15,7 @@ public partial class Parser
 
     private ScriptVariableDeclarationNode ComposeScriptVariableDeclaration()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.VariableDeclaration, Current);
         var start = ConsumeAndGetToken(Current.TokenType);
         var name = ConsumeScriptVariableName();
 
@@ -62,6 +63,7 @@ public partial class Parser
     }
     private Token ConsumeScriptVariableName()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         if (Current.TokenType is TokenType.Identifier or TokenType.Word)
             return ConsumeAndGetToken(Current.TokenType);
 

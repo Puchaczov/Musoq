@@ -21,6 +21,7 @@ public partial class SchemaParser
 
     private BinarySchemaNode ComposeBinarySchemaBody(TextSpan schemaStartSpan = default)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.BinarySchema, Current);
         var name = ComposeIdentifierOrWord();
         var typeParameters = ComposeOptionalTypeParameters();
         var extends = ComposeOptionalExtends(out var extendsSpan);

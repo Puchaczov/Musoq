@@ -62,6 +62,7 @@ public partial class Parser
 
     private EnumDeclarationNode ComposeEnumDeclaration()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.EnumDeclaration, Current);
         var startToken = Current;
         var isFlags = IsContextualStatementWord("flags");
 
@@ -87,6 +88,7 @@ public partial class Parser
                 "MySQL-style ENUM(...) declarations are not supported. Declare a named Musoq enum with an integral backing type.",
                 Current.Span);
 
+        _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         ConsumeAndGetToken();
         var nameToken = ConsumeEnumIdentifier("enum type name");
 
@@ -241,6 +243,7 @@ public partial class Parser
 
     private Token ConsumeEnumIdentifier(string role)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         if (Current.TokenType != TokenType.Identifier)
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2042_InvalidEnumDeclaration,

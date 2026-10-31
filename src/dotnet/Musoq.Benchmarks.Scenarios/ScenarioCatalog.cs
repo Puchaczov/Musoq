@@ -3,6 +3,8 @@ namespace Musoq.Benchmarks.Scenarios;
 public static partial class ScenarioCatalog
 {
     public const string SuiteVersion = "engine-v3";
+    public static string PackageVersion => ScenarioBuildInfo.PackageVersion;
+    public static string InformationalVersion => ScenarioBuildInfo.InformationalVersion;
     public static IReadOnlyList<string> CompilationIds { get; } = Array.AsReadOnly(new[]
     {
         "B01_Scan", "B01_Wide", "B14_Group", "B10_CorrelatedFallback",
@@ -28,6 +30,7 @@ public static partial class ScenarioCatalog
         scenarios.AddRange(Analytics());
         scenarios.AddRange(Interpretation());
         scenarios.AddRange(Composed());
+        AddProfiles(scenarios);
         return scenarios;
     }
 }

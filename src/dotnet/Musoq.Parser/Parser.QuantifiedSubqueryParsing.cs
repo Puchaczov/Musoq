@@ -10,6 +10,7 @@ public partial class Parser
 {
     private Node ComposeQuantifiedSubquery(Node left, TokenType operatorType)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Subquery, Current);
         var outerAlias = GetSingleQuantifiedOuterAlias();
         var quantifierToken = Current;
         var quantifier = quantifierToken.TokenType;

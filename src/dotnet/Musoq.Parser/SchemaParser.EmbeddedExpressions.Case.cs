@@ -14,6 +14,7 @@ public partial class SchemaParser
 
     private Node ComposeSchemaCase()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.CaseExpression, Current);
         var start = ConsumeAndGetToken(TokenType.Case);
         var subject = Current.TokenType == TokenType.When ? null : ComposeExpression();
         var pairs = new List<(Node When, Node Then)>();

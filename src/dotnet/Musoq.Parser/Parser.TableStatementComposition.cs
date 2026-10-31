@@ -7,6 +7,7 @@ public partial class Parser
 {
     private CreateTableNode ComposeTable()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TableDeclaration, Current);
         var tableToken = ConsumeAndGetToken(Current.TokenType);
         var tableName = Current.Value;
         Consume(TokenType.Identifier);

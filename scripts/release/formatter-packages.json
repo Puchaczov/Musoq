@@ -1,0 +1,10 @@
+{
+  "packages": [
+    {
+      "slug": "formatter",
+      "packageId": "Musoq.Formatter",
+      "projectPath": "src/dotnet/Musoq.Formatter/Musoq.Formatter.csproj",
+      "versionProperty": "MusoqFormatterVersion"
+    }
+  ]
+}

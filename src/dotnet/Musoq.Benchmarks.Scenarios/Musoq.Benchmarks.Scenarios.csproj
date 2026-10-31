@@ -2,10 +2,24 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
+    <Version>$(MusoqBenchmarksScenariosVersion)</Version>
+    <Description>Reusable deterministic SQL workloads and typed benchmark fixtures for Musoq hosts.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
   </ItemGroup>
+  <Target Name="GenerateScenarioBuildInfo" BeforeTargets="CoreCompile"
+          DependsOnTargets="GetAssemblyVersion;InitializeSourceControlInformation;AddSourceRevisionToInformationalVersion">
+    <WriteLinesToFile File="$(IntermediateOutputPath)ScenarioBuildInfo.g.cs"
+      Lines="namespace Musoq.Benchmarks.Scenarios%3B internal static class ScenarioBuildInfo { internal const string PackageVersion = &quot;$(PackageVersion)&quot;%3B internal const string InformationalVersion = &quot;$(InformationalVersion)&quot;%3B }"
+      Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)ScenarioBuildInfo.g.cs" />
+    </ItemGroup>
+  </Target>
 </Project>

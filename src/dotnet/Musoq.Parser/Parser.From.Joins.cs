@@ -91,6 +91,7 @@ public partial class Parser
 
     private ApplyFromNode ComposeApplyFrom(FromNode from, ApplyType applyType, string operatorText)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Apply, Current);
         var with = Compose(parser => parser.ComposeSource(SourceParseContext.ApplyRight));
         EnsureStableAlias(with, operatorText, false);
         var withOrdinality = ConsumeWithOrdinalityIfPresent();
@@ -100,6 +101,7 @@ public partial class Parser
 
     private bool ConsumeWithOrdinalityIfPresent()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Keyword, Current);
         if (Current.TokenType != TokenType.With)
             return false;
 
@@ -120,6 +122,7 @@ public partial class Parser
 
     private JoinFromNode ComposeConditionJoin(FromNode from, JoinType joinType, string operatorText)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Join, Current);
         var with = Compose(parser => parser.ComposeSource(SourceParseContext.JoinRight));
         EnsureStableAlias(with, operatorText, false);
         EnsureJoinCondition(operatorText);
@@ -131,6 +134,7 @@ public partial class Parser
 
     private FieldOrderedNode? ComposeAsOfTieBreakIfPresent(JoinType joinType)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Keyword, Current);
         if (!IsContextualKeyword("tie"))
             return null;
 
@@ -188,12 +192,21 @@ public partial class Parser
         }
 
         var schemaNode = ComposeSchemaName();
-        ConsumeAsColumn(TokenType.Dot);
-        var identifier = (IdentifierNode)ComposeBaseTypes();
+        Consume(TokenType.Dot);
+        var method = ConsumeSchemaMethodName();
         var schemaAliasResult = ComposeAlias(AliasContext.Description);
         EnsureAliasSyntax(schemaAliasResult, AliasContext.Description);
         var composeAlias = schemaAliasResult.Alias;
 
-        return new SchemaMethodFromNode(composeAlias, schemaNode, identifier.Name);
+        return new SchemaMethodFromNode(composeAlias, schemaNode, method);
+    }
+
+    private string ConsumeSchemaMethodName()
+    {
+        using var region = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
+        if (Current.TokenType is not (TokenType.Property or TokenType.Identifier or TokenType.Star or TokenType.Function))
+            throw new SyntaxException("Expected a schema method name after '.'.",
+                _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2001_UnexpectedToken, Current.Span);
+        return ConsumeAndGetToken().Value;
     }
 }

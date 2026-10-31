@@ -9,6 +9,7 @@ public partial class Parser
 {
     private Node ComposeOperations()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Predicate, Current);
         var node = ComposeAndOperators();
         while (Current.TokenType == TokenType.Or)
         {
@@ -35,6 +36,7 @@ public partial class Parser
 
     private Node ComposeArithmeticExpression(int minPrecedence, bool allowPostfixCasts = true)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Expression, Current);
         var left = allowPostfixCasts
             ? ComposePostfixExpression(minPrecedence)
             : ComposeBaseTypes(minPrecedence);

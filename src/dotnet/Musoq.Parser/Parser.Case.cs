@@ -8,6 +8,7 @@ public partial class Parser
 {
     private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode, TextSpan Span) ComposeCase()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.CaseExpression, Current);
         var caseToken = ConsumeAndGetToken(TokenType.Case);
 
         if (Current.TokenType == TokenType.Comma)

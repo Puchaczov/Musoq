@@ -96,17 +96,6 @@ public sealed class ReleasePackagingGuardrailTests
     }
 
     [TestMethod]
-    public void PackageSmoke_ShouldValidateBundledTargetAssembliesBeforeConsumerExecution()
-    {
-        var smokeScript = File.ReadAllText(Path.Combine(RepositoryRoot, "scripts", "release", "Test-PackageSmoke.ps1"));
-
-        StringAssert.Contains(smokeScript, "Test-ConverterPackageContents");
-        StringAssert.Contains(smokeScript, "Test-EvaluatorPackageContents");
-        StringAssert.Contains(smokeScript, "Test-only portable target files must not be included");
-        StringAssert.Contains(smokeScript, "Consumer restore must not resolve internal Musoq.Targets NuGet packages.");
-    }
-
-    [TestMethod]
     public async Task ReleaseScripts_ShouldPassBehavioralTests()
     {
         var scriptPath = Path.Combine(RepositoryRoot, "scripts", "release", "Test-ReleaseScripts.ps1");

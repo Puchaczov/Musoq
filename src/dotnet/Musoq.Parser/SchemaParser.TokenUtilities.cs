@@ -12,6 +12,7 @@ public partial class SchemaParser
 
     private string ComposeIdentifierOrWord()
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
         if (Current.TokenType == TokenType.Identifier)
             return ConsumeAndGetToken(TokenType.Identifier).Value;
 
@@ -70,31 +71,10 @@ public partial class SchemaParser
                 $"Expected token '{tokenType}' but found '{Current.TokenType}' ({Current.Value})",
                 _lexer.AlreadyResolvedQueryPart);
 
-        if (_pendingGenericGreaterTokens > 0)
-        {
-            _pendingGenericGreaterTokens--;
-            return;
-        }
-
         _tokens.Advance();
     }
 
-    private void ConsumeGenericGreater()
-    {
-        if (Current.TokenType == TokenType.Greater)
-        {
-            Consume(TokenType.Greater);
-            return;
-        }
-
-        if (Current.TokenType != TokenType.RightShift)
-            throw new SyntaxException(
-                $"Expected token '{TokenType.Greater}' but found '{Current.TokenType}' ({Current.Value})",
-                _lexer.AlreadyResolvedQueryPart);
-
-        _pendingGenericGreaterTokens++;
-        _tokens.Advance();
-    }
+    private void ConsumeGenericGreater() => _tokens.ConsumeGenericGreater();
 
     private Token ConsumeAndGetToken(TokenType expected)
     {

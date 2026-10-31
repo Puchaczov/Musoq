@@ -165,8 +165,7 @@ public sealed partial class Lexer
 
     private bool PreviousTokenCanEndExpression()
     {
-        var previous = _currentToken.TokenType == TokenType.WhiteSpace ? _lastToken : _currentToken;
-        return previous.TokenType is TokenType.Word or TokenType.Identifier or TokenType.Function or
+        return _significantTokenType is TokenType.Word or TokenType.Identifier or TokenType.Function or
             TokenType.Integer or TokenType.Decimal or TokenType.HexadecimalInteger or
             TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.StringLiteral or
             TokenType.RightParenthesis or TokenType.RightSquareBracket or TokenType.KeyAccess or
@@ -240,8 +239,7 @@ public sealed partial class Lexer
             Position++;
             return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
         }
-        var previous = _currentToken.TokenType == TokenType.WhiteSpace ? _lastToken : _currentToken;
-        if (previous.TokenType is TokenType.ParameterReference or TokenType.RightSquareBracket)
+        if (_significantTokenType is TokenType.ParameterReference or TokenType.RightSquareBracket)
         {
             Position++;
             return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));

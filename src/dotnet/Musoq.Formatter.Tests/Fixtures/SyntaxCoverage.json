@@ -1,0 +1,2651 @@
+{
+  "version": 2,
+  "families": [
+    {
+      "id": "queries",
+      "description": "SELECT-first and FROM-first, SELECT DISTINCT, aliases and star modifiers",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "id": "sources",
+      "description": "Schema methods, structured/named arguments, VALUES, records, arrays, property access and generic calls",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8",
+        "coverage:referential"
+      ]
+    },
+    {
+      "id": "expressions",
+      "description": "Literals, arithmetic, unary operators, casts, index/key access, CASE and function calls",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310",
+        "coverage:operators",
+        "coverage:key-access"
+      ]
+    },
+    {
+      "id": "predicates",
+      "description": "Boolean groups, BETWEEN, IN, EXISTS, quantified subqueries, patterns, null and row-presence predicates",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29",
+        "musoq-core-language-spec.md:30",
+        "coverage:operators",
+        "coverage:quantified"
+      ]
+    },
+    {
+      "id": "joins",
+      "description": "Inner/outer/cross/semi/anti/ASOF joins, tie breakers and APPLY with ordinality",
+      "fixtures": [
+        "musoq-core-language-spec.md:20",
+        "musoq-core-language-spec.md:73",
+        "musoq-core-language-spec.md:74"
+      ]
+    },
+    {
+      "id": "grouping",
+      "description": "GROUP BY, ALL, HAVING, aggregation, FILTER and PIVOT/UNPIVOT",
+      "fixtures": [
+        "musoq-core-language-spec.md:126",
+        "musoq-core-language-spec.md:129",
+        "musoq-core-language-spec.md:131"
+      ]
+    },
+    {
+      "id": "windows",
+      "description": "OVER, named WINDOW, partition/order lists, ROWS/RANGE frames and QUALIFY",
+      "fixtures": [
+        "musoq-core-language-spec.md:202",
+        "musoq-core-language-spec.md:203",
+        "musoq-core-language-spec.md:204"
+      ]
+    },
+    {
+      "id": "sets",
+      "description": "UNION/ALL, EXCEPT, INTERSECT, optional comparison keys and result modifiers",
+      "fixtures": [
+        "musoq-core-language-spec.md:151",
+        "musoq-core-language-spec.md:227",
+        "musoq-core-language-spec.md:228"
+      ]
+    },
+    {
+      "id": "composition",
+      "description": "CTEs, recursive CTEs, derived/scalar/predicate subqueries and query nesting",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:51",
+        "coverage:quantified"
+      ]
+    },
+    {
+      "id": "scripts",
+      "description": "Parameters, variables, enums, multiple statements and optional separators",
+      "fixtures": [
+        "musoq-core-language-spec.md:23",
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ]
+    },
+    {
+      "id": "utilities",
+      "description": "DESC forms, diagnostic commands, TABLE, COUPLE and settings",
+      "fixtures": [
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:131",
+        "musoq-core-language-spec.md:138",
+        "coverage:profile",
+        "coverage:explain"
+      ]
+    },
+    {
+      "id": "interpretation",
+      "description": "Binary/text declarations, field types/modifiers, nested blocks, choices, repeats and embedded expressions",
+      "fixtures": [
+        "musoq-core-language-spec.md:69",
+        "musoq-core-language-spec.md:146",
+        "musoq-binary-text-spec.md:0"
+      ]
+    }
+  ],
+  "parserNodes": [
+    {
+      "type": "AccessCallChainNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessCallChainNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.AccessCallChainNode",
+      "category": "node",
+      "reason": "Typed property/index reflection chain produced after binding; the shared parser retains DotNode and access expressions."
+    },
+    {
+      "type": "AccessColumnNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessColumnNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:quantified"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AccessColumnNode",
+      "category": "node"
+    },
+    {
+      "type": "AccessMethodNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessMethodNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:19",
+        "musoq-binary-text-spec.md:55",
+        "musoq-binary-text-spec.md:63"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AccessMethodNode",
+      "category": "node"
+    },
+    {
+      "type": "AccessObjectArrayNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessObjectArrayNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:43"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AccessObjectArrayNode",
+      "category": "node"
+    },
+    {
+      "type": "AccessObjectKeyNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessObjectKeyNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:key-access"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AccessObjectKeyNode",
+      "category": "node"
+    },
+    {
+      "type": "AccessRawIdentifierNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessRawIdentifierNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.AccessRawIdentifierNode",
+      "category": "node",
+      "reason": "Semantic raw-identifier substitution; ordinary source identifiers are IdentifierNode."
+    },
+    {
+      "type": "AccessRefreshAggregationScoreNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AccessRefreshAggregationScoreNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.AccessRefreshAggregationScoreNode",
+      "category": "node",
+      "reason": "Aggregation refresh bookkeeping, with no independent source spelling."
+    },
+    {
+      "type": "AddNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AddNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:18",
+        "musoq-binary-text-spec.md:66",
+        "musoq-core-language-spec.md:284"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AddNode",
+      "category": "node"
+    },
+    {
+      "type": "AllColumnsNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AllColumnsNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:63",
+        "musoq-core-language-spec.md:160",
+        "musoq-core-language-spec.md:161"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AllColumnsNode",
+      "category": "node"
+    },
+    {
+      "type": "AndNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/AndNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.AndNode",
+      "category": "node"
+    },
+    {
+      "type": "ArgsListNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ArgsListNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "coverage:explain",
+        "coverage:key-access",
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ArgsListNode",
+      "category": "node"
+    },
+    {
+      "type": "ArrayIndexNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ArrayIndexNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:22"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ArrayIndexNode",
+      "category": "node"
+    },
+    {
+      "type": "ArrayLiteralNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ArrayLiteralNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:26",
+        "musoq-binary-text-spec.md:4",
+        "musoq-binary-text-spec.md:42"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ArrayLiteralNode",
+      "category": "node"
+    },
+    {
+      "type": "BetweenNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/BetweenNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.BetweenNode",
+      "category": "node"
+    },
+    {
+      "type": "BinaryIntegerNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/BinaryIntegerNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.BinaryIntegerNode",
+      "category": "node"
+    },
+    {
+      "type": "BitwiseAndNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/BitwiseAndNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:15",
+        "musoq-binary-text-spec.md:66"
+      ],
+      "fullName": "Musoq.Parser.Nodes.BitwiseAndNode",
+      "category": "node"
+    },
+    {
+      "type": "BitwiseOrNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/BitwiseOrNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.BitwiseOrNode",
+      "category": "node"
+    },
+    {
+      "type": "BitwiseXorNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/BitwiseXorNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.BitwiseXorNode",
+      "category": "node"
+    },
+    {
+      "type": "BooleanNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/BooleanNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:51",
+        "musoq-binary-text-spec.md:55",
+        "musoq-core-language-spec.md:122"
+      ],
+      "fullName": "Musoq.Parser.Nodes.BooleanNode",
+      "category": "node"
+    },
+    {
+      "type": "CaseNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CaseNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CaseNode",
+      "category": "node"
+    },
+    {
+      "type": "CastNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CastNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:36",
+        "musoq-table-couple-spec.md:37"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CastNode",
+      "category": "node"
+    },
+    {
+      "type": "CoalesceNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CoalesceNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:14",
+        "musoq-binary-text-spec.md:66"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CoalesceNode",
+      "category": "node"
+    },
+    {
+      "type": "CollectionInNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CollectionInNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:101",
+        "musoq-core-language-spec.md:31"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CollectionInNode",
+      "category": "node"
+    },
+    {
+      "type": "ContainsNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ContainsNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ContainsNode",
+      "category": "node"
+    },
+    {
+      "type": "CoupleNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CoupleNode.cs",
+      "disposition": "source-syntax",
+      "family": "utilities",
+      "rule": "ScriptLayout utility statements and bounded embedded-query regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:25"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CoupleNode",
+      "category": "node"
+    },
+    {
+      "type": "CreateTableNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CreateTableNode.cs",
+      "disposition": "source-syntax",
+      "family": "utilities",
+      "rule": "ScriptLayout utility statements and bounded embedded-query regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:25"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CreateTableNode",
+      "category": "node"
+    },
+    {
+      "type": "CreateTransformationTableNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CreateTransformationTableNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.CreateTransformationTableNode",
+      "category": "node",
+      "reason": "Synthetic transformation-table definition, not the TABLE declaration returned by the shared grammar."
+    },
+    {
+      "type": "CteExpressionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CteExpressionNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:51"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CteExpressionNode",
+      "category": "node"
+    },
+    {
+      "type": "CteInnerExpressionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CteInnerExpressionNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:51"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CteInnerExpressionNode",
+      "category": "node"
+    },
+    {
+      "type": "DecimalNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/DecimalNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:65",
+        "musoq-core-language-spec.md:112",
+        "musoq-core-language-spec.md:114"
+      ],
+      "fullName": "Musoq.Parser.Nodes.DecimalNode",
+      "category": "node"
+    },
+    {
+      "type": "DescNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/DescNode.cs",
+      "disposition": "source-syntax",
+      "family": "utilities",
+      "rule": "ScriptLayout utility statements and bounded embedded-query regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:154",
+        "musoq-core-language-spec.md:276",
+        "musoq-core-language-spec.md:277"
+      ],
+      "fullName": "Musoq.Parser.Nodes.DescNode",
+      "category": "node"
+    },
+    {
+      "type": "DetailedQueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/DetailedQueryNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.DetailedQueryNode",
+      "category": "node",
+      "reason": "Detailed execution-query representation; ordinary grammar returns QueryNode."
+    },
+    {
+      "type": "DiagnosticCommandNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/DiagnosticCommandNode.cs",
+      "disposition": "source-syntax",
+      "family": "utilities",
+      "rule": "ScriptLayout utility statements and bounded embedded-query regions.",
+      "fixtures": [
+        "coverage:explain",
+        "coverage:profile"
+      ],
+      "fullName": "Musoq.Parser.Nodes.DiagnosticCommandNode",
+      "category": "node"
+    },
+    {
+      "type": "DiffNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/DiffNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117"
+      ],
+      "fullName": "Musoq.Parser.Nodes.DiffNode",
+      "category": "node"
+    },
+    {
+      "type": "DotNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/DotNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117"
+      ],
+      "fullName": "Musoq.Parser.Nodes.DotNode",
+      "category": "node"
+    },
+    {
+      "type": "ElseNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ElseNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ElseNode",
+      "category": "node"
+    },
+    {
+      "type": "EnumDeclarationNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/EnumDeclarationNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:23"
+      ],
+      "fullName": "Musoq.Parser.Nodes.EnumDeclarationNode",
+      "category": "node"
+    },
+    {
+      "type": "EnumMemberNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/EnumMemberNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:23"
+      ],
+      "fullName": "Musoq.Parser.Nodes.EnumMemberNode",
+      "category": "node"
+    },
+    {
+      "type": "EqualityNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/EqualityNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.EqualityNode",
+      "category": "node"
+    },
+    {
+      "type": "ExceptNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ExceptNode.cs",
+      "disposition": "source-syntax",
+      "family": "sets",
+      "rule": "QueryLayout set-operation boundaries, retaining original operator spelling.",
+      "fixtures": [
+        "musoq-core-language-spec.md:231"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ExceptNode",
+      "category": "node"
+    },
+    {
+      "type": "ExistsQueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ExistsQueryNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:259"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ExistsQueryNode",
+      "category": "node"
+    },
+    {
+      "type": "FieldNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/FieldNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.FieldNode",
+      "category": "node"
+    },
+    {
+      "type": "FieldOrderedNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/FieldOrderedNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:63",
+        "musoq-core-language-spec.md:131",
+        "musoq-core-language-spec.md:138"
+      ],
+      "fullName": "Musoq.Parser.Nodes.FieldOrderedNode",
+      "category": "node"
+    },
+    {
+      "type": "AccessMethodFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/AccessMethodFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:146",
+        "musoq-core-language-spec.md:152"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.AccessMethodFromNode",
+      "category": "node"
+    },
+    {
+      "type": "AliasedFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/AliasedFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:26",
+        "musoq-binary-text-spec.md:4",
+        "musoq-binary-text-spec.md:42"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.AliasedFromNode",
+      "category": "node"
+    },
+    {
+      "type": "ApplyFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ApplyFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "joins",
+      "rule": "QueryLayout join and ON clause boundaries with shared expression rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:20",
+        "musoq-core-language-spec.md:74"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ApplyFromNode",
+      "category": "node"
+    },
+    {
+      "type": "ApplyInMemoryWithSourceTableFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ApplyInMemoryWithSourceTableFromNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.From.ApplyInMemoryWithSourceTableFromNode",
+      "category": "node",
+      "reason": "Bound in-memory APPLY source combination; source grammar returns ApplyFromNode."
+    },
+    {
+      "type": "ApplyNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ApplyNode.cs",
+      "disposition": "source-syntax",
+      "family": "joins",
+      "rule": "QueryLayout join and ON clause boundaries with shared expression rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:20",
+        "musoq-core-language-spec.md:74"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ApplyNode",
+      "category": "node"
+    },
+    {
+      "type": "ApplySourcesTableFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ApplySourcesTableFromNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.From.ApplySourcesTableFromNode",
+      "category": "node",
+      "reason": "Bound APPLY source combination; source grammar returns ApplyFromNode."
+    },
+    {
+      "type": "DerivedTableFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/DerivedTableFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:151",
+        "musoq-core-language-spec.md:190",
+        "musoq-core-language-spec.md:198"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.DerivedTableFromNode",
+      "category": "node"
+    },
+    {
+      "type": "ExpressionFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ExpressionFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ExpressionFromNode",
+      "category": "node"
+    },
+    {
+      "type": "InMemoryGroupedFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/InMemoryGroupedFromNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.From.InMemoryGroupedFromNode",
+      "category": "node",
+      "reason": "Grouped materialized source representation created after parsing."
+    },
+    {
+      "type": "InMemoryTableFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/InMemoryTableFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:47",
+        "musoq-binary-text-spec.md:55",
+        "musoq-core-language-spec.md:132"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.InMemoryTableFromNode",
+      "category": "node"
+    },
+    {
+      "type": "InterpretFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/InterpretFromNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.From.InterpretFromNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "JoinFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/JoinFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "joins",
+      "rule": "QueryLayout join and ON clause boundaries with shared expression rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:73"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.JoinFromNode",
+      "category": "node"
+    },
+    {
+      "type": "JoinInMemoryWithSourceTableFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/JoinInMemoryWithSourceTableFromNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode",
+      "category": "node",
+      "reason": "Bound in-memory join source combination; source grammar returns JoinFromNode."
+    },
+    {
+      "type": "JoinNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/JoinNode.cs",
+      "disposition": "source-syntax",
+      "family": "joins",
+      "rule": "QueryLayout join and ON clause boundaries with shared expression rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:73"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.JoinNode",
+      "category": "node"
+    },
+    {
+      "type": "JoinSourcesTableFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/JoinSourcesTableFromNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.From.JoinSourcesTableFromNode",
+      "category": "node",
+      "reason": "Bound join source combination; source grammar returns JoinFromNode."
+    },
+    {
+      "type": "PropertyFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/PropertyFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:42",
+        "musoq-binary-text-spec.md:54",
+        "musoq-core-language-spec.md:142"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.PropertyFromNode",
+      "category": "node"
+    },
+    {
+      "type": "ReferentialFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ReferentialFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "coverage:referential"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ReferentialFromNode",
+      "category": "node"
+    },
+    {
+      "type": "SchemaFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/SchemaFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "coverage:explain",
+        "coverage:key-access",
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.SchemaFromNode",
+      "category": "node"
+    },
+    {
+      "type": "SchemaMethodFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/SchemaMethodFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:272",
+        "musoq-core-language-spec.md:273"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.SchemaMethodFromNode",
+      "category": "node"
+    },
+    {
+      "type": "UnpivotEntryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/UnpivotEntryNode.cs",
+      "disposition": "source-syntax",
+      "family": "grouping",
+      "rule": "QueryLayout grouping clauses and ExpressionLayout structured groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:192",
+        "musoq-core-language-spec.md:193",
+        "musoq-core-language-spec.md:197"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.UnpivotEntryNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "UnpivotFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/UnpivotFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "grouping",
+      "rule": "QueryLayout grouping clauses and ExpressionLayout structured groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:192",
+        "musoq-core-language-spec.md:193",
+        "musoq-core-language-spec.md:197"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.UnpivotFromNode",
+      "category": "node"
+    },
+    {
+      "type": "ValuesFieldNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ValuesFieldNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ValuesFieldNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "ValuesFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ValuesFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ValuesFromNode",
+      "category": "node"
+    },
+    {
+      "type": "ValuesRowNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/ValuesRowNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.ValuesRowNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "FSlashNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/FSlashNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:65"
+      ],
+      "fullName": "Musoq.Parser.Nodes.FSlashNode",
+      "category": "node"
+    },
+    {
+      "type": "GreaterNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/GreaterNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.GreaterNode",
+      "category": "node"
+    },
+    {
+      "type": "GreaterOrEqualNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/GreaterOrEqualNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:19",
+        "musoq-core-language-spec.md:134",
+        "musoq-core-language-spec.md:135"
+      ],
+      "fullName": "Musoq.Parser.Nodes.GreaterOrEqualNode",
+      "category": "node"
+    },
+    {
+      "type": "GroupByNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/GroupByNode.cs",
+      "disposition": "source-syntax",
+      "family": "grouping",
+      "rule": "QueryLayout grouping clauses and ExpressionLayout structured groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:126",
+        "musoq-core-language-spec.md:129",
+        "musoq-core-language-spec.md:131"
+      ],
+      "fullName": "Musoq.Parser.Nodes.GroupByNode",
+      "category": "node"
+    },
+    {
+      "type": "GroupSelectNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/GroupSelectNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.GroupSelectNode",
+      "category": "node",
+      "reason": "Grouped projection representation; source grammar returns SelectNode plus grouping clauses."
+    },
+    {
+      "type": "HavingNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/HavingNode.cs",
+      "disposition": "source-syntax",
+      "family": "grouping",
+      "rule": "QueryLayout grouping clauses and ExpressionLayout structured groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:165",
+        "musoq-core-language-spec.md:169",
+        "musoq-core-language-spec.md:170"
+      ],
+      "fullName": "Musoq.Parser.Nodes.HavingNode",
+      "category": "node"
+    },
+    {
+      "type": "HexIntegerNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/HexIntegerNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:13",
+        "musoq-binary-text-spec.md:15",
+        "musoq-binary-text-spec.md:18"
+      ],
+      "fullName": "Musoq.Parser.Nodes.HexIntegerNode",
+      "category": "node"
+    },
+    {
+      "type": "HyphenNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/HyphenNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.HyphenNode",
+      "category": "node"
+    },
+    {
+      "type": "IdentifierNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/IdentifierNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.IdentifierNode",
+      "category": "node"
+    },
+    {
+      "type": "InNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:64"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InNode",
+      "category": "node"
+    },
+    {
+      "type": "InQueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InQueryNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:103",
+        "musoq-core-language-spec.md:106"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InQueryNode",
+      "category": "node"
+    },
+    {
+      "type": "IntegerNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/IntegerNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1"
+      ],
+      "fullName": "Musoq.Parser.Nodes.IntegerNode",
+      "category": "node"
+    },
+    {
+      "type": "InternalQueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InternalQueryNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.InternalQueryNode",
+      "category": "node",
+      "reason": "Internal query representation assembled after source parsing."
+    },
+    {
+      "type": "InterpretAtCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretAtCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.InterpretAtCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "AlignmentNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/AlignmentNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:17"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.AlignmentNode",
+      "category": "node"
+    },
+    {
+      "type": "ArrayTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/ArrayTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:11",
+        "musoq-binary-text-spec.md:12",
+        "musoq-binary-text-spec.md:3"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.ArrayTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "BinarySchemaNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/BinarySchemaNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:0"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.BinarySchemaNode",
+      "category": "node"
+    },
+    {
+      "type": "BinarySwitchCaseNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/BinarySwitchCaseNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:25",
+        "musoq-binary-text-spec.md:26"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.BinarySwitchCaseNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "BinarySwitchTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/BinarySwitchTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:25",
+        "musoq-binary-text-spec.md:26"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.BinarySwitchTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "BitsTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/BitsTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:16",
+        "musoq-binary-text-spec.md:17"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.BitsTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "ByteArrayTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/ByteArrayTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:13",
+        "musoq-binary-text-spec.md:14",
+        "musoq-binary-text-spec.md:15"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.ByteArrayTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "ComputedFieldNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/ComputedFieldNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:15",
+        "musoq-binary-text-spec.md:66"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.ComputedFieldNode",
+      "category": "node"
+    },
+    {
+      "type": "FieldConstraintNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/FieldConstraintNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:19",
+        "musoq-binary-text-spec.md:64"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.FieldConstraintNode",
+      "category": "node"
+    },
+    {
+      "type": "FieldDefinitionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/FieldDefinitionNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:0"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.FieldDefinitionNode",
+      "category": "node"
+    },
+    {
+      "type": "FieldValueValidationNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/FieldValueValidationNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:20",
+        "musoq-binary-text-spec.md:21",
+        "musoq-binary-text-spec.md:62"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.FieldValueValidationNode",
+      "category": "node"
+    },
+    {
+      "type": "InlineSchemaTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/InlineSchemaTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:57"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.InlineSchemaTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "PrimitiveTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/PrimitiveTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:0"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.PrimitiveTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "RepeatUntilTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/RepeatUntilTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:22",
+        "musoq-binary-text-spec.md:23"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.RepeatUntilTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "SchemaReferenceTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/SchemaReferenceTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:11",
+        "musoq-binary-text-spec.md:12",
+        "musoq-binary-text-spec.md:22"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.SchemaReferenceTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "StringTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/StringTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:10",
+        "musoq-binary-text-spec.md:12",
+        "musoq-binary-text-spec.md:18"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.StringTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "SubstreamTypeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/SubstreamTypeNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:23",
+        "musoq-binary-text-spec.md:27"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.SubstreamTypeNode",
+      "category": "node"
+    },
+    {
+      "type": "TextFieldDefinitionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/TextFieldDefinitionNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:28",
+        "musoq-binary-text-spec.md:29",
+        "musoq-binary-text-spec.md:30"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.TextFieldDefinitionNode",
+      "category": "node"
+    },
+    {
+      "type": "TextSchemaNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/TextSchemaNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:28",
+        "musoq-binary-text-spec.md:29",
+        "musoq-binary-text-spec.md:30"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode",
+      "category": "node"
+    },
+    {
+      "type": "TextSwitchCaseNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/TextSwitchCaseNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:39"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.TextSwitchCaseNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "InterpretCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.InterpretCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "IntersectNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/IntersectNode.cs",
+      "disposition": "source-syntax",
+      "family": "sets",
+      "rule": "QueryLayout set-operation boundaries, retaining original operator spelling.",
+      "fixtures": [
+        "musoq-core-language-spec.md:232"
+      ],
+      "fullName": "Musoq.Parser.Nodes.IntersectNode",
+      "category": "node"
+    },
+    {
+      "type": "IntoNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/IntoNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.IntoNode",
+      "category": "node",
+      "reason": "Internal output materialization destination, not an independently accepted source statement."
+    },
+    {
+      "type": "IsDistinctFromNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/IsDistinctFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:93"
+      ],
+      "fullName": "Musoq.Parser.Nodes.IsDistinctFromNode",
+      "category": "node"
+    },
+    {
+      "type": "IsNullNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/IsNullNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.IsNullNode",
+      "category": "node"
+    },
+    {
+      "type": "LeftShiftNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/LeftShiftNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.LeftShiftNode",
+      "category": "node"
+    },
+    {
+      "type": "LessNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/LessNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:55",
+        "musoq-core-language-spec.md:309"
+      ],
+      "fullName": "Musoq.Parser.Nodes.LessNode",
+      "category": "node"
+    },
+    {
+      "type": "LessOrEqualNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/LessOrEqualNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:19",
+        "musoq-core-language-spec.md:136",
+        "musoq-core-language-spec.md:137"
+      ],
+      "fullName": "Musoq.Parser.Nodes.LessOrEqualNode",
+      "category": "node"
+    },
+    {
+      "type": "LikeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/LikeNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:40"
+      ],
+      "fullName": "Musoq.Parser.Nodes.LikeNode",
+      "category": "node"
+    },
+    {
+      "type": "ModuloNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ModuloNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ModuloNode",
+      "category": "node"
+    },
+    {
+      "type": "MultiStatementNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/MultiStatementNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.MultiStatementNode",
+      "category": "node",
+      "reason": "Execution statement grouping; source scripts are RootNode and StatementsArrayNode."
+    },
+    {
+      "type": "NotNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/NotNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.NotNode",
+      "category": "node"
+    },
+    {
+      "type": "NullNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/NullNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:15",
+        "musoq-core-language-spec.md:173",
+        "musoq-core-language-spec.md:182"
+      ],
+      "fullName": "Musoq.Parser.Nodes.NullNode",
+      "category": "node"
+    },
+    {
+      "type": "NullType",
+      "source": "src/dotnet/Musoq.Parser/Nodes/NullNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.NullNode+NullType",
+      "category": "syntax-helper",
+      "reason": "CLR type marker for NULL, not a syntax node or a source type declaration."
+    },
+    {
+      "type": "OctalIntegerNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/OctalIntegerNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.OctalIntegerNode",
+      "category": "node"
+    },
+    {
+      "type": "OrderByNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/OrderByNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:63",
+        "musoq-core-language-spec.md:131",
+        "musoq-core-language-spec.md:148"
+      ],
+      "fullName": "Musoq.Parser.Nodes.OrderByNode",
+      "category": "node"
+    },
+    {
+      "type": "OrNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/OrNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.OrNode",
+      "category": "node"
+    },
+    {
+      "type": "ParameterBlockNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ParameterBlockNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ParameterBlockNode",
+      "category": "node"
+    },
+    {
+      "type": "ParameterDeclarationNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ParameterDeclarationNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ParameterDeclarationNode",
+      "category": "node"
+    },
+    {
+      "type": "ParameterReferenceNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ParameterReferenceNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ParameterReferenceNode",
+      "category": "node"
+    },
+    {
+      "type": "ParseCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ParseCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.ParseCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "PartialInterpretCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/PartialInterpretCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.PartialInterpretCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "PartialParseCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/PartialParseCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.PartialParseCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "PropertyValueNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/PropertyValueNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "coverage:operators",
+        "musoq-binary-text-spec.md:26",
+        "musoq-binary-text-spec.md:4"
+      ],
+      "fullName": "Musoq.Parser.Nodes.PropertyValueNode",
+      "category": "node"
+    },
+    {
+      "type": "PutTrueNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/PutTrueNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.PutTrueNode",
+      "category": "node",
+      "reason": "Synthetic Boolean sentinel used by transformed expressions."
+    },
+    {
+      "type": "QualifyNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/QualifyNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:221",
+        "musoq-core-language-spec.md:222",
+        "musoq-core-language-spec.md:223"
+      ],
+      "fullName": "Musoq.Parser.Nodes.QualifyNode",
+      "category": "node"
+    },
+    {
+      "type": "QuantifiedSubqueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/QuantifiedSubqueryNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "coverage:quantified"
+      ],
+      "fullName": "Musoq.Parser.Nodes.QuantifiedSubqueryNode",
+      "category": "node"
+    },
+    {
+      "type": "QueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/QueryNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.QueryNode",
+      "category": "node"
+    },
+    {
+      "type": "QueryScope",
+      "source": "src/dotnet/Musoq.Parser/Nodes/QueryScope.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.QueryScope",
+      "category": "node",
+      "reason": "Internal query-scope grouping, not an independently spelled source construct."
+    },
+    {
+      "type": "RecordFieldNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RecordLiteralNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:285",
+        "musoq-core-language-spec.md:46"
+      ],
+      "fullName": "Musoq.Parser.Nodes.RecordFieldNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "RecordLiteralNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RecordLiteralNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "ExpressionLayout source groups, ordinary names, and structured lists.",
+      "fixtures": [
+        "musoq-core-language-spec.md:285",
+        "musoq-core-language-spec.md:46"
+      ],
+      "fullName": "Musoq.Parser.Nodes.RecordLiteralNode",
+      "category": "node"
+    },
+    {
+      "type": "RefreshNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RefreshNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.RefreshNode",
+      "category": "node",
+      "reason": "Aggregation/materialization refresh operation introduced after parsing."
+    },
+    {
+      "type": "RenameTableNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RenameTableNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.RenameTableNode",
+      "category": "node",
+      "reason": "Internal table-rename operation, not an accepted source declaration."
+    },
+    {
+      "type": "RightShiftNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RightShiftNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:15"
+      ],
+      "fullName": "Musoq.Parser.Nodes.RightShiftNode",
+      "category": "node"
+    },
+    {
+      "type": "RLikeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RLikeNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.RLikeNode",
+      "category": "node"
+    },
+    {
+      "type": "RootNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RootNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:23",
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.RootNode",
+      "category": "node"
+    },
+    {
+      "type": "RowPresenceNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/RowPresenceNode.cs",
+      "disposition": "source-syntax",
+      "family": "predicates",
+      "rule": "ExpressionLayout Boolean boundaries within parser-designated predicate regions.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117"
+      ],
+      "fullName": "Musoq.Parser.Nodes.RowPresenceNode",
+      "category": "node"
+    },
+    {
+      "type": "ScalarSubqueryNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ScalarSubqueryNode.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "QueryLayout CTEs and ExpressionLayout grammar-scoped query groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:108"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ScalarSubqueryNode",
+      "category": "node"
+    },
+    {
+      "type": "ScriptVariableDeclarationNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ScriptVariableDeclarationNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:26",
+        "musoq-binary-text-spec.md:4",
+        "musoq-binary-text-spec.md:42"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ScriptVariableDeclarationNode",
+      "category": "node"
+    },
+    {
+      "type": "ScriptVariableReferenceNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ScriptVariableReferenceNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.ScriptVariableReferenceNode",
+      "category": "node",
+      "reason": "Typed script-variable reference created during binding; source grammar uses ParameterReferenceNode."
+    },
+    {
+      "type": "SelectNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/SelectNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ],
+      "fullName": "Musoq.Parser.Nodes.SelectNode",
+      "category": "node"
+    },
+    {
+      "type": "ShortCircuitingNodeLeft",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ShortCircuitingNodeLeft.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.ShortCircuitingNodeLeft",
+      "category": "node",
+      "reason": "Internal left-side short-circuit representation; source grammar retains Boolean expression nodes."
+    },
+    {
+      "type": "ShortCircuitingNodeRight",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ShortCircuitingNodeRight.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.ShortCircuitingNodeRight",
+      "category": "node",
+      "reason": "Internal right-side short-circuit representation; source grammar retains Boolean expression nodes."
+    },
+    {
+      "type": "ShouldBePresentInTheTable",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ShouldBePresentInTheTable.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.ShouldBePresentInTheTable",
+      "category": "node",
+      "reason": "Internal table-membership check, not an independent source predicate spelling."
+    },
+    {
+      "type": "SingleSetNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/SingleSetNode.cs",
+      "disposition": "source-syntax",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fullName": "Musoq.Parser.Nodes.SingleSetNode",
+      "category": "node",
+      "family": "queries",
+      "fixtures": [
+        "coverage:explain",
+        "coverage:key-access",
+        "coverage:operators"
+      ]
+    },
+    {
+      "type": "SkipNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/SkipNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-core-language-spec.md:224",
+        "musoq-core-language-spec.md:235",
+        "musoq-core-language-spec.md:236"
+      ],
+      "fullName": "Musoq.Parser.Nodes.SkipNode",
+      "category": "node"
+    },
+    {
+      "type": "StarNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StarNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:55",
+        "musoq-binary-text-spec.md:9",
+        "musoq-core-language-spec.md:243"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StarNode",
+      "category": "node"
+    },
+    {
+      "type": "StarReplaceItemNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StarReplaceItemNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-core-language-spec.md:61"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StarReplaceItemNode",
+      "category": "node"
+    },
+    {
+      "type": "StatementNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StatementNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:23",
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StatementNode",
+      "category": "node"
+    },
+    {
+      "type": "StatementsArrayNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StatementsArrayNode.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "ScriptLayout statement boundaries and shared declaration/group rules.",
+      "fixtures": [
+        "musoq-core-language-spec.md:23",
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StatementsArrayNode",
+      "category": "node"
+    },
+    {
+      "type": "StringConcatenationNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StringConcatenationNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "coverage:operators"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StringConcatenationNode",
+      "category": "node"
+    },
+    {
+      "type": "StringNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StringNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.StringNode",
+      "category": "node",
+      "reason": "Normalized string constant; source string literal parsing returns WordNode."
+    },
+    {
+      "type": "StructuralTypeSyntaxNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StructuralTypeSyntaxNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:26",
+        "musoq-binary-text-spec.md:4",
+        "musoq-binary-text-spec.md:42"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StructuralTypeSyntaxNode",
+      "category": "node"
+    },
+    {
+      "type": "StructuralTypeFieldSyntax",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StructuralTypeSyntaxNode.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "ScriptLayout declarations and ExpressionLayout expanded schema groups.",
+      "fixtures": [
+        "musoq-core-language-spec.md:286"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StructuralTypeFieldSyntax",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "TakeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/TakeNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:63",
+        "musoq-core-language-spec.md:142",
+        "musoq-core-language-spec.md:182"
+      ],
+      "fullName": "Musoq.Parser.Nodes.TakeNode",
+      "category": "node"
+    },
+    {
+      "type": "ThenNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ThenNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.ThenNode",
+      "category": "node"
+    },
+    {
+      "type": "TranslatedSetOperatorNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/TranslatedSetOperatorNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.TranslatedSetOperatorNode",
+      "category": "node",
+      "reason": "Translated set-operator representation; source grammar returns Union/Except/Intersect nodes."
+    },
+    {
+      "type": "TranslatedSetTreeNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/TranslatedSetTreeNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.TranslatedSetTreeNode",
+      "category": "node",
+      "reason": "Translated set tree introduced after ordinary source parsing."
+    },
+    {
+      "type": "TryInterpretCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/TryInterpretCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.TryInterpretCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "TryParseCallNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/TryParseCallNode.cs",
+      "disposition": "normalized-ast-only",
+      "rule": "No independent source layout; preserve its ordinary parsed source representation.",
+      "fullName": "Musoq.Parser.Nodes.TryParseCallNode",
+      "category": "node",
+      "reason": "Resolved interpretation-call representation introduced after parsing; source calls retain AccessMethodNode/AliasedFromNode with original generic spelling."
+    },
+    {
+      "type": "UnionAllNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/UnionAllNode.cs",
+      "disposition": "source-syntax",
+      "family": "sets",
+      "rule": "QueryLayout set-operation boundaries, retaining original operator spelling.",
+      "fixtures": [
+        "musoq-core-language-spec.md:229",
+        "musoq-core-language-spec.md:230",
+        "musoq-core-language-spec.md:233"
+      ],
+      "fullName": "Musoq.Parser.Nodes.UnionAllNode",
+      "category": "node"
+    },
+    {
+      "type": "UnionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/UnionNode.cs",
+      "disposition": "source-syntax",
+      "family": "sets",
+      "rule": "QueryLayout set-operation boundaries, retaining original operator spelling.",
+      "fixtures": [
+        "musoq-core-language-spec.md:151",
+        "musoq-core-language-spec.md:227",
+        "musoq-core-language-spec.md:228"
+      ],
+      "fullName": "Musoq.Parser.Nodes.UnionNode",
+      "category": "node"
+    },
+    {
+      "type": "WhenNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WhenNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WhenNode",
+      "category": "node"
+    },
+    {
+      "type": "WhereNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WhereNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "QueryLayout clause boundaries with ExpressionLayout and ListLayout.",
+      "fixtures": [
+        "coverage:operators",
+        "coverage:quantified",
+        "musoq-binary-text-spec.md:55"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WhereNode",
+      "category": "node"
+    },
+    {
+      "type": "WindowDefinitionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WindowDefinitionNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:202"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WindowDefinitionNode",
+      "category": "node"
+    },
+    {
+      "type": "WindowFrameBoundNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WindowFrameBoundNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:216",
+        "musoq-core-language-spec.md:217",
+        "musoq-core-language-spec.md:218"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WindowFrameBoundNode",
+      "category": "node"
+    },
+    {
+      "type": "WindowFrameNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WindowFrameNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:216",
+        "musoq-core-language-spec.md:217",
+        "musoq-core-language-spec.md:218"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WindowFrameNode",
+      "category": "node"
+    },
+    {
+      "type": "WindowFunctionNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WindowFunctionNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:202",
+        "musoq-core-language-spec.md:203",
+        "musoq-core-language-spec.md:204"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WindowFunctionNode",
+      "category": "node"
+    },
+    {
+      "type": "WindowNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WindowNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:202"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WindowNode",
+      "category": "node"
+    },
+    {
+      "type": "WindowSpecificationNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WindowSpecificationNode.cs",
+      "disposition": "source-syntax",
+      "family": "windows",
+      "rule": "WindowLayout frame/partition/order rules and QueryLayout QUALIFY boundaries.",
+      "fixtures": [
+        "musoq-core-language-spec.md:202",
+        "musoq-core-language-spec.md:203",
+        "musoq-core-language-spec.md:204"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WindowSpecificationNode",
+      "category": "node"
+    },
+    {
+      "type": "WordNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/WordNode.cs",
+      "disposition": "source-syntax",
+      "family": "expressions",
+      "rule": "ExpressionLayout operators and access, with CaseLayout for conditional branches.",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310"
+      ],
+      "fullName": "Musoq.Parser.Nodes.WordNode",
+      "category": "node"
+    },
+    {
+      "type": "CreateTableColumnDefinition",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CreateTableColumnDefinition.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "Preserve parsed helper contents through the owning source declaration or clause.",
+      "fixtures": [
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:270",
+        "musoq-core-language-spec.md:271"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CreateTableColumnDefinition",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "CreateTableColumnModifier",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CreateTableColumnModifier.cs",
+      "disposition": "source-syntax",
+      "family": "scripts",
+      "rule": "Preserve parsed helper contents through the owning source declaration or clause.",
+      "fixtures": [
+        "musoq-table-couple-spec.md:2",
+        "musoq-table-couple-spec.md:28"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CreateTableColumnModifier",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "StarRenameItemNode",
+      "source": "src/dotnet/Musoq.Parser/Nodes/StarRenameItemNode.cs",
+      "disposition": "source-syntax",
+      "family": "queries",
+      "rule": "Preserve parsed helper contents through the owning source declaration or clause.",
+      "fixtures": [
+        "musoq-core-language-spec.md:61"
+      ],
+      "fullName": "Musoq.Parser.Nodes.StarRenameItemNode",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "CteColumnName",
+      "source": "src/dotnet/Musoq.Parser/Nodes/CteColumnName.cs",
+      "disposition": "source-syntax",
+      "family": "composition",
+      "rule": "Preserve parsed helper contents through the owning source declaration or clause.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:47"
+      ],
+      "fullName": "Musoq.Parser.Nodes.CteColumnName",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "SchemaComment",
+      "source": "src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/SchemaComment.cs",
+      "disposition": "source-syntax",
+      "family": "interpretation",
+      "rule": "Preserve parsed helper contents through the owning source declaration or clause.",
+      "fixtures": [
+        "musoq-binary-text-spec.md:2",
+        "musoq-binary-text-spec.md:9",
+        "musoq-binary-text-spec.md:10"
+      ],
+      "fullName": "Musoq.Parser.Nodes.InterpretationSchema.SchemaComment",
+      "category": "syntax-helper"
+    },
+    {
+      "type": "PropertyNameAndTypePair",
+      "source": "src/dotnet/Musoq.Parser/Nodes/From/PropertyFromNode.cs",
+      "disposition": "source-syntax",
+      "family": "sources",
+      "rule": "Preserve each parsed property name in the source property chain.",
+      "fixtures": [
+        "musoq-core-language-spec.md:74",
+        "musoq-core-language-spec.md:76"
+      ],
+      "fullName": "Musoq.Parser.Nodes.From.PropertyFromNode+PropertyNameAndTypePair",
+      "category": "syntax-helper"
+    },
+    {
+      "fullName": "Musoq.Parser.Nodes.ArgumentName",
+      "disposition": "source-syntax",
+      "rule": "Preserve named argument identity through typed argument-label projection.",
+      "fixtures": [
+        "musoq-core-language-spec.md:285",
+        "musoq-core-language-spec.md:46"
+      ],
+      "type": "ArgumentName",
+      "source": "src/dotnet/Musoq.Parser/Nodes/ArgumentName.cs",
+      "family": "sources",
+      "category": "helper"
+    }
+  ],
+  "syntaxKinds": [
+    {
+      "kind": "Alias",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "Apply",
+      "fixtures": [
+        "musoq-core-language-spec.md:20",
+        "musoq-core-language-spec.md:74",
+        "musoq-core-language-spec.md:76"
+      ]
+    },
+    {
+      "kind": "ArgumentList",
+      "fixtures": [
+        "musoq-core-language-spec.md:20",
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:37"
+      ]
+    },
+    {
+      "kind": "ArrayLiteral",
+      "fixtures": [
+        "musoq-core-language-spec.md:46",
+        "musoq-core-language-spec.md:285",
+        "musoq-binary-text-spec.md:4"
+      ]
+    },
+    {
+      "kind": "BinarySchema",
+      "fixtures": [
+        "musoq-binary-text-spec.md:0",
+        "musoq-binary-text-spec.md:1",
+        "musoq-binary-text-spec.md:2"
+      ]
+    },
+    {
+      "kind": "CaseExpression",
+      "fixtures": [
+        "musoq-core-language-spec.md:117",
+        "musoq-core-language-spec.md:310",
+        "musoq-core-language-spec.md:313"
+      ]
+    },
+    {
+      "kind": "CoupleDeclaration",
+      "fixtures": [
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:272",
+        "musoq-core-language-spec.md:273"
+      ]
+    },
+    {
+      "kind": "Cte",
+      "fixtures": [
+        "musoq-core-language-spec.md:51",
+        "musoq-core-language-spec.md:55",
+        "musoq-core-language-spec.md:56"
+      ]
+    },
+    {
+      "kind": "Document",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:2",
+        "musoq-core-language-spec.md:3"
+      ]
+    },
+    {
+      "kind": "EnumDeclaration",
+      "fixtures": [
+        "musoq-core-language-spec.md:23",
+        "musoq-table-couple-spec.md:4"
+      ]
+    },
+    {
+      "kind": "Expression",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "FromClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "FunctionCall",
+      "fixtures": [
+        "musoq-core-language-spec.md:20",
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:37"
+      ]
+    },
+    {
+      "kind": "GroupByClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:126",
+        "musoq-core-language-spec.md:129",
+        "musoq-core-language-spec.md:131"
+      ]
+    },
+    {
+      "kind": "Identifier",
+      "fixtures": [
+        "musoq-core-language-spec.md:23",
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:36"
+      ]
+    },
+    {
+      "kind": "Join",
+      "fixtures": [
+        "musoq-core-language-spec.md:73",
+        "musoq-core-language-spec.md:83",
+        "musoq-core-language-spec.md:86"
+      ]
+    },
+    {
+      "kind": "Keyword",
+      "fixtures": [
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:131",
+        "musoq-core-language-spec.md:138"
+      ]
+    },
+    {
+      "kind": "OrderByClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:65",
+        "musoq-core-language-spec.md:66",
+        "musoq-core-language-spec.md:131"
+      ]
+    },
+    {
+      "kind": "PagingClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:66",
+        "musoq-core-language-spec.md:74",
+        "musoq-core-language-spec.md:76"
+      ]
+    },
+    {
+      "kind": "ParameterBlock",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29",
+        "musoq-core-language-spec.md:30"
+      ]
+    },
+    {
+      "kind": "ParenthesizedExpression",
+      "fixtures": [
+        "musoq-core-language-spec.md:29",
+        "musoq-core-language-spec.md:46",
+        "musoq-core-language-spec.md:108"
+      ]
+    },
+    {
+      "kind": "Predicate",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "QualifyClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:221",
+        "musoq-core-language-spec.md:222",
+        "musoq-core-language-spec.md:223"
+      ]
+    },
+    {
+      "kind": "Query",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "RecordLiteral",
+      "fixtures": [
+        "musoq-core-language-spec.md:46",
+        "musoq-core-language-spec.md:285"
+      ]
+    },
+    {
+      "kind": "SchemaField",
+      "fixtures": [
+        "musoq-binary-text-spec.md:6",
+        "musoq-binary-text-spec.md:28",
+        "musoq-binary-text-spec.md:29"
+      ]
+    },
+    {
+      "kind": "SelectClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "SetExpression",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "Statement",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "Subquery",
+      "fixtures": [
+        "musoq-core-language-spec.md:83",
+        "musoq-core-language-spec.md:151",
+        "musoq-core-language-spec.md:190"
+      ]
+    },
+    {
+      "kind": "TableDeclaration",
+      "fixtures": [
+        "musoq-core-language-spec.md:25",
+        "musoq-core-language-spec.md:270",
+        "musoq-core-language-spec.md:271"
+      ]
+    },
+    {
+      "kind": "TextSchema",
+      "fixtures": [
+        "musoq-binary-text-spec.md:6",
+        "musoq-binary-text-spec.md:28",
+        "musoq-binary-text-spec.md:29"
+      ]
+    },
+    {
+      "kind": "TypeArgumentList",
+      "fixtures": [
+        "musoq-binary-text-spec.md:59"
+      ]
+    },
+    {
+      "kind": "TypeSyntax",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29",
+        "musoq-core-language-spec.md:30"
+      ]
+    },
+    {
+      "kind": "UtilityStatement",
+      "fixtures": [
+        "musoq-core-language-spec.md:154",
+        "musoq-core-language-spec.md:276",
+        "musoq-core-language-spec.md:277"
+      ]
+    },
+    {
+      "kind": "ValuesSource",
+      "fixtures": [
+        "musoq-core-language-spec.md:1",
+        "musoq-core-language-spec.md:3",
+        "musoq-core-language-spec.md:8"
+      ]
+    },
+    {
+      "kind": "VariableDeclaration",
+      "fixtures": [
+        "musoq-core-language-spec.md:40",
+        "musoq-core-language-spec.md:41",
+        "musoq-core-language-spec.md:42"
+      ]
+    },
+    {
+      "kind": "WhereClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:26",
+        "musoq-core-language-spec.md:29",
+        "musoq-core-language-spec.md:30"
+      ]
+    },
+    {
+      "kind": "WindowClause",
+      "fixtures": [
+        "musoq-core-language-spec.md:202"
+      ]
+    },
+    {
+      "kind": "WindowFrame",
+      "fixtures": [
+        "musoq-core-language-spec.md:216",
+        "musoq-core-language-spec.md:217",
+        "musoq-core-language-spec.md:218"
+      ]
+    },
+    {
+      "kind": "WindowSpecification",
+      "fixtures": [
+        "musoq-core-language-spec.md:202",
+        "musoq-core-language-spec.md:203",
+        "musoq-core-language-spec.md:204"
+      ]
+    },
+    {
+      "kind": "HavingClause",
+      "reason": "The parser emits HAVING as a structural keyword and HavingNode inside its grouping region; it does not emit a separate HavingClause region.",
+      "fixtures": [
+        "musoq-core-language-spec.md:165"
+      ]
+    }
+  ]
+}

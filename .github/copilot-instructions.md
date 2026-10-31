@@ -12,6 +12,8 @@ Every time you generate a plan for a task, the **penultimate step** (second-to-l
 
 This is non-negotiable. Delivering working code that violates project standards is not acceptable. The final step of any plan should be running the relevant validation selected by the Validation by Change Impact policy; the step immediately before that is the compliance check against these instructions. Documentation and instruction-only changes can finish with diff, link, formatting, and consistency checks without running tests.
 
+The project-wide [reflection and engineering-quality rules](../.claude/rules/code-quality.md#reflection-policy) apply to implementation and tests. Follow the [implementation-wave workflow](../.claude/rules/multi-session.md#implementation-wave-workflow): every wave begins with scoped cleanup and refactoring that supports its upcoming work. Descriptions of legacy patterns in module guides are not implicit exemptions from these constraints.
+
 ## What is Musoq?
 
 **Core Concept**: Musoq transforms SQL queries through typed intermediate plans into compiled C# code that executes against arbitrary data sources. It's designed for developers who want SQL's declarative power for everyday scripting tasks (file processing, git analysis, data transformation) instead of writing throwaway scripts.
@@ -128,6 +130,16 @@ The modules with dedicated guides are listed below. Other projects, including `M
 
 **Critical**: When working across multiple copilot work units or sessions, you MUST use `.copilot_session_summary.md` to communicate progress and coordinate work.
 
+### Implementation-Wave Workflow
+
+Every wave starts with a scoped cleanup and refactoring review of the code, tests, or documents it will touch. Identify the changes that will make the upcoming implementation clearer, faster, and easier to maintain, and complete those changes before extending the affected area. Include test helpers and verification code in this review; the reflection policy applies to them as well.
+
+Keep cleanup tied to the wave's purpose. If no preparatory refactoring is needed, record that finding rather than manufacture unrelated changes. Protect behavior with characterization or regression coverage where needed and validate the preparatory changes before building on them.
+
+Each wave's plan and handoff must record the preparatory cleanup, intended implementation, performance and maintainability acceptance criteria, and applicable qualification gate. Re-read the repository instructions and applicable module guides before qualification, correct violations, and pass that gate before committing the wave or starting the next one. Use the validation-by-change-impact policy and retain any stronger task-specific gates; documentation-only waves do not require solution builds or tests solely because they are waves.
+
+Performance and maintainability work belongs in every wave, not only in a final cleanup phase. See the [code-quality rules](../.claude/rules/code-quality.md) for the reflection policy and engineering criteria.
+
 ### Session Summary Protocol
 - **Always check**: Read `.copilot_session_summary.md` at the start of any work unit to understand previous progress
 - **Always update**: Write to `.copilot_session_summary.md` at the end of each work unit with:
@@ -173,6 +185,19 @@ The modules with dedicated guides are listed below. Other projects, including `M
 ## Code Quality & Maintainability Standards
 
 **Your job is not just to deliver working features — it is to deliver MAINTAINABLE code.** Every human who reads your output must be able to understand, modify, and extend it without a guide. Code is read ~10x more than it's written, so optimize for the reader, not the writer. Always ask: "Would a teammate new to this codebase understand what I just wrote without asking me?"
+
+### Reflection Policy
+
+- **Reflection is prohibited by default in implementation and tests.** Do not use reflection for fixture traversal, member or assembly discovery, private-member inspection, or invocation, including in test helpers. Tests are not an exception to the rule.
+- **Prefer explicit, statically checked designs.** Use typed APIs, interfaces, visitors, pattern matching, and explicit fixtures or registries instead of discovering or invoking members at runtime.
+- **Existing reflection is not precedent.** Assess existing uses when touching the affected area and replace them where a typed design can meet the requirement. Any unavoidable exception must be explicitly justified in the task design and documented with its scope, performance impact, and maintenance cost; never introduce an exception silently.
+
+### Performance and Maintainability
+
+- **Performance and maintainability are acceptance criteria from the start.** Review algorithmic complexity, allocations, repeated work, dependency boundaries, duplication, and clarity before adding implementation. Passing correctness tests alone does not establish acceptable engineering quality.
+- **Clean up before extending.** Start each wave with the scoped cleanup and refactoring review defined in the implementation-wave workflow. Complete changes that simplify the upcoming implementation before building on that code; do not defer necessary cleanup to a final wave.
+- **Support performance claims with measurements.** Follow the mandatory baseline rule for optimizations, use representative workloads for performance-sensitive changes, and investigate regressions. Prefer clear typed code over unmeasured shortcuts or unnecessary abstractions.
+- **Keep quality gates meaningful.** Do not raise maintainability budgets, weaken assertions, or hide regressions to make a change pass. Improve the implementation and retain appropriate regression coverage.
 
 ### Control Flow
 - **Fail fast / return early.** Validate at the top and bail out. Don't wrap the entire method body in a success branch — the happy path should have the least indentation.

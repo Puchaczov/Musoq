@@ -9,6 +9,7 @@ public partial class Parser
 {
     private ArgsListNode ComposeArgs(bool allowNamedArguments = false)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.ArgumentList, Current);
         var args = new System.Collections.Generic.List<Node>();
         var argumentNames = new System.Collections.Generic.List<ArgumentName?>();
         var hasNamedArgument = false;
@@ -52,6 +53,7 @@ public partial class Parser
 
     private (ArgsListNode Args, bool IsDistinct) ComposeArgsWithDistinct(bool allowNamedArguments = false)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.ArgumentList, Current);
         var args = new System.Collections.Generic.List<Node>();
         var argumentNames = new System.Collections.Generic.List<ArgumentName?>();
         var hasNamedArgument = false;

@@ -23,32 +23,12 @@ public partial class Parser
                 DiagnosticCode.MQ2001_UnexpectedToken,
                 Current.Span);
 
+        _sourceCapture?.Consume(Current);
         Previous = Current;
         _hasReplacedToken = false;
         _lexer.Next();
     }
 
-
-
-    private void ConsumeAsColumn(TokenType tokenType)
-    {
-        if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException(
-                $"Expected token is {tokenType} but received {Current.TokenType}.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span);
-
-        _hasReplacedToken = false;
-        if (_lexer is Lexer lexer)
-        {
-            lexer.NextColumn();
-            return;
-        }
-
-        _lexer.NextOf(ColumnRegex,
-            value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
-    }
 
 
     private Token ConsumeAndGetToken(TokenType expected)

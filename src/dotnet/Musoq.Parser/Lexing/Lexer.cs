@@ -13,6 +13,10 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer : ILexer
 {
+    private readonly Action<Token>? _observeToken;
+    private int _peekDepth;
+    private TokenType _significantTokenType;
+
     private readonly List<CommentToken> _comments = [];
     private readonly Queue<Token> _pendingSchemaTokens = new();
     private readonly bool _skipWhiteSpaces;
@@ -33,7 +37,13 @@ public sealed partial class Lexer : ILexer
     /// <param name="skipWhiteSpaces">Whether to skip whitespace tokens.</param>
     /// <param name="recoverOnError">Whether to recover from errors instead of throwing.</param>
     public Lexer(string input, bool skipWhiteSpaces, bool recoverOnError = false)
+        : this(input, skipWhiteSpaces, recoverOnError, null)
     {
+    }
+
+    internal Lexer(string input, bool skipWhiteSpaces, bool recoverOnError, Action<Token>? observeToken)
+    {
+        _observeToken = observeToken;
         if (input == null)
             throw ParserValidationException.ForNullInput();
 
@@ -166,55 +176,21 @@ public sealed partial class Lexer : ILexer
         return AssignToken(token);
     }
 
-    internal Token NextColumn()
-    {
-        if (Position >= Input.Length)
-            return AssignToken(new EndOfFileToken(new TextSpan(Input.Length, 0)));
-
-        var start = Position;
-        var end = start;
-        if (Input[end] == '[')
-        {
-            end++;
-            while (end < Input.Length && Input[end] != ']')
-                end++;
-
-            if (end < Input.Length && end > start + 1)
-                end++;
-            else
-                end = start;
-        }
-        else if (Input[end] == '*')
-        {
-            end++;
-        }
-        else
-        {
-            var input = Input.AsSpan();
-            while (end < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, end))
-                end += FastCharacterClassifier.GetIdentifierCodePointLength(input, end);
-        }
-
-        if (end == start)
-            throw new UnknownTokenException(Position, Input[Position], Input[Position..]);
-
-        Position = end;
-        var token = new ColumnToken(Input[start..end], new TextSpan(start, end - start));
-        TrackResolvedToken(token);
-        return AssignToken(token);
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Token AssignToken(Token token)
     {
         _lastToken = _currentToken;
         _currentToken = token;
+        TrackSignificantToken(token);
+        if (_peekDepth == 0)
+            _observeToken?.Invoke(token);
         return token;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void TrackResolvedToken(Token token)
     {
+        TrackSignificantToken(token);
         switch (_nextResolvedTokenSlot)
         {
             case 0:
@@ -240,6 +216,12 @@ public sealed partial class Lexer : ILexer
 
         if (_resolvedTokenCount < 5)
             _resolvedTokenCount++;
+    }
+
+    private void TrackSignificantToken(Token token)
+    {
+        if (token.TokenType is not (TokenType.WhiteSpace or TokenType.Comment))
+            _significantTokenType = token.TokenType;
     }
 
     private Token? GetResolvedTokenByAge(int age)

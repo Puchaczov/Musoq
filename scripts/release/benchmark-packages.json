@@ -1,0 +1,10 @@
+{
+  "packages": [
+    {
+      "slug": "benchmarks-scenarios",
+      "packageId": "Musoq.Benchmarks.Scenarios",
+      "projectPath": "src/dotnet/Musoq.Benchmarks.Scenarios/Musoq.Benchmarks.Scenarios.csproj",
+      "versionProperty": "MusoqBenchmarksScenariosVersion"
+    }
+  ]
+}

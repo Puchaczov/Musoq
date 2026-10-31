@@ -65,6 +65,7 @@ public partial class SchemaParser
 
     private string[] ComposeTypeArguments(out TextSpan closingSpan)
     {
+        using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TypeArgumentList, Current);
         Consume(TokenType.Less);
 
         var typeArgs = new List<string> { ComposeTypeArgument() };
