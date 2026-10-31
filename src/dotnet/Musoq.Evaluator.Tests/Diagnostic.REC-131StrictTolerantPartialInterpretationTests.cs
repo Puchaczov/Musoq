@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,7 +9,6 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
-using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema;
 using Musoq.Schema.Interpreters;

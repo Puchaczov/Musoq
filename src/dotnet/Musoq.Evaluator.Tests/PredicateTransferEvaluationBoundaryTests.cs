@@ -7,7 +7,6 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.SourcePlanning;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests;
 

@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
@@ -52,7 +51,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionVariableRead variableRead => CreateIdentifierName(variableRead.Variable.Name),
                 ExecutionRowContextsRead => throw UnsupportedShape.Of("Row contexts must be lowered to concrete fields."),
                 ExecutionNullContextArray => throw UnsupportedShape.Of("Null source contexts must be lowered to concrete presence fields."),
-                ExecutionContextArray contextArray => renderer.RenderContextArray(contextArray, context),
+                ExecutionContextArray contextArray => renderer.RenderContextArray(),
                 ExecutionValueTupleKey valueTupleKey => renderer.CreateValueTupleKeyExpression(valueTupleKey, context),
                 ExecutionAggregateCall aggregateCall => CreateAggregateAccumulatorRead(aggregateCall),
                 ExecutionWindowValueRead windowValueRead => CreateWindowValueRead(windowValueRead),

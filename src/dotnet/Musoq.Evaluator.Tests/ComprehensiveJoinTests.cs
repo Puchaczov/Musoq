@@ -509,11 +509,4 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
             ["A1", "B1"],
             ["SameName", "SameName"]);
     }
-
-    private sealed class JoinTestCase
-    {
-        public string Name { get; set; } = string.Empty;
-        public int Id { get; set; }
-        public int Value { get; set; }
-    }
 }

@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 

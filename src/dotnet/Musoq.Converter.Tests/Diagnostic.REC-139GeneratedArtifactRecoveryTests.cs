@@ -11,7 +11,6 @@ using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
-using Musoq.Targets.Abstractions;
 
 namespace Musoq.Converter.Tests;
 

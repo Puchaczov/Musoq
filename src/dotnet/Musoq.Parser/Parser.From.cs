@@ -246,10 +246,4 @@ public partial class Parser
 
         return false;
     }
-
-    private enum Associativity
-    {
-        Left,
-        Right
-    }
 }

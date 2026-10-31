@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Physical;

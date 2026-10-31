@@ -2,7 +2,6 @@ using System.Collections;
 using System.Globalization;
 using System.Numerics;
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.KaitaiStruct.Tests.Infrastructure;
 

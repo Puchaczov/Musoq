@@ -1,6 +1,4 @@
 using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.IR.Expressions;
-using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;

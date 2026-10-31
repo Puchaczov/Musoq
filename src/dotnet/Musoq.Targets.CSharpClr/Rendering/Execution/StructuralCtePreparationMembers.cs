@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -6,7 +5,6 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.IR;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Targets.CSharpClr;
@@ -78,7 +76,7 @@ internal static class StructuralCtePreparationMembers
         ExecutionCSharpRenderer renderer)
     {
         var sourceShape = ResolveSourceShape(input);
-        var sourceType = SyntaxFactory.ParseTypeName(sourceShape.TypeName);
+        _ = SyntaxFactory.ParseTypeName(sourceShape.TypeName);
         var targetType = ExecutionSyntaxFactory.CreateTypeSyntax(input.ElementType);
         var targetText = targetType.ToFullString();
         var body = CreateBody(input, sourceShape, targetText, context, renderer);

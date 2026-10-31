@@ -109,8 +109,7 @@ public sealed partial class ExecutionCSharpRenderer
                 statements,
                 kernel.SortedPartitions,
                 kernel.Partitions,
-                orderKeys,
-                kernel.OrderKeys);
+                orderKeys);
         }
 
         statements.Add(CreateLocalDeclaration(

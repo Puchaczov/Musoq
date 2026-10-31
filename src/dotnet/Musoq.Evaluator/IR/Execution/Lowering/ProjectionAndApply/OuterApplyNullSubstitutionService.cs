@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
@@ -553,11 +552,6 @@ internal static class OuterApplyNullSubstitutionService
         }
 
         return OuterApplyArgumentSubstitutionResult.Success(expressions, hasUnknown);
-    }
-
-    private static ExecutionLiteral CreateNullLiteral(Type returnType)
-    {
-        return new ExecutionLiteral(null, LiftNullSubstitutionType(returnType));
     }
 
     private static ExecutionLiteral CreateNullLiteral(ExecutionTypeRef returnType) =>

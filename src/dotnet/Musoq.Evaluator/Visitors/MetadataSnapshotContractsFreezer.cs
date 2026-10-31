@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Musoq.Evaluator.Utils;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 using System.Threading;
 
 namespace Musoq.Evaluator.Visitors;

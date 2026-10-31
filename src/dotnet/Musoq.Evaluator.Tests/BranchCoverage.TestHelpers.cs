@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Reflection;

@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Collections.Generic;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Exceptions;

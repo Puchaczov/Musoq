@@ -13,7 +13,6 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests;

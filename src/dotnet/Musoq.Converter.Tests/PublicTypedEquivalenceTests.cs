@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
-using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
 using static Musoq.Converter.Tests.TwoModeTestFixtures;
 using City = Musoq.Converter.Tests.TwoModeTestFixtures.NameRow;

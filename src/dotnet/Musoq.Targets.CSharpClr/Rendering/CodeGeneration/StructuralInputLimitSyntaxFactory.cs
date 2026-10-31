@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -8,9 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -161,7 +158,7 @@ internal static class StructuralInputLimitSyntaxFactory
             state.Lines.Add($"if ({expression}.HasValue)");
             state.Lines.Add("{");
             foreach (var field in descriptor.Fields)
-                EmitField(descriptor, nullableValueType, bodyExpression, field, depth, state, path);
+                EmitField(nullableValueType, bodyExpression, field, depth, state, path);
             state.Lines.Add("}");
             return;
         }
@@ -173,14 +170,13 @@ internal static class StructuralInputLimitSyntaxFactory
         }
 
         foreach (var field in descriptor.Fields)
-            EmitField(descriptor, clrType, expression, field, depth, state, path);
+            EmitField(clrType, expression, field, depth, state, path);
 
         if (!clrType.IsValueType)
             state.Lines.Add("}");
     }
 
     private static void EmitField(
-        Musoq.Schema.StructuralInputs.StructuralTypeDescriptor descriptor,
         Type clrType,
         string expression,
         Musoq.Schema.StructuralInputs.StructuralFieldDescriptor field,

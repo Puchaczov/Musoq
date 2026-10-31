@@ -105,15 +105,6 @@ public sealed partial class ExecutionCSharpRenderer
         return TryGetTableColumnMetadataFieldName(referenceName, fields, context, out fieldName);
     }
 
-    internal bool TryGetTableColumnMetadataFieldName(
-        string referenceName,
-        IReadOnlyList<ExecutionColumnMetadataField> fields,
-        out string fieldName)
-    {
-        fieldName = null!;
-        return false;
-    }
-
     internal static bool TryGetTableColumnMetadataFieldName(
         string referenceName,
         IReadOnlyList<ExecutionColumnMetadataField> fields,

@@ -5,7 +5,6 @@ using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 

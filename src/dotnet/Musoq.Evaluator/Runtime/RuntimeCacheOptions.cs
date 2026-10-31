@@ -13,8 +13,6 @@ internal static class RuntimeCacheOptions
 
     public const int CastableTypeCacheSize = 512;
 
-    public const int ObjectChunkAdapterCacheSize = 512;
-
     public const int InMemorySourceShapeCacheSize = 512;
 
     public const int HasIndexerCacheSize = 512;

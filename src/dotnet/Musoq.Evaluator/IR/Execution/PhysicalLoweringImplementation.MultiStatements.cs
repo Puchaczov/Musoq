@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 

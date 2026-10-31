@@ -587,9 +587,6 @@ public partial class Operators
         }
     }
 
-    internal static Func<string, bool> CreateLegacyLikeMatcherUnderCulture(string pattern, CultureInfo culture) =>
-        CreateLegacyLikeMatcherUnderCulture(pattern, culture, RuntimeCacheOptions.DefaultRegexTimeout);
-
     internal static Func<string, bool> CreateLegacyLikeMatcherUnderCulture(
         string pattern,
         CultureInfo culture,

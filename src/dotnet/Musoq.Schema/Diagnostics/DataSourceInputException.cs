@@ -1,5 +1,4 @@
 using System.IO;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Schema.Diagnostics;

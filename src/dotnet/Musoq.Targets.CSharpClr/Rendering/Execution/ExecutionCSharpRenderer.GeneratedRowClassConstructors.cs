@@ -51,14 +51,6 @@ public sealed partial class ExecutionCSharpRenderer
         return new(parameters, contextAssignments);
     }
 
-    private static IdentifierNameSyntax CreateGeneratedRowContextParameterReference(
-        IReadOnlyList<GeneratedRowContextParameter> contextParameters,
-        string fieldName)
-    {
-        var contextParameter = contextParameters.Single(parameter => parameter.FieldName == fieldName);
-        return SyntaxFactory.IdentifierName(contextParameter.ParameterName);
-    }
-
     private static ConstructorDeclarationSyntax CreateGeneratedRowConstructor(
         string typeName,
         IReadOnlyList<FieldBinding> fields,

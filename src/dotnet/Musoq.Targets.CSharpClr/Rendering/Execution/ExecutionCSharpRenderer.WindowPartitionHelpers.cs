@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Musoq.Evaluator.Helpers;
 
@@ -55,12 +54,6 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         return new ExecutionVariable($"{results.Name}IntOrderBuilder", builderType);
-    }
-
-    private static bool CanUseFusedIntOrderWindow(IReadOnlyList<ExecutionWindowOrderKey> orderKeys)
-    {
-        return orderKeys.Count == 1 &&
-               orderKeys[0].Expression.ReturnType.RequireClrType() == typeof(int);
     }
 
     private static bool ShouldMaterializeWindowKeyArray([NotNullWhen(true)] ExecutionWindowKeyArray? keyArray)

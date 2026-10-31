@@ -1,4 +1,3 @@
-using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
 

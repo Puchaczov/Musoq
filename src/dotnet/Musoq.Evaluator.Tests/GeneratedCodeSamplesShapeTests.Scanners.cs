@@ -28,11 +28,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         };
     }
 
-    private static int CountOccurrences(IEnumerable<GeneratedCodeSampleFile> samples, Regex pattern)
-    {
-        return samples.Sum(sample => pattern.Count(sample.Content));
-    }
-
     private static int CountOccurrences(IEnumerable<GeneratedCodeSampleFile> samples, params string[] patterns)
     {
         return samples.Sum(sample => patterns.Sum(pattern => CountOccurrences(sample.Content, pattern)));

@@ -11,7 +11,6 @@ using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 

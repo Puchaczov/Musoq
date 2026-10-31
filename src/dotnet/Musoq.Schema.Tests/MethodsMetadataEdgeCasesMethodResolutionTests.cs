@@ -195,8 +195,6 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
 
     private class BaseEntity : IBase;
 
-    private sealed class DerivedEntity : BaseEntity;
-
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TestClass
     {

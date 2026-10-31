@@ -5,11 +5,9 @@ using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Plugins;
 using Musoq.Schema;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Generic;
 

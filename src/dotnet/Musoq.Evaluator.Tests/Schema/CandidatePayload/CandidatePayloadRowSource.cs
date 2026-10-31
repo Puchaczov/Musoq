@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 using Musoq.Tests.Common.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests.Schema.CandidatePayload;

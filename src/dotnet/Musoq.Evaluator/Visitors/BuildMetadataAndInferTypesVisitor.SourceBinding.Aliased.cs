@@ -1,14 +1,11 @@
 using System.Linq;
-using System.Threading;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
-using Musoq.Schema;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Reflection;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;

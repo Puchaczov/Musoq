@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -116,16 +115,6 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         DiagnosticCode expectedCode)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
-    }
-
-    private static void AssertHasErrorWithMessage(QueryAnalysisResult result, string messageContains, string context)
-    {
-        var diagnostics = result.Errors.ToList();
-        Assert.HasCount(1, diagnostics,
-            $"Expected one error containing '{messageContains}' ({context}) but got: " +
-            string.Join(" | ", diagnostics.Select(static item => $"[{item.Code}] {item.Message}")));
-        Assert.IsTrue(diagnostics[0].Message.Contains(messageContains, StringComparison.OrdinalIgnoreCase),
-            $"Expected error containing '{messageContains}' ({context}) but got: {diagnostics[0].Message}");
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)

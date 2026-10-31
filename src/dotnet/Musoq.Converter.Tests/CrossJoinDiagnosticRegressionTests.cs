@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
-using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;

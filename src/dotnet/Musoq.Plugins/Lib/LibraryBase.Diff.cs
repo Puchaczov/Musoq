@@ -172,8 +172,6 @@ public partial class LibraryBase
                     unchangedBuilder.Append(remainingUnchanged);
                     sourcePos += remainingUnchanged.Length;
                     targetPos += remainingUnchanged.Length;
-                    oldIndex = first.Length;
-                    newIndex = second.Length;
                 }
 
                 break;

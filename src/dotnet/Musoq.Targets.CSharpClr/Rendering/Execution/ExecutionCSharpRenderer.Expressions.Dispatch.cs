@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
@@ -114,15 +113,6 @@ public sealed partial class ExecutionCSharpRenderer
                context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
             ? CreateIdentifierName(cacheName)
             : CreateStoredTableRowsRead(storedRows, context);
-    }
-
-    private static ArrayCreationExpressionSyntax CreateNullContextArray(int count)
-    {
-        return CreateArrayCreation(
-            "object",
-            Enumerable.Repeat(
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
-                count));
     }
 
     private ExpressionSyntax CreateStoredTableRowsRead(int tableIndex, ExecutionRenderContext context)

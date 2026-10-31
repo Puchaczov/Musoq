@@ -31,7 +31,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         statements.Add(CreateSchemaDeclaration(schemaName, sourceScan.Binding.SchemaName));
-        statements.AddRange(CreateRowSourceDeclarations(sourceScan, schemaName, infoTableExpressionName, arguments, context));
+        statements.AddRange(CreateRowSourceDeclarations(sourceScan, schemaName, infoTableExpressionName, arguments));
 
         return statements;
     }

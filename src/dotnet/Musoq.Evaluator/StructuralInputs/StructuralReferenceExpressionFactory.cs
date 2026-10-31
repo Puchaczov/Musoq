@@ -1,4 +1,3 @@
-using System;
 using Musoq.Schema.StructuralInputs;
 namespace Musoq.Evaluator.IR.Expressions;
 

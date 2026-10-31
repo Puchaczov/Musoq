@@ -14,14 +14,12 @@ using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Parser.Tokens;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
 using Musoq.Schema.Interpreters;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using BinaryParseException = Musoq.Schema.Interpreters.ParseException;
 
 namespace Musoq.Evaluator.Tests;

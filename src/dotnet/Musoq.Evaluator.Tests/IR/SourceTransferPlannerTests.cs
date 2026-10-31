@@ -9,13 +9,11 @@ using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Evaluator.IR.Planning.SourcePlanning;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 using LogicalSkipNode = Musoq.Evaluator.IR.Logical.Nodes.SkipNode;
 using LogicalTakeNode = Musoq.Evaluator.IR.Logical.Nodes.TakeNode;
 using LogicalWindowNode = Musoq.Evaluator.IR.Logical.Nodes.WindowNode;
@@ -31,8 +29,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Id", 0, typeof(int)), new SchemaColumn("Name", 1, typeof(string))],
-            SourceTransferCapabilities.QueryScopedRows);
+            [new SchemaColumn("Id", 0, typeof(int)), new SchemaColumn("Name", 1, typeof(string))]);
 
         var result = SourceTransferPlanner.Plan(
             CreateContext(),
@@ -54,8 +51,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Id", 0, typeof(int))],
-            SourceTransferCapabilities.None);
+            [new SchemaColumn("Id", 0, typeof(int))]);
 
         var plan = SourceTransferPlanner.Plan(CreateContext(), CreateFacts(source, SourceTransferCapabilities.None)).PlansBySourceId[source.SourceContextId];
 
@@ -69,8 +65,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Id", 0, typeof(int))],
-            SourceTransferCapabilities.QueryScopedRows);
+            [new SchemaColumn("Id", 0, typeof(int))]);
 
         var plan = SourceTransferPlanner.Plan(
             CreateContext(SourceTransferCapabilities.None),
@@ -85,8 +80,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Value", 0, typeof(object))],
-            SourceTransferCapabilities.QueryScopedRows);
+            [new SchemaColumn("Value", 0, typeof(object))]);
 
         var plan = SourceTransferPlanner.Plan(CreateContext(), CreateFacts(source, SourceTransferCapabilities.QueryScopedRows)).PlansBySourceId[source.SourceContextId];
 
@@ -99,8 +93,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Value", 0, typeof(int), ColumnStability.Volatile)],
-            SourceTransferCapabilities.QueryScopedRows);
+            [new SchemaColumn("Value", 0, typeof(int), ColumnStability.Volatile)]);
 
         var plan = SourceTransferPlanner.Plan(
             CreateContext(),
@@ -143,7 +136,7 @@ public class SourceTransferPlannerTests
         var columns = Enumerable.Range(0, 5)
             .Select(index => (ISchemaColumn)new SchemaColumn($"Value{index}", index, typeof(Guid)))
             .ToArray();
-        var source = CreateSource("source:0", columns, SourceTransferCapabilities.QueryScopedRows);
+        var source = CreateSource("source:0", columns);
 
         var plan = SourceTransferPlanner.Plan(CreateContext(), CreateFacts(source, SourceTransferCapabilities.QueryScopedRows)).PlansBySourceId[source.SourceContextId];
 
@@ -157,8 +150,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Id", 0, typeof(int))],
-            SourceTransferCapabilities.QueryScopedRows) with
+            [new SchemaColumn("Id", 0, typeof(int))]) with
         {
             RequiredColumns = [],
             ProjectedColumns = [],
@@ -185,8 +177,7 @@ public class SourceTransferPlannerTests
         };
         var source = CreateSource(
             "source:0",
-            columns,
-            SourceTransferCapabilities.QueryScopedRows) with
+            columns) with
         {
             QueryRowProjection = SourceQueryRowProjection.Unavailable("descriptor validation required"),
             ProjectedColumns = [],
@@ -211,8 +202,7 @@ public class SourceTransferPlannerTests
         };
         var source = CreateSource(
             "source:0",
-            columns,
-            SourceTransferCapabilities.QueryScopedRows) with
+            columns) with
         {
             QueryRowProjection = SourceQueryRowProjection.Unavailable("descriptor validation required"),
             ProjectedColumns = [],
@@ -233,8 +223,7 @@ public class SourceTransferPlannerTests
         var descriptorColumns = new ISchemaColumn[] { new SchemaColumn("Id", 0, typeof(int)) };
         var source = CreateSource(
             "source:0",
-            descriptorColumns,
-            SourceTransferCapabilities.QueryScopedRows) with
+            descriptorColumns) with
         {
             RequiredColumns = ["Missing"],
             ProjectedColumns = [],
@@ -392,8 +381,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Id", 0, typeof(int))],
-            SourceTransferCapabilities.QueryScopedRows);
+            [new SchemaColumn("Id", 0, typeof(int))]);
         var transferPlan = SourceTransferPlanner.Plan(
             CreateContext(),
             CreateFacts(source, SourceTransferCapabilities.QueryScopedRows)).PlansBySourceId[source.SourceContextId];
@@ -420,8 +408,7 @@ public class SourceTransferPlannerTests
 
     private static SourcePlanProperties CreateSource(
         string sourceContextId,
-        ISchemaColumn[] columns,
-        SourceTransferCapabilities capabilities)
+        ISchemaColumn[] columns)
     {
         return new SourcePlanProperties(
             sourceContextId,
@@ -443,8 +430,7 @@ public class SourceTransferPlannerTests
     {
         var source = CreateSource(
             "source:0",
-            [new SchemaColumn("Value", 0, columnType)],
-            SourceTransferCapabilities.QueryScopedRows);
+            [new SchemaColumn("Value", 0, columnType)]);
 
         return SourceTransferPlanner.Plan(
             CreateContext(logicalPlan: logicalPlan),

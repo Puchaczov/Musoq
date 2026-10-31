@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
-using Musoq.Tests.Common;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 

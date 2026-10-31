@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Schema.StructuralInputs;
-using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Evaluator.Tests.IR;
 

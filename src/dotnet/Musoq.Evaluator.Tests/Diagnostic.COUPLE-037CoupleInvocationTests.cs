@@ -12,7 +12,6 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
@@ -412,21 +411,5 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
 
         public SchemaTableMetadata Metadata { get; } =
             new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
-    }
-
-    private sealed class Couple037RowsSource(string sourcePath, int pageSize)
-        : RowSourceBase<IReadOnlyDictionary<string, object?>>
-    {
-        protected override void CollectChunks(IChunkWriter<IReadOnlyDictionary<string, object?>> writer)
-        {
-            writer.Write(
-            [
-                new Dictionary<string, object?>
-                {
-                    ["DisplayName"] = sourcePath,
-                    ["RankValue"] = pageSize
-                }
-            ]);
-        }
     }
 }

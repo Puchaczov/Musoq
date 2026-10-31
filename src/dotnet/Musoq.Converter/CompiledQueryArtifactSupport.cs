@@ -178,11 +178,6 @@ internal static class CompiledQueryArtifactSupport
         return Convert.ToHexString(SHA256.HashData(bytes));
     }
 
-    private static string GetRunnableTypeName(TargetArtifactPackage package)
-    {
-        return GetRunnableTypeName(package, CancellationToken.None);
-    }
-
     private static string GetRunnableTypeName(
         TargetArtifactPackage package,
         CancellationToken cancellationToken)
@@ -208,13 +203,6 @@ internal static class CompiledQueryArtifactSupport
 
     private static byte[] RequireBlobContent(
         TargetArtifactPackage package,
-        string blobName)
-    {
-        return RequireBlobContent(package, blobName, CancellationToken.None);
-    }
-
-    private static byte[] RequireBlobContent(
-        TargetArtifactPackage package,
         string blobName,
         CancellationToken cancellationToken)
     {
@@ -222,13 +210,6 @@ internal static class CompiledQueryArtifactSupport
             ? content
             : throw new InvalidOperationException(
                 $"C# CLR compiled artifact package is missing required binary blob '{blobName}'.");
-    }
-
-    private static byte[]? TryGetBlobContent(
-        TargetArtifactPackage package,
-        string blobName)
-    {
-        return TryGetBlobContent(package, blobName, CancellationToken.None);
     }
 
     private static byte[]? TryGetBlobContent(

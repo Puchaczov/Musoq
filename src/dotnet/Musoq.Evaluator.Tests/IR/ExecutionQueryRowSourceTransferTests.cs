@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
 using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Evaluator.Tests.IR;

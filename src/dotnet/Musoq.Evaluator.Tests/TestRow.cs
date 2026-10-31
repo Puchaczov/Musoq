@@ -1,6 +1,5 @@
 using System;
 using Musoq.Evaluator.Tables;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 

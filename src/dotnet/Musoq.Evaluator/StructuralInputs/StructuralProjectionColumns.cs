@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Nodes;

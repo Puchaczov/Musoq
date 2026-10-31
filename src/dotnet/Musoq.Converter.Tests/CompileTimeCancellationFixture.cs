@@ -8,7 +8,6 @@ using Musoq.Evaluator;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Converter.Tests;

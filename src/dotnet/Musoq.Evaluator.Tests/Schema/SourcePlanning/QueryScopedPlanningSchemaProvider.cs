@@ -6,7 +6,6 @@ using System.Threading;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 using Musoq.Tests.Common.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests.Schema.SourcePlanning;

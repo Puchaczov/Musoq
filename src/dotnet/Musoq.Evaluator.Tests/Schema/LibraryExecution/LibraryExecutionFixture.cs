@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Schema.LibraryExecution;
 

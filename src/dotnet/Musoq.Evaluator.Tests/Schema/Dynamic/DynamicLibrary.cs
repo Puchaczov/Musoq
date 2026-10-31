@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 

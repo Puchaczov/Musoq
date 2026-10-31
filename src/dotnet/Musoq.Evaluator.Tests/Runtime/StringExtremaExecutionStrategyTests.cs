@@ -7,7 +7,6 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 

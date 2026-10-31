@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using Musoq.Evaluator.Exceptions;
 
 namespace Musoq.Evaluator.Runtime;
 

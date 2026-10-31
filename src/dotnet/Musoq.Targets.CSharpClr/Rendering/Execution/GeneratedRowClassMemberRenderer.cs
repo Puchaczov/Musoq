@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
@@ -137,12 +136,5 @@ public sealed partial class ExecutionCSharpRenderer
             return null;
 
         return outputName[(separatorIndex + 1)..];
-    }
-
-    private static CastExpressionSyntax BoxExpression(ExpressionSyntax expression)
-    {
-        return SyntaxFactory.CastExpression(
-            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-            expression);
     }
 }

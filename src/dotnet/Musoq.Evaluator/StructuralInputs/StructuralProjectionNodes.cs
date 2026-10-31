@@ -1,4 +1,3 @@
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema.StructuralInputs;

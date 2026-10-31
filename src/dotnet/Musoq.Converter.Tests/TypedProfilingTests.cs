@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using MusoqTypedProfileFixtures;
-using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using static Musoq.Converter.Tests.TwoModeTestFixtures;

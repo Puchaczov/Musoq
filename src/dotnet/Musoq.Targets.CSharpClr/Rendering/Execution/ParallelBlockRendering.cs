@@ -29,7 +29,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("var"),
             runnerName,
             SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(CreateParallelRunnerTypeName(parallel)))
-                .WithArgumentList(CreateArgumentList(CreateParallelRunnerConstructorArguments(parallel, captures, context))));
+                .WithArgumentList(CreateArgumentList(CreateParallelRunnerConstructorArguments(captures, context))));
 
         var taskActions = parallel.Tasks
             .Select((_, index) => SyntaxFactory.MemberAccessExpression(
@@ -98,7 +98,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateParallelTaskBuildFunctionName(parallel, taskIndex))
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateParallelTaskParameterList(parallel, captures, context))
+            .WithParameterList(CreateParallelTaskParameterList(captures, context))
             .WithBody(StatementEmitter.CreateBlock(statements));
     }
 
@@ -171,7 +171,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var members = new List<MemberDeclarationSyntax>();
-        members.AddRange(CreateParallelRunnerFields(parallel, captures, context));
+        members.AddRange(CreateParallelRunnerFields(captures, context));
         members.AddRange(parallel.Tasks.Select(CreateParallelTaskResultProperty));
         members.Add(CreateParallelRunnerConstructor(parallel, captures, context));
         members.AddRange(parallel.Tasks.Select((_, index) => CreateParallelTaskRunMethod(parallel, index, captures, context)));
@@ -184,11 +184,10 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IEnumerable<FieldDeclarationSyntax> CreateParallelRunnerFields(
-        ExecutionParallelBlock parallel,
         IReadOnlyList<CapturedLocal> captures,
         ExecutionRenderContext context)
     {
-        foreach (var member in CreateParallelRunnerRuntimeMembers(parallel, context))
+        foreach (var member in CreateParallelRunnerRuntimeMembers(context))
             yield return CreateParallelRunnerField(member.FieldName, member.Type);
 
         foreach (var capture in captures)
@@ -230,7 +229,7 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<CapturedLocal> captures,
         ExecutionRenderContext context)
     {
-        var assignments = CreateParallelRunnerRuntimeMembers(parallel, context)
+        var assignments = CreateParallelRunnerRuntimeMembers(context)
             .Select<ParallelRunnerRuntimeMember, StatementSyntax>(member =>
                 SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
@@ -245,7 +244,7 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ConstructorDeclaration(CreateParallelRunnerTypeName(parallel))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList(
-                SyntaxFactory.SeparatedList(CreateParallelRunnerConstructorParameters(parallel, captures, context))))
+                SyntaxFactory.SeparatedList(CreateParallelRunnerConstructorParameters(captures, context))))
             .WithBody(StatementEmitter.CreateBlock(assignments));
     }
 
@@ -267,7 +266,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName(CreateParallelTaskResultPropertyName(taskIndex)),
             SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(
                     CreateParallelTaskBuildFunctionName(parallel, taskIndex)))
-                .WithArgumentList(CreateArgumentList(CreateParallelRunnerStaticTaskArguments(parallel, captures, context)))));
+                .WithArgumentList(CreateArgumentList(CreateParallelRunnerStaticTaskArguments(captures, context)))));
 
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
@@ -329,7 +328,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var excludedNames = new HashSet<string>(CreateRuntimeHelperParameterNames(context), StringComparer.Ordinal);
 
-        foreach (var runtimeMember in CreateParallelRunnerRuntimeMembers(parallel, context))
+        foreach (var runtimeMember in CreateParallelRunnerRuntimeMembers(context))
             excludedNames.Add(runtimeMember.FieldName);
 
         foreach (var task in parallel.Tasks)

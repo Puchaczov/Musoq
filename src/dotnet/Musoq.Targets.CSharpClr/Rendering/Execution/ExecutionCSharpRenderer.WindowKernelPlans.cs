@@ -112,8 +112,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements,
             sortedPartitions,
             partitions,
-            orderKeys,
-            first.OrderKeys);
+            orderKeys);
 
         foreach (var ranking in rankings)
         {

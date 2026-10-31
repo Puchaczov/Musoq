@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
-using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;

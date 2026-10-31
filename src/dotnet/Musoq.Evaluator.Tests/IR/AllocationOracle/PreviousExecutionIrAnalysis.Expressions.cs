@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class PreviousExecutionIrAnalysis
 {
-    internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout) =>
-        ExecutionNodeFacts.GetContextLayoutExpressions(contextLayout);
 
     internal static IEnumerable<ExecutionExpression> FlattenExpressions(ExecutionBlock block)
     {
@@ -42,16 +38,6 @@ internal static partial class PreviousExecutionIrAnalysis
         {
             foreach (var childExpression in FlattenExpressions(child))
                 yield return childExpression;
-        }
-    }
-
-    internal static IEnumerable<TExpression> CollectExpressions<TExpression>(ExecutionBlock block)
-        where TExpression : ExecutionExpression
-    {
-        foreach (var expression in FlattenExpressions(block))
-        {
-            if (expression is TExpression match)
-                yield return match;
         }
     }
 

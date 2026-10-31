@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Analysis;

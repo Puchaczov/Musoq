@@ -1,4 +1,3 @@
-using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Lexing;

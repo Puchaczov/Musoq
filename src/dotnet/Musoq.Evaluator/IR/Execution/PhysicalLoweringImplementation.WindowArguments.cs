@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
 using Musoq.Evaluator.IR.Bindings;

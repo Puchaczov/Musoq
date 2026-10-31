@@ -52,7 +52,7 @@ public class PhysicalPlanBuilderTests
             .OptimizedPlan;
     }
 
-    private static PhysicalPlanBuilder CreatePhysicalBuilder(CompilationOptions? options = null)
+    private static PhysicalPlanBuilder CreatePhysicalBuilder()
     {
         return new PhysicalPlanBuilder(predicateMovementPlans: null,
             strategyPlan: new PhysicalStrategyPlan());
@@ -381,7 +381,7 @@ public class PhysicalPlanBuilderTests
             CreateScan("b", ("UserId", typeof(int))));
 
         var options = new CompilationOptions(useSortMergeJoin: false);
-        var physical = Optimize(CreatePhysicalBuilder(options).Lower(logical), options);
+        var physical = Optimize(CreatePhysicalBuilder().Lower(logical), options);
 
         Assert.IsInstanceOfType<PhysicalNodes.PhysicalNestedLoopJoinNode>(physical);
     }
@@ -400,7 +400,7 @@ public class PhysicalPlanBuilderTests
             CreateScan("b", ("UserId", typeof(int))));
 
         var options = new CompilationOptions(useHashJoin: false);
-        var physical = Optimize(CreatePhysicalBuilder(options).Lower(logical), options);
+        var physical = Optimize(CreatePhysicalBuilder().Lower(logical), options);
 
         Assert.IsInstanceOfType<PhysicalNodes.PhysicalNestedLoopJoinNode>(physical);
     }

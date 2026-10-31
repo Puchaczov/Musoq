@@ -1,9 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
-using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
 using Musoq.Schema;
@@ -13,8 +9,6 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly WeakTypeRuntimeCache<Func<object, IReadOnlyList<object>>> ObjectChunkAdapters =
-        new(RuntimeCacheOptions.ObjectChunkAdapterCacheSize);
 
 
 
@@ -234,46 +228,6 @@ public static partial class EvaluationHelper
     }
 
     public const int DefaultSourceChunkSize = RowChunking.DefaultChunkSize;
-
-    private static Func<object, IReadOnlyList<object>> CreateObjectChunkAdapter(Type entityType)
-    {
-        var method = typeof(EvaluationHelper)
-            .GetMethod(nameof(CreateObjectChunkView), BindingFlags.NonPublic | BindingFlags.Static)
-            ?? throw new MissingMethodException(nameof(EvaluationHelper), nameof(CreateObjectChunkView));
-
-        return (Func<object, IReadOnlyList<object>>)method
-            .MakeGenericMethod(entityType)
-            .CreateDelegate(typeof(Func<object, IReadOnlyList<object>>));
-    }
-
-    private static IReadOnlyList<object> CreateObjectChunkView<T>(object chunk)
-    {
-        if (chunk is not IReadOnlyList<T> typedChunk)
-        {
-            throw new InvalidOperationException(
-                $"Schema returned chunk '{chunk.GetType().FullName}' that is not assignable to IReadOnlyList<{typeof(T).FullName}>.");
-        }
-
-        return new ObjectChunkView<T>(typedChunk);
-    }
-
-    private sealed class ObjectChunkView<T>(IReadOnlyList<T> source) : IReadOnlyList<object>
-    {
-        public int Count => source.Count;
-
-        public object this[int index] => source[index]!;
-
-        public IEnumerator<object> GetEnumerator()
-        {
-            for (var index = 0; index < source.Count; index++)
-                yield return source[index]!;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
 
     private static IEnumerable<IReadOnlyList<PrimitiveTypeEntity<T>>> CreateScalarBufferedChunks<T>(IEnumerable<T> rows)
     {

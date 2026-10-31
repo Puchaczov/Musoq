@@ -345,25 +345,6 @@ public sealed partial class CSharpRenderer
             ])));
     }
 
-
-
-    private static InvocationExpressionSyntax CreateProjectShapeRowsParallelInvocation(
-        TableViaRowsResultInfo resultInfo,
-        ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop,
-        string parallelRowsName,
-        ExecutionRenderContext? renderContext = null)
-    {
-        return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
-            FinalProjectionInvocationKind.TypedValuesParallel,
-            CreateSourceTypeSyntax(projectionLoop.Source),
-            SyntaxFactory.ParseTypeName(resultInfo.ShapeTypeName),
-            parallelRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
-            CreateShapeProjectionLambda(resultInfo, executionRenderer, projectionLoop, renderContext),
-            projectionLoop.MaxDegreeOfParallelism));
-    }
-
     private static InvocationExpressionSyntax CreateProjectRowsChunkedParallelInvocation(
         TableViaRowsResultInfo resultInfo,
         ExecutionCSharpRenderer executionRenderer,
@@ -494,22 +475,6 @@ public sealed partial class CSharpRenderer
                     projectionLoop.Source,
                     renderContext),
                 SyntaxFactory.IdentifierName("token")));
-    }
-
-    private static ParenthesizedLambdaExpressionSyntax CreateShapeProjectionLambda(
-        TableViaRowsResultInfo resultInfo,
-        ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop,
-        ExecutionRenderContext? renderContext = null)
-    {
-        var values = projectionLoop.AppendRow.Values
-            .Select(value => RenderFinalSinkExpression(executionRenderer, value.Value, renderContext))
-            .Select(SyntaxFactory.Argument)
-            .ToArray();
-        var creation = SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(resultInfo.ShapeTypeName))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(values)));
-
-        return CreateSourceLambda(projectionLoop.Source, creation);
     }
 
     private static MethodDeclarationSyntax CreateTableRowsAdapterMethod(

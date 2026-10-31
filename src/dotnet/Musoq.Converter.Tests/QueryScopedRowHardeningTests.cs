@@ -9,7 +9,6 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 

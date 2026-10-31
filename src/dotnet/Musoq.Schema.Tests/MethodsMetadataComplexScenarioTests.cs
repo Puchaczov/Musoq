@@ -127,8 +127,6 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
 
     private interface IEntity;
 
-    private interface IAggregatable;
-
     private sealed class Entity : IEntity;
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]

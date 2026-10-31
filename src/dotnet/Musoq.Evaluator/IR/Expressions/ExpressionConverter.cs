@@ -1,11 +1,8 @@
-using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.StructuralInputs;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Evaluator.IR.Logical;
 

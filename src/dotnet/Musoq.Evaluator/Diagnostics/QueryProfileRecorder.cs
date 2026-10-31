@@ -237,25 +237,6 @@ public sealed class QueryProfileRecorder
         };
     }
 
-    internal void ExcludeCurrentOperatorElapsed(long startTimestamp, long endTimestamp)
-    {
-        var elapsed = _clock.GetElapsedTime(startTimestamp, endTimestamp);
-        if (elapsed <= TimeSpan.Zero)
-            return;
-
-        var frames = _operatorFrames.Value;
-        if (frames is null || frames.Count == 0)
-            return;
-
-        var elapsedTicks = elapsed.Ticks;
-        for (var index = 0; index < frames.Count; index++)
-        {
-            var frame = frames[index];
-            frame.ExcludedTicks += elapsedTicks;
-            frames[index] = frame;
-        }
-    }
-
     internal OperatorProfileExclusionTarget CaptureCurrentOperatorExclusionTarget()
     {
         var frames = _operatorFrames.Value;

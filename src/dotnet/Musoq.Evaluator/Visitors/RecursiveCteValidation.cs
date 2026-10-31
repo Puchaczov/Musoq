@@ -5,7 +5,6 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
 

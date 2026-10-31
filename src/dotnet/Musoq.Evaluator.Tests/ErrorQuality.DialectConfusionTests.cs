@@ -33,11 +33,6 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
-    {
-        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
-    }
-
     private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
         string context)
     {

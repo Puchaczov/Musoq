@@ -16,12 +16,6 @@ internal sealed class CSharpClrExecutionBindingContext
         return typeRef.ResolveClrType();
     }
 
-    internal Type BindType(ExecutionPortableTypeDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return ExecutionClrBindingResolver.ResolveType(descriptor);
-    }
-
     internal Type BindType(
         ExecutionPortableTypeDescriptor descriptor,
         IReadOnlyDictionary<string, Assembly> semanticAssemblies)
@@ -44,12 +38,6 @@ internal sealed class CSharpClrExecutionBindingContext
     {
         ArgumentNullException.ThrowIfNull(callableRef);
         return callableRef.ResolveClrMethod();
-    }
-
-    internal MethodInfo BindMethod(ExecutionPortableCallableDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return ExecutionClrBindingResolver.ResolveMethod(descriptor);
     }
 
     internal MethodInfo BindMethod(

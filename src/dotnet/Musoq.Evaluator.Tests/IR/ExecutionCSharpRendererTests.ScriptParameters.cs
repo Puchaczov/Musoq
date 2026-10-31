@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;

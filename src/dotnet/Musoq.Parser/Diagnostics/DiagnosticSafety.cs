@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Parser;
 
 namespace Musoq.Parser.Diagnostics;
 

@@ -1,7 +1,5 @@
 using Musoq.Tests.Common;
-using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 

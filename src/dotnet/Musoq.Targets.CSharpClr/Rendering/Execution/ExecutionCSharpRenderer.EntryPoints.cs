@@ -54,11 +54,6 @@ public sealed partial class ExecutionCSharpRenderer
         return RenderBlock(block, CreateIsolatedRenderContext());
     }
 
-    private BlockSyntax RenderBlock(ExecutionBlock block, ExecutionRenderSession session)
-    {
-        return RenderBlock(block, new ExecutionRenderContext(_renderOptions, session));
-    }
-
     private BlockSyntax RenderBlock(ExecutionBlock block, ExecutionRenderContext context)
     {
         ArgumentNullException.ThrowIfNull(block);

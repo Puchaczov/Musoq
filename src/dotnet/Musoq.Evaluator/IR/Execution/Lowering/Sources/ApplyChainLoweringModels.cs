@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;

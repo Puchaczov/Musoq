@@ -7,7 +7,6 @@ using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.SourcePlanning;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 

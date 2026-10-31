@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins.Tests;
 

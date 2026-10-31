@@ -1,17 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
 using Musoq.Evaluator;
 using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Converter.Tests;
 

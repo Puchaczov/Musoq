@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Targets.CSharpClr.Rendering.CodeGeneration;

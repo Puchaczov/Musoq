@@ -6,7 +6,6 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using Person = Musoq.Converter.Tests.TwoModeTestFixtures.Person;

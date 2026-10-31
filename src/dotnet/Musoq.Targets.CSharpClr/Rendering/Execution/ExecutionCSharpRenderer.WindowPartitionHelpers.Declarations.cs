@@ -74,14 +74,4 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.IdentifierName(nameof(WindowIntOrderBuilder.Add))))
                 .WithArgumentList(CreateArgumentList(arguments.ToArray())));
     }
-
-    private static ExpressionSyntax CastIfNeededWhenRequired(
-        ExpressionSyntax expression,
-        Type sourceType,
-        Type targetType)
-    {
-        return targetType.IsAssignableFrom(sourceType)
-            ? expression
-            : CastIfNeeded(expression, targetType);
-    }
 }

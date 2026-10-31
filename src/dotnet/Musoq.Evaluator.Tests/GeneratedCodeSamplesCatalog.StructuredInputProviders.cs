@@ -2,7 +2,6 @@ using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Evaluator.Tests.StructuredSamples;
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;

@@ -10,7 +10,6 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
 using AmbiguousPerson = Musoq.Converter.Tests.TwoModeTestFixtures.AmbiguousPerson;
 using FieldPerson = Musoq.Converter.Tests.TwoModeTestFixtures.FieldPerson;

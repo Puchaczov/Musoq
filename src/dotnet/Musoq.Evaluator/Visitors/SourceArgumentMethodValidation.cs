@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;

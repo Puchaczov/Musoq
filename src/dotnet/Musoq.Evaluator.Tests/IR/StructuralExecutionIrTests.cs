@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Targets.Abstractions;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Tests.IR;

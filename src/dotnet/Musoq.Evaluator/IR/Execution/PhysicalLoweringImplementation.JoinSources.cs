@@ -239,31 +239,6 @@ internal sealed partial class PhysicalLoweringImplementation
         return new ExecutionVariableRead(buffer);
     }
 
-    private ExecutionBlock CreateJoinLoopBody(
-        IrExpression? joinCondition,
-        PhysicalFilterNode? filter,
-        ExecutionAppendRow appendRow,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
-    {
-        if (joinCondition == null && filter == null)
-            return CreateAppendBlock(appendRow);
-
-        var condition = joinCondition == null
-            ? ExecutionExpressionConverter.Convert(filter!.Predicate, sourceLookup)
-            : ExecutionExpressionConverter.Convert(joinCondition, sourceLookup);
-
-        if (joinCondition != null && filter != null)
-        {
-            condition = new ExecutionBinary(
-                BinaryOpKind.And,
-                condition,
-                ExecutionExpressionConverter.Convert(filter.Predicate, sourceLookup),
-                typeof(bool));
-        }
-
-        return CreateFilteredAppendBlock(condition, appendRow);
-    }
-
     private static Type ResolveCommonKeyType(Type buildType, Type probeType)
     {
         if (buildType == probeType)

@@ -9,9 +9,6 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
-using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Converter.Tests;
 

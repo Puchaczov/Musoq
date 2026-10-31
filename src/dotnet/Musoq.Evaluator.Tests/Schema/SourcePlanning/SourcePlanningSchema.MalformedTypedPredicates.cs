@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Schema.SourcePlanning;
 

@@ -1,4 +1,3 @@
-using Musoq.Converter;
 
 namespace Musoq.Evaluator.Tests;
 

@@ -32,8 +32,7 @@ public sealed class EvaluationHelperRuntimeCacheTests
     {
         foreach (var fieldName in new[]
                  {
-                     "CastableTypeCache",
-                     "ObjectChunkAdapters"
+                     "CastableTypeCache"
                  })
         {
             var cache = PrivateStaticCache(fieldName);
@@ -100,8 +99,6 @@ public sealed class EvaluationHelperRuntimeCacheTests
             ? count
             : throw new AssertFailedException($"{cache.GetType().FullName}.Count did not return an int.");
     }
-
-    private sealed class DynamicAccessorEntity;
 
     private sealed class CacheEntity
     {

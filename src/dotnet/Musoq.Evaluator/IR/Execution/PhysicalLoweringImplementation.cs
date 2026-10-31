@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -28,7 +26,6 @@ internal sealed partial class PhysicalLoweringImplementation :
     private ExecutionShapeResolver _shapeResolver => _facts.ShapeResolver;
     private SchemaRegistry? _schemaRegistry => _facts.SchemaRegistry;
     private CompilationOptions _compilationOptions => _facts.CompilationOptions;
-    private CteExecutionPlan? _cteExecutionPlan => _facts.CteExecutionPlan;
     private IReadOnlyDictionary<string, SourceInteractionPlan> _sourceInteractionPlans =>
         _facts.SourceInteractionPlansBySourceId;
     private readonly AggregatePlanLowerer _aggregatePlanLowerer;

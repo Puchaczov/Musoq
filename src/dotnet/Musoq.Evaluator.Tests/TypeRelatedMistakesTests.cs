@@ -33,17 +33,6 @@ public partial class TypeRelatedMistakesTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
-    {
-        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
-    }
-
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
-    {
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
-    }
-
     private static void DocumentTypeHandling(QueryAnalysisResult result, string context,
         params DiagnosticCode[] acceptableCodes)
     {

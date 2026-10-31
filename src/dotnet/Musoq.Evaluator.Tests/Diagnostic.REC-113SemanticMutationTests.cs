@@ -6,7 +6,6 @@ using Musoq.Evaluator.Tests.IR;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.Multi;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 

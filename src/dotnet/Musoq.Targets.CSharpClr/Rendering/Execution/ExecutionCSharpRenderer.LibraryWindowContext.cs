@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -35,7 +33,7 @@ public sealed partial class ExecutionCSharpRenderer
         statements.Add(CreateLibraryWindowExtraction(window, buffers, partitionKeys, orderKeys));
         AddWindowPartitionDeclarations(statements, window.Partitions, partitionKeys?.Variable, window.Buffer);
         if (orderKeys is not null)
-            AddWindowSortedPartitionDeclarations(statements, window.SortedPartitions, window.Partitions, orderKeys, window.OrderKeys);
+            AddWindowSortedPartitionDeclarations(statements, window.SortedPartitions, window.Partitions, orderKeys);
         statements.Add(CreateLibraryWindowArrayDeclaration(window.Results, window.Buffer));
         var partitions = window.SortedPartitions ?? window.Partitions ??
                          throw new InvalidOperationException("Typed context windows require resolved partitions.");

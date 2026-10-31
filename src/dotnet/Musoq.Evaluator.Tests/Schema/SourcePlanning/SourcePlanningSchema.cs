@@ -4,7 +4,6 @@ using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Tests.Common.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests.Schema.SourcePlanning;

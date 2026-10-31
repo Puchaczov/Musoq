@@ -280,7 +280,7 @@ public class ParserNodesExtendedAccessAndQueryTests
     {
         var scope = new QueryScope([]);
 
-        var _ = scope.ReturnType;
+        _ = scope.ReturnType;
     }
 
     [TestMethod]
@@ -288,7 +288,7 @@ public class ParserNodesExtendedAccessAndQueryTests
     {
         var scope = new QueryScope([]);
 
-        var _ = scope.Id;
+        _ = scope.Id;
     }
 
     [TestMethod]

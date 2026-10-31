@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tests.Schema.Generated;
 using Musoq.Plugins;

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.Expressions;

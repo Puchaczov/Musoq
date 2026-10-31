@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -158,22 +157,5 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
     private static PlanProperties CreateEmptyProperties()
     {
         return PlanPropertiesTestFactory.CreateEmpty();
-    }
-
-    private static string FindRepositoryFile(string fileName)
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (directory != null)
-        {
-            var candidate = Path.Combine(directory.FullName, fileName);
-            if (File.Exists(candidate))
-                return candidate;
-
-            directory = directory.Parent;
-        }
-
-        Assert.Fail($"Could not locate repository file '{fileName}' from '{AppContext.BaseDirectory}'.");
-        throw new InvalidOperationException();
     }
 }

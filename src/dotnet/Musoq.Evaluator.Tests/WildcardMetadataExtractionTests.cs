@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Lexing;
 
 namespace Musoq.Evaluator.Tests;

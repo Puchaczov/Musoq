@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Evaluator.Tests.Schema.ReadModifiers;
 using Musoq.Evaluator.Tests.Schema.Unknown;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -12,20 +10,10 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class GeneratedCodeSamplesCatalog
 {
-    private static ISchemaProvider CreateUnknownTableCoupleSampleProvider()
-    {
-        return new UnknownSchemaProvider(Array.Empty<dynamic>());
-    }
 
     private static ISchemaProvider CreateTypedTypeMatrixSampleProvider()
     {
         return new TypedTypeMatrixSampleProvider();
-    }
-
-    private static ISchemaProvider CreateReadModifiersSampleProvider()
-    {
-        return new ReadModifiersSchemaProvider(
-            Array.Empty<IReadOnlyDictionary<string, object?>>());
     }
 
     private static ISchemaProvider CreateTypedReadModifiersSampleProvider()

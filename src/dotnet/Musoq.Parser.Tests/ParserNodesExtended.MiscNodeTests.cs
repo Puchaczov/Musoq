@@ -182,7 +182,7 @@ public class ParserNodesExtendedMiscNodeTests
 
         var root = new RootNode(query);
 
-        var _ = root.ReturnType;
+        _ = root.ReturnType;
     }
 
     [TestMethod]

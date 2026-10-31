@@ -1,5 +1,4 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Tests;
 

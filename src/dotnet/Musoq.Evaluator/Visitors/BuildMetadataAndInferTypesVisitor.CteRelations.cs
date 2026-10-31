@@ -1,7 +1,6 @@
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Visitors;
 

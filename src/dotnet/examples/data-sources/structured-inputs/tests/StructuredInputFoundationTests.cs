@@ -1,10 +1,8 @@
 using Musoq.Tests.Common;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Schema;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Examples.DataSources.StructuredInputs.Tests;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;

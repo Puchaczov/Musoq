@@ -43,7 +43,6 @@ public partial class InterpreterCodeGenerator
             builder,
             repeatUntilType.ElementType,
             fieldName,
-            localVar,
             tempVar,
             lastElemVar);
 
@@ -86,7 +85,6 @@ public partial class InterpreterCodeGenerator
             builder,
             repeatUntilType.ElementType,
             fieldName,
-            localVar,
             tempVar,
             lastElemVar);
 
@@ -112,7 +110,6 @@ public partial class InterpreterCodeGenerator
         StringBuilder builder,
         TypeAnnotationNode elementType,
         string fieldName,
-        string localVar,
         string tempVar,
         string lastElemVar)
     {

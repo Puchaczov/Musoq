@@ -9,7 +9,6 @@ using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 

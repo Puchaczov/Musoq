@@ -91,17 +91,6 @@ public static partial class InstanceCreator
         return builder.ToString();
     }
 
-    private static Type LoadRunnableType(BuildItems items, Func<Assembly> createAssembly)
-    {
-        var executable = GetExecutableArtifact(
-            items.ExecutableArtifact,
-            items.DllFile,
-            items.PdbFile,
-            () => items.AccessToClassPath,
-            () => CreateMissingRunnableDllMessage(items));
-        return RequireClrActivator(executable.TargetId).LoadRunnableType(executable, createAssembly);
-    }
-
     private static ITableRunnable CreateRunnable(Type runnableType, QueryRuntimeBinding binding)
     {
         return RequireClrActivator(ExecutionTargetIds.CSharpClr).ActivateTable(runnableType, binding);

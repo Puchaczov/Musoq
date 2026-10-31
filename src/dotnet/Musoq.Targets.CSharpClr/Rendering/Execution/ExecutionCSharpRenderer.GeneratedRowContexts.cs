@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -122,6 +121,6 @@ public sealed partial class ExecutionCSharpRenderer
         };
     }
 
-    private ExpressionSyntax RenderContextArray(ExecutionContextArray contextArray, ExecutionRenderContext context) =>
+    private ExpressionSyntax RenderContextArray() =>
         throw UnsupportedShape.Of("Context arrays must be lowered to concrete fields before rendering.");
 }

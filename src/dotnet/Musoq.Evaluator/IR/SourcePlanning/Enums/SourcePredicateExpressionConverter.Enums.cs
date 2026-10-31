@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.SourcePlanning;
 

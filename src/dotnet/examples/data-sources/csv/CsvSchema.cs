@@ -238,32 +238,6 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
             : [];
     }
 
-    private static string RequireString(object? value, string parameterName)
-    {
-        if (value is string text)
-            return text;
-
-        throw new ArgumentException($"CSV file source parameter '{parameterName}' must be a string.");
-    }
-
-    private static bool RequireBoolean(object? value, string parameterName)
-    {
-        if (value is bool flag)
-            return flag;
-
-        throw new ArgumentException($"CSV file source parameter '{parameterName}' must be a boolean.");
-    }
-
-    private static int RequireInt32(object? value, string parameterName)
-    {
-        return value switch
-        {
-            int number => number,
-            long number when number is >= int.MinValue and <= int.MaxValue => (int)number,
-            _ => throw new ArgumentException($"CSV file source parameter '{parameterName}' must be a 32-bit integer.")
-        };
-    }
-
     private static MethodsAggregator CreateLibrary()
     {
         var methodsManager = new MethodsManager();

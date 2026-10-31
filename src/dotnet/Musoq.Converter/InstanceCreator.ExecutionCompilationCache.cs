@@ -694,11 +694,6 @@ public static partial class InstanceCreator
         }
     }
 
-    private static string CreateProviderSignature(ISchemaProvider schemaProvider)
-    {
-        return CreateProviderSignature(schemaProvider, CancellationToken.None);
-    }
-
     internal static string CreateProviderSignatureForTests(
         ISchemaProvider schemaProvider,
         CancellationToken cancellationToken)
@@ -729,11 +724,6 @@ public static partial class InstanceCreator
 
         cancellationToken.ThrowIfCancellationRequested();
         return builder.ToString();
-    }
-
-    private static IEnumerable<FieldInfo> GetInstanceFields(Type type)
-    {
-        return GetInstanceFields(type, CancellationToken.None);
     }
 
     private static IEnumerable<FieldInfo> GetInstanceFields(
@@ -780,11 +770,6 @@ public static partial class InstanceCreator
         return fields;
     }
 
-    private static string CreateSignatureFragment(object? value, int depth)
-    {
-        return CreateSignatureFragment(value, depth, CancellationToken.None);
-    }
-
     private static string CreateSignatureFragment(
         object? value,
         int depth,
@@ -795,11 +780,6 @@ public static partial class InstanceCreator
         AppendSignatureValue(builder, value, depth, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         return builder.ToString();
-    }
-
-    private static void AppendSignatureValue(StringBuilder builder, object? value, int depth)
-    {
-        AppendSignatureValue(builder, value, depth, CancellationToken.None);
     }
 
     private static void AppendSignatureValue(

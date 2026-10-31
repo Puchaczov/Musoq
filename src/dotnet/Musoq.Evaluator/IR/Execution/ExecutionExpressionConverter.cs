@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
-using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
 

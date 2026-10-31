@@ -5,7 +5,6 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Visitors;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Helpers;
 

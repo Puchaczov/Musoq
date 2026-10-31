@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;

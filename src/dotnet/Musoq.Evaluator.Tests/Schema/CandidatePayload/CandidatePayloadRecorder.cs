@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Schema.CandidatePayload;
 

@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Schema.Tests;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Targets.CSharpClr;
 

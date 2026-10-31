@@ -3,7 +3,6 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Plugins;
 
 namespace Musoq.Targets.CSharpClr;
 

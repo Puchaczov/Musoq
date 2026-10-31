@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
 using Musoq.Evaluator.IR.Bindings;
-using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
 

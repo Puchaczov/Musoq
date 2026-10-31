@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-using Musoq.Schema.Optimization;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;

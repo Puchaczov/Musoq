@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR.Analysis;
 
 namespace Musoq.Evaluator.IR.Optimization;
 

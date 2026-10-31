@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Optimization;
 

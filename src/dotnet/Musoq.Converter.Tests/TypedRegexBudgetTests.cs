@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
-using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
 
 namespace Musoq.Converter.Tests;

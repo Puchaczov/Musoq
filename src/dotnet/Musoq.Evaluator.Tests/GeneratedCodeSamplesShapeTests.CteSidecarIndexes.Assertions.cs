@@ -46,19 +46,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(content.Contains(")_cteIndexResults[", StringComparison.Ordinal), content);
     }
 
-    private static void AssertSampleUsesTypedCteRowResults(string content)
-    {
-        var generatedCode = ExtractGeneratedCodeSection(content);
-
-        Assert.Contains("var _cteRowResults = new CteRowResults();", generatedCode);
-        Assert.Contains("private sealed class CteRowResults", generatedCode);
-        Assert.IsFalse(generatedCode.Contains("private readonly CteRowResults _cteRowResults = new CteRowResults();", StringComparison.Ordinal), generatedCode);
-        Assert.IsFalse(generatedCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal), generatedCode);
-        Assert.IsFalse(generatedCode.Contains("Musoq.Evaluator.Tables.Table[] _tableResults", StringComparison.Ordinal), generatedCode);
-        Assert.IsFalse(generatedCode.Contains("_tableResults[", StringComparison.Ordinal), generatedCode);
-        Assert.IsFalse(generatedCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal), generatedCode);
-    }
-
     private static void AssertSampleDoesNotUseCteRowResults(string content)
     {
         AssertGeneratedCodeDoesNotUseCteRowResults(ExtractGeneratedCodeSection(content));

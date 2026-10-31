@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Parser;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 

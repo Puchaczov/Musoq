@@ -1,4 +1,3 @@
-using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
@@ -6,7 +5,6 @@ using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator.IR.Planning.SourcePlanning;

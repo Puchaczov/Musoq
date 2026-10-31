@@ -1,10 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Build;
-using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema.Interpreters;
 

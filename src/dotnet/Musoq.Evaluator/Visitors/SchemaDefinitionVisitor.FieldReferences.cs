@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;

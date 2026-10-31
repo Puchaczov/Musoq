@@ -1,4 +1,3 @@
-using Musoq.Evaluator.IR.Logical.Nodes;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;
 
 namespace Musoq.Evaluator.IR.Logical;

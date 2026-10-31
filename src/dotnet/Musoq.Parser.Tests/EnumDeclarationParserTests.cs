@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 

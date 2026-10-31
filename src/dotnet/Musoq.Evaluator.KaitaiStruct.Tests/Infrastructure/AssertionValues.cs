@@ -1,6 +1,5 @@
 using System.Numerics;
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tables;
 using Musoq.Tests.Common;
 

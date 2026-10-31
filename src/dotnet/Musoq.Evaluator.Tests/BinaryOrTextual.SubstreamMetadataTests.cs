@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BinaryEntity = Musoq.Evaluator.Tests.Components.BinaryEntity;
-using BinarySchemaProvider = Musoq.Evaluator.Tests.Components.BinarySchemaProvider;
 
 namespace Musoq.Evaluator.Tests;
 

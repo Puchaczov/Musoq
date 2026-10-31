@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 
 namespace Musoq.Evaluator.Tables;

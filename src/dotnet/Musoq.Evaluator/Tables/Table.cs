@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;

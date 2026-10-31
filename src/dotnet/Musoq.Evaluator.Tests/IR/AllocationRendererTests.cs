@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Optimization;
-using Musoq.Targets.CSharpClr;
 using Musoq.Targets.CSharpClr.Optimization.Codegen;
 
 namespace Musoq.Evaluator.Tests.IR;

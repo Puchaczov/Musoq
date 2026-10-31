@@ -96,14 +96,6 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         }
     ];
 
-    private sealed class OperatorTestData
-    {
-        public string Operator { get; set; } = string.Empty;
-        public string ExpectedMatchedEvent { get; set; } = string.Empty;
-        public string FieldValue { get; set; } = string.Empty;
-        public string StringValue { get; set; } = string.Empty;
-    }
-
 
     private void TestBasicOperatorFunctionality(DateTimeTypeTestData testData, string op, string fieldName)
     {
@@ -160,105 +152,6 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         }
     }
 
-    private void TestDateTimeComparison(DateTimeTypeTestData testData, OperatorTestData opData, bool isReversed)
-    {
-        var fieldName = testData.TypeName.Contains("timespan") ? "Duration" : "EventDate";
-        var stringValue = GetPropertyValue(testData, opData.StringValue);
-
-        string query;
-        if (isReversed)
-        {
-            var reversedOp = GetReversedOperator(opData.Operator);
-            query = $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};" +
-                    $"couple #test.whatever with table Events as Events; " +
-                    $"select Name from Events() where '{stringValue}' {reversedOp} {fieldName}";
-        }
-        else
-        {
-            query = $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};" +
-                    $"couple #test.whatever with table Events as Events; " +
-                    $"select Name from Events() where {fieldName} {opData.Operator} '{stringValue}'";
-        }
-
-        try
-        {
-            var result = RunComparisonTest(query, testData);
-            Assert.AreEqual(opData.ExpectedMatchedEvent, result,
-                $"Failed for {testData.TypeName} with operator {opData.Operator} (reversed: {isReversed})");
-        }
-        catch (Exception ex)
-        {
-            Assert.Fail(
-                $"Test failed for {testData.TypeName} with operator {opData.Operator} (reversed: {isReversed}): {ex.Message}");
-        }
-    }
-
-    private void TestAllOperatorsForType(DateTimeTypeTestData testData, string fieldName)
-    {
-        var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
-
-        foreach (var op in operators)
-        {
-            var query = $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};" +
-                        $"couple #test.whatever with table Events as Events; " +
-                        $"select Name from Events() where {fieldName} {op} '{testData.StringEqual}'";
-
-            try
-            {
-                var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
-                var table = vm.Run();
-                var actualEvents = table
-                    .Select(static row => row.ReadValues()[0])
-                    .Cast<string>()
-                    .OrderBy(static name => name)
-                    .ToArray();
-
-                CollectionAssert.AreEqual(
-                    GetExpectedEventsForOperator(op),
-                    actualEvents,
-                    $"Unexpected rows for {testData.TypeName} with operator {op}");
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail($"Test failed for {testData.TypeName} with operator {op}: {ex.Message}");
-            }
-        }
-    }
-
-    private void TestReversedOperators(DateTimeTypeTestData testData)
-    {
-        var fieldName = testData.TypeName.Contains("timespan") ? "Duration" : "EventDate";
-        var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
-
-        foreach (var op in operators)
-        {
-            var reversedOp = GetReversedOperator(op);
-            var query = $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};" +
-                        $"couple #test.whatever with table Events as Events; " +
-                        $"select Name from Events() where '{testData.StringEqual}' {reversedOp} {fieldName}";
-
-            try
-            {
-                var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
-                var table = vm.Run();
-                var actualEvents = table
-                    .Select(static row => row.ReadValues()[0])
-                    .Cast<string>()
-                    .OrderBy(static name => name)
-                    .ToArray();
-
-                CollectionAssert.AreEqual(
-                    GetExpectedEventsForOperator(op),
-                    actualEvents,
-                    $"Unexpected rows for {testData.TypeName} with reversed operator {reversedOp}");
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail($"Test failed for {testData.TypeName} with reversed operator {reversedOp}: {ex.Message}");
-            }
-        }
-    }
-
     private string GetReversedOperator(string op)
     {
         return op switch
@@ -285,12 +178,6 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             "<>" => ["Earlier Event", "Later Event"],
             _ => throw new ArgumentOutOfRangeException(nameof(op), op, "Unsupported comparison operator.")
         };
-    }
-
-    private object? GetPropertyValue(DateTimeTypeTestData testData, string propertyName)
-    {
-        var property = typeof(DateTimeTypeTestData).GetProperty(propertyName);
-        return property?.GetValue(testData);
     }
 
     private string RunComparisonTest(string query, DateTimeTypeTestData testData)

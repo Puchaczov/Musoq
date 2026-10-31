@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;

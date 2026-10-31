@@ -260,17 +260,6 @@ internal static class ExecutionSyntaxFactory
             SyntaxFactory.IdentifierName(nameof(StringComparison)),
             SyntaxFactory.IdentifierName(name));
 
-    internal static ObjectCreationExpressionSyntax CreateColumnCreation(FieldBinding field)
-    {
-        return CreateObjectCreation(
-            "Column",
-            CreateStringLiteral(field.Name),
-            SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
-                ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
-                : CreateTypeOfTypeSyntax(field.ColumnType)),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.OutputIndex)));
-    }
-
     internal static ExpressionSyntax CreateColumnCreation(ExecutionColumnMetadataField field)
     {
         if (field.EnumType != null || field.SourceReadType != field.Type)
@@ -412,20 +401,6 @@ internal static class ExecutionSyntaxFactory
 
     internal static TypeSyntax CreateTypeSyntax(ExecutionTypeRef type) =>
         CreateTypeSyntax(type.RequireClrType());
-
-    internal static ExpressionSyntax CreateArrayPoolRentExpression(Type elementType, ExpressionSyntax minimumLength)
-    {
-        var source = minimumLength.NormalizeWhitespace().ToFullString();
-        return SyntaxFactory.ParseExpression(
-            $"System.Buffers.ArrayPool<{EvaluationHelper.GetCastableType(elementType)}>.Shared.Rent({source})");
-    }
-
-    internal static StatementSyntax CreateArrayPoolReturnStatement(Type elementType, string arrayName)
-    {
-        var clearArray = elementType.IsValueType ? "false" : "true";
-        return SyntaxFactory.ParseStatement(
-            $"System.Buffers.ArrayPool<{EvaluationHelper.GetCastableType(elementType)}>.Shared.Return({arrayName}, {clearArray});");
-    }
 
     internal static TypeSyntax CreateVariableTypeSyntax(ExecutionVariable variable)
     {

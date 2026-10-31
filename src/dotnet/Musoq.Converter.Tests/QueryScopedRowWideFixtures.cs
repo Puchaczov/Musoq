@@ -4,7 +4,6 @@ using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Converter.Tests.Schema;
 
 namespace Musoq.Converter.Tests;

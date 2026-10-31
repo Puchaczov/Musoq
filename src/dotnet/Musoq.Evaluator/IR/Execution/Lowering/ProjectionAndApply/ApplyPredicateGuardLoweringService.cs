@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Rewriting;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 

@@ -6,7 +6,6 @@ using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Evaluator.Visitors.Helpers;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -588,8 +587,6 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             case BinarySwitchTypeNode switchType:
                 ValidateBinarySwitchReferences(
                     switchType,
-                    fieldName,
-                    schemaName,
                     declaredFields,
                     declaredFieldTypes);
 
@@ -606,8 +603,6 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
     private static void ValidateBinarySwitchReferences(
         BinarySwitchTypeNode switchType,
-        string fieldName,
-        string schemaName,
         HashSet<string> declaredFields,
         IReadOnlyDictionary<string, Type?> declaredFieldTypes)
     {

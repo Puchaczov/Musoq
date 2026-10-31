@@ -1,10 +1,6 @@
 using Musoq.Tests.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Schema.StructuralInputs;
@@ -191,7 +187,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         {
             InputOrigin.Host => $"param(patterns: (Id: string, Pattern: string, Mode: string = 'literal')[]) ",
             InputOrigin.Let => $"let patterns = array {{ {FormatInlineRecords(specs)} }}; ",
-            InputOrigin.Cte => CreateCteDeclaration(@operator, specs, index),
+            InputOrigin.Cte => CreateCteDeclaration(@operator, specs),
             _ => string.Empty
         };
 
@@ -238,7 +234,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 : $"(Id: '{spec.Id}', Pattern: '{spec.Pattern}')"));
     }
 
-    private static string CreateCteDeclaration(CteOperator @operator, IReadOnlyList<PatternSpec> specs, int index)
+    private static string CreateCteDeclaration(CteOperator @operator, IReadOnlyList<PatternSpec> specs)
     {
         var rows = FormatCteRecords(specs);
         var baseRows = $"from values {{ {rows} }} p";

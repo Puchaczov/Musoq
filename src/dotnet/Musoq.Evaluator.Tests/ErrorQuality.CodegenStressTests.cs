@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -618,26 +616,6 @@ select City, Count(1) as Cnt from #A.Entities() group by City having Count(1) > 
     private static QueryAnalyzer CreateAnalyzer()
     {
         return new QueryAnalyzer(CreateSchemaProvider());
-    }
-
-    private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
-    {
-        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
-    }
-
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
-    {
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
-    }
-
-    private static void AssertNoErrors(QueryAnalysisResult result)
-    {
-        if (result.HasErrors)
-        {
-            var errorMessages = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Fail($"Expected no errors but got:\n{errorMessages}");
-        }
     }
 
     #endregion

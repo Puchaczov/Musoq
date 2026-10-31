@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Schema;
@@ -47,8 +46,6 @@ public sealed class QueryRunContext
     /// <summary>Gets the execution's concrete parameter slots.</summary>
     private TypedParameterSnapshot _typedParameters = TypedParameterSnapshot.Empty;
     public TypedParameterSnapshot TypedParameters { get => _typedParameters; init => _typedParameters = value; }
-
-    internal void SetTypedParameters(TypedParameterSnapshot snapshot) => _typedParameters = snapshot;
 
     public QueryPhaseEventHandler? PhaseChanged { get; }
 

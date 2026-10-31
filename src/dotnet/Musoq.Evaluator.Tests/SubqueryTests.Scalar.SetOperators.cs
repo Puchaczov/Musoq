@@ -1,6 +1,4 @@
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;

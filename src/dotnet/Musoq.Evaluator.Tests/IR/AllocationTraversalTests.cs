@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Execution.Facts;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.Tests.IR;

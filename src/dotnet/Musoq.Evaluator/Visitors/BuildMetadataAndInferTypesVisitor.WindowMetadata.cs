@@ -235,16 +235,4 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         throw new CannotResolveMethodException(message, code, span);
     }
-
-    private void ReportWindowArgumentError(DiagnosticCode code, string message, Node context)
-    {
-        var span = context.SpanOrEmpty();
-        if (DiagnosticContext != null)
-        {
-            DiagnosticContext.ReportError(code, message, span);
-            return;
-        }
-
-        throw new CannotResolveMethodException(message, code, span);
-    }
 }

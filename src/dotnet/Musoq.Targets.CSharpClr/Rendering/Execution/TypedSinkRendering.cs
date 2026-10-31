@@ -53,12 +53,6 @@ public sealed partial class ExecutionCSharpRenderer
         return new ExecutionRenderArtifacts(context, statements, entryStatementCount);
     }
 
-    internal IReadOnlyList<StatementSyntax> CreateTypedSinkEntryStatements(ExecutionPlan plan)
-    {
-        using var scope = EnterTypedSinkRenderContext(plan);
-        return CreateTypedSinkEntryStatements(plan, scope.Context);
-    }
-
     internal IReadOnlyList<StatementSyntax> CreateTypedSinkEntryStatements(
         ExecutionPlan plan,
         ExecutionRenderContext context)
@@ -79,11 +73,6 @@ public sealed partial class ExecutionCSharpRenderer
             .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
 
         return statements;
-    }
-
-    internal ExpressionSyntax RenderExpressionForTypedSink(ExecutionExpression expression)
-    {
-        return RenderExpressionForTypedSink(expression, CreateIsolatedRenderContext());
     }
 
     internal ExpressionSyntax RenderExpressionForTypedSink(
@@ -122,11 +111,6 @@ public sealed partial class ExecutionCSharpRenderer
         return RenderSourceScan(sourceScan, context);
     }
 
-    internal IReadOnlyList<StatementSyntax> RenderSetupNodeForTypedSink(ExecutionNode node)
-    {
-        return RenderSetupNodeForTypedSink(node, CreateIsolatedRenderContext());
-    }
-
     internal IReadOnlyList<StatementSyntax> RenderSetupNodeForTypedSink(
         ExecutionNode node,
         ExecutionRenderContext context)
@@ -136,18 +120,6 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCreateObject createObject => [RenderCreateObject(createObject)],
             _ => throw new InvalidOperationException($"Setup node '{node.GetType().Name}' is not supported by typed sink rendering.")
         };
-    }
-
-    internal ObjectCreationExpressionSyntax RenderGeneratedRowCreationForTypedSink(ExecutionAppendRow appendRow)
-    {
-        return RenderGeneratedRowCreationForTypedSink(appendRow, CreateIsolatedRenderContext());
-    }
-
-    internal ObjectCreationExpressionSyntax RenderGeneratedRowCreationForTypedSink(
-        ExecutionAppendRow appendRow,
-        ExecutionRenderContext context)
-    {
-        return CreateGeneratedRowCreation(appendRow, context);
     }
 
     internal ObjectCreationExpressionSyntax RenderFinalSinkGeneratedRowCreation(ExecutionAppendRow appendRow)
@@ -160,42 +132,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         return CreateGeneratedRowCreation(appendRow, context);
-    }
-
-    internal ParenthesizedLambdaExpressionSyntax RenderOptionalGeneratedRowProjectionForTypedSink(
-        ExecutionParallelFilterProjectLoop parallelProject)
-    {
-        return RenderOptionalGeneratedRowProjectionForTypedSink(
-            parallelProject,
-            CreateIsolatedRenderContext());
-    }
-
-    internal ParenthesizedLambdaExpressionSyntax RenderOptionalGeneratedRowProjectionForTypedSink(
-        ExecutionParallelFilterProjectLoop parallelProject,
-        ExecutionRenderContext context)
-    {
-        return CreateParallelProjectionProjector(
-            parallelProject,
-            appendRow => RenderGeneratedRowCreationForTypedSink(appendRow, context),
-            context);
-    }
-
-    internal ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
-        ExecutionParallelFilterProjectLoop parallelProject)
-    {
-        return RenderFinalSinkOptionalGeneratedRowProjection(
-            parallelProject,
-            CreateIsolatedRenderContext());
-    }
-
-    internal ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
-        ExecutionParallelFilterProjectLoop parallelProject,
-        ExecutionRenderContext context)
-    {
-        return RenderFinalSinkOptionalGeneratedRowProjection(
-            parallelProject.ProjectionBody,
-            parallelProject.Source,
-            context);
     }
 
     internal ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(

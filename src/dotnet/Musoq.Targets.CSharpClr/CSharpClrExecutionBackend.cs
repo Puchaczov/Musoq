@@ -1,7 +1,6 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Runtime;

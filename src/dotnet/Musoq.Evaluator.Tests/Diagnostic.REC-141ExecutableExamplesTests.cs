@@ -5,11 +5,9 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.ReadModifiers;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema.Optimization;
 using RuntimeParseException = Musoq.Schema.Interpreters.ParseException;
 
 namespace Musoq.Evaluator.Tests;

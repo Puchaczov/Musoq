@@ -73,14 +73,6 @@ public sealed partial class CSharpRenderer
 
     private static ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
         ExecutionCSharpRenderer executionRenderer,
-        ExecutionParallelFilterProjectLoop optionalProjectorLoop,
-        ExecutionRenderContext? renderContext = null) =>
-        renderContext == null
-            ? executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectorLoop)
-            : executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectorLoop, renderContext);
-
-    private static ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
-        ExecutionCSharpRenderer executionRenderer,
         ExecutionBlock optionalProjectionBody,
         ExecutionVariable source,
         ExecutionRenderContext renderContext) =>

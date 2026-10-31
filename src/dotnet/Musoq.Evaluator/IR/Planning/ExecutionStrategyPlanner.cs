@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning;
 

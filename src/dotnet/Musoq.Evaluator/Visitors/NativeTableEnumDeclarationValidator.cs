@@ -3,7 +3,6 @@ using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.TemporarySchemas;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;

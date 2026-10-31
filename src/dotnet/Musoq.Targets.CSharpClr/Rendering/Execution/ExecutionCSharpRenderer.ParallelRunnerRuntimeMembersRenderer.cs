@@ -13,7 +13,6 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private IReadOnlyList<ExpressionSyntax> CreateParallelRunnerConstructorArguments(
-        ExecutionParallelBlock parallel,
         IReadOnlyList<CapturedLocal> captures,
         ExecutionRenderContext context)
     {
@@ -48,37 +47,34 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IReadOnlyList<ParameterSyntax> CreateParallelRunnerConstructorParameters(
-        ExecutionParallelBlock parallel,
         IReadOnlyList<CapturedLocal> captures,
         ExecutionRenderContext context)
     {
         return [
-            ..CreateParallelRunnerRuntimeMembers(parallel, context)
+            ..CreateParallelRunnerRuntimeMembers(context)
                 .Select(static member => CreateParameter(member.ParameterName, member.Type)),
             ..captures.Select(CreateCapturedLocalParameter)
         ];
     }
 
     private ParameterListSyntax CreateParallelTaskParameterList(
-        ExecutionParallelBlock parallel,
         IReadOnlyList<CapturedLocal> captures,
         ExecutionRenderContext context)
     {
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
         [
-            ..CreateParallelRunnerRuntimeMembers(parallel, context)
+            ..CreateParallelRunnerRuntimeMembers(context)
                 .Select(static member => CreateParameter(member.ParameterName, member.Type)),
             ..captures.Select(CreateCapturedLocalParameter)
         ]));
     }
 
     private IReadOnlyList<ExpressionSyntax> CreateParallelRunnerStaticTaskArguments(
-        ExecutionParallelBlock parallel,
         IReadOnlyList<CapturedLocal> captures,
         ExecutionRenderContext context)
     {
         return [
-            ..CreateParallelRunnerRuntimeMembers(parallel, context)
+            ..CreateParallelRunnerRuntimeMembers(context)
                 .Select(static member => (ExpressionSyntax)SyntaxFactory.IdentifierName(member.FieldName)),
             ..captures.Select(capture => (ExpressionSyntax)SyntaxFactory.IdentifierName(
                 CreateParallelRunnerCapturedFieldName(capture)))
@@ -91,7 +87,6 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IReadOnlyList<ParallelRunnerRuntimeMember> CreateParallelRunnerRuntimeMembers(
-        ExecutionParallelBlock parallel,
         ExecutionRenderContext context)
     {
         var members = new List<ParallelRunnerRuntimeMember>

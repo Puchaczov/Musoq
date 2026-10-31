@@ -131,22 +131,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(sample.Content.Contains("Musoq.Evaluator.Tables.Table windowSourceTable", StringComparison.Ordinal), sample.FileName);
     }
 
-    private static void AssertTypedCteHashJoinSample(GeneratedCodeSampleFile sample, string rowTypeName)
-    {
-        var generatedCode = ExtractGeneratedCodeSection(sample.Content);
-
-        Assert.Contains($"Dictionary<string, HashJoinBucket<{rowTypeName}>>", generatedCode, sample.FileName);
-        Assert.Contains($"{rowTypeName} ", generatedCode, sample.FileName);
-        Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", generatedCode, sample.FileName);
-        Assert.Contains($"{rowTypeName} c = __storedTable0Rows[__storedTable0Index];", generatedCode, sample.FileName);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(", generatedCode, sample.FileName);
-        Assert.Contains($"HashJoinBucket<{rowTypeName}>", sample.Content, sample.FileName);
-        Assert.IsFalse(
-            generatedCode.Contains($"EvaluationHelper.CastGeneratedRows<{rowTypeName}>", StringComparison.Ordinal),
-            sample.FileName);
-        Assert.IsFalse(generatedCode.Contains($"(({rowTypeName})", StringComparison.Ordinal), sample.FileName);
-    }
-
     private static void AssertTypedCteSidecarHashJoinSample(GeneratedCodeSampleFile sample, string payloadTypeName)
     {
         var generatedCode = ExtractGeneratedCodeSection(sample.Content);
@@ -160,21 +144,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(generatedCode.Contains("_tableResults[0]", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(generatedCode.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(generatedCode.Contains("private sealed class Cte0Row0", StringComparison.Ordinal), sample.FileName);
-    }
-
-    private static void AssertTypedCteKeySetSample(GeneratedCodeSampleFile sample, string rowTypeName)
-    {
-        var generatedCode = ExtractGeneratedCodeSection(sample.Content);
-
-        Assert.Contains("HashSet<string>", generatedCode, sample.FileName);
-        Assert.Contains($"{rowTypeName} ", generatedCode, sample.FileName);
-        Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", generatedCode, sample.FileName);
-        Assert.Contains("HashSet<string>", sample.Content, sample.FileName);
-        Assert.IsFalse(
-            generatedCode.Contains($"EvaluationHelper.CastGeneratedRows<{rowTypeName}>", StringComparison.Ordinal),
-            sample.FileName);
-        Assert.IsFalse(generatedCode.Contains($"(({rowTypeName})", StringComparison.Ordinal), sample.FileName);
-        Assert.IsFalse(generatedCode.Contains($"HashJoinBucket<{rowTypeName}>", StringComparison.Ordinal), sample.FileName);
     }
 
     private static void AssertTypedCteAsOfSample(GeneratedCodeSampleFile sample)

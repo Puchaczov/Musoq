@@ -66,24 +66,6 @@ internal static class ExecutionPhaseBoundaryPlanner
             .Nodes;
     }
 
-    internal static IReadOnlyList<ExecutionNode> AddCteScopeBoundaries(
-        PhysicalNode physicalPlan,
-        IReadOnlyList<ExecutionNode> nodes,
-        string queryIdSuffix)
-    {
-        ArgumentNullException.ThrowIfNull(physicalPlan);
-        ArgumentNullException.ThrowIfNull(nodes);
-        ArgumentNullException.ThrowIfNull(queryIdSuffix);
-
-        var body = AddScopeClauseBoundaries(physicalPlan, nodes, queryIdSuffix);
-        return
-        [
-            new ExecutionPhaseBoundary(QueryPhase.Begin, queryIdSuffix),
-            ..body,
-            new ExecutionPhaseBoundary(QueryPhase.End, queryIdSuffix)
-        ];
-    }
-
     private static ExecutionPlan AddCteScopeBoundaries(PhysicalNode physicalPlan, ExecutionPlan plan)
     {
         if (physicalPlan is not PhysicalCteNode cte)

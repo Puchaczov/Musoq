@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;

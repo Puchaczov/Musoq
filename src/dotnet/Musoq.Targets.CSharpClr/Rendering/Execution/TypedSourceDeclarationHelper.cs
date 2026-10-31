@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.IR.Execution;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Targets.CSharpClr;

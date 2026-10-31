@@ -172,28 +172,4 @@ public partial class SchemaParser
 
         return false;
     }
-
-    private FieldDefinitionNode ComposeBinaryField()
-    {
-        var nameToken = Current;
-        var name = ComposeIdentifierOrWord();
-        Consume(TokenType.Colon);
-
-        var typeAnnotation = ComposeTypeAnnotation(name);
-
-
-        var valueValidation = ComposeOptionalFieldValueValidation(typeAnnotation, name);
-        var atOffset = ComposeOptionalAtOffset();
-        var whenCondition = ComposeOptionalWhenCondition();
-        var constraint = ComposeOptionalConstraint();
-        EnsureFieldValueValidationOrdering(name);
-
-        return (FieldDefinitionNode)new FieldDefinitionNode(
-            name,
-            typeAnnotation,
-            constraint,
-            atOffset,
-            whenCondition,
-            valueValidation).WithSpan(nameToken.Span);
-    }
 }

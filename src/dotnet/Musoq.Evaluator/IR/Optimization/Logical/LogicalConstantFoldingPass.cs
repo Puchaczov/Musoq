@@ -1,5 +1,4 @@
 using Musoq.Evaluator.IR.Logical;
-using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Logical.Rewriting;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;

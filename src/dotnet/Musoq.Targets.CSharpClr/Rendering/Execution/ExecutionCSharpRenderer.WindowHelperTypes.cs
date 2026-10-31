@@ -13,7 +13,6 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static TypeSyntax CreateWindowRowsParameterType(
-        ExecutionVariable buffer,
         ExecutionVariable item,
         string? generatedRowTypeName)
     {

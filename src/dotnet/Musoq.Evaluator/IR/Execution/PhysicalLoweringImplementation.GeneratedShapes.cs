@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation

@@ -1,4 +1,3 @@
-using System;
 
 namespace Musoq.Schema.Managers;
 

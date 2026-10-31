@@ -6,7 +6,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 
@@ -295,11 +294,6 @@ public sealed class EnumQueryScopedRowTests
     }
 
     private static string FormatFailure(BuildResult build)
-    {
-        return $"{build.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, build.Diagnostics)}";
-    }
-
-    private static string FormatFailure(ArtifactBuildResult build)
     {
         return $"{build.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, build.Diagnostics)}";
     }

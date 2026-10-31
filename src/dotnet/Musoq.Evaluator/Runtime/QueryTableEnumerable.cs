@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Runtime;

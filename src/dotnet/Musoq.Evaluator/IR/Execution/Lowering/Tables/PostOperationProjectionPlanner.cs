@@ -71,7 +71,7 @@ internal sealed class PostOperationProjectionPlanner(
             if (RowShapeLookup.ResolveProjectedField(publicShape, key, publicFields) != null)
                 continue;
 
-            var expression = ExecutionExpressionConverter.Convert(key.Expression, sourceLookup);
+            _ = ExecutionExpressionConverter.Convert(key.Expression, sourceLookup);
             fields.Add(new ProjectedField(
                 CreateHiddenSortFieldName(usedNames, fields.Count),
                 key.Expression,

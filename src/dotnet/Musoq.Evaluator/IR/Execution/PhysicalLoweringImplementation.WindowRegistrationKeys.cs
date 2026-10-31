@@ -1,5 +1,4 @@
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Execution.Lowering.Windows;
 
 namespace Musoq.Evaluator.IR.Execution;
 

@@ -111,7 +111,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DynamicData(nameof(RecursiveCorrelatedApplySampleData))]
     public void RecursiveCorrelatedApplySample_ShouldKeepSourceInsideRecursiveMember(string fileName)
     {
-        var sample = ReadSample(fileName);
+        _ = ReadSample(fileName);
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var memberIndex = execution.IndexOf("  RecursiveMember", StringComparison.Ordinal);
@@ -144,7 +144,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         foreach (var fileName in RecursiveWaveFiveSampleFileNames)
         {
-            var sample = ReadSample(fileName);
+            _ = ReadSample(fileName);
 
             var code = ReadGeneratedCode(fileName);
             Assert.IsFalse(code.Contains(".Select(", StringComparison.Ordinal), fileName);

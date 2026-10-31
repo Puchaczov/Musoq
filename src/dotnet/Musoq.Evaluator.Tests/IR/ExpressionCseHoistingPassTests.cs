@@ -866,7 +866,7 @@ public sealed class ExpressionCseHoistingPassTests
         var source = new ExecutionVariable("p", typeof(object));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
         var capturedField = new AggregateCapturedField("name", "__name", typeof(string));
-        var sequentialLoop = new ExecutionForEach(
+        _ = new ExecutionForEach(
             source,
             new ExecutionVariableRead(sourceRows),
             new ExecutionBlock(

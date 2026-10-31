@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.KaitaiStruct.Tests.Infrastructure;

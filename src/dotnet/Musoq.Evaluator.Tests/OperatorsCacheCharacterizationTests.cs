@@ -205,15 +205,6 @@ public sealed class OperatorsCacheCharacterizationTests
         }
     }
 
-    private static BoundedRuntimeCache<TKey, TValue> PrivateStaticCache<TKey, TValue>(string fieldName)
-        where TKey : notnull
-    {
-        var field = typeof(Operators).GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)
-            ?? throw new AssertFailedException($"Operators.{fieldName} private static cache field was not found.");
-        return field.GetValue(null) as BoundedRuntimeCache<TKey, TValue>
-            ?? throw new AssertFailedException($"Operators.{fieldName} private static cache has an unexpected type.");
-    }
-
     private static bool FreshHistoricalLike(string input, string pattern)
     {
         var escaped = Regex.Escape(pattern)

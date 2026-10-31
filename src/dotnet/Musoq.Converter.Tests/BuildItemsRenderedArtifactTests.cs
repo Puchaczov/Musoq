@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
@@ -210,22 +209,6 @@ public sealed class BuildItemsRenderedArtifactTests
                 [],
                 [],
                 []));
-    }
-
-    private static CSharpCompilation CreateValidCompilation()
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(
-            "namespace NonClrArtifactSmoke { public sealed class Placeholder { } }");
-        var references = new[]
-        {
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-        };
-
-        return CSharpCompilation.Create(
-            "NonClrArtifactSmoke",
-            [syntaxTree],
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
     private sealed record TestOnlyRenderedQueryArtifact(string Source)

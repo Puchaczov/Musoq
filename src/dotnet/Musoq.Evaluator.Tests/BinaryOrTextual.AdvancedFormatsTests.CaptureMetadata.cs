@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TextEntity = Musoq.Evaluator.Tests.Components.TextEntity;
-using TextSchemaProvider = Musoq.Evaluator.Tests.Components.TextSchemaProvider;
 
 namespace Musoq.Evaluator.Tests;
 

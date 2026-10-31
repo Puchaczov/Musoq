@@ -1,6 +1,5 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
@@ -170,21 +169,6 @@ internal static class MusoqExceptionAssertions
     }
 
     /// <summary>
-    ///     Asserts the <see cref="BuildResult" /> contains exactly one error with the expected code.
-    ///     Verifies no unexpected cascading or duplicate errors are present.
-    /// </summary>
-    internal static void AssertSingleError(
-        BuildResult result,
-        DiagnosticCode expectedCode)
-    {
-        Assert.IsFalse(result.Succeeded, "Expected build to fail");
-        Assert.HasCount(1, result.Errors,
-            $"Expected exactly 1 error but got {result.Errors.Count}: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
-        Assert.AreEqual(expectedCode, result.Errors[0].Code,
-            $"Expected error code {expectedCode} but got {result.Errors[0].Code}. Message: {result.Errors[0].Message}");
-    }
-
-    /// <summary>
     ///     Asserts a runtime failure has one structured expression envelope.
     /// </summary>
     internal static void AssertRuntimeError(
@@ -202,27 +186,6 @@ internal static class MusoqExceptionAssertions
         Assert.AreEqual(expectedCode, exception.Envelope.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, exception.Envelope.Severity);
         Assert.AreEqual(DiagnosticPhase.Runtime, exception.Envelope.Phase);
-    }
-
-    /// <summary>
-    ///     Asserts the <see cref="BuildResult" /> contains exactly the expected set of error codes.
-    ///     Verifies no unexpected cascading or duplicate errors are present.
-    /// </summary>
-    internal static void AssertExactErrors(
-        BuildResult result,
-        params DiagnosticCode[] expectedCodes)
-    {
-        Assert.IsFalse(result.Succeeded, "Expected build to fail");
-
-        var actualCodes = result.Errors.Select(e => e.Code).ToArray();
-
-        Assert.HasCount(expectedCodes.Length, actualCodes,
-            $"Expected {expectedCodes.Length} error(s) [{string.Join(", ", expectedCodes)}] but got {actualCodes.Length}: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
-
-        for (var i = 0; i < expectedCodes.Length; i++)
-            Assert.AreEqual(expectedCodes[i], actualCodes[i],
-                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. " +
-                $"Actual errors: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
     }
 
     private static DiagnosticSourceKind ExpectedSourceKind(DiagnosticCode code)

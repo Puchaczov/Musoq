@@ -151,7 +151,7 @@ public class BinaryInterpretationPlanBuilderTests
 
     private static BinarySchemaNode SwitchSchema()
     {
-        var login = new BinarySchemaNode("LoginPayload", [PrimitiveField("UserId")]);
+        _ = new BinarySchemaNode("LoginPayload", [PrimitiveField("UserId")]);
         var switchType = new BinarySwitchTypeNode(
             "Type",
             [

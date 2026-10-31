@@ -178,7 +178,6 @@ public sealed class ResidualArchitectureCharacterizationTests
         var fields = new[]
         {
             typeof(EvaluationHelper).GetField("CastableTypeCache", BindingFlags.Static | BindingFlags.NonPublic),
-            typeof(EvaluationHelper).GetField("ObjectChunkAdapters", BindingFlags.Static | BindingFlags.NonPublic),
             typeof(BuildMetadataAndInferTypesVisitorUtilities).GetField("HasIndexerCache", BindingFlags.Static | BindingFlags.NonPublic),
             typeof(BuildMetadataAndInferTypesVisitorUtilities).GetField("IsIndexableCache", BindingFlags.Static | BindingFlags.NonPublic),
             typeof(BuildMetadataAndInferTypesVisitorUtilities).GetField("TypeHintAttributeCache", BindingFlags.Static | BindingFlags.NonPublic)

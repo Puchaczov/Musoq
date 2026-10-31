@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Unknown;
 using Musoq.Evaluator.Visitors;

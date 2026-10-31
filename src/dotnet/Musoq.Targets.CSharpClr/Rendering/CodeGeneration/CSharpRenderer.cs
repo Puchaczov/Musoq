@@ -444,7 +444,6 @@ public sealed partial class CSharpRenderer
                 executionRenderer,
                 rowsMethodName,
                 binding,
-                resultInfo,
                 renderPlan.FinalSinkPlans.TypedDirectProjection,
                 useQueryRunContext: true,
                 out var typedDirectMethod,

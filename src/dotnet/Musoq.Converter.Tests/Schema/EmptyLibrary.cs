@@ -1,5 +1,4 @@
-﻿using System;
-using Musoq.Plugins;
+﻿using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Converter.Tests.Schema;

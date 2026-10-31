@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 

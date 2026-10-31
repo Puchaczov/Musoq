@@ -15,7 +15,6 @@ using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Targets.Abstractions;
 
 namespace Musoq.Converter.Tests;
 

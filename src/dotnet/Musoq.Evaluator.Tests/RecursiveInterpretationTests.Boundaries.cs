@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Tests;
 

@@ -76,11 +76,6 @@ public sealed partial class ExecutionCSharpRenderer
             appendRow.AppendMode);
     }
 
-    private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(ExecutionAppendRow appendRow)
-    {
-        return CreateGeneratedRowCreation(appendRow, CreateIsolatedRenderContext());
-    }
-
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(ExecutionAppendRow appendRow, ExecutionRenderContext context)
     {
         return CreateGeneratedRowCreation(

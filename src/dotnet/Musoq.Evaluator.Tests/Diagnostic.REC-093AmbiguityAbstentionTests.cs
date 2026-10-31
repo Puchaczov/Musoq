@@ -9,7 +9,6 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
 

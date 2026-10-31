@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Exceptions;

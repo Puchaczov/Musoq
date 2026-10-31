@@ -144,22 +144,6 @@ internal static class CSharpClrBatchCompatibility
         ExecutionTargetId executionTarget,
         bool emitPdb,
         bool hasInterpreter,
-        QueryResultMode resultMode)
-    {
-        return CreateBatchCompatibilityKey(
-            rendering,
-            executionTarget,
-            emitPdb,
-            hasInterpreter,
-            resultMode,
-            CancellationToken.None);
-    }
-
-    internal static string CreateBatchCompatibilityKey(
-        RenderingBuildArtifacts rendering,
-        ExecutionTargetId executionTarget,
-        bool emitPdb,
-        bool hasInterpreter,
         QueryResultMode resultMode,
         CancellationToken cancellationToken)
     {
@@ -239,10 +223,6 @@ internal static class CSharpClrBatchCompatibility
 
 internal static class CSharpClrGeneratedCodeCompatibility
 {
-    internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(RenderedQueryArtifact artifact)
-    {
-        return CreateStructuralIdentity(artifact, CancellationToken.None);
-    }
 
     internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(
         RenderedQueryArtifact artifact,

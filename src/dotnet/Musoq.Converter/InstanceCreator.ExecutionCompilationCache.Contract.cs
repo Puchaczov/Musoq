@@ -53,11 +53,6 @@ public static partial class InstanceCreator
         return CompiledQueryArtifactSupport.ComputeHash(builder.ToString());
     }
 
-    private static string CreateProviderContractSignature(ISchemaProvider schemaProvider)
-    {
-        return CreateProviderContractSignature(schemaProvider, CancellationToken.None);
-    }
-
     private static string CreateProviderContractSignature(
         ISchemaProvider schemaProvider,
         CancellationToken cancellationToken)
@@ -205,11 +200,6 @@ public static partial class InstanceCreator
                 cancellationToken);
             builder.Append(';');
         }
-    }
-
-    private static IEnumerable<FieldInfo> GetDeclaredInstanceFields(Type type)
-    {
-        return GetDeclaredInstanceFields(type, CancellationToken.None);
     }
 
     private static IEnumerable<FieldInfo> GetDeclaredInstanceFields(

@@ -6,7 +6,6 @@ using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors;
 

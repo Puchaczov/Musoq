@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Evaluator.Tests.Schema.Generated;
-using Musoq.Evaluator.Tests.Schema.RuntimeV2;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;

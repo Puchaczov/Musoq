@@ -38,7 +38,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var captures = CollectParallelSingleKeyAggregateCaptures(parallelAggregate);
-        var fields = CreateParallelAggregateChunkWorkerFields(parallelAggregate, captures, context);
+        var fields = CreateParallelAggregateChunkWorkerFields(captures);
         var members = new List<MemberDeclarationSyntax>();
 
         members.Add(CreateParallelAggregateChunkWorkerGroupsField(parallelAggregate, context));
@@ -152,9 +152,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private List<ParallelAggregateWorkerField> CreateParallelAggregateChunkWorkerFields(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        IReadOnlyList<CapturedLocal> captures)
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal)
         {

@@ -1,7 +1,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Logical.Nodes;
 
 namespace Musoq.Targets.CSharpClr;

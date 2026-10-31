@@ -28,8 +28,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceScan sourceScan,
         string schemaVariableName,
         string infoTableName,
-        ExpressionSyntax[] arguments,
-        ExecutionRenderContext context)
+        ExpressionSyntax[] arguments)
     {
         var declaredArgumentTypes = sourceScan.Binding.SourceConstructor?.RequireClrConstructor()
             .GetParameters().Where(static parameter => parameter.ParameterType != typeof(SourceExecutionContext))
@@ -124,8 +123,7 @@ public sealed partial class ExecutionCSharpRenderer
             var queryProgressRows = CreateProgressChunksExpression(
                 queryRows,
                 carrierType,
-                sourceScan.Binding.RuntimeContextId,
-                context);
+                sourceScan.Binding.RuntimeContextId);
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 sourceScan.Rows.Name,
@@ -163,8 +161,7 @@ public sealed partial class ExecutionCSharpRenderer
             var typedProgressRows = CreateProgressChunksExpression(
                 typedRows,
                 CreateTypeSyntax(rowType),
-                sourceScan.Binding.RuntimeContextId,
-                context);
+                sourceScan.Binding.RuntimeContextId);
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 sourceScan.Rows.Name,
@@ -199,8 +196,7 @@ public sealed partial class ExecutionCSharpRenderer
         var progressRows = CreateProgressChunksExpression(
             rows,
             CreateTypeSyntax(sourceType),
-            sourceScan.Binding.RuntimeContextId,
-            context);
+            sourceScan.Binding.RuntimeContextId);
 
         statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowSourceName, invocation));
         statements.Add(CreateLocalDeclaration(
@@ -233,8 +229,7 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax CreateProgressChunksExpression(
         ExpressionSyntax chunks,
         TypeSyntax elementType,
-        string sourceContextId,
-        ExecutionRenderContext context)
+        string sourceContextId)
     {
         var queryContext = SyntaxFactory.IdentifierName("__musoqProgressContext");
         var wrapMethod = SyntaxFactory.MemberAccessExpression(

@@ -6,7 +6,6 @@ using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
 

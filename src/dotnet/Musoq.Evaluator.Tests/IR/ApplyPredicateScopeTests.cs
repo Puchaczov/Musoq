@@ -6,7 +6,6 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Parser.Nodes;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.IR;
 

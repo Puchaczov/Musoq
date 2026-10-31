@@ -5,7 +5,6 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests.Schema;
 

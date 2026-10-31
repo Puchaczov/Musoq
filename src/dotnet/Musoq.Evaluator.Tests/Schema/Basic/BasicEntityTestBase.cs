@@ -7,11 +7,9 @@ using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -112,14 +110,6 @@ public class BasicEntityTestBase : MSTestContextTestBase
             schemaProvider ?? throw new ArgumentNullException(nameof(schemaProvider)),
             LoggerResolver,
             TestCompilationOptions);
-    }
-
-    private IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
-    {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
-
-        return environmentVariablesMock.Object;
     }
 
     protected void TestMethodTemplate<TResult>(string operation, TResult score)

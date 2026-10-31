@@ -61,61 +61,6 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private static void AddHashJoinBodyCaptures(
-        ExecutionBlock block,
-        HashSet<string> excludedNames,
-        Dictionary<string, ExecutionVariable> captures)
-    {
-        foreach (var node in block.Nodes)
-            AddHashJoinBodyCaptures(node, excludedNames, captures);
-    }
-
-    private static void AddHashJoinBodyCaptures(
-        ExecutionNode node,
-        HashSet<string> excludedNames,
-        Dictionary<string, ExecutionVariable> captures)
-    {
-        switch (node)
-        {
-            case ExecutionAppendRow appendRow:
-                AddCaptures(appendRow.Values.Select(static value => value.Value), excludedNames, captures);
-                AddCaptures(appendRow.Contexts, excludedNames, captures);
-                AddCaptures(GetContextLayoutExpressions(appendRow.ContextLayout), excludedNames, captures);
-                break;
-            case ExecutionForEach forEach:
-                AddCaptures(forEach.Source, excludedNames, captures);
-                AddHashJoinBodyCaptures(forEach.Body, excludedNames, captures);
-                break;
-            case ExecutionForEachWithOrdinality forEach:
-                AddCaptures(forEach.Source, excludedNames, captures);
-                AddHashJoinBodyCaptures(forEach.Body, excludedNames, captures);
-                break;
-            case ExecutionForEachIndexed forEachIndexed:
-                AddCaptures(new ExecutionVariableRead(forEachIndexed.Source), excludedNames, captures);
-                AddHashJoinBodyCaptures(forEachIndexed.Body, excludedNames, captures);
-                break;
-            case ExecutionIf branch:
-                AddCaptures(branch.Condition, excludedNames, captures);
-                AddHashJoinBodyCaptures(branch.Body, excludedNames, captures);
-                break;
-            case ExecutionHashProbe hashProbe:
-                AddCaptures(hashProbe.Key, excludedNames, captures);
-                AddHashJoinBodyCaptures(hashProbe.Body, excludedNames, captures);
-                if (hashProbe.NoMatchBody is not null)
-                    AddHashJoinBodyCaptures(hashProbe.NoMatchBody, excludedNames, captures);
-                break;
-            case ExecutionKeySetProbe keySetProbe:
-                AddCaptures(keySetProbe.Key, excludedNames, captures);
-                AddHashJoinBodyCaptures(keySetProbe.Body, excludedNames, captures);
-                if (keySetProbe.NoMatchBody is not null)
-                    AddHashJoinBodyCaptures(keySetProbe.NoMatchBody, excludedNames, captures);
-                break;
-            default:
-                AddCaptures(node, excludedNames, captures);
-                break;
-        }
-    }
-
     private static IEnumerable<string> CollectHashJoinDeclaredVariableNames(ExecutionBlock block)
     {
         foreach (var node in block.Nodes)

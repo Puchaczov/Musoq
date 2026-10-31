@@ -2,11 +2,9 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 

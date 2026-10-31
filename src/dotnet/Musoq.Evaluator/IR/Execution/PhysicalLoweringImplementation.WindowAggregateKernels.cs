@@ -25,7 +25,6 @@ internal sealed partial class PhysicalLoweringImplementation
             context.RegistrationResult.SqlDeclaration!,
             registration.FunctionName,
             arguments.Value.ReturnType.ResolveClrType(),
-            registration.ReturnType,
             registration.UseRunningPeers ? ExecutionWindowAggregateMode.Running : mode.Mode);
         if (!descriptor.IsBuilt || descriptor.Descriptor is null)
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
@@ -117,7 +116,6 @@ internal sealed partial class PhysicalLoweringImplementation
         MethodInfo factoryMethod,
         string functionName,
         Type inputType,
-        Type resultType,
         ExecutionWindowAggregateMode mode)
     {
         if (factoryMethod.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null } declaration)

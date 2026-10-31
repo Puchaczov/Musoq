@@ -7,7 +7,6 @@ using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.QueryRows;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;

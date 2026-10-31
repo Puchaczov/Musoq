@@ -285,7 +285,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string SmartForEachPattern = "EvaluationHelper.SmartForEach(";
     private const string ToDistinctTablePattern = "EvaluationHelper.ToDistinctTable(";
     private const string ContextsAccessPattern = ".Contexts";
-    private const string AddDirectPattern = ".AddDirect(";
     private const string EnsureCapacityPattern = ".EnsureCapacity(";
     private const string HashSetPattern = "HashSet<";
     private const string StaticColumnMetadataPattern = "private static readonly Column[]";

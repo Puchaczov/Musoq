@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,9 +5,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Targets.CSharpClr;
@@ -29,13 +26,6 @@ internal static class StructuralCarrierSyntaxFactory
         foreach (var carrier in carriers)
             AddCarrierMembers(members, StructuralCarrierDescriptors.FromShape(carrier.Shape), carrier.DefinitionIndex, []);
         return members;
-    }
-
-    internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
-        IReadOnlyList<ScriptVariableDefinition> definitions,
-        IEnumerable<ExecutionStructuralConversion> conversions)
-    {
-        return CreateMembers(definitions, Array.Empty<ScriptParameterDefinition>(), conversions);
     }
 
     internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
@@ -121,22 +111,6 @@ internal static class StructuralCarrierSyntaxFactory
         type = SyntaxFactory.ParseTypeName(CreateStorageType(descriptor, definitionIndex, []));
         initializer = CreateValueExpression(definition.Value, descriptor, definitionIndex, []);
         return true;
-    }
-
-    internal static bool TryCreateConversion(
-        IReadOnlyList<ScriptVariableDefinition> definitions,
-        ExecutionStructuralConversion conversion,
-        ExecutionCSharpRenderer renderer,
-        ExecutionRenderContext context,
-        out ExpressionSyntax expression)
-    {
-        return TryCreateConversion(
-            definitions,
-            Array.Empty<ScriptParameterDefinition>(),
-            conversion,
-            renderer,
-            context,
-            out expression);
     }
 
     internal static bool TryCreateConversion(
@@ -684,12 +658,6 @@ internal static class StructuralCarrierSyntaxFactory
         definition = null!;
         return false;
     }
-
-    private static bool TryFindDefinition(
-        IReadOnlyList<ScriptVariableDefinition> definitions,
-        string name,
-        out ScriptVariableDefinition definition) =>
-        TryFindDefinition(definitions, name, out _, out definition);
 
     private static bool TryFindParameter(
         IReadOnlyList<ScriptParameterDefinition> definitions,

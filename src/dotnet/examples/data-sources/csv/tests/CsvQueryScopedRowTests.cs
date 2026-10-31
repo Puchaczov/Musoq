@@ -1,5 +1,4 @@
 using Musoq.Tests.Common;
-using Musoq.Schema;
 
 namespace Musoq.Examples.DataSources.Csv.Tests;
 

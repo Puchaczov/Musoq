@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests.Components;
 
 namespace Musoq.Evaluator.Tests;
 

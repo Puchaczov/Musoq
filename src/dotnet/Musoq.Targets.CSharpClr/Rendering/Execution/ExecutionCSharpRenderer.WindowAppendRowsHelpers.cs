@@ -141,7 +141,6 @@ public sealed partial class ExecutionCSharpRenderer
             CreateParameter(
                 helper.RowsParameterName,
                 CreateWindowRowsParameterType(
-                    helper.Loop.Source,
                     helper.Loop.Item,
                     helper.BufferItemGeneratedRowTypeName))
         };

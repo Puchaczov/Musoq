@@ -95,8 +95,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements,
             rankingSortedPartitions,
             rankingPartitions,
-            orderKeys,
-            ranking.OrderKeys);
+            orderKeys);
 
         statements.AddRange(CreateRankingKernelStatements(ranking, orderKeys, rankingSortedPartitions));
 

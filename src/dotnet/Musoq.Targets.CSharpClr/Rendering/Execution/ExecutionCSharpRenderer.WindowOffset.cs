@@ -128,8 +128,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements,
             offsetSortedPartitions,
             offsetPartitions,
-            orderKeys,
-            offset.OrderKeys);
+            orderKeys);
 
         statements.AddRange(CreateOffsetKernelStatements(
             offset,

@@ -879,19 +879,6 @@ internal static partial class SchemaSourceArgumentBinder
         return argument.ReturnType == parameter.ParameterType ? 2 : 1;
     }
 
-    private static int GetMatchScore(
-        ArgsListNode arguments,
-        SchemaSourceSignature signature,
-        Func<Node, StructuralTypeDescriptor?>? structuralTypeResolver,
-        Func<Node, CteRelationBinding?>? relationResolver)
-    {
-        var score = 0;
-        for (var index = 0; index < arguments.Args.Length; index++)
-            score += GetMatchScore(arguments.Args[index], signature.Parameters[index], relationResolver);
-
-        return score;
-    }
-
     private static bool CanAcceptArgumentCount(SchemaSourceSignature signature, int count)
     {
         var required = signature.Parameters.Count(static parameter => parameter.IsRequired);

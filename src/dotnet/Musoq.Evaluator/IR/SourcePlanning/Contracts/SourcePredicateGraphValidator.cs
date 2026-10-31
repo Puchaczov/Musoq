@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading;
-using Musoq.Schema.Optimization;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.SourcePlanning;

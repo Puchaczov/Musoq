@@ -125,11 +125,6 @@ internal static class SemanticTemplateCache
         return new SemanticTemplateFlightLease(key, flight);
     }
 
-    internal static bool TryGet(SemanticTemplateCacheKey key, out SemanticBuildArtifacts artifacts)
-    {
-        return TryGet(key, CancellationToken.None, out artifacts);
-    }
-
     internal static bool TryGet(
         SemanticTemplateCacheKey key,
         CancellationToken cancellationToken,

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Plugins.Attributes;
@@ -40,7 +39,7 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             new Apply021Child { Key = "two", Value = "only" }
         };
 
-        var schema = new GenericSchema<GenericLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+        _ = new GenericSchema<GenericLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
         {
             ["first"] = (new GenericEntityTable<Apply021Parent>(), new GenericChunkSource<Apply021Parent>(
                 parents,

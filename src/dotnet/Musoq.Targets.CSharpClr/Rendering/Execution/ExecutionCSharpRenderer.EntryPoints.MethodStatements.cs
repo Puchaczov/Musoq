@@ -10,7 +10,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionBlock block,
         ExecutionRenderContext context)
     {
-        var session = context.Session;
+        _ = context.Session;
         var statements = new List<StatementSyntax>();
         var pending = new List<ExecutionNode>();
         var nodes = block.Nodes;
@@ -218,28 +218,6 @@ public sealed partial class ExecutionCSharpRenderer
             session.StoredGeneratedRowsLoopNameCounts = previousStoredGeneratedRowsLoopNameCounts;
             session.ProfileRecorderInScope = previousProfileRecorderInScope;
             session.EmitChunkLoopCancellationChecks = previousEmitChunkLoopCancellationChecks;
-        }
-    }
-
-
-
-    private sealed class ChunkLoopCancellationCheckScope : IDisposable
-    {
-        private readonly ExecutionRenderContext _context;
-        private readonly bool _previous;
-
-        public ChunkLoopCancellationCheckScope(
-            ExecutionRenderContext context,
-            bool enabled)
-        {
-            _context = context;
-            _previous = context.Session.EmitChunkLoopCancellationChecks;
-            _context.Session.EmitChunkLoopCancellationChecks = enabled;
-        }
-
-        public void Dispose()
-        {
-            _context.Session.EmitChunkLoopCancellationChecks = _previous;
         }
     }
 }

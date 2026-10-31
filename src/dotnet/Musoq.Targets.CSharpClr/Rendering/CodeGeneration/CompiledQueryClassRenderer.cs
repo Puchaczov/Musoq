@@ -36,7 +36,7 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
         string? runMethodNameOverride = null)
     {
         var runMethodName = ResolveRunMethodName(queryIdentifier, runMethodNameOverride);
-        var members = CreateClassMembers(runMethodName, inMemoryTableCount, cteIndexResultCount);
+        var members = CreateClassMembers(runMethodName);
         var classDeclaration = (ClassDeclarationSyntax)CreateClassDeclaration(members);
         var namespaceDeclaration = ClassEmitter.CreateNamespaceDeclaration(
             ResolveNamespaceName(),
@@ -74,9 +74,7 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
     }
 
     private List<SyntaxNode> CreateClassMembers(
-        string computeMethodName,
-        int inMemoryTableCount,
-        int cteIndexResultCount)
+        string computeMethodName)
     {
         var members = new List<SyntaxNode>();
         var profiledComputeMethodName = QueryMethodNameResolver.ResolveProfiled(computeMethodName);

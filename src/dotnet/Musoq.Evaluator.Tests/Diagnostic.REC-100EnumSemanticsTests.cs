@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;

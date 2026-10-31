@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Tokens;
 

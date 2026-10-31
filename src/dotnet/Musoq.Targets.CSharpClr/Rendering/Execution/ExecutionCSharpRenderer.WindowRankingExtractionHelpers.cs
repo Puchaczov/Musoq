@@ -67,7 +67,6 @@ public sealed partial class ExecutionCSharpRenderer
             CreateParameter(
                 helper.Ranking.Buffer.Name,
                 CreateWindowRowsParameterType(
-                    helper.Ranking.Buffer,
                     helper.Ranking.Item,
                     helper.BufferItemGeneratedRowTypeName))
         };

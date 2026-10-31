@@ -4,13 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Converter.Build;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 

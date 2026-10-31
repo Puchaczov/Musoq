@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
 using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 

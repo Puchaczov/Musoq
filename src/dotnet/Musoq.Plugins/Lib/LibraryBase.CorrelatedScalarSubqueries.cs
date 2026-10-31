@@ -7,7 +7,6 @@ public partial class LibraryBase
 #pragma warning disable CS1591
 
     private const string CorrelatedScalarSubqueryAggregateName = "__CorrelatedScalarSubqueryValue";
-    private const string CorrelatedScalarSubqueryResultName = "__CorrelatedScalarSubqueryResult";
 
     [AggregateFunction(
         typeof(CorrelatedScalarSubqueryAggregateKernel<string>),

@@ -9,7 +9,6 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
-using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Converter.Tests;
 

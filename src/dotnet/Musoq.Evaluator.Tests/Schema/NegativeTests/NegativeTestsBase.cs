@@ -4,7 +4,6 @@ using System.Threading;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.NegativeTests;
 

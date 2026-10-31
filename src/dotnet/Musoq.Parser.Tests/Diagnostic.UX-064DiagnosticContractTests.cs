@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Tests;

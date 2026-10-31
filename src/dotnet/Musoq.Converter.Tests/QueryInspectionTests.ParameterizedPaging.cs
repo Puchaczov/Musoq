@@ -1,8 +1,6 @@
 using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Schema;
-using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests;
 

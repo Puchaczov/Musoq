@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using Moq;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
 using Musoq.Schema;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi;
 

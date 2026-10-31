@@ -57,7 +57,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
                 }
             }
 
-            IdentifierNode? column = null;
+            IdentifierNode? column;
             if (theMostOuter.Expression is DotNode dotNode)
                 column = dotNode.Root as IdentifierNode;
             else

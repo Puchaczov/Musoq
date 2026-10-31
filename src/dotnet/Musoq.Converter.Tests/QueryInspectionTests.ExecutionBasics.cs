@@ -1,8 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
-using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;
 

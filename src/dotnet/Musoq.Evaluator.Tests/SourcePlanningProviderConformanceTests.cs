@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Schema.Optimization;
 using Musoq.Tests.Common.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests;

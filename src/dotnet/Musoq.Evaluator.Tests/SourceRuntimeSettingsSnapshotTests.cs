@@ -6,7 +6,6 @@ using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Components;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 

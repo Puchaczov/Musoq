@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -22,20 +20,5 @@ internal static partial class PreviousExecutionIrAnalysis
     internal static IEnumerable<ExecutionBlock> GetChildBlocks(ExecutionNode node)
     {
         return PreviousNodeBlocks(node);
-    }
-
-    internal static IEnumerable<string> CollectDeclaredVariableNames(ExecutionBlock block)
-    {
-        foreach (var node in block.Nodes)
-        {
-            foreach (var variable in ExecutionNodeFacts.GetDeclaredVariables(node))
-                yield return variable.Name;
-
-            foreach (var childBlock in GetChildBlocks(node))
-            {
-                foreach (var variableName in CollectDeclaredVariableNames(childBlock))
-                    yield return variableName;
-            }
-        }
     }
 }

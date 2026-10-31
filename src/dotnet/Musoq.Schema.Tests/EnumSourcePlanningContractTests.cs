@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Schema.Tests;
 

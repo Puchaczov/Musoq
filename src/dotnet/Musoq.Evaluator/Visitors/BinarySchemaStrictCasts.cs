@@ -1,6 +1,5 @@
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 

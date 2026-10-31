@@ -6,7 +6,6 @@ using Musoq.Evaluator.IR.Planning.SourcePlanning;
 using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Parser;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.IR;
 

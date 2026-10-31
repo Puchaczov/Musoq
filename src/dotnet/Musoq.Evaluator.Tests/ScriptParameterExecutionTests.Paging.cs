@@ -1,9 +1,6 @@
-using System;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 

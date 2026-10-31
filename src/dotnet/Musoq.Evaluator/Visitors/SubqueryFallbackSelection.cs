@@ -1,9 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
-using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;

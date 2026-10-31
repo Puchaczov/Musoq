@@ -1,5 +1,4 @@
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
-using ExecutionStrategyPlan = Musoq.Evaluator.IR.Planning.ExecutionStrategyPlan;
 
 namespace Musoq.Evaluator.IR.Execution;
 

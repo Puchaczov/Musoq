@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
@@ -64,8 +63,7 @@ public sealed partial class ExecutionCSharpRenderer
         List<StatementSyntax> statements,
         ExecutionWindowPartitionSet? sortedPartitions,
         ExecutionWindowPartitionSet? partitions,
-        ExecutionWindowKeyArray orderKeys,
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions)
+        ExecutionWindowKeyArray orderKeys)
     {
         if (!HasGeneratedWindowKeyType(orderKeys))
             throw UnsupportedShape.Of("Sorted window partitions require a lowered concrete order carrier.");

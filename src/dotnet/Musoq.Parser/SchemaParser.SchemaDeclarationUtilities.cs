@@ -50,11 +50,6 @@ public partial class SchemaParser
         typeParams.Add(token.Value);
     }
 
-    private string? ComposeOptionalExtends()
-    {
-        return ComposeOptionalExtends(out _);
-    }
-
     private string? ComposeOptionalExtends(out TextSpan extendsSpan)
     {
         extendsSpan = TextSpan.Empty;

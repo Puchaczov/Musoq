@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 
 namespace Musoq.Targets.CSharpClr;
 

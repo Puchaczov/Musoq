@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Evaluator.Tests.Schema.ReadModifiers;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;

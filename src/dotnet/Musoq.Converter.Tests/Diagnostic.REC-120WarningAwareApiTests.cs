@@ -7,7 +7,6 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;

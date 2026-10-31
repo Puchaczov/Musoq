@@ -11,7 +11,6 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.SourcePlanning;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Exceptions;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 

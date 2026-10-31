@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 

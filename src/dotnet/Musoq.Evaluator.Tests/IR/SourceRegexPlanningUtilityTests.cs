@@ -8,7 +8,6 @@ using Musoq.Evaluator.IR.Planning.SourcePlanning;
 using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Parser;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -124,15 +123,6 @@ public sealed class SourceRegexPlanningUtilityTests
         {
             Expression = new ColumnRef("s", "Name", typeof(string)) { Stability = ColumnStability.Volatile }
         }));
-    }
-
-    private static IrExpression CreateConstantRegexExpression(bool negated)
-    {
-        var expression = new PatternMatch(new ColumnRef("s", "Name", typeof(string)),
-            new Literal(@"\A(ab)\z", typeof(string)), PatternKind.RLike, typeof(bool));
-        if (negated)
-            return new UnaryOp(UnaryOpKind.Not, expression, typeof(bool));
-        return expression;
     }
 
     private static SourcePredicateRegexMatch Match() => new(new SourceColumnRef("Name"), "pattern", TimeSpan.FromSeconds(1));

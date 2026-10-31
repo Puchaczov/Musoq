@@ -4,7 +4,6 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.SourcePlanning;
-using Musoq.Schema.Optimization;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
 namespace Musoq.Evaluator.IR.Planning;

@@ -1,10 +1,5 @@
 using Musoq.Tests.Common;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;

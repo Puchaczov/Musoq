@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
-using Musoq.Tests.Common;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 
 namespace Musoq.Converter.Tests;

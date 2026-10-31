@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.StructuralInputs;
 

@@ -1,11 +1,9 @@
 using System;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Parser.Tokens;
 using Musoq.Schema.Interpreters;
 using BinaryParseException = Musoq.Schema.Interpreters.ParseException;
 

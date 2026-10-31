@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation

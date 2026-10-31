@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.ReadModifiers;
@@ -14,7 +12,6 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 

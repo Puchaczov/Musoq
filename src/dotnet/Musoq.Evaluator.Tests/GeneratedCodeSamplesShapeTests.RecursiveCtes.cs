@@ -95,7 +95,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DynamicData(nameof(RecursiveIdentitySampleData))]
     public void RecursiveIdentitySample_ShouldUseOneTypedGlobalSeenSet(string fileName)
     {
-        var sample = ReadSample(fileName);
+        _ = ReadSample(fileName);
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var root = CSharpSyntaxTree.ParseText(code).GetRoot();

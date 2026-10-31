@@ -511,8 +511,6 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
     private string GetAvailableTableNames() => GetAvailableNames(TablePart, "No tables available");
 
-    private string GetAvailableSourceNames() => GetAvailableNames(SourcePart, "No sources available");
-
     private string GetAvailableNames(string suffix, string noItemsMessage)
     {
         var names = ConstructorsMethods

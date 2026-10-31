@@ -155,13 +155,6 @@ public partial class SchemaParser
                 valueSpan);
     }
 
-    private static bool IsLiteralToken(Token token)
-    {
-        return token.TokenType is TokenType.Integer or TokenType.HexadecimalInteger or
-            TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.Decimal or
-            TokenType.StringLiteral or TokenType.Word;
-    }
-
     private static TextSpan TranslateLiteralSpan(TextSpan span, int sourceOffset)
     {
         return span.IsEmpty ? span : new TextSpan(sourceOffset + span.Start, span.Length);

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;
 

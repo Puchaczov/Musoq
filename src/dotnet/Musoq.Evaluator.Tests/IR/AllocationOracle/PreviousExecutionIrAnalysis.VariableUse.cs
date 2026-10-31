@@ -7,19 +7,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class PreviousExecutionIrAnalysis
 {
-    internal static bool IsVariableUsedAfter(
-        IReadOnlyList<ExecutionNode> nodes,
-        int index,
-        string variableName)
-    {
-        for (var nextIndex = index + 1; nextIndex < nodes.Count; nextIndex++)
-        {
-            if (ContainsVariableUse(nodes[nextIndex], variableName))
-                return true;
-        }
-
-        return false;
-    }
 
     internal static bool ContainsVariableUse(ExecutionBlock block, string variableName)
     {

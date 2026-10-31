@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema;
 using Musoq.Targets.Execution.Analysis;
 using PhysicalToExecutionPlanBuilder = Musoq.Evaluator.IR.Execution.PhysicalToExecutionPlanBuilder;
 

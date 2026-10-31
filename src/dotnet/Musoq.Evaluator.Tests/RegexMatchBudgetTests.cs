@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 
 namespace Musoq.Evaluator.Tests;
 

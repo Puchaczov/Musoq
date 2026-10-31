@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Helpers;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;

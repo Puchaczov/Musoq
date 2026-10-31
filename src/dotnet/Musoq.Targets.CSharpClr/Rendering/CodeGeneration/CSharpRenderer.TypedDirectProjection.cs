@@ -14,7 +14,6 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         string rowsMethodName,
         TypedOutputBinding binding,
-        TableViaRowsResultInfo resultInfo,
         FinalProjectionSinkPlan sinkPlan,
         bool useQueryRunContext,
         out MethodDeclarationSyntax method,

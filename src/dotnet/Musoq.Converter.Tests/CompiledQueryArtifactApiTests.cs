@@ -734,13 +734,6 @@ public class CompiledQueryArtifactApiTests
         return result.Artifact ?? throw new AssertFailedException("Successful artifact compilation produced no artifact.");
     }
 
-    private static ITableRunnable GetRunnable(CompiledQuery compiledQuery)
-    {
-        var field = typeof(CompiledQuery).GetField("_runnable", BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.IsNotNull(field);
-        return (ITableRunnable)field.GetValue(compiledQuery)!;
-    }
-
     private static Dictionary<string, string> CopyMetadata(ICompiledQueryArtifact artifact)
     {
         return new Dictionary<string, string>(artifact.Metadata, StringComparer.Ordinal);

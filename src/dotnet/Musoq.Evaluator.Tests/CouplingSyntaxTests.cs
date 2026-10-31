@@ -311,21 +311,4 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
             return Columns.Where(c => c.ColumnName == name).ToArray();
         }
     }
-
-    private sealed class ParametersRowsSource(object?[] values) : RowSourceBase<IReadOnlyDictionary<string, object?>>
-    {
-        protected override void CollectChunks(IChunkWriter<IReadOnlyDictionary<string, object?>> writer)
-        {
-            var index = 0;
-            var accessMap = new Dictionary<string, object?>();
-
-            foreach (var value in values)
-            {
-                accessMap.Add($"Parameter{index}", value);
-                index++;
-            }
-
-            writer.Write([accessMap]);
-        }
-    }
 }

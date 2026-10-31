@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;

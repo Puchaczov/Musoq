@@ -13,11 +13,6 @@ public sealed partial class ExecutionCSharpRenderer
         return [QueryEmitter.GeneratePhaseChangeStatement(queryIdentifier, boundary.Phase)];
     }
 
-    private IEnumerable<StatementSyntax> RenderNode(ExecutionNode node)
-    {
-        return RenderNode(node, CreateIsolatedRenderContext());
-    }
-
     private IEnumerable<StatementSyntax> RenderNode(ExecutionNode node, ExecutionRenderContext context)
     {
         var statements = RenderNodeCore(node, context);

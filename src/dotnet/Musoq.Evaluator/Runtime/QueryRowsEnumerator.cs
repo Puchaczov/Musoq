@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Musoq.Evaluator.Exceptions;
 
 namespace Musoq.Evaluator.Runtime;
 

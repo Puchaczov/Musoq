@@ -1,9 +1,7 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
-using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 
 namespace Musoq.Converter;

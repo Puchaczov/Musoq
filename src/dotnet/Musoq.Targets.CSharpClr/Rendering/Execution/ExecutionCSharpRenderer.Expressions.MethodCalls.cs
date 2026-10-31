@@ -114,11 +114,4 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExpressionSyntax CastIfNeeded(ExpressionSyntax expression, ExecutionTypeRef targetType) =>
         CastIfNeeded(expression, targetType.RequireClrType());
 
-    private static CastExpressionSyntax CreateObjectCastExpression(ExpressionSyntax expression)
-    {
-        return SyntaxFactory.CastExpression(
-            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-            expression);
-    }
-
 }
