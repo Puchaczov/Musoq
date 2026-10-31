@@ -4,6 +4,16 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.15-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.15-alpha.1](release-notes/v17.0.15-alpha.1.md).
+
+- Publish the new parser-only Musoq.Formatter package and source-capture APIs for complete, source-preserving SQL script formatting.
+- Reduce execution allocations in regex captures, scalar APPLY with ordinality, owned terminal buffers, tolerant parsing, and intermediate projections.
+- Publish Musoq.Benchmarks.Scenarios and add representative workloads, deterministic fixtures, reproducible campaigns, and retained engine-v3 evidence.
+- Remove obsolete code and package-smoke infrastructure while retaining ordinary tests, release-tooling checks, packaging, and exact-commit CI qualification.
+- Align all seven packages at 17.0.15-alpha.1. This experimental alpha does not certify prior datasource binary compatibility; rebuild and qualify downstream providers.
+
 ## 17.0.14-alpha.2
 
 See the curated full-train release notes for [Musoq 17.0.14-alpha.2](release-notes/v17.0.14-alpha.2.md).
