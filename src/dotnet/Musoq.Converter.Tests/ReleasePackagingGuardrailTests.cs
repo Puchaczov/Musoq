@@ -109,8 +109,10 @@ public sealed class ReleasePackagingGuardrailTests
         };
         startInfo.ArgumentList.Add("-NoProfile");
         startInfo.ArgumentList.Add("-NonInteractive");
-        startInfo.ArgumentList.Add("-File");
-        startInfo.ArgumentList.Add(scriptPath);
+        startInfo.ArgumentList.Add("-Command");
+        var escapedScriptPath = scriptPath.Replace("'", "''", StringComparison.Ordinal);
+        startInfo.ArgumentList.Add(
+            $"& '{escapedScriptPath}'; if (Test-Path variable:LASTEXITCODE) {{ exit $LASTEXITCODE }}");
 
         using var process = Process.Start(startInfo)
             ?? throw new InvalidOperationException("Could not start PowerShell release-script tests.");

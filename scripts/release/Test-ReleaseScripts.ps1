@@ -213,3 +213,6 @@ catch {
 Assert-Equal -Expected $true -Actual $failurePropagated -Message 'Release command failures must stop packaging.'
 
 Write-Host 'Release script tests passed.'
+
+# The expected native failure above must not become the calling CI shell's exit code.
+exit 0
