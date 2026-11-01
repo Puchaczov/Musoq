@@ -1,0 +1,20 @@
+{
+  "processId": 53940,
+  "capturedUtc": "2026-11-01T03:58:51.223732+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B29_InterpretAt",
+  "sql": "binary Scalar { Value: int le }; select r.Id as Id, p.Value as Value\r\nfrom bench.rows() r\r\ncross apply InterpretAt\u003CScalar\u003E(r.Payload, 1) p\r\norder by r.Id",
+  "inputCount": 10000
+}

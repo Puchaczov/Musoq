@@ -1,0 +1,24 @@
+{
+  "caseId": "X08_PacketAnalytics-execution-Table-Medium",
+  "startedUtc": "2026-11-01T04:45:04.6411936+00:00",
+  "finishedUtc": "2026-11-01T04:46:32.1025707+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 5378522.073412699,
+  "medianNanoseconds": 5366532.8125,
+  "standardDeviationNanoseconds": 162004.6801230031,
+  "confidenceLowerNanoseconds": 5308013.719673177,
+  "confidenceUpperNanoseconds": 5449030.42715222,
+  "sampleCount": 63,
+  "allocatedBytesPerOperation": 14950260,
+  "gen0Collections": 25,
+  "gen1Collections": 12,
+  "gen2Collections": 4,
+  "gcOperations": 128,
+  "rawReports": [
+    "raw/3d92d76bdb264471bd34cc27694f53be/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/3d92d76bdb264471bd34cc27694f53be/measured-process-58968-f0dfae1927c74fbfb89f91a24aff69e1.json",
+    "raw/3d92d76bdb264471bd34cc27694f53be/measured-process-7164-18f2f345773942318fff9819d32d125b.json"
+  ],
+  "attemptId": "3d92d76bdb264471bd34cc27694f53be"
+}

@@ -1,0 +1,20 @@
+{
+  "processId": 37460,
+  "capturedUtc": "2026-11-01T02:54:32.7001191+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B19_Intersect",
+  "sql": "select r.Key as Id\r\nfrom bench.rows() r intersect select d.Key as Id\r\nfrom bench.lookup() d\r\norder by Id",
+  "inputCount": 10000
+}

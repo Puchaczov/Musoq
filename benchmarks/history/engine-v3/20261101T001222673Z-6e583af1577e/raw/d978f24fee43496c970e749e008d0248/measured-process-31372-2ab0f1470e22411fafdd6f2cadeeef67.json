@@ -1,0 +1,20 @@
+{
+  "processId": 31372,
+  "capturedUtc": "2026-11-01T01:29:18.0398682+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B09_AsOf",
+  "sql": "select r.Id as Id, d.Id as Match\r\nfrom bench.rows() r asof\r\nleft join bench.rows() d on r.Time \u003E= d.Time tie break by d.Id desc\r\norder by r.Id",
+  "inputCount": 100000
+}

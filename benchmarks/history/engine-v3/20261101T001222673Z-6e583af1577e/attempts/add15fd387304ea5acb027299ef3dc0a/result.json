@@ -1,0 +1,24 @@
+{
+  "caseId": "B10_CorrelatedFallback-compilation-warm-Table-ContractFixture",
+  "startedUtc": "2026-11-01T01:33:02.0054579+00:00",
+  "finishedUtc": "2026-11-01T01:33:52.9452396+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 625604.9723307291,
+  "medianNanoseconds": 621754.1015625,
+  "standardDeviationNanoseconds": 16976.993385390113,
+  "confidenceLowerNanoseconds": 617004.2473125253,
+  "confidenceUpperNanoseconds": 634205.697348933,
+  "sampleCount": 48,
+  "allocatedBytesPerOperation": 937224,
+  "gen0Collections": 8,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 512,
+  "rawReports": [
+    "raw/add15fd387304ea5acb027299ef3dc0a/Musoq.Benchmarks.WarmCompilationBenchmark-report-full.json",
+    "raw/add15fd387304ea5acb027299ef3dc0a/measured-process-23676-2351cde8bee447d6a6f52d574ad3b2f3.json",
+    "raw/add15fd387304ea5acb027299ef3dc0a/measured-process-40040-51043d9ca78047e49246fadc89c6d4c6.json"
+  ],
+  "attemptId": "add15fd387304ea5acb027299ef3dc0a"
+}

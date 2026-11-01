@@ -1,0 +1,24 @@
+{
+  "caseId": "B08_ThetaJoin-execution-Table-Large",
+  "startedUtc": "2026-11-01T01:24:33.3820847+00:00",
+  "finishedUtc": "2026-11-01T01:26:04.2805215+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 6889371.339026162,
+  "medianNanoseconds": 6888891.40625,
+  "standardDeviationNanoseconds": 203866.6923955148,
+  "confidenceLowerNanoseconds": 6779385.029801967,
+  "confidenceUpperNanoseconds": 6999357.648250358,
+  "sampleCount": 43,
+  "allocatedBytesPerOperation": 12297900,
+  "gen0Collections": 15,
+  "gen1Collections": 14,
+  "gen2Collections": 11,
+  "gcOperations": 128,
+  "rawReports": [
+    "raw/d90e5527abee4a5a987ce891799dfcc4/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/d90e5527abee4a5a987ce891799dfcc4/measured-process-64692-241a69036b7f49bfa126fb5828b4170d.json",
+    "raw/d90e5527abee4a5a987ce891799dfcc4/measured-process-64948-25a3b922a4fd45419d911bcf85c8bc96.json"
+  ],
+  "attemptId": "d90e5527abee4a5a987ce891799dfcc4"
+}

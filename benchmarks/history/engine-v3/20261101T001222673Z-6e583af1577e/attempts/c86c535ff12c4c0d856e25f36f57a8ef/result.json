@@ -1,0 +1,24 @@
+{
+  "caseId": "B22_Recursive-compilation-warm-Table-ContractFixture",
+  "startedUtc": "2026-11-01T03:07:38.7504333+00:00",
+  "finishedUtc": "2026-11-01T03:08:32.2918568+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 983412.3177083334,
+  "medianNanoseconds": 979636.71875,
+  "standardDeviationNanoseconds": 26101.305125658957,
+  "confidenceLowerNanoseconds": 969693.5911369382,
+  "confidenceUpperNanoseconds": 997131.0442797286,
+  "sampleCount": 45,
+  "allocatedBytesPerOperation": 1417423,
+  "gen0Collections": 6,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 256,
+  "rawReports": [
+    "raw/c86c535ff12c4c0d856e25f36f57a8ef/Musoq.Benchmarks.WarmCompilationBenchmark-report-full.json",
+    "raw/c86c535ff12c4c0d856e25f36f57a8ef/measured-process-27988-39b3d0fc61a8409db16b6394c7c63ba5.json",
+    "raw/c86c535ff12c4c0d856e25f36f57a8ef/measured-process-40252-d58b7e5bfd9c4e90bdcf019c439a5722.json"
+  ],
+  "attemptId": "c86c535ff12c4c0d856e25f36f57a8ef"
+}

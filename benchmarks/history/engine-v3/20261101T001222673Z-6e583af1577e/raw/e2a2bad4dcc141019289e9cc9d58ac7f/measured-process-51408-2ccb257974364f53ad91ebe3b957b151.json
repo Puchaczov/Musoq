@@ -1,0 +1,20 @@
+{
+  "processId": 51408,
+  "capturedUtc": "2026-11-01T04:13:25.9521017+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B32_Partial",
+  "sql": "binary Header {\r\n    Kind: byte,\r\n    Value: int le,\r\n    Count: byte,\r\n    Tail: byte[Count]\r\n};\r\nselect r.Id as Id, p.ParsedFields.Kind as Kind, p.BytesConsumed as Consumed, p.ErrorField as Error\r\nfrom bench.rows() r\r\ncross apply PartialInterpret\u003CHeader\u003E(r.Truncated) p\r\norder by r.Id",
+  "inputCount": 1000
+}

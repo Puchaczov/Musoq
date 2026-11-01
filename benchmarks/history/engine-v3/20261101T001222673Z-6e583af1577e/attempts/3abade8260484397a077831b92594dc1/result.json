@@ -1,0 +1,24 @@
+{
+  "caseId": "B07_DuplicateJoin_Fanout8-execution-Table-Medium",
+  "startedUtc": "2026-11-01T00:51:23.5991033+00:00",
+  "finishedUtc": "2026-11-01T00:52:31.3922699+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 4639803.215144231,
+  "medianNanoseconds": 4624378.90625,
+  "standardDeviationNanoseconds": 103755.5784877473,
+  "confidenceLowerNanoseconds": 4580562.365003798,
+  "confidenceUpperNanoseconds": 4699044.065284664,
+  "sampleCount": 39,
+  "allocatedBytesPerOperation": 7952640,
+  "gen0Collections": 15,
+  "gen1Collections": 13,
+  "gen2Collections": 7,
+  "gcOperations": 128,
+  "rawReports": [
+    "raw/3abade8260484397a077831b92594dc1/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/3abade8260484397a077831b92594dc1/measured-process-25668-c5dfc758670b499c9536cb1d0d8dd5de.json",
+    "raw/3abade8260484397a077831b92594dc1/measured-process-40728-9c7dbe4acc6c4000ae73caceb8b31552.json"
+  ],
+  "attemptId": "3abade8260484397a077831b92594dc1"
+}

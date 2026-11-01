@@ -1,0 +1,20 @@
+{
+  "processId": 39076,
+  "capturedUtc": "2026-11-01T03:31:57.2072833+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B26_ResidualPredicate",
+  "sql": "select r.Id as Id from bench.rows() r where r.Name like \u0027item-1%\u0027 order by r.Id",
+  "inputCount": 100000
+}

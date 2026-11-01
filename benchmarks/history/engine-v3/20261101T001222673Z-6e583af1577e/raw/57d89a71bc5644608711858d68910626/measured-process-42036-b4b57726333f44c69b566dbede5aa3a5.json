@@ -1,0 +1,20 @@
+{
+  "processId": 42036,
+  "capturedUtc": "2026-11-01T04:41:49.8092251+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X07_LogAnalytics",
+  "sql": "text Entry { Level: until \u0027|\u0027, Number: until \u0027|\u0027, Label: rest }; with logs as (select p.Level as Level, r.Amount as Amount\r\nfrom bench.rows() r\r\nouter apply TryParse\u003CEntry\u003E(r.Text) p\r\nwhere p.Number::int % 2 = 0 and p.Label rlike \u0027item\u0027) select Level, Sum(Amount) as Total, RowNumber() over (order by Level) as Position\r\nfrom logs\r\ngroup by Level\r\nqualify Position = 1\r\norder by Level",
+  "inputCount": 10000
+}

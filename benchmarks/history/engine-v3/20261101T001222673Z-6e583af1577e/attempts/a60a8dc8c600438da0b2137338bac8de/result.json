@@ -1,0 +1,24 @@
+{
+  "caseId": "B14_Group-artifact-load-Table-ContractFixture",
+  "startedUtc": "2026-11-01T01:59:23.2596758+00:00",
+  "finishedUtc": "2026-11-01T02:00:24.9572359+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 1920200.283203125,
+  "medianNanoseconds": 1916521.2890625,
+  "standardDeviationNanoseconds": 42651.63093370436,
+  "confidenceLowerNanoseconds": 1896204.979718075,
+  "confidenceUpperNanoseconds": 1944195.586688175,
+  "sampleCount": 40,
+  "allocatedBytesPerOperation": 1022700,
+  "gen0Collections": 2,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 128,
+  "rawReports": [
+    "raw/a60a8dc8c600438da0b2137338bac8de/Musoq.Benchmarks.ArtifactLoadBenchmark-report-full.json",
+    "raw/a60a8dc8c600438da0b2137338bac8de/measured-process-48484-ec0d4ad3cc2746488be03afbf1bd48e9.json",
+    "raw/a60a8dc8c600438da0b2137338bac8de/measured-process-52884-0c43ee25c5f24181b17928532c41d013.json"
+  ],
+  "attemptId": "a60a8dc8c600438da0b2137338bac8de"
+}

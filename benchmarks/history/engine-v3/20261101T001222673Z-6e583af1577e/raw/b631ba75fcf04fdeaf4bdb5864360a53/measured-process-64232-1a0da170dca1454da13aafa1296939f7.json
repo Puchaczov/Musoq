@@ -1,0 +1,20 @@
+{
+  "processId": 64232,
+  "capturedUtc": "2026-11-01T05:59:49.2612216+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "suiteInformationalVersion": "17.0.15-alpha.1\u002B6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+  "source": {
+    "commit": "6e583af1577e22c0cdc5cdaa6d4ef43d87359c14",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X09_RecursiveChunks",
+  "sql": "binary Header {\r\n    Kind: byte,\r\n    Value: int le,\r\n    Count: byte,\r\n    Tail: byte[Count]\r\n};\r\nwith recursive walk (Bytes, Off, Used, Error) as (select r.Payload, 0, 0, null\r\nfrom bench.stream() r\r\nunion all select w.Bytes, w.Off \u002B w.Used, p.BytesConsumed, p.ErrorField\r\nfrom walk w\r\ncross apply PartialInterpret\u003CHeader\u003E(FromBase64(ToBase64(w.Bytes, w.Off \u002B w.Used, Length(w.Bytes) - w.Off - w.Used))) p\r\nwhere w.Off \u002B w.Used \u003C Length(w.Bytes) and w.Error is null) select Off as Id, Used as Consumed, Error\r\nfrom walk\r\norder by Id, Consumed",
+  "inputCount": 10000
+}

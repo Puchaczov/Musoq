@@ -1,0 +1,22 @@
+{
+  "caseId": "B31_TextCaptures-execution-Table-Medium",
+  "startedUtc": "2026-11-01T04:09:14.7934361+00:00",
+  "finishedUtc": "2026-11-01T04:09:28.3230088+00:00",
+  "status": "failed",
+  "error": "\nBenchmarkDotNet produced no successful samples; inspect raw reports.",
+  "meanNanoseconds": null,
+  "medianNanoseconds": null,
+  "standardDeviationNanoseconds": null,
+  "confidenceLowerNanoseconds": null,
+  "confidenceUpperNanoseconds": null,
+  "sampleCount": 0,
+  "allocatedBytesPerOperation": null,
+  "gen0Collections": null,
+  "gen1Collections": null,
+  "gen2Collections": null,
+  "gcOperations": null,
+  "rawReports": [
+    "raw/0a91834e9c644cd2a09d1596bec5c912/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json"
+  ],
+  "attemptId": "0a91834e9c644cd2a09d1596bec5c912"
+}
