@@ -4,6 +4,16 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.16-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.16-alpha.1](release-notes/v17.0.16-alpha.1.md).
+
+- Add provider-defined public datasource diagnostics with stable provider codes, categories, shared failure kinds, correction guidance, and advisory retry information.
+- Preserve recognized errors through discovery, planning, construction, synchronous/asynchronous collection, deferred execution, and cleanup using the MQ7020 envelope.
+- Collect non-throwing MQ5027 warnings per execution, including metadata/planning reports, concurrent sources, deduplication, retention limits, and suppression counts.
+- Bound and sanitize public reports while keeping arbitrary exception details private. Document authoring and host consumption separately from downstream presentation.
+- Align all seven packages at 17.0.16-alpha.1. This experimental alpha does not certify prior datasource binary compatibility; rebuild providers and recompile stored query artifacts.
+
 ## 17.0.15-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.15-alpha.1](release-notes/v17.0.15-alpha.1.md).
