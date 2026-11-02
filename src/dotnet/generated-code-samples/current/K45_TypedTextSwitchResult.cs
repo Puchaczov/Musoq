@@ -121,7 +121,7 @@ namespace GeneratedSample_K45_TypedTextSwitchResult
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __sSchema = provider.GetSchema("#schema");
-                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>(sRowsSource.Chunks, __musoqProgressContext, "s:1") : sRowsSource.Chunks;
                     foreach (var sChunk in sRows)
                     {

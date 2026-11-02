@@ -425,6 +425,47 @@ public sealed class DataSourceLifecycleDiagnosticTests
             item.Message.Contains("sourceCode=ExistingSourceDiagnostic", StringComparison.Ordinal)));
     }
 
+    [TestMethod]
+    public void ReportedError_MetadataUsesPublicProviderDiagnostic()
+    {
+        var provider = new FaultProvider { Mode = FaultMode.Metadata, Exception = ReportedFailure() };
+        var result = InstanceCreator.CompileWithDiagnostics("select Name from #test.entities() e",
+            Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual(DiagnosticCode.MQ7020_ReportedDataSourceFailure, result.Errors.Single().Code);
+        Assert.AreEqual("REMOTE.UNAVAILABLE", result.Errors.Single().Arguments["providerCode"]);
+        Assert.DoesNotContain("PRIVATE SDK", result.Errors.Single().Message);
+    }
+
+    [TestMethod]
+    public void ReportedError_CompiledOpenReadAndCleanupKeepPublicEnvelope()
+    {
+        foreach (var mode in new[] { FaultMode.Open, FaultMode.Read, FaultMode.Cleanup })
+        {
+            var provider = CreateCompiledFaultProvider(mode, ReportedFailure());
+            var exception = Assert.Throws<QueryExecutionException>(() => Materialize(provider));
+            Assert.AreEqual(DiagnosticCode.MQ7020_ReportedDataSourceFailure, exception.Envelope!.Code);
+            Assert.AreEqual("REMOTE.UNAVAILABLE", exception.Envelope.Arguments["providerCode"]);
+            Assert.AreEqual("#test", exception.Envelope.Arguments["schema"]);
+            Assert.DoesNotContain("PRIVATE SDK", MusoqErrorEnvelopeFormatter.FormatJson(exception.Envelope));
+        }
+    }
+
+    [TestMethod]
+    public async Task ReportedError_AsynchronousCollectionPreservesProviderFields()
+    {
+        var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
+        {
+            await foreach (var _ in DataSourceLifecycle.ReadAsync(new ThrowingAsyncEnumerable(ReportedFailure()),
+                "#api", "rows", "r", "async-ctx")) { }
+        });
+        Assert.AreEqual(DiagnosticCode.MQ7020_ReportedDataSourceFailure, exception.ToDiagnostic().Code);
+        Assert.AreEqual("REMOTE.UNAVAILABLE", exception.ToDiagnostic().Arguments["providerCode"]);
+    }
+
+    private static DataSourceException ReportedFailure() => new(new DataSourceDiagnostic("REMOTE.UNAVAILABLE", "remote-service", "The service is unavailable.", new DataSourceDiagnosticOptions { Severity = DataSourceDiagnosticSeverity.Error, SuggestedFixes = ["Retry later."], FailureKind = DataSourceFailureKind.Unavailable }),
+        new IOException("PRIVATE SDK response"));
+
     private static FaultProvider CreateCompiledFaultProvider(FaultMode mode, Exception exception)
     {
         var provider = new FaultProvider();

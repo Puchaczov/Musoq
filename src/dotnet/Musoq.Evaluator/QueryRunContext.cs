@@ -32,7 +32,7 @@ public sealed class QueryRunContext
         _queryProgressOptions = queryProgressOptions ?? DefaultQueryProgressOptions;
         Sender = sender ?? this;
         QueryId = queryId ?? string.Empty;
-        Provider = provider;
+        _provider = provider;
         SourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId ??
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
         SourceRuntimeSettingDescriptionsBySourceContextId = sourceRuntimeSettingDescriptionsBySourceContextId ??
@@ -59,7 +59,21 @@ public sealed class QueryRunContext
 
     public string QueryId { get; }
 
-    public ISchemaProvider? Provider { get; }
+    private readonly ISchemaProvider? _provider;
+    private ISchemaProvider? _reportingProvider;
+    public ISchemaProvider? Provider
+    {
+        get
+        {
+            if (_provider is null) return null;
+            var existing = Volatile.Read(ref _reportingProvider);
+            if (existing is not null) return existing;
+            return Interlocked.CompareExchange(ref _reportingProvider, DataSourceWarnings.WrapProvider(_provider), null) ?? _reportingProvider;
+        }
+    }
+
+    /// <summary>Warnings are isolated to this query execution.</summary>
+    public Musoq.Schema.Diagnostics.DataSourceWarningCollector DataSourceWarnings { get; init; } = new();
 
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; }
 
@@ -88,7 +102,8 @@ public sealed class QueryRunContext
                 options.QueryProgress,
                 options.QueryProgressOptions,
                 sender,
-                queryId ?? runnable.GetType().FullName ?? string.Empty);
+                queryId ?? runnable.GetType().FullName ?? string.Empty,
+                options.DataSourceWarnings);
             captured._typedParameters = options.TypedParameters;
             return captured;
         }
@@ -103,7 +118,8 @@ public sealed class QueryRunContext
             queryProgress: options.QueryProgress,
             queryProgressOptions: options.QueryProgressOptions)
         {
-            TypedParameters = options.TypedParameters
+            TypedParameters = options.TypedParameters,
+            DataSourceWarnings = options.DataSourceWarnings ?? new()
         };
     }
 
@@ -116,7 +132,8 @@ public sealed class QueryRunContext
         QueryProgressEventHandler? queryProgress,
         QueryProgressOptions? queryProgressOptions,
         object sender,
-        string queryId)
+        string queryId,
+        Musoq.Schema.Diagnostics.DataSourceWarningCollector? dataSourceWarnings = null)
     {
         ArgumentNullException.ThrowIfNull(binding);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -136,7 +153,8 @@ public sealed class QueryRunContext
             binding.SourceExecutionPlans,
             binding.Logger,
             queryProgress,
-            queryProgressOptions);
+            queryProgressOptions)
+        { DataSourceWarnings = dataSourceWarnings ?? new() };
     }
 
     public void ThrowIfCancellationRequested()

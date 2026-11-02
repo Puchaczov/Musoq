@@ -107,7 +107,10 @@ namespace GeneratedSample_Q363_StructuredStrictReceiverDemand
                 };
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __sSchema = provider.GetSchema("#inputs");
-                var sRowsSourceContext = new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress);
+                var sRowsSourceContext = new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.StrictLimitRow> sRowsSource;
                 try
                 {

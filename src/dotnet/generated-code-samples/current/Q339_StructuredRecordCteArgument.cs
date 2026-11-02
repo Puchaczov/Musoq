@@ -150,7 +150,10 @@ namespace GeneratedSample_Q339_StructuredRecordCteArgument
                 OnPhaseChanged("compiled", QueryPhase.From);
                 _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
                 var __mSchema = provider.GetSchema("#inputs");
-                var mRowsSourceContext = new SourceExecutionContext("m:2", sourceExecutionPlans["m:2"], token, __schemaColumns_compiled_m_1, sourceRuntimeSettingsBySourceContextId["m:2"], logger, OnDataSourceProgress);
+                var mRowsSourceContext = new SourceExecutionContext("m:2", sourceExecutionPlans["m:2"], token, __schemaColumns_compiled_m_1, sourceRuntimeSettingsBySourceContextId["m:2"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["m:2"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> mRowsSource;
                 try
                 {

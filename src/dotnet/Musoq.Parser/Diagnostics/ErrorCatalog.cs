@@ -249,6 +249,8 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ7019_InvalidRuntimePagingCount] = "Paging count must be an integral value between 0 and 2147483647; null is not allowed.",
         [DiagnosticCode.MQ3118_InvalidPagingCount] = "Paging count must be an integral value between 0 and 2147483647; null is not allowed.",
         [DiagnosticCode.MQ7018_NumericOverflow] = "Numeric execution exceeded the range of its result or accumulator type.",
+        [DiagnosticCode.MQ7020_ReportedDataSourceFailure] = "The datasource reported a failure.",
+        [DiagnosticCode.MQ5027_ReportedDataSourceWarning] = "The datasource reported a warning.",
         [DiagnosticCode.MQ7014_MalformedRuntimeInput] = "Runtime input is malformed.",
         [DiagnosticCode.MQ7101_InterpretationInsufficientData] = "Input ended before interpretation could finish.",
         [DiagnosticCode.MQ7102_InterpretationValidationFailed] = "Input did not satisfy an interpretation validation rule.",

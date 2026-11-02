@@ -166,7 +166,7 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
                 OnPhaseChanged("compiled:left", QueryPhase.From);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __left_sSchema = provider.GetSchema("#A");
-                var left_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__left_sSchema, "entities", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var left_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__left_sSchema, "entities", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var left_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(left_sRowsSource.Chunks, __musoqProgressContext, "s:1") : left_sRowsSource.Chunks;
                 var left = new List<LeftRow0>();
                 OnPhaseChanged("compiled:left", QueryPhase.Select);
@@ -235,7 +235,7 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
                 OnPhaseChanged("compiled:right", QueryPhase.Begin);
                 OnPhaseChanged("compiled:right", QueryPhase.From);
                 var __right_sSchema = provider.GetSchema("#B");
-                var right_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__right_sSchema, "entities", new SourceExecutionContext("s:2", sourceExecutionPlans["s:2"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var right_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__right_sSchema, "entities", new SourceExecutionContext("s:2", sourceExecutionPlans["s:2"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:2"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:2"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var right_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(right_sRowsSource.Chunks, __musoqProgressContext, "s:2") : right_sRowsSource.Chunks;
                 var right = new List<RightRow0>();
                 OnPhaseChanged("compiled:right", QueryPhase.Select);

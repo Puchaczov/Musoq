@@ -239,7 +239,10 @@ namespace GeneratedSample_Q361_StructuredRecursiveCteArgument
 
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __nSchema = provider.GetSchema("#inputs");
-                var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_0, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress);
+                var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_0, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["n:3"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.NumberRow> nRowsSource;
                 try
                 {

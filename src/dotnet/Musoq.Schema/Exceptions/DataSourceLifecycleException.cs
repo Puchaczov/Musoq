@@ -35,12 +35,15 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         DataSourceLifecycleContext context,
         Exception innerException,
         MalformedInputFailure? inputFailure)
-        : base(CreateSafeMessage(code, context, inputFailure?.Reason), innerException)
+        : base(code == DiagnosticCode.MQ7020_ReportedDataSourceFailure
+            ? FindReportedError(innerException)?.Message ?? "The datasource reported a failure."
+            : CreateSafeMessage(code, context, inputFailure?.Reason), innerException)
     {
         if (code is not DiagnosticCode.MQ7010_DataSourceOpenFailed and
             not DiagnosticCode.MQ7011_DataSourceReadFailed and
             not DiagnosticCode.MQ7012_DataSourceCleanupFailed and
-            not DiagnosticCode.MQ7014_MalformedRuntimeInput)
+            not DiagnosticCode.MQ7014_MalformedRuntimeInput and
+            not DiagnosticCode.MQ7020_ReportedDataSourceFailure)
             throw new ArgumentOutOfRangeException(nameof(code), code, "The code is not a data-source lifecycle diagnostic.");
 
         SchemaName = context.SchemaName ?? string.Empty;
@@ -49,9 +52,13 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         SourceContextId = context.SourceContextId ?? string.Empty;
         Operation = context.Operation ?? string.Empty;
         Code = code;
+        ReportedDiagnostic = code == DiagnosticCode.MQ7020_ReportedDataSourceFailure ? FindReportedError(innerException)?.Report : null;
         InputReason = inputFailure?.Reason;
         InputLocation = inputFailure?.InputLocation;
     }
+
+    /// <summary>The recognized provider report, when supplied explicitly by the datasource.</summary>
+    public DataSourceDiagnostic? ReportedDiagnostic { get; }
 
     public DiagnosticCode Code { get; }
 
@@ -105,6 +112,14 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
                 RuntimeInputDiagnosticException.GetReasonCode(InputReason.Value)));
         }
 
+        if (ReportedDiagnostic is not null)
+        {
+            var diagnostic = ReportedDiagnostic.ToDiagnostic();
+            foreach (var argument in arguments)
+                diagnostic = diagnostic.WithArgument(argument.Key, argument.Value);
+            return diagnostic;
+        }
+
         return new Diagnostic(
             Code,
             DiagnosticSeverity.Error,
@@ -126,6 +141,10 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string operation,
         Exception innerException)
     {
+        if (FindReportedError(innerException) is not null)
+            return new DataSourceLifecycleException(DiagnosticCode.MQ7020_ReportedDataSourceFailure,
+                schemaName, sourceName, alias, sourceContextId, operation, innerException);
+
         if (FindInnerException<DataSourceInputException>(innerException) is { } inputFailure)
         {
             return CreateMalformedInputFailure(
@@ -151,6 +170,10 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string sourceContextId,
         Exception innerException)
     {
+        if (FindReportedError(innerException) is not null)
+            return new DataSourceLifecycleException(DiagnosticCode.MQ7020_ReportedDataSourceFailure,
+                schemaName, sourceName, alias, sourceContextId, "open", innerException);
+
         if (FindInnerException<DataSourceInputException>(innerException) is { } inputFailure)
         {
             return CreateMalformedInputFailure(
@@ -176,6 +199,10 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string sourceContextId,
         Exception innerException)
     {
+        if (FindReportedError(innerException) is not null)
+            return new DataSourceLifecycleException(DiagnosticCode.MQ7020_ReportedDataSourceFailure,
+                schemaName, sourceName, alias, sourceContextId, "read", innerException);
+
         if (FindInnerException<DataSourceInputException>(innerException) is { } dataSourceInputFailure)
         {
             return CreateMalformedInputFailure(
@@ -218,6 +245,10 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
         string sourceContextId,
         Exception innerException)
     {
+        if (FindReportedError(innerException) is not null)
+            return new DataSourceLifecycleException(DiagnosticCode.MQ7020_ReportedDataSourceFailure,
+                schemaName, sourceName, alias, sourceContextId, "cleanup", innerException);
+
         return new DataSourceLifecycleException(
             DiagnosticCode.MQ7012_DataSourceCleanupFailed,
             schemaName,
@@ -270,6 +301,16 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
             context,
             innerException,
             inputFailure);
+    }
+
+    private static DataSourceException? FindReportedError(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is AggregateException) return null;
+            if (current is DataSourceException reported) return reported;
+        }
+        return null;
     }
 
     private static TException? FindInnerException<TException>(Exception exception)

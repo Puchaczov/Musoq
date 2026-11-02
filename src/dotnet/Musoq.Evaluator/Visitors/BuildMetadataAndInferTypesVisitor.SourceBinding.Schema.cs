@@ -66,7 +66,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     exception.InnerException);
             }
             catch (SchemaProviderFailureException exception)
-                when (DataSourceInputDiagnosticAdapter.ContainsInputFailure(exception))
+                when (DataSourceDiagnosticAdapter.ContainsRecognizedFailure(exception))
             {
                 throw DataSourceLifecycleDiagnosticAdapter.ForProviderOperation(
                     exception,
@@ -281,7 +281,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new UnknownSourceException(schemaName, methodName, span, exception.InnerException);
         }
         catch (SchemaProviderFailureException exception)
-            when (DataSourceInputDiagnosticAdapter.ContainsInputFailure(exception))
+            when (DataSourceDiagnosticAdapter.ContainsRecognizedFailure(exception))
         {
             throw DataSourceLifecycleDiagnosticAdapter.ForProviderOperation(
                 exception,

@@ -133,7 +133,10 @@ namespace GeneratedSample_Q332_StructuredNestedRecord
                 Musoq.Examples.DataSources.StructuredInputs.OptionsInput __musoqStructural_c_5 = new Musoq.Examples.DataSources.StructuredInputs.OptionsInput(__musoqStructural_c_0, __musoqStructural_c_1, __musoqStructural_c_4);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __cSchema = provider.GetSchema("#inputs");
-                var cRowsSourceContext = new SourceExecutionContext("c:1", sourceExecutionPlans["c:1"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["c:1"], logger, OnDataSourceProgress);
+                var cRowsSourceContext = new SourceExecutionContext("c:1", sourceExecutionPlans["c:1"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["c:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["c:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.ConfigureRow> cRowsSource;
                 try
                 {

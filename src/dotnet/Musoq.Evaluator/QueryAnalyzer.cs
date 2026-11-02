@@ -85,7 +85,7 @@ public sealed class QueryAnalyzer
         catch (SchemaProviderFailureException ex)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 RethrowProviderFailure(ex);
         }
         catch (ParseException ex)
@@ -98,11 +98,11 @@ public sealed class QueryAnalyzer
             cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticBag, sourceText))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticBag, sourceText))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 diagnosticBag.AddError(ex, sourceText);
         }
         catch (Exception ex)
@@ -110,11 +110,11 @@ public sealed class QueryAnalyzer
             cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticBag, sourceText))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticBag, sourceText))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!diagnosticBag.HasErrors && !TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!diagnosticBag.HasErrors && !TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 diagnosticBag.Add(
                     InternalDiagnosticException.ForCompiler(ex)
                         .ToDiagnostic(sourceText));
@@ -151,7 +151,7 @@ public sealed class QueryAnalyzer
         catch (SchemaProviderFailureException ex)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 RethrowProviderFailure(ex);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
@@ -159,11 +159,11 @@ public sealed class QueryAnalyzer
             cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticBag, sourceText))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticBag, sourceText))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 diagnosticBag.AddError(ex, sourceText);
         }
         catch (Exception ex)
@@ -171,7 +171,7 @@ public sealed class QueryAnalyzer
             cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticBag, sourceText))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticBag, sourceText))
                     RethrowProviderFailure(providerFailure);
             }
 
@@ -182,7 +182,7 @@ public sealed class QueryAnalyzer
                     Diagnostics = diagnosticBag.ToSortedList()
                 };
 
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 diagnosticBag.Add(
                     InternalDiagnosticException.ForCompiler(ex)
                         .ToDiagnostic(sourceText));
@@ -261,7 +261,7 @@ public sealed class QueryAnalyzer
         catch (DataSourceLifecycleException ex)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (ex.Code == DiagnosticCode.MQ7014_MalformedRuntimeInput)
+            if (ex.Code is DiagnosticCode.MQ7014_MalformedRuntimeInput or DiagnosticCode.MQ7020_ReportedDataSourceFailure)
             {
                 diagnosticContext.ReportException(ex);
             }
@@ -274,7 +274,7 @@ public sealed class QueryAnalyzer
         catch (SchemaProviderFailureException ex)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!TryReportDataSourceInputFailure(ex, diagnosticContext))
+            if (!TryReportDataSourceFailure(ex, diagnosticContext))
                 RethrowProviderFailure(ex);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
@@ -288,11 +288,11 @@ public sealed class QueryAnalyzer
 
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticContext))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticContext))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!diagnosticContext.HasErrors && !TryReportDataSourceInputFailure(ex, diagnosticContext))
+            if (!diagnosticContext.HasErrors && !TryReportDataSourceFailure(ex, diagnosticContext))
                 diagnosticContext.ReportException(ex);
         }
         catch (Exception ex)
@@ -300,11 +300,11 @@ public sealed class QueryAnalyzer
             cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticContext))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticContext))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!diagnosticContext.HasErrors && !TryReportDataSourceInputFailure(ex, diagnosticContext))
+            if (!diagnosticContext.HasErrors && !TryReportDataSourceFailure(ex, diagnosticContext))
                 diagnosticContext.ReportException(
                     InternalDiagnosticException.ForCompiler(ex));
         }
@@ -364,7 +364,7 @@ public sealed class QueryAnalyzer
         }
         catch (SchemaProviderFailureException ex)
         {
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 RethrowProviderFailure(ex);
         }
         catch (ParseException ex)
@@ -375,22 +375,22 @@ public sealed class QueryAnalyzer
         {
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticBag, sourceText))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticBag, sourceText))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 diagnosticBag.AddError(ex, sourceText);
         }
         catch (Exception ex)
         {
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
             {
-                if (!TryReportDataSourceInputFailure(providerFailure, diagnosticBag, sourceText))
+                if (!TryReportDataSourceFailure(providerFailure, diagnosticBag, sourceText))
                     RethrowProviderFailure(providerFailure);
             }
 
-            if (!TryReportDataSourceInputFailure(ex, diagnosticBag, sourceText))
+            if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
                 diagnosticBag.Add(
                     InternalDiagnosticException.ForCompiler(ex)
                         .ToDiagnostic(sourceText));
@@ -465,21 +465,21 @@ public sealed class QueryAnalyzer
         throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
     }
 
-    private static bool TryReportDataSourceInputFailure(
+    private static bool TryReportDataSourceFailure(
         Exception exception,
         DiagnosticBag diagnosticBag,
         SourceText sourceText)
     {
-        if (!DataSourceInputDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
+        if (!DataSourceDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
             return false;
 
         diagnosticBag.AddError(diagnostic, sourceText);
         return true;
     }
 
-    private static bool TryReportDataSourceInputFailure(Exception exception, DiagnosticContext diagnosticContext)
+    private static bool TryReportDataSourceFailure(Exception exception, DiagnosticContext diagnosticContext)
     {
-        if (!DataSourceInputDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
+        if (!DataSourceDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
             return false;
 
         diagnosticContext.ReportException(diagnostic);

@@ -190,7 +190,10 @@ namespace GeneratedSample_Q365_StructuredValuesAndArrayInOneScript
                 token.ThrowIfCancellationRequested();
                 IReadOnlyList<int> __musoqStructural_statement0_n_0 = letValues;
                 var __statement0_nSchema = provider.GetSchema("#inputs");
-                var statement0_nRowsSourceContext = new SourceExecutionContext("n:1", sourceExecutionPlans["n:1"], token, __schemaColumns_compiled_n_1, sourceRuntimeSettingsBySourceContextId["n:1"], logger, OnDataSourceProgress);
+                var statement0_nRowsSourceContext = new SourceExecutionContext("n:1", sourceExecutionPlans["n:1"], token, __schemaColumns_compiled_n_1, sourceRuntimeSettingsBySourceContextId["n:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["n:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.NumberRow> statement0_nRowsSource;
                 try
                 {

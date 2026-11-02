@@ -109,7 +109,10 @@ namespace GeneratedSample_Q330_StructuredPrimitiveArray
                 };
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __nSchema = provider.GetSchema("#inputs");
-                var nRowsSourceContext = new SourceExecutionContext("n:1", sourceExecutionPlans["n:1"], token, __schemaColumns_compiled_n_0, sourceRuntimeSettingsBySourceContextId["n:1"], logger, OnDataSourceProgress);
+                var nRowsSourceContext = new SourceExecutionContext("n:1", sourceExecutionPlans["n:1"], token, __schemaColumns_compiled_n_0, sourceRuntimeSettingsBySourceContextId["n:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["n:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.NumberRow> nRowsSource;
                 try
                 {

@@ -97,7 +97,10 @@ namespace GeneratedSample_Q358_StructuredContextLifecycle
             this.OnPhaseChanged("compiled", QueryPhase.Begin);
             this.OnPhaseChanged("compiled", QueryPhase.From);
             var __cSchema = provider.GetSchema("#inputs");
-            var cRowsSourceContext = new SourceExecutionContext("c:1", sourceExecutionPlans["c:1"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["c:1"], logger, OnDataSourceProgress);
+            var cRowsSourceContext = new SourceExecutionContext("c:1", sourceExecutionPlans["c:1"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["c:1"], logger, OnDataSourceProgress)
+            {
+                WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["c:1"].Identity)
+            };
             Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.ContextProbeRow> cRowsSource;
             try
             {

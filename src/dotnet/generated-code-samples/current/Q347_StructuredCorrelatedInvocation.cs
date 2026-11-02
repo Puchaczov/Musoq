@@ -209,7 +209,10 @@ namespace GeneratedSample_Q347_StructuredCorrelatedInvocation
                     __musoqStructural_statement0_m_2
                 };
                 var __statement0_mSchema = provider.GetSchema("#inputs");
-                var statement0_mRowsSourceContext = new SourceExecutionContext("m:1", sourceExecutionPlans["m:1"], token, __schemaColumns_compiled_m_1, sourceRuntimeSettingsBySourceContextId["m:1"], logger, OnDataSourceProgress);
+                var statement0_mRowsSourceContext = new SourceExecutionContext("m:1", sourceExecutionPlans["m:1"], token, __schemaColumns_compiled_m_1, sourceRuntimeSettingsBySourceContextId["m:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["m:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> statement0_mRowsSource;
                 try
                 {

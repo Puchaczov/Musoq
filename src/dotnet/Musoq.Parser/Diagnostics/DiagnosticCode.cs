@@ -188,7 +188,7 @@ public enum DiagnosticCode
     MQ5024_NullSensitiveNotIn = 5024,
     MQ5025_ImpossibleImplicitConversion = 5025,
     MQ5026_SetOperationSliceScope = 5026,
-
+    MQ5027_ReportedDataSourceWarning = 5027,
     // Runtime Errors (MQ7xxx)
     MQ7003_RequiredScriptParameterMissing = 7003,
     MQ7004_ScriptParameterTypeMismatch = 7004,
@@ -206,7 +206,7 @@ public enum DiagnosticCode
     MQ7104_InterpretationLiteralMismatch = 7104, MQ7105_InterpretationDelimiterNotFound = 7105, MQ7106_InterpretationExpectedDelimiter = 7106, MQ7107_InterpretationInvalidSize = 7107,
     MQ7108_InterpretationInvalidPosition = 7108, MQ7109_InterpretationMaxIterationsExceeded = 7109, MQ7110_InterpretationEncodingError = 7110, MQ7111_InterpretationExpectedWhitespace = 7111,
     MQ7112_InterpretationNoAlternativeMatched = 7112, MQ7113_InterpretationInvalidSchemaReference = 7113, MQ7114_InterpretationFieldReferenceError = 7114, MQ7115_InterpretationGeneralError = 7115,
-
+    MQ7020_ReportedDataSourceFailure = 7020,
     // Code Generation Errors (MQ8xxx)
     MQ8001_CodeGenerationFailed = 8001, MQ8002_CompiledArtifactIncompatible = 8002,
 

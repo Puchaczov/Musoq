@@ -253,6 +253,14 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         return SourceText.GetLocations(span);
     }
 
+    private static string? GetProviderReportIdentity(Diagnostic diagnostic)
+    {
+        // Different providers and source occurrences may share the same public message and Core code.
+        return diagnostic.Code is DiagnosticCode.MQ5027_ReportedDataSourceWarning or DiagnosticCode.MQ7020_ReportedDataSourceFailure
+            ? MusoqErrorEnvelopeFormatter.FormatJson(MusoqErrorEnvelope.FromDiagnostic(diagnostic))
+            : null;
+    }
+
     private readonly record struct DiagnosticIdentity(
         DiagnosticCode Code,
         DiagnosticSeverity Severity,
@@ -263,7 +271,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         int Line,
         int Column,
         string? FilePath,
-        string Message)
+        string Message,
+        string? ProviderReportIdentity)
     {
         public static DiagnosticIdentity Create(Diagnostic diagnostic)
         {
@@ -277,7 +286,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
                 diagnostic.Location.Line,
                 diagnostic.Location.Column,
                 diagnostic.Location.FilePath,
-                diagnostic.Message);
+                diagnostic.Message,
+                GetProviderReportIdentity(diagnostic));
         }
     }
 
@@ -286,7 +296,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         DiagnosticSeverity Severity,
         DiagnosticPhase Phase,
         DiagnosticSourceKind SourceKind,
-        string Message)
+        string Message,
+        string? ProviderReportIdentity)
     {
         public static DiagnosticContentIdentity Create(Diagnostic diagnostic)
         {
@@ -295,7 +306,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
                 diagnostic.Severity,
                 diagnostic.Phase,
                 diagnostic.SourceKind,
-                diagnostic.Message);
+                diagnostic.Message,
+                GetProviderReportIdentity(diagnostic));
         }
     }
 }
