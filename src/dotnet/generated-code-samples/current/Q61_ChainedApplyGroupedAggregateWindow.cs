@@ -153,7 +153,7 @@ namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __windowSourceTable_iSchema = provider.GetSchema("#apply");
-                var windowSourceTable_iRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>.Open(__windowSourceTable_iSchema, "items", new SourceExecutionContext("i:1", sourceExecutionPlans["i:1"], token, __schemaColumns_compiled_i_0, sourceRuntimeSettingsBySourceContextId["i:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var windowSourceTable_iRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>.Open(__windowSourceTable_iSchema, "items", new SourceExecutionContext("i:1", sourceExecutionPlans["i:1"], token, __schemaColumns_compiled_i_0, sourceRuntimeSettingsBySourceContextId["i:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["i:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var windowSourceTable_iRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>(windowSourceTable_iRowsSource.Chunks, __musoqProgressContext, "i:1") : windowSourceTable_iRowsSource.Chunks;
                 var windowSourceTable = new List<WindowSourceRow0>();
                 OnPhaseChanged("compiled", QueryPhase.GroupBy);

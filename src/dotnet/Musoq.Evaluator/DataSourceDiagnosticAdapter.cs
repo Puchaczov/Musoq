@@ -4,15 +4,26 @@ using Musoq.Schema.Diagnostics;
 
 namespace Musoq.Evaluator;
 
-internal static class DataSourceInputDiagnosticAdapter
+internal static class DataSourceDiagnosticAdapter
 {
-    public static bool TryAdapt(Exception exception, out RuntimeInputDiagnosticException diagnostic)
+    public static bool TryAdapt(Exception exception, out Exception diagnostic)
     {
         ArgumentNullException.ThrowIfNull(exception);
 
         var visited = new HashSet<Exception>();
         for (var current = exception; current != null && visited.Add(current); current = current.InnerException)
         {
+            if (current is AggregateException) break;
+            if (current is Musoq.Schema.Exceptions.DataSourceLifecycleException { Code: Musoq.Parser.Diagnostics.DiagnosticCode.MQ7020_ReportedDataSourceFailure } lifecycle)
+            {
+                diagnostic = lifecycle;
+                return true;
+            }
+            if (current is DataSourceException reported)
+            {
+                diagnostic = reported;
+                return true;
+            }
             if (current is not DataSourceInputException inputFailure)
                 continue;
 
@@ -28,7 +39,7 @@ internal static class DataSourceInputDiagnosticAdapter
         return false;
     }
 
-    public static bool ContainsInputFailure(Exception exception)
+    public static bool ContainsRecognizedFailure(Exception exception)
     {
         return TryAdapt(exception, out _);
     }

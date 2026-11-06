@@ -166,13 +166,13 @@ public partial class TransformTree
         catch (SchemaProviderFailureException providerFailure)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            return DataSourceInputDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
+            return DataSourceDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is not null)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             var providerFailure = EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex)!;
-            return DataSourceInputDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
+            return DataSourceDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {

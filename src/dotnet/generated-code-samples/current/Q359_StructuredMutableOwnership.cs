@@ -140,7 +140,10 @@ namespace GeneratedSample_Q359_StructuredMutableOwnership
                         __musoqStructural_left_1
                     };
                     var __leftSchema = provider.GetSchema("#inputs");
-                    var leftRowsSourceContext = new SourceExecutionContext("left:1", sourceExecutionPlans["left:1"], token, __schemaColumns_compiled_left_0, sourceRuntimeSettingsBySourceContextId["left:1"], logger, OnDataSourceProgress);
+                    var leftRowsSourceContext = new SourceExecutionContext("left:1", sourceExecutionPlans["left:1"], token, __schemaColumns_compiled_left_0, sourceRuntimeSettingsBySourceContextId["left:1"], logger, OnDataSourceProgress)
+                    {
+                        WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["left:1"].Identity)
+                    };
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.MutableProbeRow> leftRowsSource;
                     try
                     {
@@ -168,7 +171,10 @@ namespace GeneratedSample_Q359_StructuredMutableOwnership
                         __musoqStructural_right_1
                     };
                     var __rightSchema = provider.GetSchema("#inputs");
-                    var rightRowsSourceContext = new SourceExecutionContext("right:1", sourceExecutionPlans["right:1"], token, __schemaColumns_compiled_left_0, sourceRuntimeSettingsBySourceContextId["right:1"], logger, OnDataSourceProgress);
+                    var rightRowsSourceContext = new SourceExecutionContext("right:1", sourceExecutionPlans["right:1"], token, __schemaColumns_compiled_left_0, sourceRuntimeSettingsBySourceContextId["right:1"], logger, OnDataSourceProgress)
+                    {
+                        WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["right:1"].Identity)
+                    };
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.MutableProbeRow> rightRowsSource;
                     try
                     {

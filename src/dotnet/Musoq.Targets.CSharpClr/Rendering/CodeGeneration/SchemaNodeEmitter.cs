@@ -45,7 +45,12 @@ internal static class SchemaNodeEmitter
                 SyntaxFactory.IdentifierName(nameof(SourceExecutionContext)))
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(arguments)));
+                    SyntaxFactory.SeparatedList(arguments)))
+            .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression,
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName("WarningReporter"),
+                    SyntaxFactory.ParseExpression($"global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans[\"{nodeId}\"].Identity)")))));
     }
 
     private static ArrayCreationExpressionSyntax CreateColumnMetadataArray(IEnumerable<ISchemaColumn> columns)

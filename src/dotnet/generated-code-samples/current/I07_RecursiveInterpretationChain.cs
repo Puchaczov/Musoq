@@ -185,7 +185,7 @@ namespace GeneratedSample_I07_RecursiveInterpretationChain
                     int __cte0Iteration = 0;
                     int __cte0CancellationCounter = 0;
                     var __cte0CurrentFrontier_fSchema = provider.GetSchema("#test");
-                    var cte0CurrentFrontier_fRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BinaryOrTextualEvaluatorTestBase.BinaryEntity>.Open(__cte0CurrentFrontier_fSchema, "files", new SourceExecutionContext("f:1", sourceExecutionPlans["f:1"], token, __schemaColumns_compiled_f_0, sourceRuntimeSettingsBySourceContextId["f:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0CurrentFrontier_fRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BinaryOrTextualEvaluatorTestBase.BinaryEntity>.Open(__cte0CurrentFrontier_fSchema, "files", new SourceExecutionContext("f:1", sourceExecutionPlans["f:1"], token, __schemaColumns_compiled_f_0, sourceRuntimeSettingsBySourceContextId["f:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["f:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var cte0CurrentFrontier_fRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.BinaryOrTextualEvaluatorTestBase.BinaryEntity>(cte0CurrentFrontier_fRowsSource.Chunks, __musoqProgressContext, "f:1") : cte0CurrentFrontier_fRowsSource.Chunks;
                     foreach (var fChunk in cte0CurrentFrontier_fRows)
                     {

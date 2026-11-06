@@ -150,7 +150,7 @@ namespace GeneratedSample_Q309_SpecBinaryStructuredSubstreams
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __srcSchema = provider.GetSchema("#test");
-                    var srcRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BinaryOrTextualEvaluatorTestBase.BinaryEntity>.Open(__srcSchema, "files", new SourceExecutionContext("src:1", sourceExecutionPlans["src:1"], token, __schemaColumns_compiled_src_0, sourceRuntimeSettingsBySourceContextId["src:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var srcRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BinaryOrTextualEvaluatorTestBase.BinaryEntity>.Open(__srcSchema, "files", new SourceExecutionContext("src:1", sourceExecutionPlans["src:1"], token, __schemaColumns_compiled_src_0, sourceRuntimeSettingsBySourceContextId["src:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["src:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var srcRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.BinaryOrTextualEvaluatorTestBase.BinaryEntity>(srcRowsSource.Chunks, __musoqProgressContext, "src:1") : srcRowsSource.Chunks;
                     foreach (var srcChunk in srcRows)
                     {

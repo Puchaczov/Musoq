@@ -272,7 +272,7 @@ namespace GeneratedSample_Q66_CteBackedAggregateOverHashJoin
             {
                 OnPhaseChanged("compiled:cte0", QueryPhase.From);
                 var __cte0_aSchema = provider.GetSchema("#A");
-                var cte0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_aSchema, "entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_aSchema, "entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var cte0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks;
                 cte0 = new List<Cte0Row0>();
                 OnPhaseChanged("compiled:cte0", QueryPhase.Select);
@@ -347,7 +347,7 @@ namespace GeneratedSample_Q66_CteBackedAggregateOverHashJoin
             {
                 OnPhaseChanged("compiled:cte1", QueryPhase.From);
                 var __cte1_bSchema = provider.GetSchema("#B");
-                var cte1_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte1_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte1_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte1_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:2"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var cte1_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte1_bRowsSource.Chunks;
                 var cte1HashSidecar0City = new Dictionary<string, HashJoinBucket<Cte1HashPayload0>>();
                 foreach (var bChunk in cte1_bRows)

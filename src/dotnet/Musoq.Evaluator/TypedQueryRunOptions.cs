@@ -30,9 +30,10 @@ public sealed class TypedQueryRunOptions
         QueryProgressOptions = queryProgressOptions;
     }
 
+    public Musoq.Schema.Diagnostics.DataSourceWarningCollector? DataSourceWarnings { get; init; }
+
     public CancellationToken CancellationToken { get; init; }
 
-    /// <summary>Gets a snapshot retaining each supplied parameter's concrete type.</summary>
     public TypedParameterSnapshot TypedParameters { get; init; } = TypedParameterSnapshot.Empty;
 
     public QueryPhaseEventHandler? PhaseChanged { get; init; }

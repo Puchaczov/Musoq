@@ -170,7 +170,10 @@ namespace GeneratedSample_Q340_StructuredSharedCteArgument
                 try
                 {
                     var __leftMatchSchema = provider.GetSchema("#inputs");
-                    var leftMatchRowsSourceContext = new SourceExecutionContext("leftMatch:2", sourceExecutionPlans["leftMatch:2"], token, __schemaColumns_compiled_leftMatch_1, sourceRuntimeSettingsBySourceContextId["leftMatch:2"], logger, OnDataSourceProgress);
+                    var leftMatchRowsSourceContext = new SourceExecutionContext("leftMatch:2", sourceExecutionPlans["leftMatch:2"], token, __schemaColumns_compiled_leftMatch_1, sourceRuntimeSettingsBySourceContextId["leftMatch:2"], logger, OnDataSourceProgress)
+                    {
+                        WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["leftMatch:2"].Identity)
+                    };
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> leftMatchRowsSource;
                     try
                     {
@@ -192,7 +195,10 @@ namespace GeneratedSample_Q340_StructuredSharedCteArgument
 
                     var leftMatchRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(leftMatchRowsSource.Chunks, __musoqProgressContext, "leftMatch:2") : leftMatchRowsSource.Chunks;
                     var __rightMatchSchema = provider.GetSchema("#inputs");
-                    var rightMatchRowsSourceContext = new SourceExecutionContext("rightMatch:2", sourceExecutionPlans["rightMatch:2"], token, __schemaColumns_compiled_leftMatch_1, sourceRuntimeSettingsBySourceContextId["rightMatch:2"], logger, OnDataSourceProgress);
+                    var rightMatchRowsSourceContext = new SourceExecutionContext("rightMatch:2", sourceExecutionPlans["rightMatch:2"], token, __schemaColumns_compiled_leftMatch_1, sourceRuntimeSettingsBySourceContextId["rightMatch:2"], logger, OnDataSourceProgress)
+                    {
+                        WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["rightMatch:2"].Identity)
+                    };
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> rightMatchRowsSource;
                     try
                     {
