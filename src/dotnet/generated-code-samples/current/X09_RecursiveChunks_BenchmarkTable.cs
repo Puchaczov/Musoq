@@ -204,7 +204,7 @@ namespace GeneratedSample_X09_RecursiveChunks_BenchmarkTable
                     int __cte0Iteration = 0;
                     int __cte0CancellationCounter = 0;
                     var __cte0CurrentFrontier_rSchema = provider.GetSchema("#bench");
-                    var cte0CurrentFrontier_rRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BenchmarkSampleRow>.Open(__cte0CurrentFrontier_rSchema, "stream", new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0CurrentFrontier_rRowsSource = SourceInvocation<Musoq.Evaluator.Tests.BenchmarkSampleRow>.Open(__cte0CurrentFrontier_rSchema, "stream", new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["r:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var cte0CurrentFrontier_rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.BenchmarkSampleRow>(cte0CurrentFrontier_rRowsSource.Chunks, __musoqProgressContext, "r:1") : cte0CurrentFrontier_rRowsSource.Chunks;
                     foreach (var rChunk in cte0CurrentFrontier_rRows)
                     {

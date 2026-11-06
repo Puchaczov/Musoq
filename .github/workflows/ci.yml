@@ -83,7 +83,9 @@ jobs:
           dotnet build src/dotnet/Musoq.Playground/Musoq.Playground.csproj --configuration Release --no-restore --no-dependencies -warnaserror
 
       - name: Test
-        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --logger "console;verbosity=minimal" --logger "trx;LogFileName=test-results.trx"
+        env:
+          VSTEST_CONNECTION_TIMEOUT: '180'
+        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build -m:1 --logger "console;verbosity=minimal" --logger "trx;LogFileName=test-results.trx"
 
       - name: Pack release packages
         if: matrix.warning_ratchet == true

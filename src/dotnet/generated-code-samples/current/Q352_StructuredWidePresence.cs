@@ -113,7 +113,10 @@ namespace GeneratedSample_Q352_StructuredWidePresence
                 IReadOnlyList<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideInput> __musoqStructural_w_0 = __musoqStructuralAdapt_0_4199102667(letItems);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __wSchema = provider.GetSchema("#structured");
-                var wRowsSourceContext = new SourceExecutionContext("w:1", sourceExecutionPlans["w:1"], token, __schemaColumns_compiled_w_0, sourceRuntimeSettingsBySourceContextId["w:1"], logger, OnDataSourceProgress);
+                var wRowsSourceContext = new SourceExecutionContext("w:1", sourceExecutionPlans["w:1"], token, __schemaColumns_compiled_w_0, sourceRuntimeSettingsBySourceContextId["w:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["w:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideRow> wRowsSource;
                 try
                 {

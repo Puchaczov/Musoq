@@ -139,7 +139,7 @@ namespace GeneratedSample_P57_TypedTextSwitchResult_Full
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __sSchema = provider.GetSchema("#schema");
-                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>(sRowsSource.Chunks, __musoqProgressContext, "s:1") : sRowsSource.Chunks;
                     foreach (var sChunk in sRows)
                     {
@@ -268,7 +268,7 @@ namespace GeneratedSample_P57_TypedTextSwitchResult_Full
                     var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
                     var __sSchema = provider.GetSchema("#schema");
                     var sRowsProfile = profileRecorder?.CreateSourceRecorder("s");
-                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress, sRowsProfile == null ? SourceDiagnostics.None : sRowsProfile.CreateDiagnostics()), global::Musoq.Schema.SourceArguments.Empty);
+                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress, sRowsProfile == null ? SourceDiagnostics.None : sRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var sRows = sRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>(sRowsSource.Chunks, __musoqProgressContext, "s:1") : sRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>(sRowsSource.Chunks, __musoqProgressContext, "s:1") : sRowsSource.Chunks, sRowsProfile);
                     __op14Scope.Dispose();
                     long __op16InputRows = 0L;

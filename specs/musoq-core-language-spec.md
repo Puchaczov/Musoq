@@ -453,6 +453,7 @@ The following warnings are active in the core language:
 | `MQ5010_TautologicalCondition` | Bind | A predicate is proven always true, including safe complement proofs. | Only deterministic direct columns and compatible constants are proven; floating-point, method-call, dynamic, and null-sensitive identities are excluded. | Remove the redundant condition. |
 | `MQ5011_ContradictoryCondition` | Bind | A predicate is proven impossible, such as `x = 1 AND x = 2` or non-overlapping safe ranges. | The same conservative proof limits as `MQ5010` apply. | Remove or correct the contradictory predicate. |
 | `MQ5013_SourceContractWarning` | Bind | A datasource reports a non-fatal table-contract or read-modifier issue. | It is emitted only when the source supplies the warning. | Follow the source-provided correction. |
+| `MQ5027_ReportedDataSourceWarning` | DataSource | A datasource reports a non-fatal issue. | Execution continues and reports are retained alongside diagnostics or results. | Follow the provider's suggested fixes. |
 | `MQ5014_SuspiciousOrdinaryStringEscape` | Parse or Bind | A recognized ordinary-string escape changes high-confidence rooted path text during parsing, or relative path-like text bound to a path-sensitive string destination. | Raw literals, doubled backslashes, unknown escapes, deliberate standalone escapes, and bare relative projections remain quiet. One warning is emitted per literal at its first hazard. | Use `r'...'` or double each intended backslash. |
 | `MQ5015_SuspiciousRegexEscape` | Bind | Ordinary source `\b` becomes a backspace before regex evaluation in `RLIKE` or a bound regex-pattern parameter. | Raw `r'\b'`, ordinary `'\\b'`, `[\b]`, and preserved `\d`, `\s`, and `\w` remain quiet. | Use a raw regex literal or double the backslash. |
 | `MQ5016_GlobWildcardInLike` | Bind | A constant `LIKE` pattern uses glob `*`, or path-like `?`, without SQL `%` or `_`. | Dynamic patterns, ordinary prose, SQL wildcards, and patterns with whitespace remain quiet. | Use `%` / `_` for `LIKE`, or `RLIKE` for regex patterns. |
@@ -7313,6 +7314,7 @@ migration. The current language version does not emit them.
 | MQ4001–MQ4016 | Schema definition or schema construction failure. | Schema source domain; include the schema declaration location when known. |
 | MQ7003–MQ7009 | Script-parameter or recursive-CTE runtime contract failure. | Query or Runtime domain; include safe parameter/limit facts, never secret values. |
 | MQ7010 | Datasource construction/open failure. | DataSource domain; include schema, source, alias, context ID, and operation open. |
+| MQ7020 | A datasource explicitly reports a recognized failure. | Preserve its provider code, category, failure kind, safe message, suggested fixes and optional input location. Include source identity and operation; private inner-exception text is not public guidance. |
 | MQ7011 | Datasource row read or deferred enumeration failure. | DataSource domain; retain safe cause information without exposing source argument values. |
 | MQ7012 | Datasource cleanup/disposal failure. | DataSource domain; cancellation remains cancellation, not a cleanup error. |
 | MQ7017 | A finite regex match budget was exhausted. | Runtime domain; include safe operator, engine, and limit facts without exposing pattern or input values. |
@@ -8188,3 +8190,19 @@ two sources. The aggregate-owner example registers distinct argumentless
 `RunningProduct(decimal) -> decimal`, multiplying values in its effective frame.
 These callables illustrate registration and binding; no particular plugin supplies
 them as part of the core language contract.
+
+
+### Provider-authored datasource reports
+
+Providers MAY supply their own stable codes and categories without allocating a Core code for each issue.
+Recognized errors use `MQ7020`; non-fatal warnings use `MQ5027`. Both originate from the DataSource domain.
+Public reports preserve correction guidance and shared failure classifications. Retry guidance is advisory;
+it MUST NOT automatically re-execute a query. Cancellation and existing specific Core failures retain their classifications.
+
+Warnings MUST NOT interrupt row production. Metadata/planning reports accompany compilation diagnostics;
+runtime warnings belong to one execution, including deferred enumeration. Identical retained warnings are counted;
+report collection is bounded and exposes suppression counts. A source error after rows were produced still fails
+execution; hosts MUST NOT present partial rows as successful completion.
+
+See [Reporting datasource errors and warnings](../docs/datasource-diagnostics.md) for the .NET provider contract,
+public-content requirements, location conventions, and warning consumption examples.

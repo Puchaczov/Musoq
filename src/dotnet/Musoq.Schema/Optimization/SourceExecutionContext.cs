@@ -16,6 +16,18 @@ public class SourceExecutionContext(
     SourceDiagnostics? sourceDiagnostics = null)
     : SourceMetadataContext(queryId, endWorkToken, originallyInferredColumns, sourceRuntimeSettings, logger)
 {
+    /// <summary>Optional warning channel, owned by the current compilation or execution.</summary>
+    public Action<DataSourceDiagnostic>? WarningReporter { get; init; }
+
+    /// <summary>Reports a non-fatal issue without interrupting source enumeration.</summary>
+    public void ReportWarning(DataSourceDiagnostic warning)
+    {
+        ArgumentNullException.ThrowIfNull(warning);
+        if (warning.Severity != DataSourceDiagnosticSeverity.Warning)
+            throw new ArgumentException("Report errors by throwing DataSourceException.", nameof(warning));
+        WarningReporter?.Invoke(warning);
+    }
+
     public SourceExecutionPlan Plan { get; } = plan ?? SourceExecutionPlan.Empty(SourceIdentity.Empty);
 
     public SourceDiagnostics Diagnostics { get; } = sourceDiagnostics ?? SourceDiagnostics.None;

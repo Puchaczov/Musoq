@@ -1,3 +1,5 @@
+using System.Linq;
+using Musoq.Schema.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
@@ -61,6 +63,10 @@ internal static partial class SourcePlanningPlanner
                 new SourceDescribeContext(request.Identity, metadataContext),
                 parameters));
             context.CancellationToken.ThrowIfCancellationRequested();
+            var reportedError = descriptor.ReportedDiagnostics.FirstOrDefault(report => report.Severity == DataSourceDiagnosticSeverity.Error);
+            if (reportedError is not null)
+                throw DataSourceLifecycleException.ForProviderOperation(scan.SchemaName, scan.MethodName, request.Identity.Alias,
+                    request.Identity.SourceContextId, "describe", new DataSourceException(reportedError));
             EnumSourceDescriptorContractValidator.Validate(
                 metadataContext.AllColumns,
                 descriptor,

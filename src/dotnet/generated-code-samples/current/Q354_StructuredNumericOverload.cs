@@ -97,7 +97,10 @@ namespace GeneratedSample_Q354_StructuredNumericOverload
             this.OnPhaseChanged("compiled", QueryPhase.Begin);
             this.OnPhaseChanged("compiled", QueryPhase.From);
             var __oSchema = provider.GetSchema("#inputs");
-            var oRowsSourceContext = new SourceExecutionContext("o:1", sourceExecutionPlans["o:1"], token, __schemaColumns_compiled_o_0, sourceRuntimeSettingsBySourceContextId["o:1"], logger, OnDataSourceProgress);
+            var oRowsSourceContext = new SourceExecutionContext("o:1", sourceExecutionPlans["o:1"], token, __schemaColumns_compiled_o_0, sourceRuntimeSettingsBySourceContextId["o:1"], logger, OnDataSourceProgress)
+            {
+                WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["o:1"].Identity)
+            };
             Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.OverloadRow> oRowsSource;
             try
             {

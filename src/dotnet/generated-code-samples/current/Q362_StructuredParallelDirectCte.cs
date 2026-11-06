@@ -211,7 +211,10 @@ namespace GeneratedSample_Q362_StructuredParallelDirectCte
                 try
                 {
                     var __mSchema = provider.GetSchema("#inputs");
-                    var mRowsSourceContext = new SourceExecutionContext("m:3", sourceExecutionPlans["m:3"], token, __schemaColumns_compiled_m_2, sourceRuntimeSettingsBySourceContextId["m:3"], logger, OnDataSourceProgress);
+                    var mRowsSourceContext = new SourceExecutionContext("m:3", sourceExecutionPlans["m:3"], token, __schemaColumns_compiled_m_2, sourceRuntimeSettingsBySourceContextId["m:3"], logger, OnDataSourceProgress)
+                    {
+                        WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["m:3"].Identity)
+                    };
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow> mRowsSource;
                     try
                     {
@@ -233,7 +236,10 @@ namespace GeneratedSample_Q362_StructuredParallelDirectCte
 
                     var mRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Examples.DataSources.StructuredInputs.PatternMatchRow>(mRowsSource.Chunks, __musoqProgressContext, "m:3") : mRowsSource.Chunks;
                     var __nSchema = provider.GetSchema("#inputs");
-                    var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_3, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress);
+                    var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_3, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress)
+                    {
+                        WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["n:3"].Identity)
+                    };
                     Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.NumberRow> nRowsSource;
                     try
                     {

@@ -242,7 +242,7 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
                     OnPhaseChanged("compiled:left", QueryPhase.From);
                     OnPhaseChanged("compiled:cte0", QueryPhase.From);
                     var __cte0Left_bSchema = provider.GetSchema("#B");
-                    var cte0Left_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0Left_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0Left_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0Left_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:2"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var cte0Left_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0Left_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0Left_bRowsSource.Chunks;
                     cte0Left = new Table("cte0Left", __columns_compiled_cte0Left_1);
                     OnPhaseChanged("compiled:left", QueryPhase.Where);
@@ -334,7 +334,7 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
                     OnPhaseChanged("compiled:right", QueryPhase.Begin);
                     OnPhaseChanged("compiled:right", QueryPhase.From);
                     var __cte0Right_cSchema = provider.GetSchema("#C");
-                    var cte0Right_cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0Right_cSchema, "entities", new SourceExecutionContext("c:3", sourceExecutionPlans["c:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["c:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0Right_cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0Right_cSchema, "entities", new SourceExecutionContext("c:3", sourceExecutionPlans["c:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["c:3"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["c:3"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var cte0Right_cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0Right_cRowsSource.Chunks, __musoqProgressContext, "c:3") : cte0Right_cRowsSource.Chunks;
                     cte0Right = new Table("cte0Right", __columns_compiled_cte0Left_1);
                     OnPhaseChanged("compiled:right", QueryPhase.Select);
@@ -476,7 +476,7 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
                 try
                 {
                     var __aSchema = provider.GetSchema("#A");
-                    var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__aSchema, "entities", new SourceExecutionContext("a:3", sourceExecutionPlans["a:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__aSchema, "entities", new SourceExecutionContext("a:3", sourceExecutionPlans["a:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:3"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:3"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:3") : aRowsSource.Chunks;
                     Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State _sq_1HashEmptyState = default(Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State)!;
                     Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Reset(ref _sq_1HashEmptyState);

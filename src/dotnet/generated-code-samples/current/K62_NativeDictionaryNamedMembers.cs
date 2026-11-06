@@ -111,7 +111,7 @@ namespace GeneratedSample_K62_NativeDictionaryNamedMembers
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __pSchema = provider.GetSchema("#schema");
-                var pRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>.Open(__pSchema, "first", new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var pRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>.Open(__pSchema, "first", new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks;
                 var resultOrderRecords = new List<ResultRow0WithSortKeys>();
                 OnPhaseChanged("compiled", QueryPhase.Select);

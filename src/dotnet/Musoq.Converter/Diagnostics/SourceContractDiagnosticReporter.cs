@@ -18,6 +18,24 @@ internal static class SourceContractDiagnosticReporter
         ArgumentNullException.ThrowIfNull(planningResult);
         ArgumentNullException.ThrowIfNull(diagnosticContext);
 
+        var warningCollector = new global::Musoq.Schema.Diagnostics.DataSourceWarningCollector();
+        foreach (var source in planningResult.Properties.SourcePlanResultsBySourceId.OrderBy(item => item.Key, StringComparer.Ordinal))
+        {
+            var identity = source.Value.ExecutionPlan.Identity;
+            var reports = source.Value.ReportedDiagnostics.Select(report => (Report: report, Operation: "plan"));
+            if (planningResult.Properties.SourceDescriptorsBySourceId.TryGetValue(source.Key, out var descriptor))
+                reports = descriptor.ReportedDiagnostics.Select(report => (Report: report, Operation: "describe")).Concat(reports);
+            foreach (var (report, operation) in reports)
+            {
+                if (report.Severity == global::Musoq.Schema.Diagnostics.DataSourceDiagnosticSeverity.Warning)
+                    warningCollector.ForSource(identity, operation)(report);
+                else
+                    diagnosticContext.AddRange([report.ToDiagnostic().WithArgument("schema", identity.SchemaName)
+                        .WithArgument("source", identity.MethodName).WithArgument("alias", identity.Alias)
+                        .WithArgument("sourceContextId", source.Key).WithArgument("operation", operation)]);
+            }
+        }
+        diagnosticContext.AddRange(warningCollector.Snapshot());
         var reported = new HashSet<SourceContractDiagnosticKey>();
         foreach (var candidate in CollectDiagnostics(planningResult))
         {

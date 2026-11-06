@@ -110,7 +110,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
 
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                DataSourceInputDiagnosticReporter.ReportOrRethrowProviderFailure(ex, context.DiagnosticContext);
+                DataSourceDiagnosticReporter.ReportOrRethrowProviderFailure(ex, context.DiagnosticContext);
 
                 if (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex) &&
                     !context.DiagnosticContext.HasErrors)

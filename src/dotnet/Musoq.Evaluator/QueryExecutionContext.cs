@@ -60,6 +60,8 @@ internal sealed record QueryExecutionContext(
     object Sender,
     string QueryId)
 {
+    internal Musoq.Schema.Diagnostics.DataSourceWarningCollector? DataSourceWarnings { get; init; }
+
     internal static QueryExecutionContext Capture(
         IQueryRunnable runnable,
         TypedParameterSnapshot parameters,
@@ -97,7 +99,8 @@ internal sealed record QueryExecutionContext(
             QueryProgress,
             QueryProgressOptions,
             Sender,
-            QueryId);
+            QueryId,
+            DataSourceWarnings);
         return context;
     }
 }

@@ -5,7 +5,7 @@ using Musoq.Schema.Exceptions;
 
 namespace Musoq.Converter;
 
-internal static class DataSourceInputDiagnosticReporter
+internal static class DataSourceDiagnosticReporter
 {
     public static T? ReportOrRethrow<T>(Exception providerFailure, DiagnosticContext context)
         where T : class
@@ -29,20 +29,20 @@ internal static class DataSourceInputDiagnosticReporter
 
     public static bool TryReport(Exception exception, DiagnosticContext context)
     {
-        if (exception is DataSourceLifecycleException { Code: DiagnosticCode.MQ7014_MalformedRuntimeInput } lifecycleFailure)
+        if (exception is DataSourceLifecycleException { Code: DiagnosticCode.MQ7014_MalformedRuntimeInput or DiagnosticCode.MQ7020_ReportedDataSourceFailure } lifecycleFailure)
         {
             context.ReportException(lifecycleFailure);
             return true;
         }
 
         var providerFailure = EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(exception);
-        if (providerFailure is not null && DataSourceInputDiagnosticAdapter.TryAdapt(providerFailure, out var providerDiagnostic))
+        if (providerFailure is not null && DataSourceDiagnosticAdapter.TryAdapt(providerFailure, out var providerDiagnostic))
         {
             context.ReportException(providerDiagnostic);
             return true;
         }
 
-        if (!DataSourceInputDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
+        if (!DataSourceDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
             return false;
 
         context.ReportException(diagnostic);

@@ -12,6 +12,7 @@ internal static class DiagnosticSourceKindMapping
 
         return value switch
         {
+            5027 or 7020 => DiagnosticSourceKind.DataSource,
             >= 4001 and <= 4016 => DiagnosticSourceKind.Schema,
             >= 7003 and <= 7009 => DiagnosticSourceKind.Runtime,
             >= 7010 and <= 7012 => DiagnosticSourceKind.DataSource,

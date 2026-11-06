@@ -127,7 +127,10 @@ namespace GeneratedSample_Q356_StructuredDeclarationDefaultConflict
                 Musoq.Examples.DataSources.StructuredInputs.PatternInput __musoqStructural_d_0 = __musoqStructuralAdapt_0_919131913(paramInput);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __dSchema = provider.GetSchema("#inputs");
-                var dRowsSourceContext = new SourceExecutionContext("d:1", sourceExecutionPlans["d:1"], token, __schemaColumns_compiled_d_0, sourceRuntimeSettingsBySourceContextId["d:1"], logger, OnDataSourceProgress);
+                var dRowsSourceContext = new SourceExecutionContext("d:1", sourceExecutionPlans["d:1"], token, __schemaColumns_compiled_d_0, sourceRuntimeSettingsBySourceContextId["d:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["d:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.DefaultConflictRow> dRowsSource;
                 try
                 {

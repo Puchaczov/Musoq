@@ -556,7 +556,8 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             _queryProgressHandlers + options?.QueryProgress,
             progressOptions,
             runnable,
-            runnable.GetType().FullName);
+            runnable.GetType().FullName) with
+        { DataSourceWarnings = options?.DataSourceWarnings };
     }
 
     private TypedParameterSnapshot CaptureParameterSnapshot(CancellationToken token)

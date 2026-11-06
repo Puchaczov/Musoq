@@ -217,7 +217,10 @@ namespace GeneratedSample_Q344_StructuredSetCteArgument
                 }
 
                 var __nSchema = provider.GetSchema("#inputs");
-                var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_1, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress);
+                var nRowsSourceContext = new SourceExecutionContext("n:3", sourceExecutionPlans["n:3"], token, __schemaColumns_compiled_n_1, sourceRuntimeSettingsBySourceContextId["n:3"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["n:3"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.NumberRow> nRowsSource;
                 try
                 {

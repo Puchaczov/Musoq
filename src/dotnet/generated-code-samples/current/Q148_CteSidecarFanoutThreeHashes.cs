@@ -255,7 +255,7 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                 __parallelCteLevel0Task2Result = cteLevel0Runner.Task2Result;
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __bSchema = provider.GetSchema("#B");
-                var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:4"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:4") : bRowsSource.Chunks;
                 var bnNHash = _cteIndexResults.Slot0;
                 var bncCHash = _cteIndexResults.Slot1;
@@ -421,7 +421,7 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
             {
                 OnPhaseChanged("compiled:cte0", QueryPhase.From);
                 var __cte0_ko3ikoSchema = provider.GetSchema("#A");
-                var cte0_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_ko3ikoSchema, "entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_ko3ikoSchema, "entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
                 var cte0HashSidecar0Id = new Dictionary<int, HashJoinBucket<Cte0HashPayload0>>();
                 foreach (var ko3ikoChunk in cte0_ko3ikoRows)
@@ -535,7 +535,7 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
             {
                 OnPhaseChanged("compiled:cte1", QueryPhase.From);
                 var __cte1_vo04qtSchema = provider.GetSchema("#A");
-                var cte1_vo04qtRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte1_vo04qtSchema, "entities", new SourceExecutionContext("vo04qt:2", sourceExecutionPlans["vo04qt:2"], token, __schemaColumns_compiled_vo04qt_1, sourceRuntimeSettingsBySourceContextId["vo04qt:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte1_vo04qtRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte1_vo04qtSchema, "entities", new SourceExecutionContext("vo04qt:2", sourceExecutionPlans["vo04qt:2"], token, __schemaColumns_compiled_vo04qt_1, sourceRuntimeSettingsBySourceContextId["vo04qt:2"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["vo04qt:2"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var cte1_vo04qtRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_vo04qtRowsSource.Chunks, __musoqProgressContext, "vo04qt:2") : cte1_vo04qtRowsSource.Chunks;
                 var cte1HashSidecar1Id = new Dictionary<int, HashJoinBucket<Cte1HashPayload1>>();
                 foreach (var vo04qtChunk in cte1_vo04qtRows)
@@ -649,7 +649,7 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
             {
                 OnPhaseChanged("compiled:cte2", QueryPhase.From);
                 var __cte2_gougbqSchema = provider.GetSchema("#A");
-                var cte2_gougbqRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte2_gougbqSchema, "entities", new SourceExecutionContext("gougbq:3", sourceExecutionPlans["gougbq:3"], token, __schemaColumns_compiled_gougbq_2, sourceRuntimeSettingsBySourceContextId["gougbq:3"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte2_gougbqRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte2_gougbqSchema, "entities", new SourceExecutionContext("gougbq:3", sourceExecutionPlans["gougbq:3"], token, __schemaColumns_compiled_gougbq_2, sourceRuntimeSettingsBySourceContextId["gougbq:3"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["gougbq:3"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var cte2_gougbqRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte2_gougbqRowsSource.Chunks, __musoqProgressContext, "gougbq:3") : cte2_gougbqRowsSource.Chunks;
                 var cte2HashSidecar2Id = new Dictionary<int, HashJoinBucket<Cte2HashPayload2>>();
                 foreach (var gougbqChunk in cte2_gougbqRows)

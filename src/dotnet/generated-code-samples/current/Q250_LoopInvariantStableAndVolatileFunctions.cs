@@ -131,7 +131,7 @@ namespace GeneratedSample_Q250_LoopInvariantStableAndVolatileFunctions
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __aSchema = provider.GetSchema("#licm");
-                    var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter>.Open(__aSchema, "outers", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter>.Open(__aSchema, "outers", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
                     __resultLoopInvariantSampleLibrary0 = new Musoq.Evaluator.Tests.LoopInvariantSampleLibrary();
                     foreach (var aChunk in aRows)

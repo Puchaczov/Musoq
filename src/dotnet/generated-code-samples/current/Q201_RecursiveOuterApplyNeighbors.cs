@@ -178,7 +178,7 @@ namespace GeneratedSample_Q201_RecursiveOuterApplyNeighbors
                     int __cte0Iteration = 0;
                     int __cte0CancellationCounter = 0;
                     var __cte0CurrentFrontier_ko3ikoSchema = provider.GetSchema("#graph");
-                    var cte0CurrentFrontier_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot>.Open(__cte0CurrentFrontier_ko3ikoSchema, "roots", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0CurrentFrontier_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot>.Open(__cte0CurrentFrontier_ko3ikoSchema, "roots", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var cte0CurrentFrontier_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot>(cte0CurrentFrontier_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0CurrentFrontier_ko3ikoRowsSource.Chunks;
                     foreach (var ko3ikoChunk in cte0CurrentFrontier_ko3ikoRows)
                     {
@@ -285,7 +285,7 @@ namespace GeneratedSample_Q201_RecursiveOuterApplyNeighbors
 
                             Cte0Row0 r = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
                             var __cte0NextFrontier_eSchema = provider.GetSchema("#graph");
-                            var cte0NextFrontier_eRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge>.Open(__cte0NextFrontier_eSchema, "neighbors", new SourceExecutionContext("e:2", sourceExecutionPlans["e:2"], token, __schemaColumns_compiled_e_1, sourceRuntimeSettingsBySourceContextId["e:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Create(r.Id, global::Musoq.Schema.SourceArguments.Empty));
+                            var cte0NextFrontier_eRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge>.Open(__cte0NextFrontier_eSchema, "neighbors", new SourceExecutionContext("e:2", sourceExecutionPlans["e:2"], token, __schemaColumns_compiled_e_1, sourceRuntimeSettingsBySourceContextId["e:2"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["e:2"].Identity) }, global::Musoq.Schema.SourceArguments.Create(r.Id, global::Musoq.Schema.SourceArguments.Empty));
                             var cte0NextFrontier_eRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge>(cte0NextFrontier_eRowsSource.Chunks, __musoqProgressContext, "e:2") : cte0NextFrontier_eRowsSource.Chunks;
                             bool eHasMatch = false;
                             foreach (var eChunk in cte0NextFrontier_eRows)

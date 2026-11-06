@@ -145,7 +145,10 @@ namespace GeneratedSample_P24_TypedNestedJson_Full
                 Musoq.Examples.DataSources.StructuredInputs.OptionsInput __musoqStructural_ko3iko_0 = __musoqStructuralAdapt_0_2323394117(paramOptions);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#inputs");
-                var ko3ikoRowsSourceContext = new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress);
+                var ko3ikoRowsSourceContext = new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress)
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.ConfigureRow> ko3ikoRowsSource;
                 try
                 {
@@ -259,7 +262,10 @@ namespace GeneratedSample_P24_TypedNestedJson_Full
                 var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
                 var __ko3ikoSchema = provider.GetSchema("#inputs");
                 var ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
-                var ko3ikoRowsSourceContext = new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics());
+                var ko3ikoRowsSourceContext = new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics())
+                {
+                    WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity)
+                };
                 Musoq.Schema.DataSources.RowSource<Musoq.Examples.DataSources.StructuredInputs.ConfigureRow> ko3ikoRowsSource;
                 try
                 {
