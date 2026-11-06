@@ -1,0 +1,56 @@
+{
+    "find-errors": [
+        {
+            "Path": "checkout.log",
+            "Line": 2,
+            "Text": "2026-10-11T10:05:00 ERROR checkout retry failed\r\n"
+        },
+        {
+            "Path": "checkout.log",
+            "Line": 3,
+            "Text": "2026-10-11T10:20:00 ERROR checkout timeout\r\n"
+        },
+        {
+            "Path": "payments.log",
+            "Line": 2,
+            "Text": "2026-10-11T10:12:00 ERROR payments payment failed\r\n"
+        }
+    ],
+    "parse-errors": [
+        {
+            "Service": "checkout",
+            "ErrorTime": "2026-10-11T10:05:00",
+            "Message": "retry failed"
+        },
+        {
+            "Service": "checkout",
+            "ErrorTime": "2026-10-11T10:20:00",
+            "Message": "timeout"
+        },
+        {
+            "Service": "payments",
+            "ErrorTime": "2026-10-11T10:12:00",
+            "Message": "payment failed"
+        }
+    ],
+    "errors-and-deployments": [
+        {
+            "Service": "checkout",
+            "ErrorTime": "2026-10-11T10:05:00",
+            "Version": "v1",
+            "Message": "retry failed"
+        },
+        {
+            "Service": "checkout",
+            "ErrorTime": "2026-10-11T10:20:00",
+            "Version": "v2",
+            "Message": "timeout"
+        },
+        {
+            "Service": "payments",
+            "ErrorTime": "2026-10-11T10:12:00",
+            "Version": "p1",
+            "Message": "payment failed"
+        }
+    ]
+}

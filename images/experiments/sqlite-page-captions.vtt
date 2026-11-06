@@ -1,0 +1,31 @@
+WEBVTT
+
+00:00:00.200 --> 00:00:08.884
+SQLite shows three firmware rows. The agent gets the file and the page location; these decoded values are withheld.
+
+00:00:10.200 --> 00:00:20.504
+PARAM supplies the input folder. GetFileBytes reads a byte count at a file offset. First, the agent inspects only eight bytes.
+
+00:00:21.200 --> 00:00:31.319
+BINARY declares a byte layout. ushort be reads a two-byte big-endian number. AT three starts at page byte three, where the count is stored.
+
+00:00:34.200 --> 00:00:45.160
+The count is three. Pointer brackets CellCount reads three row locations. Interpret applies the layout; CROSS APPLY exposes each pointer as a row.
+
+00:00:46.200 --> 00:00:55.594
+Next, the agent follows a pointer before reading text. InterpretAt starts the small byte layout at that position inside the page.
+
+00:00:57.200 --> 00:01:10.430
+At pointer one thousand nine, these values are thirteen, one, three, nineteen, and twenty-seven. Each is below one hundred twenty-eight, confirming one-byte integers in these observed records.
+
+00:01:11.200 --> 00:01:19.384
+SQLite stores payload length and row ID before the record. Its record header gives the header size and each field’s type.
+
+00:01:22.200 --> 00:01:33.925
+Text type nineteen means three bytes; type twenty-seven means seven. The agent checks thirteen payload bytes equal three header bytes, plus three and seven text bytes.
+
+00:01:36.200 --> 00:01:47.110
+Now string, brackets length, UTF eight reads exactly those text bytes. The final query adds the two text fields and returns each stored row ID.
+
+00:01:49.200 --> 00:01:59.550
+All three row IDs, versions, and statuses match SQLite. These five successful queries and their public explanations come from the recorded agent run.

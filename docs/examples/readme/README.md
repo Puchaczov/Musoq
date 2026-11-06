@@ -1,6 +1,8 @@
 # README executable examples
 
-This collection contains 28 runnable examples, with 24 displayed in the repository [README](../../../README.md). Each example has a SQL file; the four additional Search recipes include their SQL below. `binary-default.sql` remains supplemental coverage.
+This collection contains 28 runnable syntax examples, with 24 explained in the [SQL language tour](language-tour.md). Each example has a SQL file; the four additional Search recipes include their SQL below. `binary-default.sql` remains supplemental coverage.
+
+For the log-to-deployment investigation from the [main README](../../../README.md), use the separate [walkthrough companion](investigation/README.md). Its inputs and query files are independent of the fixtures below.
 
 ## Prerequisites
 
@@ -495,3 +497,9 @@ On 2026-10-13, the command/server report development; core libraries report 17.0
 Supplemental binary checks reuse the published queries with one input substitution: binary-array.sql with 0207002A00 replaced by 00 returns []; binary.sql with 010300AABBCC replaced by 010300AA fails with MQ7101 (interpretationCode ISE0001), byte offset 3. binary-tolerant.sql preserves the truncated row with NULL fields. The specification document is unchanged.
 
 All 28 main files and the preserved binary-default fixture matched their recorded columns and ordered JSON values on the corrected installed runtime. Search roots were passed as absolute paths. The minScore=35 override returned []; a zero-count binary array returned []; strict truncated input reported MQ7101/ISE0001; tolerant input retained the malformed row.
+
+### README refresh verification - 2026-11-02
+
+The main README's Search, binary, and text samples, plus its provider-free VALUES quick start, were executed against the installed runtime and matched their expected ordered columns and values. Each displayed SQL block matches its executed query file. The `musoq describe schema --format json` command also returned a valid catalog containing the required Search and System schemas.
+
+These four queries were checked with Core 17.0.15-alpha.1, Search 1.0.5-alpha.1, and System 8.0.8-alpha.1. The separate [log-to-deployment walkthrough](investigation/README.md#verification) records its execution checks and full runtime provenance. The broader collection's historical verification record remains above.

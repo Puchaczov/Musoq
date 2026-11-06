@@ -1,0 +1,23 @@
+[
+    {
+        "TableName": "firmware",
+        "RowId": 1,
+        "StoredValuesJson": "[\"1.1\",\"retired\"]",
+        "PageNumber": 5,
+        "CellOffset": 1009
+    },
+    {
+        "TableName": "firmware",
+        "RowId": 2,
+        "StoredValuesJson": "[\"1.2\",\"stable\"]",
+        "PageNumber": 5,
+        "CellOffset": 995
+    },
+    {
+        "TableName": "firmware",
+        "RowId": 3,
+        "StoredValuesJson": "[\"1.3\",\"canary\"]",
+        "PageNumber": 5,
+        "CellOffset": 981
+    }
+]

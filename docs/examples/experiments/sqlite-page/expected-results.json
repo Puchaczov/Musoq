@@ -1,0 +1,17 @@
+[
+    {
+        "RowId": 1,
+        "Version": "1.1",
+        "Status": "retired"
+    },
+    {
+        "RowId": 2,
+        "Version": "1.2",
+        "Status": "stable"
+    },
+    {
+        "RowId": 3,
+        "Version": "1.3",
+        "Status": "canary"
+    }
+]

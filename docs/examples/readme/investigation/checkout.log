@@ -1,0 +1,3 @@
+2026-10-11T09:55:00 INFO checkout ready
+2026-10-11T10:05:00 ERROR checkout retry failed
+2026-10-11T10:20:00 ERROR checkout timeout
