@@ -59,8 +59,8 @@ public sealed class DiagnosticREC110IncrementalRenameTests : BasicEntityTestBase
     {
         foreach (var candidate in CandidateCases().Where(static candidate => candidate.ExpectedCode is null))
         {
-            CreateAndRunVirtualMachine(candidate.SeedQuery, CreateSources()).Run(TestContext.CancellationToken);
-            CreateAndRunVirtualMachine(candidate.ResultQuery, CreateSources()).Run(TestContext.CancellationToken);
+            ExecuteCandidateQuery(candidate.SeedQuery);
+            ExecuteCandidateQuery(candidate.ResultQuery);
         }
     }
 
@@ -158,10 +158,10 @@ public sealed class DiagnosticREC110IncrementalRenameTests : BasicEntityTestBase
 
     private void ValidateCandidate(RecoveryCase candidate)
     {
-        CreateAndRunVirtualMachine(candidate.SeedQuery, CreateSources()).Run(TestContext.CancellationToken);
+        ExecuteCandidateQuery(candidate.SeedQuery);
         if (candidate.ExpectedCode is null)
         {
-            CreateAndRunVirtualMachine(candidate.ResultQuery, CreateSources()).Run(TestContext.CancellationToken);
+            ExecuteCandidateQuery(candidate.ResultQuery);
             return;
         }
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(candidate.ResultQuery, CreateSources()));
@@ -170,6 +170,12 @@ public sealed class DiagnosticREC110IncrementalRenameTests : BasicEntityTestBase
         var envelope = exception.PrimaryEnvelope;
         var text = string.Join(" ", new[] { envelope.Message, envelope.Explanation }.Concat(envelope.SuggestedFixes));
         StringAssert.Contains(text, candidate.Guidance, candidate.CaseId);
+    }
+
+    private void ExecuteCandidateQuery(string query)
+    {
+        using var result = CreateAndRunVirtualMachine(query, CreateSources()).Run(TestContext.CancellationToken);
+        _ = result.Count;
     }
 
     private static readonly string[] Families =
