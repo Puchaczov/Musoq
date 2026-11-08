@@ -578,6 +578,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator.Relational.Tests", "Exploratory.CrossApplyBasicsTests*.cs", 297),
         new("src/dotnet/Musoq.Evaluator.Relational.Tests", "Exploratory.QueriesAndJoinsTests*.cs", 353),
         new("src/dotnet/Musoq.Evaluator.CodeGeneration.Tests", "GeneratedCodeSamplesCatalog*.cs", 350),
+        new("src/dotnet/Musoq.Evaluator.Tests.Common", "EvaluatorSampleFixtures*.cs", 350),
         new("src/dotnet/Musoq.Evaluator.CodeGeneration.Tests", "GeneratedCodeSamplesShapeTests*.cs", 360),
         new("src/dotnet/Musoq.Evaluator.Diagnostics.Tests", "MalformedQueryErrorTests*.cs", 326),
         new("src/dotnet/Musoq.Evaluator.Relational.Tests", "MultiJoinHashJoinTests*.cs", 417),
