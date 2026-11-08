@@ -2,8 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Version>$(MusoqEvaluatorVersion)</Version>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeBundledTargetAbstractions</TargetsForTfmSpecificBuildOutput>
-    <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);IncludeBundledTargetAbstractionSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" />
@@ -20,29 +18,9 @@
     <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
-    <BundledTargetAbstraction Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Abstractions\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Abstractions.dll" />
-    <BundledTargetAbstractionDocumentation Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Abstractions\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Abstractions.xml" />
-    <BundledTargetAbstractionSymbol Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Abstractions\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Abstractions.pdb" />
+    <BundledTargetAssemblyName Include="Musoq.Targets.Abstractions" />
   </ItemGroup>
-  <Target Name="IncludeBundledTargetAbstractions">
-    <Error Condition="!Exists('%(BundledTargetAbstraction.FullPath)')"
-           Text="Expected bundled target abstraction '%(BundledTargetAbstraction.FullPath)' was not built." />
-    <Error Condition="!Exists('%(BundledTargetAbstractionDocumentation.FullPath)')"
-           Text="Expected bundled target abstraction documentation '%(BundledTargetAbstractionDocumentation.FullPath)' was not built." />
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(BundledTargetAbstraction)" />
-      <BuildOutputInPackage Include="@(BundledTargetAbstractionDocumentation)" />
-    </ItemGroup>
-  </Target>
-  <Target Name="IncludeBundledTargetAbstractionSymbols">
-    <Error Condition="!Exists('%(BundledTargetAbstractionSymbol.FullPath)')"
-           Text="Expected bundled target abstraction symbols '%(BundledTargetAbstractionSymbol.FullPath)' were not built." />
-    <ItemGroup>
-      <TfmSpecificDebugSymbolsFile Include="@(BundledTargetAbstractionSymbol)">
-        <TargetFramework>$(TargetFramework)</TargetFramework>
-      </TfmSpecificDebugSymbolsFile>
-    </ItemGroup>
-  </Target>
+  <Import Project="..\..\..\scripts\release\BundledTargets.targets" />
   <ItemGroup>
     <InternalsVisibleTo Include="Musoq.Evaluator.CodeGeneration.Tests" />
     <InternalsVisibleTo Include="Musoq.Evaluator.Planning.Tests" />
