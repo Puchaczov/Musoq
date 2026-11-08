@@ -13,6 +13,7 @@ See the curated full-train release notes for [Musoq 17.0.16-beta.1](release-note
 - Split evaluator regression coverage into focused test projects and isolate filesystem fixtures and generated-code sample discovery from checkout location.
 - Fix a shared type-hint-cache test race and deferred-result cleanup in incremental-rename tests, standardize package output under .artifacts, and make package manifests portable between CI jobs.
 - Bundle target assemblies and symbols from the selected build output so isolated release packing cannot include stale files from another layout.
+- Make generated sample tests independent of host culture and restore maintainability coverage for the split evaluator test projects.
 - Expand the SQL language tour and SQLite interpretation examples. Downstream dependency upgrades and CLI manual projections remain separate work.
 
 ## 17.0.16-alpha.1
