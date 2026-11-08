@@ -120,13 +120,13 @@ namespace GeneratedSample_K53_TypedWideWindowPartition
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTests.WideRangeInput>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTests.WideRangeInput>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixtures.WideRangeInput>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixtures.WideRangeInput>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultSumsPartitionBuilder = new Musoq.Evaluator.Helpers.WindowPartitionBuilder<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int, string>>>(resultWindowRows.Count);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTests.WideRangeInput ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixtures.WideRangeInput ko3iko = resultWindowRows[windowIndex];
                     ValueTuple<int, int, int, int, int, int, int, ValueTuple<int, string>> resultSumsPartitionKeysValue = (ValueTuple<int, int, int, int, int, int, int, ValueTuple<int, string>>)(ko3iko.K1, ko3iko.K2, ko3iko.K3, ko3iko.K4, ko3iko.K5, ko3iko.K6, ko3iko.K7, ko3iko.K8, ko3iko.K9);
                     resultSumsPartitionBuilder.Add(resultSumsPartitionKeysValue, windowIndex);
                 }
@@ -143,7 +143,7 @@ namespace GeneratedSample_K53_TypedWideWindowPartition
                     for (int resultSumsPartitionIndex = 0; resultSumsPartitionIndex < resultSumsPartitionCount; ++resultSumsPartitionIndex)
                     {
                         var resultSumsCurrentIndex = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsPartitionIndex];
-                        Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTests.WideRangeInput ko3iko = resultWindowRows[resultSumsCurrentIndex];
+                        Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixtures.WideRangeInput ko3iko = resultWindowRows[resultSumsCurrentIndex];
                         Musoq.Plugins.SumAggregateKernel<decimal>.Set(ref resultSumsState, (decimal?)ko3iko.Amount);
                     }
 
@@ -163,7 +163,7 @@ namespace GeneratedSample_K53_TypedWideWindowPartition
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTests.WideRangeInput ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixtures.WideRangeInput ko3iko = resultWindowRows[windowIndex];
                     result.Add(new ResultShape0(ko3iko.Position, (decimal?)resultSums[windowIndex]) { __musoqSequence = result.Count });
                 }
 

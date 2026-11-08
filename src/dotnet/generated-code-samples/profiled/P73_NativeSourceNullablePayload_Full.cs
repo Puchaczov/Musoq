@@ -16,14 +16,14 @@ MultiStatement
 PhysicalMultiStatement
   PhysicalSort [p.Position]
     PhysicalProject [p.Position as Position, p.Payload.Value as Value]
-      PhysicalSchemaScan [#positional.all() as p] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=20408C8CC7AD3F550FE9461437258166D139CC6CD34102E1904B151639A0E63D]
+      PhysicalSchemaScan [#positional.all() as p] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=D1C7ED37B746035F1E2D8858B1AE6756CF10CABE587E39CCF357EF4C512F89D7]
 */
 
 // === Execution Plan ===
 /*
 ExecutionPlan [compiled]
   Shapes
-    Generated [QueryRow_20408C8CC7AD_S]
+    Generated [QueryRow_D1C7ED37B746_S]
       Payload: NativePayload <- field Field0
       Position: int <- field Field1
     Generated [ResultRow0]
@@ -33,7 +33,7 @@ ExecutionPlan [compiled]
   Body
     PhaseBoundary [Begin]
     PhaseBoundary [From]
-    SourceScan [p: QueryRow_20408C8CC7AD_S] -> pRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=20408C8CC7AD3F550FE9461437258166D139CC6CD34102E1904B151639A0E63D]
+    SourceScan [p: QueryRow_D1C7ED37B746_S] -> pRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=D1C7ED37B746035F1E2D8858B1AE6756CF10CABE587E39CCF357EF4C512F89D7]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     PhaseBoundary [Select]
     ChunkedForEach [p in pRows]
@@ -70,8 +70,8 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
             new Column("Position", typeof(int), 0),
             new Column("Value", typeof(decimal?), 1)
         };
-        private static readonly QueryRowShape __queryRowShape_20408C8CC7AD = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Payload", typeof(Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativePayload), true), new QueryRowField(1, 1, "Position", typeof(int), false) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_p_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Payload", typeof(Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativePayload), 0), new Column("Position", typeof(int), 1) });
+        private static readonly QueryRowShape __queryRowShape_D1C7ED37B746 = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Payload", typeof(Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload), true), new QueryRowField(1, 1, "Position", typeof(int), false) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_p_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Payload", typeof(Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload), 0), new Column("Position", typeof(int), 1) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
@@ -123,16 +123,16 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __pSchema = provider.GetSchema("#positional");
-                var __pSchemaQueryRows = __pSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#positional.all' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 20408C8CC7AD3F550FE9461437258166D139CC6CD34102E1904B151639A0E63D).");
-                var pRowsSource = QuerySourceInvocation<QueryRow_20408C8CC7AD_S, QueryRowMaterializer_20408C8CC7AD_S>.Open(__pSchemaQueryRows, "all", new QueryScopedRowSourceRequest(new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, __queryRowShape_20408C8CC7AD), global::Musoq.Schema.SourceArguments.Empty);
-                var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_20408C8CC7AD_S>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks;
+                var __pSchemaQueryRows = __pSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#positional.all' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape D1C7ED37B746035F1E2D8858B1AE6756CF10CABE587E39CCF357EF4C512F89D7).");
+                var pRowsSource = QuerySourceInvocation<QueryRow_D1C7ED37B746_S, QueryRowMaterializer_D1C7ED37B746_S>.Open(__pSchemaQueryRows, "all", new QueryScopedRowSourceRequest(new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, __queryRowShape_D1C7ED37B746), global::Musoq.Schema.SourceArguments.Empty);
+                var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_D1C7ED37B746_S>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks;
                 var result = new List<ResultShape0>();
                 OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var pChunk in pRows)
                 {
-                    if (pChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_20408C8CC7AD_S> pChunkView)
+                    if (pChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_D1C7ED37B746_S> pChunkView)
                     {
-                        if (pChunkView.Source is QueryRow_20408C8CC7AD_S[] pChunkViewArray)
+                        if (pChunkView.Source is QueryRow_D1C7ED37B746_S[] pChunkViewArray)
                         {
                             int pChunkViewOffset = pChunkView.Offset;
                             for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -149,7 +149,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                             continue;
                         }
 
-                        if (pChunkView.Source is List<QueryRow_20408C8CC7AD_S> pChunkViewList)
+                        if (pChunkView.Source is List<QueryRow_D1C7ED37B746_S> pChunkViewList)
                         {
                             int pChunkViewOffset = pChunkView.Offset;
                             for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -231,9 +231,9 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                     var __op12Scope = profileRecorder?.BeginOperatorValue(__op12Handle) ?? OperatorProfileValueScope.None;
                     var __pSchema = provider.GetSchema("#positional");
                     var pRowsProfile = profileRecorder?.CreateSourceRecorder("p");
-                    var __pSchemaQueryRows = __pSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#positional.all' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 20408C8CC7AD3F550FE9461437258166D139CC6CD34102E1904B151639A0E63D).");
-                    var pRowsSource = QuerySourceInvocation<QueryRow_20408C8CC7AD_S, QueryRowMaterializer_20408C8CC7AD_S>.Open(__pSchemaQueryRows, "all", new QueryScopedRowSourceRequest(new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress, pRowsProfile == null ? SourceDiagnostics.None : pRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, __queryRowShape_20408C8CC7AD), global::Musoq.Schema.SourceArguments.Empty);
-                    var pRows = pRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_20408C8CC7AD_S>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks : ProfiledChunkedEnumerable<QueryRow_20408C8CC7AD_S>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_20408C8CC7AD_S>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks, pRowsProfile);
+                    var __pSchemaQueryRows = __pSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#positional.all' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape D1C7ED37B746035F1E2D8858B1AE6756CF10CABE587E39CCF357EF4C512F89D7).");
+                    var pRowsSource = QuerySourceInvocation<QueryRow_D1C7ED37B746_S, QueryRowMaterializer_D1C7ED37B746_S>.Open(__pSchemaQueryRows, "all", new QueryScopedRowSourceRequest(new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress, pRowsProfile == null ? SourceDiagnostics.None : pRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, __queryRowShape_D1C7ED37B746), global::Musoq.Schema.SourceArguments.Empty);
+                    var pRows = pRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_D1C7ED37B746_S>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks : ProfiledChunkedEnumerable<QueryRow_D1C7ED37B746_S>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_D1C7ED37B746_S>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks, pRowsProfile);
                     __op12Scope.Dispose();
                     var __op13Scope = profileRecorder?.BeginOperatorValue(__op13Handle) ?? OperatorProfileValueScope.None;
                     var result = new List<ResultShape0>();
@@ -248,9 +248,9 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                     {
                         foreach (var pChunk in pRows)
                         {
-                            if (pChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_20408C8CC7AD_S> pChunkView)
+                            if (pChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_D1C7ED37B746_S> pChunkView)
                             {
-                                if (pChunkView.Source is QueryRow_20408C8CC7AD_S[] pChunkViewArray)
+                                if (pChunkView.Source is QueryRow_D1C7ED37B746_S[] pChunkViewArray)
                                 {
                                     int pChunkViewOffset = pChunkView.Offset;
                                     for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -270,7 +270,7 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
                                     continue;
                                 }
 
-                                if (pChunkView.Source is List<QueryRow_20408C8CC7AD_S> pChunkViewList)
+                                if (pChunkView.Source is List<QueryRow_D1C7ED37B746_S> pChunkViewList)
                                 {
                                     int pChunkViewOffset = pChunkView.Offset;
                                     for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -359,21 +359,21 @@ namespace GeneratedSample_P73_NativeSourceNullablePayload_Full
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private readonly struct QueryRowMaterializer_20408C8CC7AD_S : IQueryRowMaterializer<QueryRow_20408C8CC7AD_S>
+        private readonly struct QueryRowMaterializer_D1C7ED37B746_S : IQueryRowMaterializer<QueryRow_D1C7ED37B746_S>
         {
-            public static QueryRow_20408C8CC7AD_S Materialize<TReader>(scoped ref TReader reader)
-                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_20408C8CC7AD_S(reader.Read<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativePayload>(0), reader.Read<int>(1));
+            public static QueryRow_D1C7ED37B746_S Materialize<TReader>(scoped ref TReader reader)
+                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_D1C7ED37B746_S(reader.Read<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload>(0), reader.Read<int>(1));
         }
 
-        private readonly struct QueryRow_20408C8CC7AD_S
+        private readonly struct QueryRow_D1C7ED37B746_S
         {
-            public QueryRow_20408C8CC7AD_S(Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativePayload Field0, int Field1)
+            public QueryRow_D1C7ED37B746_S(Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload Field0, int Field1)
             {
                 this.Field0 = Field0;
                 this.Field1 = Field1;
             }
 
-            public Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativePayload Field0 { get; }
+            public Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload Field0 { get; }
             public int Field1 { get; }
         }
 

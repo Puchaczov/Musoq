@@ -69,7 +69,7 @@ namespace GeneratedSample_K30_TypedWindowOutputValueCarrier
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITypedRunnable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.WindowOutput>, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITypedRunnable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.WindowOutput>, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
     {
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Partition", typeof(string), 1), new Column("Amount", typeof(decimal?), 2) });
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
@@ -89,12 +89,12 @@ namespace GeneratedSample_K30_TypedWindowOutputValueCarrier
         public event QueryPhaseEventHandler PhaseChanged;
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryProgressEventHandler QueryProgress;
-        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.WindowOutput> Run(TypedQueryRunOptions options)
+        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.WindowOutput> Run(TypedQueryRunOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
             QueryRunContext? __musoqEnumerationRunContext = null;
             var __musoqInitialRunContext = QueryRunContext.Capture(options, this);
-            return new QueryEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.WindowOutput>((queryToken) =>
+            return new QueryEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.WindowOutput>((queryToken) =>
             {
                 var queryContext = new QueryRunContext(queryToken, __musoqInitialRunContext.TypedParameters, __musoqInitialRunContext.PhaseChanged, __musoqInitialRunContext.DataSourceProgress, __musoqInitialRunContext.Sender, queryId: __musoqInitialRunContext.QueryId, queryProgress: __musoqInitialRunContext.QueryProgress, queryProgressOptions: __musoqInitialRunContext.QueryProgress == null ? null : __musoqInitialRunContext.QueryProgressOptions)
                 {
@@ -105,7 +105,7 @@ namespace GeneratedSample_K30_TypedWindowOutputValueCarrier
             }, options.CancellationToken, onCompleted: __musoqInitialRunContext.QueryProgress == null ? null : (Action)(() => __musoqEnumerationRunContext?.CompleteQueryProgress()), onException: __musoqInitialRunContext.QueryProgress == null ? null : (Action<Exception>)(_ => __musoqEnumerationRunContext?.CompleteQueryProgress()), onDisposed: __musoqInitialRunContext.QueryProgress == null ? null : (Action)(() => __musoqEnumerationRunContext?.CompleteQueryProgress()));
         }
 
-        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.WindowOutput> Run(CancellationToken token)
+        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.WindowOutput> Run(CancellationToken token)
         {
             return Run(new TypedQueryRunOptions(token, TypedParameters, PhaseChanged, DataSourceProgress, QueryProgress, null));
         }
@@ -217,11 +217,11 @@ namespace GeneratedSample_K30_TypedWindowOutputValueCarrier
             }
         }
 
-        private IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.WindowOutput> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, QueryRunContext queryContext)
+        private IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.WindowOutput> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, QueryRunContext queryContext)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, queryContext))
             {
-                yield return new Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.WindowOutput((int)__musoqShapeRow.Position, (decimal?)__musoqShapeRow.Total);
+                yield return new Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.WindowOutput((int)__musoqShapeRow.Position, (decimal?)__musoqShapeRow.Total);
             }
         }
 

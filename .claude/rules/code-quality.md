@@ -15,6 +15,19 @@
 - **Support performance claims with measurements.** Follow the mandatory baseline rule for optimizations, use representative workloads for performance-sensitive changes, and investigate regressions. Prefer clear typed code over unmeasured shortcuts or unnecessary abstractions.
 - **Keep quality gates meaningful.** Do not raise maintainability budgets, weaken assertions, or hide regressions to make a change pass. Improve the implementation and retain appropriate regression coverage.
 
+### Performance Baseline
+
+**Before implementing ANY performance optimization**, you MUST:
+
+1. **Identify the owning layer** — Performance behavior must be selected in the physical plan or represented in Execution IR before it reaches the C# renderer. Renderer-only changes are acceptable only for faithful syntax emission of existing strategy metadata or local syntax cleanup.
+2. **Establish a baseline** — Run the relevant benchmarks on the **unmodified code** and record the results. This is non-negotiable. Without a baseline, you cannot prove an optimization is actually faster.
+3. **Run benchmarks after changes** — Run the same benchmarks on the modified code under identical conditions.
+4. **Compare and report** — Present a before/after comparison table showing the metric, baseline value, optimized value, and percentage change. Flag any regressions.
+
+Generated C# samples are acceptance evidence for strategy choices. Do not treat generated C# as the primary optimization surface; if a sample looks slow, first ask what physical strategy or Execution IR metadata should have prevented that shape.
+
+For benchmark commands, result interpretation thresholds, baseline workflow, and when to add new benchmarks, see the [Musoq.Benchmarks development guide](../../src/dotnet/Musoq.Benchmarks/DEVELOPMENT.md).
+
 ### Control Flow
 - **Fail fast / return early.** Validate at the top and bail out. Don't wrap the entire method body in a success branch — the happy path should have the least indentation.
 - **No `else` after `return` / `throw` / `continue`.** It's redundant nesting. The early exit already handled the branch.

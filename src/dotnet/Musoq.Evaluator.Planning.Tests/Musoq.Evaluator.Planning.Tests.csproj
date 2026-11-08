@@ -1,0 +1,233 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>preview</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Fixtures\**" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Musoq.Evaluator.Tests.Common.csproj" />
+    <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
+    <ProjectReference Include="..\\Musoq.Tests.Common\\Musoq.Tests.Common.csproj" />
+    <ProjectReference Include="..\\examples\\data-sources\\structured-inputs\\Musoq.Examples.DataSources.StructuredInputs.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalContracts\Musoq.Evaluator.Tests.External.Contracts.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalRows\Musoq.Evaluator.Tests.External.Rows.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="NegatedPredicateTests.Expressions.cs;NegatedPredicateTests.NamedCases.cs;NegatedPredicateTests.NullsAndBoundaries.cs">
+      <DependentUpon>NegatedPredicateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RewriteWhereExpressionToPassItToDataSourceTests.Negation.cs">
+      <DependentUpon>RewriteWhereExpressionToPassItToDataSourceTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalPlanTextPredicatePushdownTests.Negation.cs">
+      <DependentUpon>PhysicalPlanTextPredicatePushdownTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BuildMetadataAndInferTypesVisitorUtilitiesTests.IndexabilityAndEnumerables.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilitiesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BuildMetadataAndInferTypesVisitorUtilitiesTests.SetOperators.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilitiesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BuildMetadataAndInferTypesVisitorUtilitiesTests.StarExpansion.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilitiesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BuildMetadataAndInferTypesVisitorUtilitiesTests.ValidQueryExpressionType.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilitiesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CommonSubexpressionEliminationEdgeCaseTests.CachingNodes.cs">
+      <DependentUpon>CommonSubexpressionEliminationEdgeCaseTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CommonSubexpressionEliminationEdgeCaseTests.CachingNodes.MixedContexts.cs">
+      <DependentUpon>CommonSubexpressionEliminationEdgeCaseTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CommonSubexpressionEliminationEdgeCaseTests.CachingNodes.NullAndAllColumns.cs">
+      <DependentUpon>CommonSubexpressionEliminationEdgeCaseTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CommonSubexpressionEliminationEdgeCaseTests.CaseNullAndClauses.cs">
+      <DependentUpon>CommonSubexpressionEliminationEdgeCaseTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CommonSubexpressionEliminationEdgeCaseTests.CombinedAndBoundaries.cs">
+      <DependentUpon>CommonSubexpressionEliminationEdgeCaseTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ConstantFoldingTests.Arithmetic.cs">
+      <DependentUpon>ConstantFoldingTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ConstantFoldingTests.NonFoldableAndMixed.cs">
+      <DependentUpon>ConstantFoldingTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ConstantFoldingTests.TextBooleanAndBitwise.cs">
+      <DependentUpon>ConstantFoldingTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ConstantFoldingTests.Warnings.cs">
+      <DependentUpon>ConstantFoldingTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.CollectionParameters.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.Converter.Coalesce.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.Converter.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.Extractor.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.Printer.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.ScriptVariables.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\ExpressionIRTests.Visitor.cs">
+      <DependentUpon>ExpressionIRTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\LogicalNodeTests.Composite.cs">
+      <DependentUpon>LogicalNodeTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\LogicalNodeTests.Printer.cs">
+      <DependentUpon>LogicalNodeTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\LogicalNodeTests.UnaryAndBinary.cs">
+      <DependentUpon>LogicalNodeTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\LogicalPlanBuilderTests.ExpressionConversionAndTraversal.cs">
+      <DependentUpon>LogicalPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\LogicalPlanBuilderTests.JoinsSetsCtesAndQualify.cs">
+      <DependentUpon>LogicalPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\LogicalPlanBuilderTests.SourceFilterAggregateAndOrdering.cs">
+      <DependentUpon>LogicalPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.AggregateHoistingAndComputed.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.AggregateOrderingHavingAndTuple.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.Aggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.Apply.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.ApplyCaseSemantics.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.ApplyRightFilters.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.CompositeAndOuterHashJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.CoreAndJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.CteSourceBackedFusion.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.CteSourceBackedFusionRejection.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.CtesSetsAndDynamic.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.DynamicSourcesAndAsOf.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.ExecutionStrategies.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.FixtureModels.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.HashJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.NestedLoopAndSortMergeJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.OrderingAndHoisting.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.PlannedExecutionBuilder.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.SetOperations.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.WindowRankingAndOffsets.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.WindowRegistrationHelpers.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.Windows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalToExecutionPlanBuilderTests.WindowValuesAndQualify.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.Budgets.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.FocusedArchitecture.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.Helpers.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.OptimizerOwnership.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.OptimizerOwnership.FinalCleanup.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.ProductionChecks.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.PublicSignatures.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.StrictCasts.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.Subqueries.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RuntimeV2MaintainabilityBudgetTests.UnsupportedPaths.cs">
+      <DependentUpon>RuntimeV2MaintainabilityBudgetTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\CteDependencyGraph\CteDependencyGraphBuilderTests.ComplexAndEdge.cs">
+      <DependentUpon>CteDependencyGraphBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\CteDependencyGraph\CteDependencyGraphBuilderTests.ExecutionAndApply.cs">
+      <DependentUpon>CteDependencyGraphBuilderTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\CteDependencyGraph\CteDependencyGraphBuilderTests.Workflow.cs">
+      <DependentUpon>CteDependencyGraphBuilderTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

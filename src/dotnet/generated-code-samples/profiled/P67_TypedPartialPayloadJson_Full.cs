@@ -311,14 +311,14 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
         private static List<Statement0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement0_sSchema = provider.GetSchema("#schema");
-            var statement0_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>.Open(__statement0_sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks;
+            var statement0_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes>.Open(__statement0_sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
             foreach (var sChunk in statement0_sRows)
             {
-                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes> sChunkView)
+                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes> sChunkView)
                 {
-                    if (sChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes[] sChunkViewArray)
+                    if (sChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes[] sChunkViewArray)
                     {
                         int sChunkViewOffset = sChunkView.Offset;
                         for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
@@ -343,7 +343,7 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                         continue;
                     }
 
-                    if (sChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes> sChunkViewList)
+                    if (sChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes> sChunkViewList)
                     {
                         int sChunkViewOffset = sChunkView.Offset;
                         for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
@@ -408,8 +408,8 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                 var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_sSchema = provider.GetSchema("#schema");
                 var statement0_sRowsProfile = profileRecorder?.CreateSourceRecorder("s");
-                var statement0_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>.Open(__statement0_sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress, statement0_sRowsProfile == null ? SourceDiagnostics.None : statement0_sRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_sRows = statement0_sRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks, statement0_sRowsProfile);
+                var statement0_sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes>.Open(__statement0_sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress, statement0_sRowsProfile == null ? SourceDiagnostics.None : statement0_sRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_sRows = statement0_sRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes>(statement0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : statement0_sRowsSource.Chunks, statement0_sRowsProfile);
                 __op26Scope.Dispose();
                 var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
@@ -421,9 +421,9 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                 {
                     foreach (var sChunk in statement0_sRows)
                     {
-                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes> sChunkView)
+                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes> sChunkView)
                         {
-                            if (sChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes[] sChunkViewArray)
+                            if (sChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes[] sChunkViewArray)
                             {
                                 int sChunkViewOffset = sChunkView.Offset;
                                 for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
@@ -467,7 +467,7 @@ namespace GeneratedSample_P67_TypedPartialPayloadJson_Full
                                 continue;
                             }
 
-                            if (sChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.PartialBytes> sChunkViewList)
+                            if (sChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.PartialBytes> sChunkViewList)
                             {
                                 int sChunkViewOffset = sChunkView.Offset;
                                 for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)

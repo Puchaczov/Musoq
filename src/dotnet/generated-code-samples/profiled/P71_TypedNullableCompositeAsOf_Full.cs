@@ -305,13 +305,13 @@ namespace GeneratedSample_P71_TypedNullableCompositeAsOf_Full
         private static List<Statement0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement0_aSchema = provider.GetSchema("#schema");
-            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
+            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
             var __statement0_bSchema = provider.GetSchema("#schema");
-            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
-            var statement0AsOfIndex = EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput, decimal?, ValueTuple<int, string>, int?>(statement0_bRows, (bCandidate) =>
+            var statement0AsOfIndex = EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput, decimal?, ValueTuple<int, string>, int?>(statement0_bRows, (bCandidate) =>
             {
                 var __asOfEqualityPart0 = bCandidate.Partition;
                 var __asOfEqualityPart1 = bCandidate.Label;
@@ -320,9 +320,9 @@ namespace GeneratedSample_P71_TypedNullableCompositeAsOf_Full
             }, (bCandidate) => bCandidate.Key, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterOrEqual, (bCandidate) => bCandidate.Position, true, Musoq.Evaluator.IR.Bindings.NullOrdering.Default);
             foreach (var aChunk in statement0_aRows)
             {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput> aChunkView)
+                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput> aChunkView)
                 {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput[] aChunkViewArray)
+                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput[] aChunkViewArray)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -352,7 +352,7 @@ namespace GeneratedSample_P71_TypedNullableCompositeAsOf_Full
                         continue;
                     }
 
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput> aChunkViewList)
+                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput> aChunkViewList)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -430,20 +430,20 @@ namespace GeneratedSample_P71_TypedNullableCompositeAsOf_Full
                 var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_aSchema = provider.GetSchema("#schema");
                 var statement0_aRowsProfile = profileRecorder?.CreateSourceRecorder("a");
-                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
+                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
                 __op25Scope.Dispose();
                 var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_bSchema = provider.GetSchema("#schema");
                 var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
-                var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
+                var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
                 __op26Scope.Dispose();
                 var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
                 __op27Scope.Dispose();
                 var __op28Scope = profileRecorder?.BeginOperatorValue(__op28Handle) ?? OperatorProfileValueScope.None;
-                var statement0AsOfIndex = EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput, decimal?, ValueTuple<int, string>, int?>(statement0_bRows, (bCandidate) =>
+                var statement0AsOfIndex = EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput, decimal?, ValueTuple<int, string>, int?>(statement0_bRows, (bCandidate) =>
                 {
                     var __asOfEqualityPart0 = bCandidate.Partition;
                     var __asOfEqualityPart1 = bCandidate.Label;
@@ -458,9 +458,9 @@ namespace GeneratedSample_P71_TypedNullableCompositeAsOf_Full
                 {
                     foreach (var aChunk in statement0_aRows)
                     {
-                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput> aChunkView)
+                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput> aChunkView)
                         {
-                            if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput[] aChunkViewArray)
+                            if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput[] aChunkViewArray)
                             {
                                 int aChunkViewOffset = aChunkView.Offset;
                                 for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -502,7 +502,7 @@ namespace GeneratedSample_P71_TypedNullableCompositeAsOf_Full
                                 continue;
                             }
 
-                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTests.AsOfInput> aChunkViewList)
+                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput> aChunkViewList)
                             {
                                 int aChunkViewOffset = aChunkView.Offset;
                                 for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)

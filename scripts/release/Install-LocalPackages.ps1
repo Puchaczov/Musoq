@@ -15,15 +15,15 @@ the restore fails.
 
 .EXAMPLE
 ./scripts/release/Install-LocalPackages.ps1 `
-    -PackagePath ./artifacts/release-candidates/17.0.11-alpha.2/combined-feed
+    -PackagePath ./.artifacts/release-candidates/17.0.11-alpha.2/combined-feed
 
 .EXAMPLE
 ./scripts/release/Install-LocalPackages.ps1 `
-    -PackagePath ./artifacts/nupkgs/Musoq.Evaluator.17.0.11-alpha.2.nupkg
+    -PackagePath ./.artifacts/nupkgs/Musoq.Evaluator.17.0.11-alpha.2.nupkg
 
 .EXAMPLE
 ./scripts/release/Install-LocalPackages.ps1 `
-    -PackagePath ./artifacts/release-candidates/17.0.11-alpha.2/all-packages `
+    -PackagePath ./.artifacts/release-candidates/17.0.11-alpha.2/all-packages `
     -ReplaceExisting
 #>
 [CmdletBinding()]

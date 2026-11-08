@@ -73,7 +73,7 @@ namespace GeneratedSample_K57_TypedNullableNestedMember
             new Column("Position", typeof(int), 0),
             new Column("Value", typeof(string), 1)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Child", typeof(Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTests.InnerEntity), 1) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Child", typeof(Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures.InnerEntity), 1) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
@@ -111,15 +111,15 @@ namespace GeneratedSample_K57_TypedNullableNestedMember
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTests.OuterEntity>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTests.OuterEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures.OuterEntity>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures.OuterEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultOrderRecords = new List<ResultRow0WithSortKeys>();
                 OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var ko3ikoChunk in ko3ikoRows)
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTests.OuterEntity> ko3ikoChunkView)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures.OuterEntity> ko3ikoChunkView)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTests.OuterEntity[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures.OuterEntity[] ko3ikoChunkViewArray)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -136,7 +136,7 @@ namespace GeneratedSample_K57_TypedNullableNestedMember
                             continue;
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTests.OuterEntity> ko3ikoChunkViewList)
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures.OuterEntity> ko3ikoChunkViewList)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)

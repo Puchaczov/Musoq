@@ -147,21 +147,21 @@ namespace GeneratedSample_P84_NativeStructGenericResult_Full
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-                Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.GenericLibrary __resultGenericLibrary0 = default!;
+                Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary __resultGenericLibrary0 = default!;
                 try
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     OnPhaseChanged("compiled:cte0", QueryPhase.From);
                     var __ko3ikoSchema = provider.GetSchema("#schema");
-                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                     OnPhaseChanged("compiled:cte0", QueryPhase.Select);
-                    __resultGenericLibrary0 = new Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.GenericLibrary();
+                    __resultGenericLibrary0 = new Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary();
                     foreach (var ko3ikoChunk in ko3ikoRows)
                     {
-                        if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input> ko3ikoChunkView)
+                        if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input> ko3ikoChunkView)
                         {
-                            if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input[] ko3ikoChunkViewArray)
+                            if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input[] ko3ikoChunkViewArray)
                             {
                                 int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                                 for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -178,7 +178,7 @@ namespace GeneratedSample_P84_NativeStructGenericResult_Full
                                 continue;
                             }
 
-                            if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input> ko3ikoChunkViewList)
+                            if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input> ko3ikoChunkViewList)
                             {
                                 int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                                 for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -258,7 +258,7 @@ namespace GeneratedSample_P84_NativeStructGenericResult_Full
                 var __op11Scope = profileRecorder?.BeginOperatorValue(__op11Handle) ?? OperatorProfileValueScope.None;
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 __op11Scope.Dispose();
-                Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.GenericLibrary __resultGenericLibrary0 = default!;
+                Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary __resultGenericLibrary0 = default!;
                 try
                 {
                     var __op12Scope = profileRecorder?.BeginOperatorValue(__op12Handle) ?? OperatorProfileValueScope.None;
@@ -270,14 +270,14 @@ namespace GeneratedSample_P84_NativeStructGenericResult_Full
                     var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
                     var __ko3ikoSchema = provider.GetSchema("#schema");
                     var ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
-                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
+                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
                     __op14Scope.Dispose();
                     var __op16Scope = profileRecorder?.BeginOperatorValue(__op16Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled:cte0", QueryPhase.Select);
                     __op16Scope.Dispose();
                     var __op17Scope = profileRecorder?.BeginOperatorValue(__op17Handle) ?? OperatorProfileValueScope.None;
-                    __resultGenericLibrary0 = new Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.GenericLibrary();
+                    __resultGenericLibrary0 = new Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary();
                     __op17Scope.Dispose();
                     long __op18InputRows = 0L;
                     long __op18OutputRows = 0L;
@@ -286,9 +286,9 @@ namespace GeneratedSample_P84_NativeStructGenericResult_Full
                     {
                         foreach (var ko3ikoChunk in ko3ikoRows)
                         {
-                            if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input> ko3ikoChunkView)
+                            if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input> ko3ikoChunkView)
                             {
-                                if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input[] ko3ikoChunkViewArray)
+                                if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input[] ko3ikoChunkViewArray)
                                 {
                                     int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                                     for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -308,7 +308,7 @@ namespace GeneratedSample_P84_NativeStructGenericResult_Full
                                     continue;
                                 }
 
-                                if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTests.Input> ko3ikoChunkViewList)
+                                if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input> ko3ikoChunkViewList)
                                 {
                                     int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                                     for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)

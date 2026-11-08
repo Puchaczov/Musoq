@@ -110,15 +110,15 @@ namespace GeneratedSample_K50_TypedNativeRecordProjection
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTests.NativeRecordInput>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTests.NativeRecordInput>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures.NativeRecordInput>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures.NativeRecordInput>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultOrderRecords = new List<ResultRow0WithSortKeys>();
                 OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var ko3ikoChunk in ko3ikoRows)
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTests.NativeRecordInput> ko3ikoChunkView)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures.NativeRecordInput> ko3ikoChunkView)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTests.NativeRecordInput[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures.NativeRecordInput[] ko3ikoChunkViewArray)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -136,7 +136,7 @@ namespace GeneratedSample_K50_TypedNativeRecordProjection
                             continue;
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTests.NativeRecordInput> ko3ikoChunkViewList)
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures.NativeRecordInput> ko3ikoChunkViewList)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)

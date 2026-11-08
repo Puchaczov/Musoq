@@ -130,14 +130,14 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultSums0OrderKeys = new WindowResultSums0OrderKeysKey[resultWindowRows.Count];
                 var resultSums0RangeKeys = new int? [resultWindowRows.Count];
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
                     resultSums0OrderKeys[windowIndex] = new WindowResultSums0OrderKeysKey(ko3iko.Value);
                     resultSums0RangeKeys[windowIndex] = (int?)resultSums0OrderKeys[windowIndex].RawValues;
                 }
@@ -148,7 +148,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                 var resultSums0BatchValues = new int? [resultWindowRows.Count];
                 for (int resultSums0CaptureIndex = 0; resultSums0CaptureIndex < resultWindowRows.Count; ++resultSums0CaptureIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[resultSums0CaptureIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[resultSums0CaptureIndex];
                     resultSums0BatchValues[resultSums0CaptureIndex] = (int?)ko3iko.Value;
                 }
 
@@ -178,7 +178,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                 var resultCounts1RangeKeys = new int? [resultWindowRows.Count];
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
                     resultCounts1RangeKeys[windowIndex] = (int?)resultSums0OrderKeys[windowIndex].RawValues;
                 }
 
@@ -186,7 +186,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                 var resultCounts1BatchValues = new int? [resultWindowRows.Count];
                 for (int resultCounts1CaptureIndex = 0; resultCounts1CaptureIndex < resultWindowRows.Count; ++resultCounts1CaptureIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[resultCounts1CaptureIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[resultCounts1CaptureIndex];
                     resultCounts1BatchValues[resultCounts1CaptureIndex] = (int?)ko3iko.Value;
                 }
 
@@ -221,7 +221,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
                     result.Add(new ResultShape0(ko3iko.Position, (int?)resultSums0[windowIndex], (long)resultCounts1[windowIndex]) { __musoqSequence = result.Count });
                 }
 
@@ -281,8 +281,8 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     var __op13Scope = profileRecorder?.BeginOperatorValue(__op13Handle) ?? OperatorProfileValueScope.None;
                     var __ko3ikoSchema = provider.GetSchema("#schema");
                     var ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
-                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
+                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
                     __op13Scope.Dispose();
                     var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
                     var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
@@ -293,7 +293,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     var resultSums0RangeKeys = new int? [resultWindowRows.Count];
                     for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                     {
-                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[windowIndex];
+                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
                         resultSums0OrderKeys[windowIndex] = new WindowResultSums0OrderKeysKey(ko3iko.Value);
                         resultSums0RangeKeys[windowIndex] = (int?)resultSums0OrderKeys[windowIndex].RawValues;
                     }
@@ -304,7 +304,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     var resultSums0BatchValues = new int? [resultWindowRows.Count];
                     for (int resultSums0CaptureIndex = 0; resultSums0CaptureIndex < resultWindowRows.Count; ++resultSums0CaptureIndex)
                     {
-                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[resultSums0CaptureIndex];
+                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[resultSums0CaptureIndex];
                         resultSums0BatchValues[resultSums0CaptureIndex] = (int?)ko3iko.Value;
                     }
 
@@ -336,7 +336,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     var resultCounts1RangeKeys = new int? [resultWindowRows.Count];
                     for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                     {
-                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[windowIndex];
+                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
                         resultCounts1RangeKeys[windowIndex] = (int?)resultSums0OrderKeys[windowIndex].RawValues;
                     }
 
@@ -344,7 +344,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     var resultCounts1BatchValues = new int? [resultWindowRows.Count];
                     for (int resultCounts1CaptureIndex = 0; resultCounts1CaptureIndex < resultWindowRows.Count; ++resultCounts1CaptureIndex)
                     {
-                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[resultCounts1CaptureIndex];
+                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[resultCounts1CaptureIndex];
                         resultCounts1BatchValues[resultCounts1CaptureIndex] = (int?)ko3iko.Value;
                     }
 
@@ -387,7 +387,7 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow ko3iko = resultWindowRows[windowIndex];
+                            Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
                             __op18InputRows++;
                             __op18OutputRows++;
                             result.Add(new ResultShape0(ko3iko.Position, (int?)resultSums0[windowIndex], (long)resultCounts1[windowIndex]) { __musoqSequence = result.Count });

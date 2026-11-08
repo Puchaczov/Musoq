@@ -418,14 +418,14 @@ namespace GeneratedSample_P95_NativeCaseDistinctCteGrouping_Full
             try
             {
                 var __cte0_ko3ikoSchema = provider.GetSchema("#schema");
-                var cte0_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow>.Open(__cte0_ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
+                var cte0_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow>.Open(__cte0_ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
                 var cte0 = new List<Cte0Row0>();
                 foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow> ko3ikoChunkView)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow> ko3ikoChunkView)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow[] ko3ikoChunkViewArray)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -442,7 +442,7 @@ namespace GeneratedSample_P95_NativeCaseDistinctCteGrouping_Full
                             continue;
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow> ko3ikoChunkViewList)
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow> ko3ikoChunkViewList)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -497,8 +497,8 @@ namespace GeneratedSample_P95_NativeCaseDistinctCteGrouping_Full
                     var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                     var __cte0_ko3ikoSchema = provider.GetSchema("#schema");
                     var cte0_ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
-                    var cte0_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow>.Open(__cte0_ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, cte0_ko3ikoRowsProfile == null ? SourceDiagnostics.None : cte0_ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var cte0_ko3ikoRows = cte0_ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks, cte0_ko3ikoRowsProfile);
+                    var cte0_ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow>.Open(__cte0_ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, cte0_ko3ikoRowsProfile == null ? SourceDiagnostics.None : cte0_ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0_ko3ikoRows = cte0_ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks, cte0_ko3ikoRowsProfile);
                     __op26Scope.Dispose();
                     var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
                     var cte0 = new List<Cte0Row0>();
@@ -510,9 +510,9 @@ namespace GeneratedSample_P95_NativeCaseDistinctCteGrouping_Full
                     {
                         foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                         {
-                            if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow> ko3ikoChunkView)
+                            if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow> ko3ikoChunkView)
                             {
-                                if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow[] ko3ikoChunkViewArray)
+                                if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow[] ko3ikoChunkViewArray)
                                 {
                                     int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                                     for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -532,7 +532,7 @@ namespace GeneratedSample_P95_NativeCaseDistinctCteGrouping_Full
                                     continue;
                                 }
 
-                                if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.CaseDistinctPlanningRow> ko3ikoChunkViewList)
+                                if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.CaseDistinctPlanningRow> ko3ikoChunkViewList)
                                 {
                                     int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                                     for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)

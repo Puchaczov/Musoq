@@ -489,3 +489,30 @@ dotnet_diagnostic.CA1819.severity = none
 
 [src/dotnet/generated-code-samples/**/*.cs]
 end_of_line = lf
+
+[src/dotnet/Musoq.Evaluator.Tests.Common/**]
+# Test method and fixture names intentionally encode scenarios.
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1815.severity = none
+# Test fixture and metadata classes are often consumed through reflection, dynamic data, or query/schema discovery.
+dotnet_diagnostic.CA1812.severity = none
+dotnet_diagnostic.CA1819.severity = none
+dotnet_diagnostic.CA1000.severity = none
+dotnet_diagnostic.CA1002.severity = none
+dotnet_diagnostic.CA1031.severity = none
+dotnet_diagnostic.CA1034.severity = none
+dotnet_diagnostic.CA1051.severity = none
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1304.severity = none
+dotnet_diagnostic.CA1303.severity = none
+dotnet_diagnostic.CA1305.severity = none
+dotnet_diagnostic.CA1307.severity = none
+dotnet_diagnostic.CA1308.severity = none
+dotnet_diagnostic.CA1310.severity = none
+dotnet_diagnostic.CA1311.severity = none
+# Tests intentionally exercise defensive null/equality branches that the analyzer can prove at compile time.
+dotnet_diagnostic.CA1508.severity = none
+# Test constant arrays keep scenario data local to the assertion/setup they document.
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA5394.severity = none

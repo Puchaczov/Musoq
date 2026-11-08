@@ -309,14 +309,14 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
         private static List<Statement0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement0_aSchema = provider.GetSchema("#native");
-            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_aSchema, "rows", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
+            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_aSchema, "rows", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
             foreach (var aChunk in statement0_aRows)
             {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> aChunkView)
+                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> aChunkView)
                 {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] aChunkViewArray)
+                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] aChunkViewArray)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -329,13 +329,13 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             var a = aChunkViewArray[aChunkViewOffset + aIndex];
                             int aId = a.Id;
                             var __statement0_bSchema = provider.GetSchema("#native");
-                            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
-                            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+                            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
+                            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
                             foreach (var bChunk in statement0_bRows)
                             {
-                                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkView)
+                                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkView)
                                 {
-                                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] bChunkViewArray)
+                                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] bChunkViewArray)
                                     {
                                         int bChunkViewOffset = bChunkView.Offset;
                                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -352,7 +352,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                         continue;
                                     }
 
-                                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkViewList)
+                                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkViewList)
                                     {
                                         int bChunkViewOffset = bChunkView.Offset;
                                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -386,7 +386,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                         continue;
                     }
 
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> aChunkViewList)
+                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> aChunkViewList)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -399,13 +399,13 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             var a = aChunkViewList[aChunkViewOffset + aIndex];
                             int aId = a.Id;
                             var __statement0_bSchema = provider.GetSchema("#native");
-                            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
-                            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+                            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
+                            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
                             foreach (var bChunk in statement0_bRows)
                             {
-                                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkView)
+                                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkView)
                                 {
-                                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] bChunkViewArray)
+                                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] bChunkViewArray)
                                     {
                                         int bChunkViewOffset = bChunkView.Offset;
                                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -422,7 +422,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                         continue;
                                     }
 
-                                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkViewList)
+                                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkViewList)
                                     {
                                         int bChunkViewOffset = bChunkView.Offset;
                                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -467,13 +467,13 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                     var a = aChunk[aIndex];
                     int aId = a.Id;
                     var __statement0_bSchema = provider.GetSchema("#native");
-                    var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
-                    var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+                    var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
+                    var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
                     foreach (var bChunk in statement0_bRows)
                     {
-                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkView)
+                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkView)
                         {
-                            if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] bChunkViewArray)
+                            if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] bChunkViewArray)
                             {
                                 int bChunkViewOffset = bChunkView.Offset;
                                 for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -490,7 +490,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                 continue;
                             }
 
-                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkViewList)
+                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkViewList)
                             {
                                 int bChunkViewOffset = bChunkView.Offset;
                                 for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -541,8 +541,8 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                 var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_aSchema = provider.GetSchema("#native");
                 var statement0_aRowsProfile = profileRecorder?.CreateSourceRecorder("a");
-                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_aSchema, "rows", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
+                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_aSchema, "rows", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
                 __op25Scope.Dispose();
                 var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
@@ -554,9 +554,9 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                 {
                     foreach (var aChunk in statement0_aRows)
                     {
-                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> aChunkView)
+                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> aChunkView)
                         {
-                            if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] aChunkViewArray)
+                            if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] aChunkViewArray)
                             {
                                 int aChunkViewOffset = aChunkView.Offset;
                                 for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -573,8 +573,8 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                                     var __statement0_bSchema = provider.GetSchema("#native");
                                     var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
-                                    var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
-                                    var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
+                                    var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
+                                    var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
                                     __op30Scope.Dispose();
                                     long __op31InputRows = 0L;
                                     long __op31OutputRows = 0L;
@@ -583,9 +583,9 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     {
                                         foreach (var bChunk in statement0_bRows)
                                         {
-                                            if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkView)
+                                            if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkView)
                                             {
-                                                if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] bChunkViewArray)
+                                                if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] bChunkViewArray)
                                                 {
                                                     int bChunkViewOffset = bChunkView.Offset;
                                                     for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -605,7 +605,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                     continue;
                                                 }
 
-                                                if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkViewList)
+                                                if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkViewList)
                                                 {
                                                     int bChunkViewOffset = bChunkView.Offset;
                                                     for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -652,7 +652,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                 continue;
                             }
 
-                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> aChunkViewList)
+                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> aChunkViewList)
                             {
                                 int aChunkViewOffset = aChunkView.Offset;
                                 for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -669,8 +669,8 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                                     var __statement0_bSchema = provider.GetSchema("#native");
                                     var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
-                                    var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
-                                    var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
+                                    var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
+                                    var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
                                     __op30Scope.Dispose();
                                     long __op31InputRows = 0L;
                                     long __op31OutputRows = 0L;
@@ -679,9 +679,9 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                     {
                                         foreach (var bChunk in statement0_bRows)
                                         {
-                                            if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkView)
+                                            if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkView)
                                             {
-                                                if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] bChunkViewArray)
+                                                if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] bChunkViewArray)
                                                 {
                                                     int bChunkViewOffset = bChunkView.Offset;
                                                     for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -701,7 +701,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                                     continue;
                                                 }
 
-                                                if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkViewList)
+                                                if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkViewList)
                                                 {
                                                     int bChunkViewOffset = bChunkView.Offset;
                                                     for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -763,8 +763,8 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                             var __statement0_bSchema = provider.GetSchema("#native");
                             var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
-                            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
-                            var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
+                            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Open(__statement0_bSchema, "echo", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_2, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Create(a.Amount, global::Musoq.Schema.SourceArguments.Create(a.Label, global::Musoq.Schema.SourceArguments.Empty)));
+                            var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
                             __op30Scope.Dispose();
                             long __op31InputRows = 0L;
                             long __op31OutputRows = 0L;
@@ -773,9 +773,9 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                             {
                                 foreach (var bChunk in statement0_bRows)
                                 {
-                                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkView)
+                                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkView)
                                     {
-                                        if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity[] bChunkViewArray)
+                                        if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity[] bChunkViewArray)
                                         {
                                             int bChunkViewOffset = bChunkView.Offset;
                                             for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -795,7 +795,7 @@ namespace GeneratedSample_P76_NativeApplyArgumentCarriers_Full
                                             continue;
                                         }
 
-                                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTests.NativeEntity> bChunkViewList)
+                                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeSourceArgumentQueryTestsFixtures.NativeEntity> bChunkViewList)
                                         {
                                             int bChunkViewOffset = bChunkView.Offset;
                                             for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)

@@ -1,6 +1,6 @@
 # SQL language tour
 
-Explore Musoq's SQL constructs and format declarations through examples with expected results. For a complete investigation combining sources, follow the [log-to-deployment walkthrough](investigation/README.md). The [execution companion](README.md) supplies query files, prerequisites, commands, and expected JSON.
+Explore Musoq's SQL constructs and format declarations through examples with expected results. The [execution companion](README.md) supplies query files, prerequisites, commands, and expected JSON.
 
 ## Search and interpretation
 
@@ -677,6 +677,6 @@ See the [architecture reference](../../../.claude/rules/architecture.md) for the
 - [Text and binary interpretation](../../../specs/musoq-binary-text-spec.md): format declarations and interpretation functions.
 - [TABLE and COUPLE](../../../specs/musoq-table-couple-spec.md): source contracts and query-local bindings.
 - [Runnable syntax examples](README.md): prerequisites, provenance, execution commands, and expected results.
-- [Engine development guide](../../../.github/copilot-instructions.md): implementation and contribution guidance.
+- [Engine development guide](../../../AGENTS.md): implementation and contribution guidance.
 
 Diagnostic-aware compilation reports intent mistakes, including null-sensitive predicates such as `where Name not in ('Alice', NULL)` and impossible implicit conversions (`MQ5025`). See the [diagnostic contract and catalog](../../../specs/musoq-core-language-spec.md#23-diagnostic-contract-and-catalog).

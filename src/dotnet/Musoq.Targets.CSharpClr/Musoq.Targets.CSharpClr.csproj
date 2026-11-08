@@ -18,6 +18,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Musoq.Converter" />
     <InternalsVisibleTo Include="Musoq.Converter.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.CodeGeneration.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Planning.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Relational.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Query.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Runtime.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Diagnostics.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Interpretation.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Tests.Common" />
   </ItemGroup>
 </Project>

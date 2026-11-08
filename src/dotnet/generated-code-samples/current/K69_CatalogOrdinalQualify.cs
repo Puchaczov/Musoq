@@ -114,8 +114,8 @@ namespace GeneratedSample_K69_CatalogOrdinalQualify
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultRowNumbersOrderKeys = new WindowResultRowNumbersOrderKeysKey[resultWindowRows.Count];
                 ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersOrderKeys);
@@ -132,7 +132,7 @@ namespace GeneratedSample_K69_CatalogOrdinalQualify
                     {
                         var resultRowNumbersCurrentIndex = resultRowNumbersPartitionIndices[resultRowNumbersPartitionStart + resultRowNumbersPartitionIndex];
                         var resultRowNumbersContext = new Musoq.Plugins.WindowRankingContext(resultRowNumbersPartitionIndex, 0, 0, 0L, resultRowNumbersPartitionCount, token);
-                        resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.ShiftedOrdinalKernel.Get(in resultRowNumbersContext);
+                        resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.ShiftedOrdinalKernel.Get(in resultRowNumbersContext);
                     }
                 }
 
@@ -144,7 +144,7 @@ namespace GeneratedSample_K69_CatalogOrdinalQualify
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
                     if (((long)resultRowNumbers[windowIndex] <= 0))
                     {
                         result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers[windowIndex]) { __musoqSequence = result.Count });
@@ -187,11 +187,11 @@ namespace GeneratedSample_K69_CatalogOrdinalQualify
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void ExtractResultRowNumbersWindowKeys(IReadOnlyList<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>> resultWindowRows, WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys)
+        private static void ExtractResultRowNumbersWindowKeys(IReadOnlyList<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>> resultWindowRows, WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys)
         {
             for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
             {
-                Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
+                Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
                 resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey(ko3iko.Value);
             }
         }

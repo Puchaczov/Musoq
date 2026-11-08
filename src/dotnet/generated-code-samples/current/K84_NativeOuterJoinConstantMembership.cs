@@ -205,18 +205,18 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
         private static List<Statement0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement0_aSchema = provider.GetSchema("#schema");
-            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
+            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
             var __statement0_bSchema = provider.GetSchema("#schema");
-            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
-            var statement0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>>();
+            var statement0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>>();
             foreach (var bChunk in statement0_bRows)
             {
-                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow> bChunkView)
+                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow> bChunkView)
                 {
-                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow[] bChunkViewArray)
+                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow[] bChunkViewArray)
                     {
                         int bChunkViewOffset = bChunkView.Offset;
                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -234,7 +234,7 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                                 ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                 if (!matchesExists)
                                 {
-                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>(b);
+                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>(b);
                                 }
                                 else
                                 {
@@ -246,7 +246,7 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                         continue;
                     }
 
-                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow> bChunkViewList)
+                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow> bChunkViewList)
                     {
                         int bChunkViewOffset = bChunkView.Offset;
                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -264,7 +264,7 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                                 ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                 if (!matchesExists)
                                 {
-                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>(b);
+                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>(b);
                                 }
                                 else
                                 {
@@ -292,7 +292,7 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                         ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                         if (!matchesExists)
                         {
-                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow>(b);
+                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow>(b);
                         }
                         else
                         {
@@ -304,9 +304,9 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
 
             foreach (var aChunk in statement0_aRows)
             {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow> aChunkView)
+                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow> aChunkView)
                 {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow[] aChunkViewArray)
+                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow[] aChunkViewArray)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -338,7 +338,7 @@ namespace GeneratedSample_K84_NativeOuterJoinConstantMembership
                         continue;
                     }
 
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.OuterMembershipRow> aChunkViewList)
+                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.OuterMembershipRow> aChunkViewList)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)

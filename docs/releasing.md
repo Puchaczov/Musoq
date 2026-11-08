@@ -86,7 +86,7 @@ dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet
 dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore --nologo --verbosity quiet
 dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
-$out = "artifacts/release-$($tag.TrimStart('v').Replace('/', '-'))"
+$out = ".artifacts/release-$($tag.TrimStart('v').Replace('/', '-'))"
 pwsh -NoProfile -File scripts/release/Pack-Release.ps1 -Tag $tag -OutputPath $out
 ```
 
@@ -94,6 +94,10 @@ pwsh -NoProfile -File scripts/release/Pack-Release.ps1 -Tag $tag -OutputPath $ou
 without publishing. For a real release, verify the tag-triggered
 workflow, the GitHub Release assets, and every selected package/version in the
 NuGet flat container after indexing completes.
+
+The package manifest lists filenames relative to the package directory, so the
+package artifacts can move between build and publish jobs without retaining
+build-machine paths.
 
 ## Formatter package qualification
 

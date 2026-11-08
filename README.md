@@ -141,6 +141,8 @@ The examples above only show a few parts of the language. Here is a quick overvi
 
 Musoq uses its own SQL dialect. The language specifications below describe the exact syntax and limits.
 
+Diagnostic-aware compilation reports likely mistakes, including null-sensitive predicates such as `where Name not in ('Alice', NULL)` and impossible implicit conversions (`MQ5025`).
+
 ## From a question to a reusable query
 
 I want to ask a question, let an agent work through the data, and keep the SQL it used to answer it. That query should be something I can read, check, and run again.

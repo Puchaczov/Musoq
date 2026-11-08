@@ -25,7 +25,7 @@ Documentation and test-only changes do not require the full solution suite solel
    dotnet test src/dotnet/Musoq.Parser.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
    # Test evaluator, planner, renderer, and runtime changes - largest suite
-   dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.sln --filter "FullyQualifiedName~Musoq.Evaluator.Tests" --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
    # Test converter and pipeline orchestration changes
    dotnet test src/dotnet/Musoq.Converter.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
@@ -38,11 +38,11 @@ Documentation and test-only changes do not require the full solution suite solel
   ```
 
 ### IR Planner Validation
-- **Plan construction tests** live under `src/dotnet/Musoq.Evaluator.Tests/IR` and cover Expression IR, logical nodes, physical nodes, builders, renderers, and end-to-end IR pipeline behavior.
+- **Plan construction tests** live under `src/dotnet/Musoq.Evaluator.Planning.Tests/IR` and cover Expression IR, logical nodes, physical nodes, builders and end-to-end IR pipeline behavior. Renderer tests live under `src/dotnet/Musoq.Evaluator.CodeGeneration.Tests/IR`.
 - For planner shape bugs, run the focused IR tests first, then the evaluator suite:
    ```bash
-   dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --filter "FullyQualifiedName~Musoq.Evaluator.Tests.IR" --nologo --verbosity quiet --logger "console;verbosity=minimal"
-   dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --filter "FullyQualifiedName~Musoq.Evaluator.Tests.IR" --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.sln --filter "FullyQualifiedName~Musoq.Evaluator.Tests" --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
    ```
 - If a renderer throws `NotSupportedException` from a pipeline decomposition method, inspect the logical and physical plans before changing code generation.
 
@@ -136,4 +136,4 @@ dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --filter Tes
 - **Practical examples**: See [README.md](../../README.md) for real-world query examples (git analysis, file processing, etc.)
 - **Plugin development**: Examine existing plugins in [src/dotnet/Musoq.Plugins](../../src/dotnet/Musoq.Plugins) directory
 - **Specifications**: See [specs/](../../specs/) for detailed specifications (especially [musoq-binary-text-spec.md](../../specs/musoq-binary-text-spec.md) for interpretation schemas)
-- **Test examples**: [ArithmeticTests.cs](../../src/dotnet/Musoq.Evaluator.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`
+- **Test examples**: [ArithmeticTests.cs](../../src/dotnet/Musoq.Evaluator.Query.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`

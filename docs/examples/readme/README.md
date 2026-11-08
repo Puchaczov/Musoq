@@ -2,8 +2,6 @@
 
 This collection contains 28 runnable syntax examples, with 24 explained in the [SQL language tour](language-tour.md). Each example has a SQL file; the four additional Search recipes include their SQL below. `binary-default.sql` remains supplemental coverage.
 
-For the log-to-deployment investigation from the [main README](../../../README.md), use the separate [walkthrough companion](investigation/README.md). Its inputs and query files are independent of the fixtures below.
-
 ## Prerequisites
 
 Use a running Musoq instance supporting these constructions. `search-*.sql` requires the Search provider. All `binary*.sql` files and `table-couple.sql` require the System provider. Other examples use inline inputs. No credentials or external downloads are required.
@@ -473,7 +471,7 @@ musoq run docs/examples/readme/binary-default.sql --from-file --format json
 
 **Provenance:** Preserved unchanged from the earlier README collection. It adapts Query_SwitchPayload_DefaultCase_ShouldSelectRawBranch in BinaryOrTextual.SwitchTests.cs, using 09 03 AA BB CC and projecting the three-byte fallback length.
 
-See the [binary switch tests](../../../src/dotnet/Musoq.Evaluator.Tests/BinaryOrTextual.SwitchTests.cs) and [tagged-union specification](../../../specs/musoq-binary-text-spec.md#412-switch-tagged-union-payloads) for the related schemas and semantics.
+See the [binary switch tests](../../../src/dotnet/Musoq.Evaluator.Interpretation.Tests/BinaryOrTextual.SwitchTests.cs) and [tagged-union specification](../../../specs/musoq-binary-text-spec.md#412-switch-tagged-union-payloads) for the related schemas and semantics.
 
 ## Inspection
 
@@ -502,4 +500,4 @@ All 28 main files and the preserved binary-default fixture matched their recorde
 
 The main README's Search, binary, and text samples, plus its provider-free VALUES quick start, were executed against the installed runtime and matched their expected ordered columns and values. Each displayed SQL block matches its executed query file. The `musoq describe schema --format json` command also returned a valid catalog containing the required Search and System schemas.
 
-These four queries were checked with Core 17.0.15-alpha.1, Search 1.0.5-alpha.1, and System 8.0.8-alpha.1. The separate [log-to-deployment walkthrough](investigation/README.md#verification) records its execution checks and full runtime provenance. The broader collection's historical verification record remains above.
+These four queries were checked with Core 17.0.15-alpha.1, Search 1.0.5-alpha.1, and System 8.0.8-alpha.1. The broader collection's historical verification record remains above.

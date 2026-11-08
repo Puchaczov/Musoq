@@ -131,8 +131,8 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultRowNumbers0OrderKeys = new WindowResultRowNumbers0OrderKeysKey[resultWindowRows.Count];
                 ExtractResultRowNumbers0WindowKeys(resultWindowRows, resultRowNumbers0OrderKeys);
@@ -162,7 +162,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                         {
                             resultRowNumbers0CurrentIndex = resultRowNumbers0WindowPlanPartitionIndices[resultRowNumbers0WindowPlanPartitionStart + resultRowNumbers0PeerIndex];
                             var resultRowNumbers0Context = new Musoq.Plugins.WindowRankingContext(resultRowNumbers0PeerIndex, resultRowNumbers0PeerStart, resultRowNumbers0PeerEnd, resultRowNumbers0DenseRank, resultRowNumbers0WindowPlanPartitionCount, token);
-                            resultRowNumbers0[resultRowNumbers0CurrentIndex] = Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.ShiftedOrdinalKernel.Get(in resultRowNumbers0Context);
+                            resultRowNumbers0[resultRowNumbers0CurrentIndex] = Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.ShiftedOrdinalKernel.Get(in resultRowNumbers0Context);
                             var resultRanks1Context = new Musoq.Plugins.WindowRankingContext(resultRowNumbers0PeerIndex, resultRowNumbers0PeerStart, resultRowNumbers0PeerEnd, resultRowNumbers0DenseRank, resultRowNumbers0WindowPlanPartitionCount, token);
                             resultRanks1[resultRowNumbers0CurrentIndex] = Musoq.Plugins.RankKernel.Get(in resultRanks1Context);
                         }
@@ -180,7 +180,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
                     result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers0[windowIndex], (long)resultRanks1[windowIndex]) { __musoqSequence = result.Count });
                 }
 
@@ -239,8 +239,8 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                     var __op13Scope = profileRecorder?.BeginOperatorValue(__op13Handle) ?? OperatorProfileValueScope.None;
                     var __ko3ikoSchema = provider.GetSchema("#schema");
                     var ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
-                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
+                    var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
                     __op13Scope.Dispose();
                     var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
                     var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
@@ -275,7 +275,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                             {
                                 resultRowNumbers0CurrentIndex = resultRowNumbers0WindowPlanPartitionIndices[resultRowNumbers0WindowPlanPartitionStart + resultRowNumbers0PeerIndex];
                                 var resultRowNumbers0Context = new Musoq.Plugins.WindowRankingContext(resultRowNumbers0PeerIndex, resultRowNumbers0PeerStart, resultRowNumbers0PeerEnd, resultRowNumbers0DenseRank, resultRowNumbers0WindowPlanPartitionCount, token);
-                                resultRowNumbers0[resultRowNumbers0CurrentIndex] = Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.ShiftedOrdinalKernel.Get(in resultRowNumbers0Context);
+                                resultRowNumbers0[resultRowNumbers0CurrentIndex] = Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.ShiftedOrdinalKernel.Get(in resultRowNumbers0Context);
                                 var resultRanks1Context = new Musoq.Plugins.WindowRankingContext(resultRowNumbers0PeerIndex, resultRowNumbers0PeerStart, resultRowNumbers0PeerEnd, resultRowNumbers0DenseRank, resultRowNumbers0WindowPlanPartitionCount, token);
                                 resultRanks1[resultRowNumbers0CurrentIndex] = Musoq.Plugins.RankKernel.Get(in resultRanks1Context);
                             }
@@ -301,7 +301,7 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
+                            Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
                             __op19InputRows++;
                             __op19OutputRows++;
                             result.Add(new ResultShape0(ko3iko.Position, (long)resultRowNumbers0[windowIndex], (long)resultRanks1[windowIndex]) { __musoqSequence = result.Count });
@@ -365,11 +365,11 @@ namespace GeneratedSample_P82_CatalogFusedRanking_Full
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void ExtractResultRowNumbers0WindowKeys(IReadOnlyList<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int>> resultWindowRows, WindowResultRowNumbers0OrderKeysKey[] resultRowNumbers0OrderKeys)
+        private static void ExtractResultRowNumbers0WindowKeys(IReadOnlyList<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>> resultWindowRows, WindowResultRowNumbers0OrderKeysKey[] resultRowNumbers0OrderKeys)
         {
             for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
             {
-                Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
+                Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.NumericRow<int> ko3iko = resultWindowRows[windowIndex];
                 resultRowNumbers0OrderKeys[windowIndex] = new WindowResultRowNumbers0OrderKeysKey(ko3iko.Value);
             }
         }

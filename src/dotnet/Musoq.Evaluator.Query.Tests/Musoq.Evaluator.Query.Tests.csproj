@@ -1,0 +1,206 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>preview</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Fixtures\**" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Musoq.Evaluator.Tests.Common.csproj" />
+    <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
+    <ProjectReference Include="..\\Musoq.Tests.Common\\Musoq.Tests.Common.csproj" />
+    <ProjectReference Include="..\\examples\\data-sources\\structured-inputs\\Musoq.Examples.DataSources.StructuredInputs.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalContracts\Musoq.Evaluator.Tests.External.Contracts.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalRows\Musoq.Evaluator.Tests.External.Rows.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="AutomaticDateTimeComparisonTests.CaseWhen.cs">
+      <DependentUpon>AutomaticDateTimeComparisonTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticDateTimeComparisonTests.OperatorBasics.cs">
+      <DependentUpon>AutomaticDateTimeComparisonTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInference.PathValueTests.CasePromotion.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInference.PathValueTests.ComparisonsAndOrdering.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInference.PathValueTests.InvalidConversions.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceCaseWhenTests.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceComplexExpressionTests.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceDebugDecimalTests.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceOverflowTests.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceTests.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceTests.Boundaries.cs">
+      <DependentUpon>AutomaticNumericTypeInferenceTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceTests.CaseAndSpecialValues.cs">
+      <DependentUpon>AutomaticNumericTypeInferenceTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AutomaticNumericTypeInferenceTests.StringObjectComparisons.cs">
+      <DependentUpon>AutomaticNumericTypeInferenceTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.DiagnosticsTests.CatalogAndExtensions.cs">
+      <DependentUpon>BranchCoverage.DiagnosticsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.DiagnosticsTests.DiagnosticContextAndBag.cs">
+      <DependentUpon>BranchCoverage.DiagnosticsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.DiagnosticsTests.SemanticResults.cs">
+      <DependentUpon>BranchCoverage.DiagnosticsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.ExceptionCoverageTests.Resolution.cs">
+      <DependentUpon>BranchCoverage.ExceptionCoverageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.ExceptionCoverageTests.SetOperatorsAndVisitors.cs">
+      <DependentUpon>BranchCoverage.ExceptionCoverageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.ExceptionCoverageTests.SourceAndTable.cs">
+      <DependentUpon>BranchCoverage.ExceptionCoverageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BranchCoverage.ExceptionCoverageTests.TypeAndObject.cs">
+      <DependentUpon>BranchCoverage.ExceptionCoverageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DescColumnNestedPropertyTests.Comprehensive.cs">
+      <DependentUpon>DescColumnNestedPropertyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DescColumnNestedPropertyTests.ErrorsAndEvaluation.cs">
+      <DependentUpon>DescColumnNestedPropertyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DescColumnNestedPropertyTests.NavigationWorkflow.cs">
+      <DependentUpon>DescColumnNestedPropertyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="EndToEndQueryExecutionTests.ExpressionsOrderingAndConversion.cs">
+      <DependentUpon>EndToEndQueryExecutionTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="EndToEndQueryExecutionTests.JoinsAndSets.cs">
+      <DependentUpon>EndToEndQueryExecutionTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="EndToEndQueryExecutionTests.PagingAndMultitable.cs">
+      <DependentUpon>EndToEndQueryExecutionTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.ComplexPatternsTests.ExpressionsAndFilters.cs">
+      <DependentUpon>Exploratory.ComplexPatternsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.ComplexPatternsTests.GroupingAndOrdering.cs">
+      <DependentUpon>Exploratory.ComplexPatternsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.ComplexPatternsTests.ScalarFunctions.cs">
+      <DependentUpon>Exploratory.ComplexPatternsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.FunctionsAndFixesTests.CrossApplyAndJoins.cs">
+      <DependentUpon>Exploratory.FunctionsAndFixesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.FunctionsAndFixesTests.FixVerifications.cs">
+      <DependentUpon>Exploratory.FunctionsAndFixesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.FunctionsAndFixesTests.ScalarFunctions.cs">
+      <DependentUpon>Exploratory.FunctionsAndFixesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="HashOptionalSchemaComprehensiveTests.DescAndCouple.cs">
+      <DependentUpon>HashOptionalSchemaComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="HashOptionalSchemaComprehensiveTests.GroupingPagingAndJoins.cs">
+      <DependentUpon>HashOptionalSchemaComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="HashOptionalSchemaComprehensiveTests.SetsCtesAndCases.cs">
+      <DependentUpon>HashOptionalSchemaComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="InvalidQueryOutputTypeTests.ExpressionsAndSetOperators.cs">
+      <DependentUpon>InvalidQueryOutputTypeTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="InvalidQueryOutputTypeTests.MessagesAndEdges.cs">
+      <DependentUpon>InvalidQueryOutputTypeTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="InvalidQueryOutputTypeTests.PrimitiveClauses.cs">
+      <DependentUpon>InvalidQueryOutputTypeTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ScriptVariableExecutionTests.ConstantOperators.cs">
+      <DependentUpon>ScriptVariableExecutionTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ScriptVariableExecutionTests.LanguageFeatures.cs">
+      <DependentUpon>ScriptVariableExecutionTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SpecExploration.CoreLanguageTests.AdvancedClauses.cs">
+      <DependentUpon>SpecExploration.CoreLanguageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SpecExploration.CoreLanguageTests.DirectJoins.cs">
+      <DependentUpon>SpecExploration.CoreLanguageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SpecExploration.CoreLanguageTests.JoinsAndAggregates.cs">
+      <DependentUpon>SpecExploration.CoreLanguageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SpecExploration.CoreLanguageTests.LiteralsAndOperators.cs">
+      <DependentUpon>SpecExploration.CoreLanguageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SpecExploration.CoreLanguageTests.SelectWhere.cs">
+      <DependentUpon>SpecExploration.CoreLanguageTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StarModifierTests.Integration.cs">
+      <DependentUpon>StarModifierTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StarModifierTests.ParsingIntegration.cs">
+      <DependentUpon>StarModifierTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StarModifierTests.Rename.cs">
+      <DependentUpon>StarModifierTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StarModifierTests.SyntaxErrors.cs">
+      <DependentUpon>StarModifierTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringComparisonConsistencyTests.GroupingAndDistinct.cs">
+      <DependentUpon>StringComparisonConsistencyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringComparisonConsistencyTests.OrderingAndFunctions.cs">
+      <DependentUpon>StringComparisonConsistencyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ValuesFromTests.DiagnosticsAndHelpers.cs">
+      <DependentUpon>ValuesFromTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ValuesFromTests.JoinsWindowsAndSets.cs">
+      <DependentUpon>ValuesFromTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ValuesFromTests.NumericMatrices.cs">
+      <DependentUpon>ValuesFromTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ValuesFromTests.ParametersVariables.cs">
+      <DependentUpon>ValuesFromTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\docs\examples\typed-library\*.sql" Link="Documentation\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

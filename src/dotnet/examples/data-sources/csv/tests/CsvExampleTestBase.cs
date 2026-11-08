@@ -1,16 +1,21 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
+using Musoq.Tests.Common;
 
 namespace Musoq.Examples.DataSources.Csv.Tests;
 
 public abstract class CsvExampleTestBase
 {
+    private readonly string _fixtureDirectory = Path.Combine(
+        RepositoryPaths.FindRoot(), ".artifacts", "csv-tests", Guid.NewGuid().ToString("N"));
+
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
     protected static readonly ILoggerResolver LoggerResolver = new NullLoggerResolver();
 
@@ -71,12 +76,17 @@ public abstract class CsvExampleTestBase
             sourceRuntimeSettingsResolver: resolver ?? new StaticSettingsResolver(settings));
     }
 
-    protected static string WriteTempCsv(string content, Encoding? encoding = null)
+    [TestCleanup]
+    public void CleanupCsvFixtures()
     {
-        var directory = Path.Combine(Path.GetTempPath(), "MusoqCsvTests");
-        Directory.CreateDirectory(directory);
+        if (Directory.Exists(_fixtureDirectory))
+            Directory.Delete(_fixtureDirectory, recursive: true);
+    }
 
-        var path = Path.Combine(directory, $"{Guid.NewGuid():N}.csv");
+    protected string WriteTempCsv(string content, Encoding? encoding = null)
+    {
+        Directory.CreateDirectory(_fixtureDirectory);
+        var path = Path.Combine(_fixtureDirectory, $"{Guid.NewGuid():N}.csv");
         File.WriteAllText(path, content, encoding ?? new UTF8Encoding(false));
         return path;
     }

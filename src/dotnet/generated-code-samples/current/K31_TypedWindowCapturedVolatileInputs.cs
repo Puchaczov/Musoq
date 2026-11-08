@@ -110,13 +110,13 @@ namespace GeneratedSample_K31_TypedWindowCapturedVolatileInputs
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultSumsIntOrderBuilder = new Musoq.Evaluator.Helpers.WindowIntOrderBuilder(resultWindowRows.Count);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow ko3iko = resultWindowRows[windowIndex];
                     resultSumsIntOrderBuilder.Add((int)ko3iko.Position, windowIndex);
                 }
 
@@ -126,11 +126,11 @@ namespace GeneratedSample_K31_TypedWindowCapturedVolatileInputs
                 var resultSumsCapturedFilter = new bool[resultWindowRows.Count];
                 for (int resultSumsCaptureIndex = 0; resultSumsCaptureIndex < resultWindowRows.Count; ++resultSumsCaptureIndex)
                 {
-                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow ko3iko = resultWindowRows[resultSumsCaptureIndex];
-                    resultSumsCapturedFilter[resultSumsCaptureIndex] = (bool)(bool)Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowLibrary.AcceptRow((Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow)ko3iko);
+                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow ko3iko = resultWindowRows[resultSumsCaptureIndex];
+                    resultSumsCapturedFilter[resultSumsCaptureIndex] = (bool)(bool)Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowLibrary.AcceptRow((Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow)ko3iko);
                     if (resultSumsCapturedFilter[resultSumsCaptureIndex])
                     {
-                        resultSumsBatchValues[resultSumsCaptureIndex] = (double?)(double?)Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowLibrary.NextValue((Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow)ko3iko);
+                        resultSumsBatchValues[resultSumsCaptureIndex] = (double?)(double?)Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowLibrary.NextValue((Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow)ko3iko);
                     }
                 }
 
@@ -168,7 +168,7 @@ namespace GeneratedSample_K31_TypedWindowCapturedVolatileInputs
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTests.VolatileWindowRow ko3iko = resultWindowRows[windowIndex];
+                    Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures.VolatileWindowRow ko3iko = resultWindowRows[windowIndex];
                     result.Add(new ResultShape0(ko3iko.Position, (double?)resultSums[windowIndex]) { __musoqSequence = result.Count });
                 }
 

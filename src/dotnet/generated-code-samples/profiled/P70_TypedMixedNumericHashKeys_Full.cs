@@ -312,18 +312,18 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
         private static List<Statement0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement0_aSchema = provider.GetSchema("#schema");
-            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
+            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
             var __statement0_bSchema = provider.GetSchema("#schema");
-            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
-            var statement0BHash = new Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>>();
+            var statement0BHash = new Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>>();
             foreach (var bChunk in statement0_bRows)
             {
-                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> bChunkView)
+                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> bChunkView)
                 {
-                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput[] bChunkViewArray)
+                    if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput[] bChunkViewArray)
                     {
                         int bChunkViewOffset = bChunkView.Offset;
                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -341,7 +341,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                 ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                 if (!matchesExists)
                                 {
-                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(b);
+                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(b);
                                 }
                                 else
                                 {
@@ -353,7 +353,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                         continue;
                     }
 
-                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> bChunkViewList)
+                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> bChunkViewList)
                     {
                         int bChunkViewOffset = bChunkView.Offset;
                         for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -371,7 +371,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                 ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                 if (!matchesExists)
                                 {
-                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(b);
+                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(b);
                                 }
                                 else
                                 {
@@ -399,7 +399,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                         ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                         if (!matchesExists)
                         {
-                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(b);
+                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(b);
                         }
                         else
                         {
@@ -411,9 +411,9 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
 
             foreach (var aChunk in statement0_aRows)
             {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> aChunkView)
+                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> aChunkView)
                 {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput[] aChunkViewArray)
+                    if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput[] aChunkViewArray)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -441,7 +441,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                         continue;
                     }
 
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> aChunkViewList)
+                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> aChunkViewList)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -520,20 +520,20 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                 var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_aSchema = provider.GetSchema("#schema");
                 var statement0_aRowsProfile = profileRecorder?.CreateSourceRecorder("a");
-                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
+                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>.Open(__statement0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, statement0_aRowsProfile == null ? SourceDiagnostics.None : statement0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_aRows = statement0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks, statement0_aRowsProfile);
                 __op23Scope.Dispose();
                 var __op24Scope = profileRecorder?.BeginOperatorValue(__op24Handle) ?? OperatorProfileValueScope.None;
                 var __statement0_bSchema = provider.GetSchema("#schema");
                 var statement0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
-                var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
+                var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>.Open(__statement0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, statement0_bRowsProfile == null ? SourceDiagnostics.None : statement0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_bRows = statement0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks, statement0_bRowsProfile);
                 __op24Scope.Dispose();
                 var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
                 var statement0 = new List<Statement0Row0>();
                 __op25Scope.Dispose();
                 var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
-                var statement0BHash = new Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>>();
+                var statement0BHash = new Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>>();
                 __op26Scope.Dispose();
                 long __op28InputRows = 0L;
                 long __op28OutputRows = 0L;
@@ -542,9 +542,9 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                 {
                     foreach (var bChunk in statement0_bRows)
                     {
-                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> bChunkView)
+                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> bChunkView)
                         {
-                            if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput[] bChunkViewArray)
+                            if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput[] bChunkViewArray)
                             {
                                 int bChunkViewOffset = bChunkView.Offset;
                                 for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -564,7 +564,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                         ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                         if (!matchesExists)
                                         {
-                                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(b);
+                                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(b);
                                         }
                                         else
                                         {
@@ -578,7 +578,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                 continue;
                             }
 
-                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> bChunkViewList)
+                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> bChunkViewList)
                             {
                                 int bChunkViewOffset = bChunkView.Offset;
                                 for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -598,7 +598,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                         ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                         if (!matchesExists)
                                         {
-                                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(b);
+                                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(b);
                                         }
                                         else
                                         {
@@ -630,7 +630,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                 ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0BHash, key, out var matchesExists);
                                 if (!matchesExists)
                                 {
-                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput>(b);
+                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput>(b);
                                 }
                                 else
                                 {
@@ -656,9 +656,9 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                 {
                     foreach (var aChunk in statement0_aRows)
                     {
-                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> aChunkView)
+                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> aChunkView)
                         {
-                            if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput[] aChunkViewArray)
+                            if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput[] aChunkViewArray)
                             {
                                 int aChunkViewOffset = aChunkView.Offset;
                                 for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -692,7 +692,7 @@ namespace GeneratedSample_P70_TypedMixedNumericHashKeys_Full
                                 continue;
                             }
 
-                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTests.MixedInput> aChunkViewList)
+                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures.MixedInput> aChunkViewList)
                             {
                                 int aChunkViewOffset = aChunkView.Offset;
                                 for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)

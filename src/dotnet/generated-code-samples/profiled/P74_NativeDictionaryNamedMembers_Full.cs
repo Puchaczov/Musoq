@@ -127,15 +127,15 @@ namespace GeneratedSample_P74_NativeDictionaryNamedMembers_Full
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __pSchema = provider.GetSchema("#schema");
-                var pRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>.Open(__pSchema, "first", new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks;
+                var pRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput>.Open(__pSchema, "first", new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks;
                 var resultOrderRecords = new List<ResultRow0WithSortKeys>();
                 OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var pChunk in pRows)
                 {
-                    if (pChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput> pChunkView)
+                    if (pChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput> pChunkView)
                     {
-                        if (pChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput[] pChunkViewArray)
+                        if (pChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput[] pChunkViewArray)
                         {
                             int pChunkViewOffset = pChunkView.Offset;
                             for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -152,7 +152,7 @@ namespace GeneratedSample_P74_NativeDictionaryNamedMembers_Full
                             continue;
                         }
 
-                        if (pChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput> pChunkViewList)
+                        if (pChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput> pChunkViewList)
                         {
                             int pChunkViewOffset = pChunkView.Offset;
                             for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -229,8 +229,8 @@ namespace GeneratedSample_P74_NativeDictionaryNamedMembers_Full
                     var __op16Scope = profileRecorder?.BeginOperatorValue(__op16Handle) ?? OperatorProfileValueScope.None;
                     var __pSchema = provider.GetSchema("#schema");
                     var pRowsProfile = profileRecorder?.CreateSourceRecorder("p");
-                    var pRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>.Open(__pSchema, "first", new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress, pRowsProfile == null ? SourceDiagnostics.None : pRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var pRows = pRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks, pRowsProfile);
+                    var pRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput>.Open(__pSchema, "first", new SourceExecutionContext("p:1", sourceExecutionPlans["p:1"], token, __schemaColumns_compiled_p_0, sourceRuntimeSettingsBySourceContextId["p:1"], logger, OnDataSourceProgress, pRowsProfile == null ? SourceDiagnostics.None : pRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["p:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var pRows = pRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput>(pRowsSource.Chunks, __musoqProgressContext, "p:1") : pRowsSource.Chunks, pRowsProfile);
                     __op16Scope.Dispose();
                     var __op17Scope = profileRecorder?.BeginOperatorValue(__op17Handle) ?? OperatorProfileValueScope.None;
                     var resultOrderRecords = new List<ResultRow0WithSortKeys>();
@@ -245,9 +245,9 @@ namespace GeneratedSample_P74_NativeDictionaryNamedMembers_Full
                     {
                         foreach (var pChunk in pRows)
                         {
-                            if (pChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput> pChunkView)
+                            if (pChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput> pChunkView)
                             {
-                                if (pChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput[] pChunkViewArray)
+                                if (pChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput[] pChunkViewArray)
                                 {
                                     int pChunkViewOffset = pChunkView.Offset;
                                     for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)
@@ -267,7 +267,7 @@ namespace GeneratedSample_P74_NativeDictionaryNamedMembers_Full
                                     continue;
                                 }
 
-                                if (pChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSignalInput> pChunkViewList)
+                                if (pChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSignalInput> pChunkViewList)
                                 {
                                     int pChunkViewOffset = pChunkView.Offset;
                                     for (int pIndex = 0, pIndexCount = pChunkView.Count; pIndex < pIndexCount; ++pIndex)

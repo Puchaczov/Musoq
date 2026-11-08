@@ -186,7 +186,7 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
         run: |
           $packScript = Join-Path $env:GITHUB_WORKSPACE 'scripts/release/Pack-Release.ps1'
-          $outputPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts/nupkgs'
+          $outputPath = Join-Path $env:GITHUB_WORKSPACE '.artifacts/nupkgs'
           & $packScript -Tag $env:RELEASE_TAG -OutputPath $outputPath
 
       # actions/upload-artifact@v4.6.2
@@ -194,7 +194,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: release-packages
-          path: artifacts/nupkgs/*
+          path: .artifacts/nupkgs/*
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
 
@@ -237,7 +238,7 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: release-packages
-          path: artifacts/nupkgs
+          path: .artifacts/nupkgs
 
       # NuGet/login@v1
       - name: NuGet login with Trusted Publishing
@@ -262,7 +263,7 @@ jobs:
             throw 'NuGet publishing credential is unavailable. Configure Trusted Publishing or NUGET_MUSOQ_KEY.'
           }
 
-          $manifestPath = Join-Path 'artifacts/nupkgs' 'release-package-files.txt'
+          $manifestPath = Join-Path '.artifacts/nupkgs' 'release-package-files.txt'
           if (-not (Test-Path -LiteralPath $manifestPath)) {
             throw 'Release package manifest was not found.'
           }
@@ -270,7 +271,7 @@ jobs:
           $packageFiles = Get-Content -LiteralPath $manifestPath |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
             ForEach-Object { Split-Path -Leaf $_ } |
-            ForEach-Object { Join-Path 'artifacts/nupkgs' $_ }
+            ForEach-Object { Join-Path '.artifacts/nupkgs' $_ }
 
           foreach ($packageFile in $packageFiles) {
             if (-not (Test-Path -LiteralPath $packageFile)) {
@@ -294,8 +295,8 @@ jobs:
           body_path: ${{ needs.validate-pack.outputs.release_notes_path }}
           generate_release_notes: false
           files: |
-            artifacts/nupkgs/*.nupkg
-            artifacts/nupkgs/*.snupkg
+            .artifacts/nupkgs/*.nupkg
+            .artifacts/nupkgs/*.snupkg
 
       # softprops/action-gh-release@v2.2.2
       - name: Create GitHub Release with generated notes
@@ -307,5 +308,5 @@ jobs:
           prerelease: ${{ needs.validate-pack.outputs.is_prerelease }}
           generate_release_notes: true
           files: |
-            artifacts/nupkgs/*.nupkg
-            artifacts/nupkgs/*.snupkg
+            .artifacts/nupkgs/*.nupkg
+            .artifacts/nupkgs/*.snupkg

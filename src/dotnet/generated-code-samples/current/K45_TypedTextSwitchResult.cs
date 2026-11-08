@@ -121,13 +121,13 @@ namespace GeneratedSample_K45_TypedTextSwitchResult
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __sSchema = provider.GetSchema("#schema");
-                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine>(sRowsSource.Chunks, __musoqProgressContext, "s:1") : sRowsSource.Chunks;
+                    var sRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.SwitchLine>.Open(__sSchema, "first", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["s:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.SwitchLine>(sRowsSource.Chunks, __musoqProgressContext, "s:1") : sRowsSource.Chunks;
                     foreach (var sChunk in sRows)
                     {
-                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine> sChunkView)
+                        if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.SwitchLine> sChunkView)
                         {
-                            if (sChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine[] sChunkViewArray)
+                            if (sChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.SwitchLine[] sChunkViewArray)
                             {
                                 int sChunkViewOffset = sChunkView.Offset;
                                 for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
@@ -151,7 +151,7 @@ namespace GeneratedSample_K45_TypedTextSwitchResult
                                 continue;
                             }
 
-                            if (sChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTests.SwitchLine> sChunkViewList)
+                            if (sChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures.SwitchLine> sChunkViewList)
                             {
                                 int sChunkViewOffset = sChunkView.Offset;
                                 for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)

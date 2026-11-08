@@ -120,7 +120,7 @@ namespace GeneratedSample_Q352_StructuredWidePresence
                 Musoq.Schema.DataSources.RowSource<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideRow> wRowsSource;
                 try
                 {
-                    Musoq.Evaluator.Tests.StructuredSamples.StructuredWideSource wRowsSourceInstance = new Musoq.Evaluator.Tests.StructuredSamples.StructuredWideSource(__musoqCheckStructural_fc3359c19f3ef692(__musoqStructural_w_0, token), wRowsSourceContext);
+                    Musoq.Evaluator.Tests.StructuredSamples.StructuredWideSource wRowsSourceInstance = new Musoq.Evaluator.Tests.StructuredSamples.StructuredWideSource(__musoqCheckStructural_6092cde93f726c0d(__musoqStructural_w_0, token), wRowsSourceContext);
                     wRowsSource = DataSourceLifecycle.OpenTypedRowSource<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideSource, Musoq.Evaluator.Tests.StructuredSamples.StructuredWideRow>(__wSchema, "wide", wRowsSourceInstance, wRowsSourceContext, "#structured", "w", "w:1");
                 }
                 catch (OperationCanceledException)
@@ -214,7 +214,7 @@ namespace GeneratedSample_Q352_StructuredWidePresence
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private static IReadOnlyList<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideInput> __musoqCheckStructural_fc3359c19f3ef692(IReadOnlyList<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideInput> value, System.Threading.CancellationToken token)
+        private static IReadOnlyList<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideInput> __musoqCheckStructural_6092cde93f726c0d(IReadOnlyList<Musoq.Evaluator.Tests.StructuredSamples.StructuredWideInput> value, System.Threading.CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             long __musoqStructuralNodes = 0L;

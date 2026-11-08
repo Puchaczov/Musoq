@@ -21,7 +21,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         return arrayIntendedTypeName;
     }
 
-    private static readonly WeakTypeRuntimeCache<DynamicObjectPropertyTypeHintAttribute[]> TypeHintAttributeCache =
+    internal static readonly WeakTypeRuntimeCache<DynamicObjectPropertyTypeHintAttribute[]> TypeHintAttributeCache =
         new(RuntimeCacheOptions.TypeHintAttributeCacheSize);
 
     internal static DynamicObjectPropertyTypeHintAttribute[] GetCachedTypeHintAttributes(Type type)

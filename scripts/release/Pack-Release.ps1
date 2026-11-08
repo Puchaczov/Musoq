@@ -7,7 +7,7 @@ param(
     [switch] $AllPackages,
 
     [Parameter()]
-    [string] $OutputPath = 'artifacts/nupkgs',
+    [string] $OutputPath = '.artifacts/nupkgs',
 
     [switch] $Offline
 )
@@ -117,8 +117,8 @@ foreach ($package in $release.Packages) {
         throw "Expected symbol package was not produced for '$($package.PackageId)'."
     }
 
-    $manifestEntries.Add($nupkgPath)
-    $manifestEntries.Add($snupkgPath)
+    $manifestEntries.Add([System.IO.Path]::GetFileName($nupkgPath))
+    $manifestEntries.Add([System.IO.Path]::GetFileName($snupkgPath))
 }
 
 Set-Content -LiteralPath $manifestPath -Value $manifestEntries -Encoding UTF8

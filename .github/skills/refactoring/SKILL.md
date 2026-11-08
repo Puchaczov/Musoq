@@ -13,13 +13,13 @@ Make existing code smaller, clearer, and easier for humans to review and maintai
 ## Workflow
 
 1. Establish the scope: identify the target files, module, code smell, constraints, and behavior that must remain unchanged.
-2. Load `.copilot_session_summary.md`, `.github/copilot-instructions.md`, and the applicable per-project instructions before editing. Check the worktree so unrelated user changes are preserved.
+2. Load `.copilot_session_summary.md`, `AGENTS.md`, and the applicable per-project instructions before editing. Check the worktree so unrelated user changes are preserved.
 3. Read the surrounding code before deciding on a design. Find existing patterns, call sites, tests, and duplicate implementations.
 4. Map the maintainability problem in concrete terms: duplication, long methods, nested control flow, unclear naming, magic values, dead code, leaky abstractions, mutable state, or oversized responsibilities.
 5. Choose the smallest refactoring that improves the code at the root cause. Prefer local simplification over new abstractions unless the abstraction removes real duplication or matches an established project pattern.
 6. Edit in small behavior-preserving steps. Keep the diff focused on the requested area and avoid opportunistic rewrites outside the scope.
 7. Validate with the narrowest relevant tests first, then run the broader validation required by the repository instructions.
-8. Re-read `.github/copilot-instructions.md` and verify the modified code follows the repository rules before final validation.
+8. Re-read `AGENTS.md` and verify the modified code follows the repository rules before final validation.
 9. Self-review the diff for readability, duplication, SOLID/DRY fit, naming, control flow, public contract safety, and unnecessary churn.
 10. Report what changed, how behavior was protected, and any remaining risks or follow-up candidates.
 
@@ -35,10 +35,10 @@ Make existing code smaller, clearer, and easier for humans to review and maintai
 
 ## Musoq Gates
 
-- Read the relevant project `copilot-instructions.md` before touching code in `src/dotnet/Musoq.Parser`, `Musoq.Evaluator`, `Musoq.Converter`, `Musoq.Schema`, `Musoq.Plugins`, `Musoq.Playground`, or `Musoq.Benchmarks`.
+- Read the relevant project `AGENTS.md` and its required `DEVELOPMENT.md` before touching code in `src/dotnet/Musoq.Parser`, `Musoq.Evaluator`, `Musoq.Converter`, `Musoq.Schema`, `Musoq.Plugins`, `Musoq.Playground`, or `Musoq.Benchmarks`.
 - Read [architecture.md](../../../.claude/rules/architecture.md) before touching IR planner, Execution IR, physical planning, or renderer code.
 - Keep optimization decisions in `QueryPlanner`, planner-owned helpers, physical planning, or Execution IR. Do not hide query-level strategy choices in renderers or generated C#.
-- Before final validation, re-read `.github/copilot-instructions.md` and fix any compliance issues found in the changed code.
+- Before final validation, re-read `AGENTS.md` and fix any compliance issues found in the changed code.
 - After code changes, run the relevant focused tests first, then the full solution command unless the user explicitly narrows validation or the environment blocks it:
 
 ```bash

@@ -675,18 +675,18 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
             try
             {
                 var __cte0_aSchema = provider.GetSchema("#schema");
-                var cte0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Open(__cte0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var cte0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks;
+                var cte0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__cte0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks;
                 var __cte0_bSchema = provider.GetSchema("#schema");
-                var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Open(__cte0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : cte0_bRowsSource.Chunks;
+                var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__cte0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : cte0_bRowsSource.Chunks;
                 var cte0 = new List<Cte0Row0>();
-                var cte0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>>();
+                var cte0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>>();
                 foreach (var bChunk in cte0_bRows)
                 {
-                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> bChunkView)
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> bChunkView)
                     {
-                        if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow[] bChunkViewArray)
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow[] bChunkViewArray)
                         {
                             int bChunkViewOffset = bChunkView.Offset;
                             for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -704,7 +704,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                     ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0BHash, key, out var matchesExists);
                                     if (!matchesExists)
                                     {
-                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(b);
+                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(b);
                                     }
                                     else
                                     {
@@ -716,7 +716,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                             continue;
                         }
 
-                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> bChunkViewList)
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> bChunkViewList)
                         {
                             int bChunkViewOffset = bChunkView.Offset;
                             for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -734,7 +734,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                     ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0BHash, key, out var matchesExists);
                                     if (!matchesExists)
                                     {
-                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(b);
+                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(b);
                                     }
                                     else
                                     {
@@ -762,7 +762,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                             ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0BHash, key, out var matchesExists);
                             if (!matchesExists)
                             {
-                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(b);
+                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(b);
                             }
                             else
                             {
@@ -774,9 +774,9 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
 
                 foreach (var aChunk in cte0_aRows)
                 {
-                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> aChunkView)
+                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> aChunkView)
                     {
-                        if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow[] aChunkViewArray)
+                        if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow[] aChunkViewArray)
                         {
                             int aChunkViewOffset = aChunkView.Offset;
                             for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -808,7 +808,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                             continue;
                         }
 
-                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> aChunkViewList)
+                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> aChunkViewList)
                         {
                             int aChunkViewOffset = aChunkView.Offset;
                             for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -905,20 +905,20 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     var __op33Scope = profileRecorder?.BeginOperatorValue(__op33Handle) ?? OperatorProfileValueScope.None;
                     var __cte0_aSchema = provider.GetSchema("#schema");
                     var cte0_aRowsProfile = profileRecorder?.CreateSourceRecorder("a");
-                    var cte0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Open(__cte0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, cte0_aRowsProfile == null ? SourceDiagnostics.None : cte0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var cte0_aRows = cte0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks, cte0_aRowsProfile);
+                    var cte0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__cte0_aSchema, "first", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress, cte0_aRowsProfile == null ? SourceDiagnostics.None : cte0_aRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0_aRows = cte0_aRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(cte0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : cte0_aRowsSource.Chunks, cte0_aRowsProfile);
                     __op33Scope.Dispose();
                     var __op34Scope = profileRecorder?.BeginOperatorValue(__op34Handle) ?? OperatorProfileValueScope.None;
                     var __cte0_bSchema = provider.GetSchema("#schema");
                     var cte0_bRowsProfile = profileRecorder?.CreateSourceRecorder("b");
-                    var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Open(__cte0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, cte0_bRowsProfile == null ? SourceDiagnostics.None : cte0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var cte0_bRows = cte0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : cte0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : cte0_bRowsSource.Chunks, cte0_bRowsProfile);
+                    var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__cte0_bSchema, "first", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress, cte0_bRowsProfile == null ? SourceDiagnostics.None : cte0_bRowsProfile.CreateDiagnostics()) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var cte0_bRows = cte0_bRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : cte0_bRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : cte0_bRowsSource.Chunks, cte0_bRowsProfile);
                     __op34Scope.Dispose();
                     var __op35Scope = profileRecorder?.BeginOperatorValue(__op35Handle) ?? OperatorProfileValueScope.None;
                     var cte0 = new List<Cte0Row0>();
                     __op35Scope.Dispose();
                     var __op36Scope = profileRecorder?.BeginOperatorValue(__op36Handle) ?? OperatorProfileValueScope.None;
-                    var cte0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>>();
+                    var cte0BHash = new Dictionary<int?, HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>>();
                     __op36Scope.Dispose();
                     long __op37InputRows = 0L;
                     long __op37OutputRows = 0L;
@@ -927,9 +927,9 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     {
                         foreach (var bChunk in cte0_bRows)
                         {
-                            if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> bChunkView)
+                            if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> bChunkView)
                             {
-                                if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow[] bChunkViewArray)
+                                if (bChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow[] bChunkViewArray)
                                 {
                                     int bChunkViewOffset = bChunkView.Offset;
                                     for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -949,7 +949,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                             ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0BHash, key, out var matchesExists);
                                             if (!matchesExists)
                                             {
-                                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(b);
+                                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(b);
                                             }
                                             else
                                             {
@@ -963,7 +963,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                     continue;
                                 }
 
-                                if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> bChunkViewList)
+                                if (bChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> bChunkViewList)
                                 {
                                     int bChunkViewOffset = bChunkView.Offset;
                                     for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
@@ -983,7 +983,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                             ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0BHash, key, out var matchesExists);
                                             if (!matchesExists)
                                             {
-                                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(b);
+                                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(b);
                                             }
                                             else
                                             {
@@ -1015,7 +1015,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                     ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0BHash, key, out var matchesExists);
                                     if (!matchesExists)
                                     {
-                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow>(b);
+                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(b);
                                     }
                                     else
                                     {
@@ -1041,9 +1041,9 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     {
                         foreach (var aChunk in cte0_aRows)
                         {
-                            if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> aChunkView)
+                            if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> aChunkView)
                             {
-                                if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow[] aChunkViewArray)
+                                if (aChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow[] aChunkViewArray)
                                 {
                                     int aChunkViewOffset = aChunkView.Offset;
                                     for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -1082,7 +1082,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                                     continue;
                                 }
 
-                                if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTests.CoverageRow> aChunkViewList)
+                                if (aChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow> aChunkViewList)
                                 {
                                     int aChunkViewOffset = aChunkView.Offset;
                                     for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)

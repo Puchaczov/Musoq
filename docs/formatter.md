@@ -3,7 +3,7 @@
 `Musoq.Formatter` is a .NET 10 library for formatting complete raw Musoq scripts.
 It depends only on `Musoq.Parser`; it does not load providers, bind functions, or
 execute queries. Command-line handling, file access, Markdown extraction, and
-Musoq.Cloud integration belong to callers.
+host integration belong to callers.
 
 ## Public API
 

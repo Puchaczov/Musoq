@@ -72,7 +72,7 @@ namespace GeneratedSample_K63_NativeTypedGroupedDto
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITypedRunnable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSubtotal>, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITypedRunnable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal>, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
     {
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Position", typeof(int), 0), new Column("Number", typeof(int?), 1) });
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
@@ -92,12 +92,12 @@ namespace GeneratedSample_K63_NativeTypedGroupedDto
         public event QueryPhaseEventHandler PhaseChanged;
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryProgressEventHandler QueryProgress;
-        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSubtotal> Run(TypedQueryRunOptions options)
+        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal> Run(TypedQueryRunOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
             QueryRunContext? __musoqEnumerationRunContext = null;
             var __musoqInitialRunContext = QueryRunContext.Capture(options, this);
-            return new QueryEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSubtotal>((queryToken) =>
+            return new QueryEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal>((queryToken) =>
             {
                 var queryContext = new QueryRunContext(queryToken, __musoqInitialRunContext.TypedParameters, __musoqInitialRunContext.PhaseChanged, __musoqInitialRunContext.DataSourceProgress, __musoqInitialRunContext.Sender, queryId: __musoqInitialRunContext.QueryId, queryProgress: __musoqInitialRunContext.QueryProgress, queryProgressOptions: __musoqInitialRunContext.QueryProgress == null ? null : __musoqInitialRunContext.QueryProgressOptions)
                 {
@@ -108,7 +108,7 @@ namespace GeneratedSample_K63_NativeTypedGroupedDto
             }, options.CancellationToken, onCompleted: __musoqInitialRunContext.QueryProgress == null ? null : (Action)(() => __musoqEnumerationRunContext?.CompleteQueryProgress()), onException: __musoqInitialRunContext.QueryProgress == null ? null : (Action<Exception>)(_ => __musoqEnumerationRunContext?.CompleteQueryProgress()), onDisposed: __musoqInitialRunContext.QueryProgress == null ? null : (Action)(() => __musoqEnumerationRunContext?.CompleteQueryProgress()));
         }
 
-        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSubtotal> Run(CancellationToken token)
+        public IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal> Run(CancellationToken token)
         {
             return Run(new TypedQueryRunOptions(token, TypedParameters, PhaseChanged, DataSourceProgress, QueryProgress, null));
         }
@@ -128,17 +128,17 @@ namespace GeneratedSample_K63_NativeTypedGroupedDto
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#schema");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeKeyInput>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeKeyInput>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeKeyInput>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeKeyInput>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 var groups = new Dictionary<int?, ResultAggregateGroup>();
                 ResultAggregateGroup nullGroup = null;
                 foreach (var ko3ikoChunk in ko3ikoRows)
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeKeyInput> ko3ikoChunkView)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeKeyInput> ko3ikoChunkView)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeKeyInput[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeKeyInput[] ko3ikoChunkViewArray)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -183,7 +183,7 @@ namespace GeneratedSample_K63_NativeTypedGroupedDto
                             continue;
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeKeyInput> ko3ikoChunkViewList)
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeKeyInput> ko3ikoChunkViewList)
                         {
                             int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
                             for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
@@ -292,11 +292,11 @@ namespace GeneratedSample_K63_NativeTypedGroupedDto
             }
         }
 
-        private IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSubtotal> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, QueryRunContext queryContext)
+        private IEnumerable<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, QueryRunContext queryContext)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, queryContext))
             {
-                yield return new Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTests.NativeSubtotal((int?)__musoqShapeRow.Number, (long)__musoqShapeRow.Total);
+                yield return new Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal((int?)__musoqShapeRow.Number, (long)__musoqShapeRow.Total);
             }
         }
 

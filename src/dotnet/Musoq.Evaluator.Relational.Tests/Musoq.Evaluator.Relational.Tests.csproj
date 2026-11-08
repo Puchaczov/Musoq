@@ -1,0 +1,302 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>preview</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Fixtures\**" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Musoq.Evaluator.Tests.Common.csproj" />
+    <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
+    <ProjectReference Include="..\\Musoq.Tests.Common\\Musoq.Tests.Common.csproj" />
+    <ProjectReference Include="..\\examples\\data-sources\\structured-inputs\\Musoq.Examples.DataSources.StructuredInputs.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalContracts\Musoq.Evaluator.Tests.External.Contracts.csproj" />
+    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalRows\Musoq.Evaluator.Tests.External.Rows.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="AutomaticNumericTypeInferenceAggregateTests.cs">
+      <DependentUpon>AutomaticNumericTypeInference.PathValueTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AsOfJoinTests.Diagnostics.cs">
+      <DependentUpon>AsOfJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AsOfJoinTests.Directional.cs">
+      <DependentUpon>AsOfJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AsOfJoinTests.EdgeCases.cs">
+      <DependentUpon>AsOfJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AsOfJoinTests.NoBoxing.cs">
+      <DependentUpon>AsOfJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AsOfJoinTests.PostOperations.cs">
+      <DependentUpon>AsOfJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AsOfJoinTests.TieBreak.cs">
+      <DependentUpon>AsOfJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CrossApplyUnusedAliasTests.CteApplyJoins.cs">
+      <DependentUpon>CrossApplyUnusedAliasTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CrossApplyUnusedAliasTests.InterleavedApplyJoinChains.cs">
+      <DependentUpon>CrossApplyUnusedAliasTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CrossApplyUnusedAliasTests.JoinChains.cs">
+      <DependentUpon>CrossApplyUnusedAliasTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CrossApplyUnusedAliasTests.LocalModels.cs">
+      <DependentUpon>CrossApplyUnusedAliasTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CrossApplyUnusedAliasTests.SameSourcePropertyApplies.cs">
+      <DependentUpon>CrossApplyUnusedAliasTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CteTests.BasicAndGrouping.cs">
+      <DependentUpon>CteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CteTests.MixedGrouping.cs">
+      <DependentUpon>CteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CteTests.OuterAndMultiple.cs">
+      <DependentUpon>CteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CteTests.ParallelAndOrdering.cs">
+      <DependentUpon>CteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CteTests.SetOperators.cs">
+      <DependentUpon>CteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctComprehensiveTests.CteBasics.cs">
+      <DependentUpon>DistinctComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctComprehensiveTests.CteChains.cs">
+      <DependentUpon>DistinctComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctComprehensiveTests.Ctes.cs">
+      <DependentUpon>DistinctComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctComprehensiveTests.CteSetOperators.cs">
+      <DependentUpon>DistinctComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctComprehensiveTests.JoinsAndAggregates.cs">
+      <DependentUpon>DistinctComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctComprehensiveTests.SetOperators.cs">
+      <DependentUpon>DistinctComprehensiveTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctOrderByBugTests.CteOrderingAndStress.cs">
+      <DependentUpon>DistinctOrderByBugTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctOrderByBugTests.CtesAndGroupBy.cs">
+      <DependentUpon>DistinctOrderByBugTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DistinctOrderByBugTests.FunctionsAndSimpleDistinct.cs">
+      <DependentUpon>DistinctOrderByBugTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.CrossApplyBasicsTests.CtesDistinctAndParserLimits.cs">
+      <DependentUpon>Exploratory.CrossApplyBasicsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.CrossApplyBasicsTests.EmptyAndAliasEdges.cs">
+      <DependentUpon>Exploratory.CrossApplyBasicsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.CrossApplyBasicsTests.FilteringAndOrdering.cs">
+      <DependentUpon>Exploratory.CrossApplyBasicsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.CrossApplyBasicsTests.GroupingJoinsAndOuterApply.cs">
+      <DependentUpon>Exploratory.CrossApplyBasicsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.CrossApplyBasicsTests.MethodAndPropertyAccess.cs">
+      <DependentUpon>Exploratory.CrossApplyBasicsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.CrossApplyBasicsTests.SetAndSelfPatterns.cs">
+      <DependentUpon>Exploratory.CrossApplyBasicsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.QueriesAndJoinsTests.AggregatesAndGrouping.cs">
+      <DependentUpon>Exploratory.QueriesAndJoinsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.QueriesAndJoinsTests.CrossApplyAdvanced.cs">
+      <DependentUpon>Exploratory.QueriesAndJoinsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.QueriesAndJoinsTests.CrossApplyCore.cs">
+      <DependentUpon>Exploratory.QueriesAndJoinsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.QueriesAndJoinsTests.CtesOrderingAndEdges.cs">
+      <DependentUpon>Exploratory.QueriesAndJoinsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Exploratory.QueriesAndJoinsTests.Joins.cs">
+      <DependentUpon>Exploratory.QueriesAndJoinsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GroupByTests.AccessorsAndJoins.cs">
+      <DependentUpon>GroupByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GroupByTests.CountsAndUngroupedAggregates.cs">
+      <DependentUpon>GroupByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GroupByTests.DistinctAggregates.cs">
+      <DependentUpon>GroupByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GroupByTests.NoBoxing.cs">
+      <DependentUpon>GroupByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Join.SemiAntiCrossJoinTests.SemiAnti.cs">
+      <DependentUpon>Join.SemiAntiCrossJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MultiJoinHashJoinTests.CtesAndGeneratedCode.cs">
+      <DependentUpon>MultiJoinHashJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MultiJoinHashJoinTests.InnerJoins.cs">
+      <DependentUpon>MultiJoinHashJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MultiJoinHashJoinTests.MixedAndEdgeCases.cs">
+      <DependentUpon>MultiJoinHashJoinTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OrderByTests.AliasProjection.cs">
+      <DependentUpon>OrderByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OrderByTests.AliasShadowing.cs">
+      <DependentUpon>OrderByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OrderByTests.BasicAndGrouped.cs">
+      <DependentUpon>OrderByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OrderByTests.CteCaseAndJoins.cs">
+      <DependentUpon>OrderByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OrderByTests.DescendingEdgeCases.cs">
+      <DependentUpon>OrderByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OrderByTests.FunctionAliases.cs">
+      <DependentUpon>OrderByTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="QualifyTests.CtesJoinsAndOrdering.cs">
+      <DependentUpon>QualifyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="QualifyTests.ExpressionsAndAggregates.cs">
+      <DependentUpon>QualifyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="QualifyTests.JoinsAndNested.cs">
+      <DependentUpon>QualifyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="QualifyTests.WindowRanking.cs">
+      <DependentUpon>QualifyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ReorderedSyntaxCteTests.EdgeCases.cs">
+      <DependentUpon>ReorderedSyntaxCteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ReorderedSyntaxCteTests.MixedAndNested.cs">
+      <DependentUpon>ReorderedSyntaxCteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ReorderedSyntaxCteTests.SetOperatorsAndJoins.cs">
+      <DependentUpon>ReorderedSyntaxCteTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SetsOperatorsTests.ExceptIntersect.cs">
+      <DependentUpon>SetsOperatorsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SetsOperatorsTests.MixedAndGroupedSources.cs">
+      <DependentUpon>SetsOperatorsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SetsOperatorsTests.MixedUnionScenarios.cs">
+      <DependentUpon>SetsOperatorsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SetsOperatorsTests.OptionalKeys.cs">
+      <DependentUpon>SetsOperatorsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SetsOperatorsTests.Union.cs">
+      <DependentUpon>SetsOperatorsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.BasicMembership.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.BasicMembership.EmptyGroupAndDiagnostics.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.BooleanJoinsAndOuterQueries.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.BooleanJoinsAndOuterQueries.NumericAndOuterClauses.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.BooleanSetCombinations.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.Characterization.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.ComprehensiveEvaluatorSuite.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.CorrelatedIn.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.DerivedTables.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.Exists.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.PerformanceHardening.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.PredicateExpressionContexts.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.Quantified.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.ResultSemantics.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.ResultSemantics.NestedNullsAndExpressions.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.Scalar.CorrelationAndContexts.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.Scalar.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.SemiJoinPlanning.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.TypeDepthAndSetOperations.Advanced.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SubqueryTests.TypeDepthAndSetOperations.cs">
+      <DependentUpon>SubqueryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="WindowFunction.FrameTests.ImplicitDefaults.cs">
+      <DependentUpon>WindowFunction.FrameTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="WindowFunction.FrameTests.QueryComposition.cs">
+      <DependentUpon>WindowFunction.FrameTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="WindowFunction.FrameTests.RangeBetween.cs">
+      <DependentUpon>WindowFunction.FrameTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="WindowFunction.FrameTests.Rows.cs">
+      <DependentUpon>WindowFunction.FrameTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="WindowFunction.FrameTests.Validation.cs">
+      <DependentUpon>WindowFunction.FrameTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

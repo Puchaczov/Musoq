@@ -15,7 +15,7 @@ public class ParserContextualKeywordIdentifierTests
     public void ReportedExistsColumnQuery_ShouldParseWithoutDiagnostics()
     {
         const string query =
-            "select FullPath, Exists from os.files('D:\\repos\\Musoq.Cloud\\src\\dotnet\\Musoq\\bin\\Debug\\net10.0', true) take 5";
+            "select FullPath, Exists from os.files() take 5";
 
         var result = ParseWithDiagnostics(query);
 

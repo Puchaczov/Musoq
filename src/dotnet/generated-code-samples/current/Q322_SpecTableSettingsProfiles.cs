@@ -164,8 +164,8 @@ namespace GeneratedSample_Q322_SpecTableSettingsProfiles
                 try
                 {
                     var __cSchema = provider.GetSchema("#settings");
-                    var cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity>.Open(__cSchema, "items", new SourceExecutionContext("c:1", sourceExecutionPlans["c:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["c:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["c:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                    var cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity>(cRowsSource.Chunks, __musoqProgressContext, "c:1") : cRowsSource.Chunks;
+                    var cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity>.Open(__cSchema, "items", new SourceExecutionContext("c:1", sourceExecutionPlans["c:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["c:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["c:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+                    var cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity>(cRowsSource.Chunks, __musoqProgressContext, "c:1") : cRowsSource.Chunks;
                     var cRowsBuffer = EvaluationHelper.MaterializeChunkedRows(cRows);
                     var __storedTable0Rows = _cteRowResults.Slot0;
                     for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
@@ -221,18 +221,18 @@ namespace GeneratedSample_Q322_SpecTableSettingsProfiles
         private static List<Statement0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
             var __statement0_aSchema = provider.GetSchema("#settings");
-            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity>.Open(__statement0_aSchema, "items", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
+            var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity>.Open(__statement0_aSchema, "items", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["a:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
             var __statement0_bSchema = provider.GetSchema("#settings");
-            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity>.Open(__statement0_bSchema, "items", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
+            var statement0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity>.Open(__statement0_bSchema, "items", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var statement0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity>(statement0_bRowsSource.Chunks, __musoqProgressContext, "b:1") : statement0_bRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
             var bRowsBuffer = EvaluationHelper.MaterializeChunkedRows(statement0_bRows);
             foreach (var aChunk in statement0_aRows)
             {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity> aChunkView)
+                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity> aChunkView)
                 {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity[] aChunkViewArray)
+                    if (aChunkView.Source is Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity[] aChunkViewArray)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
@@ -254,7 +254,7 @@ namespace GeneratedSample_Q322_SpecTableSettingsProfiles
                         continue;
                     }
 
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTests.SettingsEntity> aChunkViewList)
+                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures.SettingsEntity> aChunkViewList)
                     {
                         int aChunkViewOffset = aChunkView.Offset;
                         for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
