@@ -175,8 +175,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .SelectMany(budget =>
             {
                 var directory = ToAbsolutePath(repositoryRoot, budget.RelativeDirectory);
-                return Directory
-                    .EnumerateFiles(directory, budget.SearchPattern)
+                var files = Directory.GetFiles(directory, budget.SearchPattern);
+                Assert.IsNotEmpty(files, $"Budgeted test family has no sources: {budget.RelativeDirectory}/{budget.SearchPattern}");
+                return files
                     .Select(file => new SourceFileBudget(
                         Path.GetFileName(file),
                         CountBudgetedLines(file),

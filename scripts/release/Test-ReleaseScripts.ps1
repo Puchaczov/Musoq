@@ -79,6 +79,44 @@ try {
         $escapeRejected = $_.Exception.Message -match 'filenames within the release directory'
     }
     Assert-Equal -Expected $true -Actual $escapeRejected -Message 'Manifest lookup must stay inside the release directory.'
+
+    $bundledTargetsPath = [System.Security.SecurityElement]::Escape((Join-Path $PSScriptRoot 'BundledTargets.targets'))
+    $bundledProjectPath = Join-Path $registryRoot 'bundled.proj'
+    @'
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <BundledTargetAssemblyName Include="Test.Target" />
+  </ItemGroup>
+  <Import Project="__TARGETS__" />
+  <Target Name="Capture" DependsOnTargets="IncludeBundledTargetAssemblies;IncludeBundledTargetAssemblySymbols">
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)/bundled-files.txt" Lines="@(BuildOutputInPackage);@(TfmSpecificDebugSymbolsFile)" Overwrite="true" />
+  </Target>
+</Project>
+'@.Replace('__TARGETS__', $bundledTargetsPath) | Set-Content -LiteralPath $bundledProjectPath
+
+    foreach ($layout in @('bin/Release/net10.0', '.artifacts/build/bin/Test.Project/release')) {
+        $targetDirectory = Join-Path $registryRoot $layout
+        New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+        foreach ($extension in @('dll', 'xml', 'pdb')) {
+            Set-Content -LiteralPath (Join-Path $targetDirectory "Test.Target.$extension") -Value $layout
+        }
+        $targetDirectory += [System.IO.Path]::DirectorySeparatorChar
+        $resolutionOutput = & dotnet msbuild $bundledProjectPath -nologo -verbosity:quiet -target:Capture "-property:TargetDir=$targetDirectory" 2>&1
+        Assert-Equal -Expected 0 -Actual $LASTEXITCODE -Message "Bundled targets must resolve the selected $layout output. $resolutionOutput"
+        $bundledFiles = @(Get-Content -LiteralPath (Join-Path $registryRoot 'bundled-files.txt'))
+        Assert-Equal -Expected 3 -Actual $bundledFiles.Count -Message 'Bundling must retain the assembly, documentation and symbols.'
+        foreach ($file in $bundledFiles) {
+            Assert-Equal -Expected $targetDirectory.TrimEnd([System.IO.Path]::DirectorySeparatorChar) `
+                -Actual (Split-Path -Parent $file) -Message 'Bundling must not select stale files from another output layout.'
+        }
+    }
+    Remove-Item -LiteralPath (Join-Path $targetDirectory 'Test.Target.pdb')
+    $missingSymbolOutput = & dotnet msbuild $bundledProjectPath -nologo -verbosity:quiet -target:Capture "-property:TargetDir=$targetDirectory" 2>&1
+    Assert-Equal -Expected $true -Actual ($LASTEXITCODE -ne 0) -Message 'Missing symbols must fail bundling even when another layout contains them.'
+    Assert-Equal -Expected $true -Actual (($missingSymbolOutput -join ' ') -match 'Expected bundled target symbols') -Message 'Missing-symbol failures must identify the packaging contract.'
 }
 finally {
     $script:PackageRegistryPath = $originalRegistryPath

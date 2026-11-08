@@ -49,8 +49,9 @@ public sealed class ReleasePackagingGuardrailTests
             StringAssert.Contains(converterProject, targetProject);
         }
 
-        StringAssert.Contains(converterProject, "IncludeBundledTargetAssemblies");
-        StringAssert.Contains(converterProject, "IncludeBundledTargetAssemblySymbols");
+        StringAssert.Contains(converterProject, "<Import Project=\"..\\..\\..\\scripts\\release\\BundledTargets.targets\"");
+        foreach (var targetProject in InternalTargetProjects)
+            StringAssert.Contains(converterProject, $"<BundledTargetAssemblyName Include=\"{targetProject}\"");
         StringAssert.Contains(converterProject, "Microsoft.CodeAnalysis.CSharp");
         Assert.IsFalse(converterProject.Contains("Musoq.Targets.TestPortable", StringComparison.Ordinal));
     }
@@ -66,8 +67,8 @@ public sealed class ReleasePackagingGuardrailTests
             "Musoq.Evaluator.csproj"));
 
         StringAssert.Contains(evaluatorProject, "..\\Musoq.Targets.Abstractions\\Musoq.Targets.Abstractions.csproj\" PrivateAssets=\"All\"");
-        StringAssert.Contains(evaluatorProject, "IncludeBundledTargetAbstractions");
-        StringAssert.Contains(evaluatorProject, "IncludeBundledTargetAbstractionSymbols");
+        StringAssert.Contains(evaluatorProject, "<Import Project=\"..\\..\\..\\scripts\\release\\BundledTargets.targets\"");
+        StringAssert.Contains(evaluatorProject, "<BundledTargetAssemblyName Include=\"Musoq.Targets.Abstractions\"");
         Assert.IsFalse(evaluatorProject.Contains("Musoq.Targets.TestPortable", StringComparison.Ordinal));
     }
 

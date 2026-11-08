@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -78,13 +79,16 @@ internal static class GeneratedCodeSampleArtifacts
     {
         var startedUtc = DateTimeOffset.UtcNow;
         var stopwatch = Stopwatch.StartNew();
+        var callerCulture = CultureInfo.CurrentCulture;
 
         try
         {
+            CultureInfo.CurrentCulture = Culture.DefaultCulture;
             return GenerateCore(sample, loggerResolver);
         }
         finally
         {
+            CultureInfo.CurrentCulture = callerCulture;
             stopwatch.Stop();
             GeneratedCodeSampleTiming.RecordGeneration(
                 sample,
