@@ -4,6 +4,17 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.16-beta.1
+
+See the curated full-train release notes for [Musoq 17.0.16-beta.1](release-notes/v17.0.16-beta.1.md).
+
+- Promote the seven-package datasource diagnostics train to beta, retaining provider-defined MQ7020 errors and per-execution MQ5027 warnings.
+- Enforce published datasource binary compatibility for Musoq.Schema and Musoq.Plugins through the non-alpha package validation gate.
+- Split evaluator regression coverage into focused test projects and isolate filesystem fixtures and generated-code sample discovery from checkout location.
+- Fix a shared type-hint-cache test race and deferred-result cleanup in incremental-rename tests, standardize package output under .artifacts, and make package manifests portable between CI jobs.
+- Bundle target assemblies and symbols from the selected build output so isolated release packing cannot include stale files from another layout.
+- Expand the SQL language tour and SQLite interpretation examples. Downstream dependency upgrades and CLI manual projections remain separate work.
+
 ## 17.0.16-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.16-alpha.1](release-notes/v17.0.16-alpha.1.md).
