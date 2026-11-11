@@ -4,6 +4,19 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.17
+
+See the curated release notes for [Musoq Core Engine 17.0.17](release-notes/v17.0.17.md).
+
+- Publish seven aligned stable .NET 10 packages with supported datasource binary compatibility checks.
+- Add opt-in computed source projections with planner-owned eligibility and strict execution contracts.
+- Reduce interpretation, byte-buffer, terminal-row, and computed-projection materialization overhead.
+- Preserve executable inspection receipts on exact compilation-cache hits.
+- Expand representative benchmark coverage and retain campaign lifecycle and provenance evidence.
+- Strengthen deterministic query verification and reorganize Converter and Plugins regression suites.
+- Establish pinned CSharpier formatting and CI checks while preserving generated and historical content.
+- Advance Execution IR to 14 and host ABI to 10 while retaining package format 2; recompile persisted query artifacts.
+
 ## 17.0.16-beta.1
 
 See the curated full-train release notes for [Musoq 17.0.16-beta.1](release-notes/v17.0.16-beta.1.md).
