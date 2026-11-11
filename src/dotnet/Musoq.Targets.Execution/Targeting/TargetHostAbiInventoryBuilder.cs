@@ -67,8 +67,8 @@ internal static class TargetHostAbiInventoryBuilder
             imports.Add(new TargetHostAbiImport(
                 TargetHostAbiImportKind.QueryRowSourceAccess,
                 $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
-                "query-row-source-access-v2",
-                2,
+                source.Fields.Any(static field => field.ComputedExpressionIdentity is not null) ? "query-row-source-access-v3" : "query-row-source-access-v2",
+                source.Fields.Any(static field => field.ComputedExpressionIdentity is not null) ? 3 : 2,
                 new TargetQueryRowSourceAccessAbiDetails(
                     source.SourceContextId,
                     source.SchemaName,
@@ -84,7 +84,8 @@ internal static class TargetHostAbiInventoryBuilder
                         field.SourceReadType,
                         field.EnumType,
                         field.IsNullable,
-                        field.ReadModifiers)))));
+                        field.ReadModifiers,
+                        field.ComputedExpressionIdentity)))));
         }
     }
 

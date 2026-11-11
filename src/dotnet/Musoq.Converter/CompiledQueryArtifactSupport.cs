@@ -337,6 +337,8 @@ internal static class CompiledQueryArtifactSupport
             {
                 builder.Append("|Computed=")
                     .Append(string.Join(",", entry.RequestedComputedProjectionFingerprints));
+                builder.Append("|ComputedAccepted=").Append(string.Join(",", entry.AcceptedComputedProjectionFingerprints));
+                builder.Append("|ComputedResidual=").Append(string.Join(",", entry.ResidualComputedProjectionFingerprints));
             }
 
             if (entry.Replayability != RowStreamReplayability.Unknown)

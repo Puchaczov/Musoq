@@ -81,7 +81,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteShapesByName))
                 .ToArray(),
             sourceShape.Fields,
-            CreateColumnMetadata(scan.Alias, sourceShape.Fields, ExecutionColumnMetadataKind.SourceSchemaColumns),
+            CreateColumnMetadata(scan.Alias, NativeSourceFields(scan, sourceShape), ExecutionColumnMetadataKind.SourceSchemaColumns),
             RowShapeLookup.ResolveSourceRequestType(sourceShape),
             scan.SourceTransferStrategy is { Mode: SourceTransferMode.QueryScopedRows } transfer
                 ? ExecutionQueryRowSourceTransfer.FromPlanner(transfer)
@@ -90,6 +90,14 @@ internal sealed partial class PhysicalLoweringImplementation
             scan.SourceConstructionSupportsContext,
             scan.SourceConstructorStableId,
             scan.SourceConstructor, scan.StructuralArgumentLimits);
+    }
+
+    private static IReadOnlyList<FieldBinding> NativeSourceFields(PhysicalSchemaScanNode scan, RowShape shape)
+    {
+        if (scan.SourceTransferStrategy is not { ComputedProjections.Count: > 0 } transfer)
+            return shape.Fields;
+        var computed = transfer.ComputedProjections.Select(item => item.Projection.Name).ToHashSet(StringComparer.Ordinal);
+        return shape.Fields.Where(field => !computed.Contains(field.Name)).ToArray();
     }
 
     private static ExecutionExpression AttachCteRowShape(

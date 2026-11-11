@@ -1,41 +1,41 @@
 ﻿// === Parsed Query ===
 /*
-select Population * 2 as ComputedPopulation, Name from #A.entities()
+select r.Id, r.Id::long * 2 as Value from #computedtest.rows() r
 */
 
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [(ko3iko.Population * 2) as ComputedPopulation, ko3iko.Name as Name]
-    SchemaScan [#A.entities() as ko3iko]
+  Project [r.Id as Id, (r.Id::Int64 * 2) as Value]
+    SchemaScan [#computedtest.rows() as r]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [(ko3iko.Population * 2) as ComputedPopulation, ko3iko.Name as Name]
-    PhysicalSchemaScan [#A.entities() as ko3iko]
+  PhysicalProject [r.Id as Id, r.__computed1 as Value]
+    PhysicalSchemaScan [#computedtest.rows() as r] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=36E4473105344AE35BB29821A3FDF64F9D87B312D3AEE1E460D3243B433BC7FF]
 */
 
 // === Execution Plan ===
 /*
 ExecutionPlan [compiled]
   Shapes
-    SourceEntity [ko3iko: BasicEntity]
-      Name: string <- property Name
-      Population: decimal <- property Population
+    Generated [QueryRow_36E447310534_S]
+      Id: int <- field Field0
+      __computed1: long? <- field Field1
     Generated [ResultRow0]
-      ComputedPopulation: decimal <- field ComputedPopulation
-      Name: string <- field Name
+      Id: int <- field Id
+      Value: long? <- field Value
 
   Body
     PhaseBoundary [Begin]
     PhaseBoundary [From]
-    SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
+    SourceScan [r: QueryRow_36E447310534_S] -> rRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=36E4473105344AE35BB29821A3FDF64F9D87B312D3AEE1E460D3243B433BC7FF]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
-    ChunkedForEach [ko3iko in ko3ikoRows]
-      AppendShape [result <- ResultRow0(ComputedPopulation: (ko3iko.Population * 2), Name: ko3iko.Name)]
+    ChunkedForEach [r in rRows]
+      AppendShape [result <- ResultRow0(Id: r.Id, Value: r.__computed1)]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
 
@@ -62,10 +62,11 @@ namespace GeneratedSample_Q265_SourceComputedProjectionAccepted
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
-            new Column("ComputedPopulation", typeof(decimal), 0),
-            new Column("Name", typeof(string), 1)
+            new Column("Id", typeof(int), 0),
+            new Column("Value", typeof(long?), 1)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Population", typeof(decimal), 1) });
+        private static readonly QueryRowShape __queryRowShape_36E447310534 = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false), QueryRowField.ForComputedProjection(1, new SourceComputedProjection("__computed1", new SourceScalarBinary(SourceScalarBinaryOperator.Multiply, new SourceScalarCast(new SourceScalarColumn("Id", typeof(int)), typeof(long?)), new SourceScalarLiteral((int)2, typeof(int)), typeof(long?)), typeof(long?))) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
@@ -92,12 +93,13 @@ namespace GeneratedSample_Q265_SourceComputedProjectionAccepted
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
             this.OnPhaseChanged("compiled", QueryPhase.Begin);
             this.OnPhaseChanged("compiled", QueryPhase.From);
-            var __ko3ikoSchema = provider.GetSchema("#A");
-            var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__ko3ikoSchema, "entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-            var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
-            var __musoqTableSourceRows = ko3ikoRows;
+            var __rSchema = provider.GetSchema("#computedtest");
+            var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#computedtest.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 36E4473105344AE35BB29821A3FDF64F9D87B312D3AEE1E460D3243B433BC7FF).");
+            var rRowsSource = QuerySourceInvocation<QueryRow_36E447310534_S, QueryRowMaterializer_36E447310534_S>.Open(__rSchemaQueryRows, "rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["r:1"].Identity) }, __queryRowShape_36E447310534), global::Musoq.Schema.SourceArguments.Empty);
+            var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_36E447310534_S>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
+            var __musoqTableSourceRows = rRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0((ko3iko.Population * 2), ko3iko.Name), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_36E447310534_S, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1), token), token, onCompleted: () =>
             {
                 try
                 {
@@ -142,45 +144,63 @@ namespace GeneratedSample_Q265_SourceComputedProjectionAccepted
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private sealed class ResultRow0 : Row
+        private readonly struct QueryRowMaterializer_36E447310534_S : IQueryRowMaterializer<QueryRow_36E447310534_S>
         {
-            public ResultRow0(decimal __value0, string __value1)
+            public static QueryRow_36E447310534_S Materialize<TReader>(scoped ref TReader reader)
+                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_36E447310534_S(reader.Read<int>(0), reader.Read<long?>(1));
+        }
+
+        private readonly struct QueryRow_36E447310534_S
+        {
+            public QueryRow_36E447310534_S(int Field0, long? Field1)
             {
-                ComputedPopulation = __value0;
-                Name = __value1;
+                this.Field0 = Field0;
+                this.Field1 = Field1;
             }
 
-            public decimal ComputedPopulation { get; private set; }
+            public int Field0 { get; }
+            public long? Field1 { get; }
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(int __value0, long? __value1)
+            {
+                Id = __value0;
+                Value = __value1;
+            }
+
             public override int Count => 2;
-            public string Name { get; private set; }
+            public int Id { get; private set; }
+            public long? Value { get; private set; }
 
             public override void AssignValue<T>(int columnNumber, T value)
             {
                 global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
                 {
-                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.ComputedPopulation = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal, T>(value)),
-                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long?>(this.Value = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long?, T>(value)),
                     _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
                 });
             }
 
             public override T GetValue<T>(int columnIndex) => columnIndex switch
             {
-                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.ComputedPopulation),
-                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long?>(this.Value),
                 _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
             };
             public override bool HasColumn(string name) => name switch
             {
-                "ComputedPopulation" => true,
-                "Name" => true,
+                "Id" => true,
+                "Value" => true,
                 _ => false
 
             };
             public override void VisitColumns<TVisitor>(ref TVisitor visitor)
             {
-                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.ComputedPopulation, ref visitor);
-                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Value, ref visitor);
             }
         }
     }

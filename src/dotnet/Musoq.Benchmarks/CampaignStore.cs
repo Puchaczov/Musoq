@@ -63,6 +63,8 @@ public sealed class CampaignStore
             throw new CampaignCompatibilityException("Resume provenance differs: source or machine/environment settings changed.");
         if (!CampaignComparison.SameCases(saved.Cases, expected.Cases))
             throw new CampaignCompatibilityException("Resume requires identical cases, parameters and measurement settings.");
+        if (saved.CaseCatalog is null ? expected.CaseCatalog is not null : !saved.CaseCatalog.SameAs(expected.CaseCatalog))
+            throw new CampaignCompatibilityException("Resume requires an identical case lifecycle catalog snapshot.");
     }
 
     public bool Completed(string id) => _attempts.Any(attempt => attempt.CaseId == id && attempt.Status == "complete");

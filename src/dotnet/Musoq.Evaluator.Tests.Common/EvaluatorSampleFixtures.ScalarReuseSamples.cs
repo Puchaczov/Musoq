@@ -88,17 +88,22 @@ internal static partial class EvaluatorSampleFixtures
                 "Q264_BoundaryRowShapeNarrowing",
                 "ScalarReuse",
                 "select Name, City, Country, Population, Money from #A.entities() order by Population desc take 10"),
-            Basic(
-                "Q265_SourceComputedProjectionAccepted",
-                "ScalarReuse",
-                "select Population * 2 as ComputedPopulation, Name from #A.entities()"),
-            Basic(
-                "Q266_SourceComputedProjectionResidual",
-                "ScalarReuse",
-                "select Population * 2 as ResidualPopulation, Name from #A.entities() where Population > 0"),
+            ComputedProjectionSample("Q265_SourceComputedProjectionAccepted", Schema.Computed.ComputedSourceBehavior.Accept),
+            ComputedProjectionSample("Q266_SourceComputedProjectionResidual", Schema.Computed.ComputedSourceBehavior.Reject),
             ScalarReuseRecursiveInvariant()
         ];
     }
+
+    private static GeneratedCodeSample ComputedProjectionSample(string name, Schema.Computed.ComputedSourceBehavior behavior)
+        => new()
+        {
+            Name = name,
+            FileName = name + ".cs",
+            Category = "ScalarReuse",
+            Query = "select r.Id, r.Id::long * 2 as Value from #computedtest.rows() r",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = () => new Schema.Computed.ComputedSourceProvider(behavior)
+        };
 
     private static GeneratedCodeSample ScalarReuseRecursiveInvariant()
     {

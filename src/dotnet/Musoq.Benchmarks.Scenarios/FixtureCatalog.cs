@@ -7,7 +7,9 @@ public static class FixtureCatalog
     private static readonly IReadOnlyDictionary<string, FixtureDefinition> Fixtures =
         new Dictionary<string, FixtureDefinition>(StringComparer.Ordinal)
         {
-            ["standard"] = new(StandardFixture.Prepare, StandardFixture.Requirements, StandardDataProfiles.Distribution)
+            ["standard"] = new(StandardFixture.Prepare, StandardFixture.Requirements, StandardDataProfiles.Distribution),
+            ["performance"] = new(PerformanceFixture.Prepare, PerformanceFixture.Requirements, PerformanceFixture.Distribution),
+            ["computed"] = new(ComputedProjectionFixture.Prepare, ComputedProjectionFixture.Requirements, ComputedProjectionFixture.Distribution)
         };
 
     public static PreparedFixture Prepare(Scenario scenario, int inputCount) =>

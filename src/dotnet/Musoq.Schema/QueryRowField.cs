@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Schema;
 
@@ -42,10 +43,17 @@ public sealed record QueryRowField
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers,
         ColumnStability stability)
+        : this(slot, sourceColumnIndex, name, fieldType, sourceReadType, enumType, isNullable, readModifiers, stability, null)
+    {
+    }
+
+    private QueryRowField(int slot, int sourceColumnIndex, string name, Type fieldType, Type sourceReadType,
+        EnumTypeDescriptor? enumType, bool isNullable, IReadOnlyDictionary<string, string>? readModifiers,
+        ColumnStability stability, SourceComputedProjection? computedProjection)
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot), slot, "A query row slot cannot be negative.");
-        if (sourceColumnIndex < 0)
+        if (sourceColumnIndex < 0 && computedProjection is null)
             throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex), sourceColumnIndex, "A source column index cannot be negative.");
 
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -75,6 +83,7 @@ public sealed record QueryRowField
         IsNullable = isNullable;
         Stability = stability;
         ReadModifiers = FreezeModifiers(readModifiers);
+        ComputedProjection = computedProjection;
     }
 
     public QueryRowField(
@@ -106,6 +115,20 @@ public sealed record QueryRowField
     public ColumnStability Stability { get; }
 
     public IReadOnlyDictionary<string, string> ReadModifiers { get; }
+
+    public SourceComputedProjection? ComputedProjection { get; }
+
+    public QueryRowFieldOrigin Origin => ComputedProjection is null ? QueryRowFieldOrigin.SourceColumn : QueryRowFieldOrigin.ComputedProjection;
+
+    public static QueryRowField ForComputedProjection(int slot, SourceComputedProjection projection)
+    {
+        ArgumentNullException.ThrowIfNull(projection);
+        if (!SourceComputedProjectionFacts.CanProviderEvaluate(projection, SourceComputedProjectionCapabilities.AllPortable))
+            throw new ArgumentException("A computed query-row field requires a stable expression with an exact concrete result type.", nameof(projection));
+        return new(slot, -1, projection.Name, projection.ResultType, projection.ResultType, null,
+            !projection.ResultType.IsValueType || Nullable.GetUnderlyingType(projection.ResultType) is not null,
+            null, ColumnStability.Stable, projection);
+    }
 
     /// <summary>
     /// Determines whether a CLR type can be referenced safely by a generated query-row carrier.

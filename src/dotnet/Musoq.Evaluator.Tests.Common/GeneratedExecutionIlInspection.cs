@@ -44,15 +44,25 @@ internal static class GeneratedExecutionIlInspection
 
     private static void RecordCompilation(CompiledQuery query, BuildItems items, GeneratedAssemblyCapture capture)
     {
-        if (items.ExecutableArtifact is not (ClrLoadedExecutableArtifact or ClrAssemblyExecutableArtifact) &&
-            !items.ContainsKey(BuildItemKeys.AccessToClassPath))
-            return;
-        var type = items.ExecutableArtifact is ClrLoadedExecutableArtifact loaded
-            ? loaded.RunnableType
-            : capture.RequireType(items.ContainsKey(global::Musoq.Converter.Build.BuildItemKeys.AccessToClassPath)
-                ? items.AccessToClassPath
-                : ((ClrAssemblyExecutableArtifact)items.ExecutableArtifact!).RunnableTypeName);
-        GeneratedTypes.Add(query, type);
+        var type = ResolveGeneratedType(items, capture);
+        if (type is not null)
+            GeneratedTypes.Add(query, type);
+    }
+
+    // IL inspection necessarily reads emitted method metadata and bytecode. The
+    // reflection scope remains the exact generated type from the build receipt;
+    // this lookup consumes typed artifacts without discovering private members.
+    private static Type? ResolveGeneratedType(BuildItems items, GeneratedAssemblyCapture capture)
+    {
+        if (items.ExecutableArtifact is ClrLoadedExecutableArtifact loaded)
+            return loaded.RunnableType;
+        if (items.ContainsKey(BuildItemKeys.RenderingArtifact))
+            return capture.RequireType(items.RenderingArtifacts.AccessToClassPath);
+        if (items.ContainsKey(BuildItemKeys.AccessToClassPath))
+            return capture.RequireType(items.AccessToClassPath);
+        if (items.ExecutableArtifact is ClrAssemblyExecutableArtifact assembly)
+            return capture.RequireType(assembly.RunnableTypeName);
+        return null;
     }
 
     internal static CompiledQuery CompileForExecution(string script, string assemblyName,

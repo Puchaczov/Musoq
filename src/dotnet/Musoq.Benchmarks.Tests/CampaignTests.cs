@@ -9,7 +9,7 @@ public sealed class CampaignTests
     [TestMethod]
     public void ExecutionSizes_UseThreeStandardCountsWithoutScenarioCaps()
     {
-        var cases = CampaignCases.Create(new CampaignOptions(), Path.GetTempPath());
+        var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath());
         var counts = cases.Where(item => item.Definition.Phase == "execution")
             .GroupBy(item => item.Definition.ScenarioId)
             .Select(group => string.Join(",", group.Select(item => item.Definition.InputCount).Distinct().Order())).Distinct().ToArray();
@@ -21,7 +21,7 @@ public sealed class CampaignTests
     {
         var options = CampaignOptions.Parse(["--size", "1_007"]);
         var cases = CampaignCases.Create(options, Path.GetTempPath());
-        Assert.AreEqual(69, cases.Count(item => item.Definition.Phase == "execution"));
+        Assert.AreEqual(87, cases.Count(item => item.Definition.Phase == "execution"));
         Assert.IsTrue(cases.Where(item => item.Definition.Phase == "execution").All(item => item.Definition.InputCount == 1007));
         Assert.IsTrue(cases.Where(item => item.Definition.Phase != "execution").All(item => item.Definition.InputCount == FixtureData.TestSize));
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--size", "0"]));
@@ -83,7 +83,7 @@ public sealed class CampaignTests
             typeof(ArtifactLoadBenchmark), typeof(TypedProjectionBenchmark), typeof(TypedGroupBenchmark), typeof(TypedWindowBenchmark)
         ];
         CollectionAssert.AreEquivalent(actual, CampaignCases.Types.ToArray());
-        var cases = CampaignCases.Create(new CampaignOptions(), Path.GetTempPath());
+        var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath());
         Assert.AreEqual(cases.Length, cases.Select(item => item.Definition.Id).Distinct().Count());
         Assert.AreEqual(8, cases.Count(item => item.Definition.Phase == "compilation-cold"));
         Assert.AreEqual(9, cases.Count(item => item.Definition.ResultApi == "Typed"));
@@ -98,7 +98,7 @@ public sealed class CampaignTests
     [TestMethod]
     public void OfficialProfiles_PreserveFreshCompilationAndThroughputBoundaries()
     {
-        var cases = CampaignCases.Create(new CampaignOptions(Mode: "Official"), Path.GetTempPath());
+        var cases = CampaignCases.CreateComplete(new CampaignOptions(Mode: "Official"), Path.GetTempPath());
         var cold = cases.First(item => item.Definition.Phase == "compilation-cold").Benchmark;
         var warm = cases.First(item => item.Definition.Phase == "compilation-warm").Benchmark;
         Assert.AreEqual(8, cold.Job.Run.LaunchCount);

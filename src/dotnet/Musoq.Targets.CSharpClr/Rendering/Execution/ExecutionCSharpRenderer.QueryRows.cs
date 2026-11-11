@@ -96,6 +96,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ExpressionSyntax CreateQueryRowFieldExpression(ExecutionQueryRowField field)
     {
+        if (field.ComputedProjection is { } computed)
+            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression("QueryRowField.ForComputedProjection"))
+                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument(CreateIntLiteral(field.Slot)),
+                    SyntaxFactory.Argument(CreateComputedProjectionMetadata(computed))
+                })));
         var arguments = new List<ExpressionSyntax>
         {
             CreateIntLiteral(field.Slot),

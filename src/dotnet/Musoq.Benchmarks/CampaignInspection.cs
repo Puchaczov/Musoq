@@ -133,6 +133,7 @@ public static class CampaignInspection
 
     private static void ValidateCases(RunManifest manifest)
     {
+        manifest.CaseCatalog?.ValidateSelection(manifest.Cases.Select(item => item.Id), manifest.Provenance.Environment.Mode == "Official");
         if (manifest.Cases.Length == 0 || manifest.Cases.Select(item => item.Id).Distinct().Count() != manifest.Cases.Length)
             throw new InvalidDataException("Case manifest is empty or contains duplicate registrations.");
         if (manifest.Cases.Any(item => string.IsNullOrWhiteSpace(item.Sql) || item.InputCount < 0))
@@ -148,6 +149,7 @@ public static class CampaignInspection
             manifest.SchemaVersion != definition.SchemaVersion || manifest.RunId != definition.RunId ||
             manifest.SuiteVersion != definition.SuiteVersion || manifest.Status != "complete" || manifest.FinishedUtc != marker.CompletedUtc ||
             !CampaignComparison.SameCases(manifest.Cases, definition.Cases) ||
+            (definition.CaseCatalog is null ? manifest.CaseCatalog is not null : !definition.CaseCatalog.SameAs(manifest.CaseCatalog)) ||
             !CampaignComparison.SameProvenance(manifest.Provenance, definition.Provenance))
             throw new InvalidDataException("Completion marker is inconsistent or successful cases are missing.");
         ValidateDerivedResults(directory, attempts);

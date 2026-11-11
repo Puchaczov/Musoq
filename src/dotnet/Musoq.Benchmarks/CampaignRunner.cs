@@ -7,8 +7,12 @@ public static class CampaignRunner
     internal static CampaignReceipt RunCampaign(CampaignOptions options)
     {
         var root = ProvenanceCollector.RepositoryRoot();
-        var work = Path.Combine(root, "BenchmarkDotNet.Artifacts", "work", Guid.NewGuid().ToString("N"));
-        var cases = CampaignCases.Create(options, work);
+        var work = Path.Combine(root, ".artifacts", "benchmarks", "work", Guid.NewGuid().ToString("N"));
+        var complete = CampaignCases.CreateComplete(options, work);
+        var canonical = options.Size is null ? complete : CampaignCases.CreateComplete(options with { Size = null }, work);
+        var catalog = CaseLifecycleCatalog.Load(canonical.Select(item => item.Definition.Id));
+        var cases = CampaignCases.Select(complete, options, catalog);
+        catalog.ValidateSelection(cases.Select(item => item.Definition.Id), options.Official);
         if (cases.Length == 0)
             throw new ArgumentException("No benchmark cases match the filter.");
         var provenance = ProvenanceCollector.Collect(root, options);
@@ -18,6 +22,7 @@ public static class CampaignRunner
         {
             SuiteVersion = ScenarioCatalog.SuiteVersion, RunId = runId,
             Provenance = provenance, Cases = cases.Select(item => item.Definition).ToArray(),
+            CaseCatalog = catalog,
             Invocation = options with { Resume = null, Output = null, Supplied = [] }
         };
         var output = options.Output ?? DefaultOutput(root, options, manifest);
@@ -127,6 +132,6 @@ public static class CampaignRunner
     {
         if (options.Official)
             return Path.Combine(root, "benchmarks", "history", manifest.SuiteVersion, manifest.RunId);
-        return Path.Combine(root, "BenchmarkDotNet.Artifacts", "local", manifest.RunId);
+        return Path.Combine(root, ".artifacts", "benchmarks", "local", manifest.RunId);
     }
 }

@@ -47,7 +47,12 @@ internal static class ExecutionTargetFeatureAnalyzer
                         $"query-row-source:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}",
                         $"{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}");
                     foreach (var field in transfer.Fields)
+                    {
                         sink.AddType(field.FieldType.Descriptor);
+                        if (field.ComputedProjection is { } computed)
+                            foreach (var expression in ExecutionSourceComputedProjection.Nodes(computed.Expression))
+                                sink.AddType(expression.ResultType.Descriptor);
+                    }
                 }
                 break;
             case ExecutionInterpretSource interpret:

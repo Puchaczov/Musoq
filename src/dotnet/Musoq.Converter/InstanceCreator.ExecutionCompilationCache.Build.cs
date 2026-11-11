@@ -110,6 +110,7 @@ public static partial class InstanceCreator
 
         cachedCompilation.Touch();
 
+        items.ExecutableArtifact = cachedCompilation.Template.ExecutableArtifact;
         ITableRunnable? runnable = null;
         CompiledQuery? compiledQuery = null;
         try

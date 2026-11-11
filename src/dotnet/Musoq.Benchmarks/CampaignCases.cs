@@ -13,9 +13,28 @@ public sealed record CampaignCase(CaseDefinition Definition, BenchmarkCase Bench
 
 public static class CampaignCases
 {
+    private static readonly object EnumerationSync = new();
     public static IReadOnlyList<Type> Types => BenchmarkRegistrations.All.Select(item => item.Type).ToArray();
 
     public static CampaignCase[] Create(CampaignOptions options, string workingDirectory)
+    {
+        var complete = CreateComplete(options, workingDirectory);
+        var canonical = options.Size is null ? complete : CreateComplete(options with { Size = null }, workingDirectory);
+        var catalog = CaseLifecycleCatalog.Load(canonical.Select(item => item.Definition.Id));
+        return Select(complete, options, catalog);
+    }
+
+    public static CampaignCase[] Select(CampaignCase[] complete, CampaignOptions options, CaseCatalogSnapshot catalog) =>
+        complete.Where(item => (options.IncludeRetired || catalog.Retirement(item.Definition.Id) is null) &&
+            (Matches(item.Definition.Id, options.Filter) || Matches(item.Benchmark.Descriptor.Type.Name, options.Filter))).ToArray();
+
+    public static CampaignCase[] CreateComplete(CampaignOptions options, string workingDirectory)
+    {
+        lock (EnumerationSync)
+            return CreateWithSizeSelection(options, workingDirectory);
+    }
+
+    private static CampaignCase[] CreateWithSizeSelection(CampaignOptions options, string workingDirectory)
     {
         var previous = Environment.GetEnvironmentVariable(BenchmarkSizes.SelectionVariable);
         try
@@ -41,8 +60,6 @@ public static class CampaignCases
             foreach (var item in run.BenchmarksCases)
             {
                 var definition = Describe(item) with { JobSettings = job.DisplayInfo };
-                if (!Matches(definition.Id, options.Filter) && !Matches(type.Name, options.Filter))
-                    continue;
                 var caseConfig = ManualConfig.Create(item.Config).WithArtifactsPath(Path.Combine(workingDirectory, definition.Id)).CreateImmutableConfig();
                 cases.Add(new CampaignCase(definition, BenchmarkCase.Create(item.Descriptor, job, item.Parameters, caseConfig)));
             }

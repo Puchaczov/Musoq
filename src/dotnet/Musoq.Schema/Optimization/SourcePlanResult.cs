@@ -1,17 +1,36 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Musoq.Schema.Optimization;
 
 /// <summary>Validated accepted/residual source operations and execution metadata.</summary>
 public sealed record SourcePlanResult
 {
+    private IReadOnlyList<SourceComputedProjection> _acceptedComputedProjections = [];
+    private IReadOnlyList<SourceComputedProjection> _residualComputedProjections = [];
     public required SourceExecutionPlan ExecutionPlan { get; init; }
 
     public IReadOnlyList<SourceColumnRef> AcceptedColumns { get; init; } = [];
 
-    public IReadOnlyList<SourceComputedProjection> AcceptedComputedProjections { get; init; } = [];
+    public IReadOnlyList<SourceComputedProjection> AcceptedComputedProjections
+    {
+        get => _acceptedComputedProjections;
+        init
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _acceptedComputedProjections = value.Count == 0 ? [] : Array.AsReadOnly(value.ToArray());
+        }
+    }
 
-    public IReadOnlyList<SourceComputedProjection> ResidualComputedProjections { get; init; } = [];
+    public IReadOnlyList<SourceComputedProjection> ResidualComputedProjections
+    {
+        get => _residualComputedProjections;
+        init
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _residualComputedProjections = value.Count == 0 ? [] : Array.AsReadOnly(value.ToArray());
+        }
+    }
 
     public RowStreamReplayability Replayability { get; init; } = RowStreamReplayability.Unknown;
 

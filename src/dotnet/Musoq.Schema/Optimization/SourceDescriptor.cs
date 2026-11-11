@@ -29,6 +29,9 @@ public sealed record SourceDescriptor
 
     public SourceTransferCapabilities TransferCapabilities { get; init; }
 
+    /// <summary>Portable computed projections explicitly supported by an opt-in query-row provider.</summary>
+    public SourceComputedProjectionCapabilities ComputedProjectionCapabilities { get; init; } = SourceComputedProjectionCapabilities.None;
+
     /// <summary>Gets permissions explicitly granted for source calls and supplied row processing.</summary>
     public SourceExecutionPermissions ExecutionPermissions { get; init; } = SourceExecutionPermissions.None;
 

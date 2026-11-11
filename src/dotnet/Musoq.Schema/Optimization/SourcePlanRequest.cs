@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Musoq.Schema.Optimization;
@@ -6,6 +7,7 @@ namespace Musoq.Schema.Optimization;
 /// <summary>Metadata and portable operations requested from a datasource.</summary>
 public sealed record SourcePlanRequest
 {
+    private IReadOnlyList<SourceComputedProjection> _requestedComputedProjections = [];
     public required SourceIdentity Identity { get; init; }
 
     /// <summary>
@@ -20,7 +22,15 @@ public sealed record SourcePlanRequest
     public IReadOnlyList<SourceColumnRef> RequiredColumns { get; init; } = [];
 
     /// <summary>Stable portable scalar projections requested from a capable source.</summary>
-    public IReadOnlyList<SourceComputedProjection> RequestedComputedProjections { get; init; } = [];
+    public IReadOnlyList<SourceComputedProjection> RequestedComputedProjections
+    {
+        get => _requestedComputedProjections;
+        init
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _requestedComputedProjections = value.Count == 0 ? [] : Array.AsReadOnly(value.ToArray());
+        }
+    }
 
     /// <summary>Replayability of the source row stream, when the provider knows it.</summary>
     public RowStreamReplayability Replayability { get; init; } = RowStreamReplayability.Unknown;

@@ -86,8 +86,9 @@ public sealed class FixtureProfileTests
     [TestMethod]
     public void VariantCases_AddExactlyNineExecutionCases()
     {
-        var variants = ScenarioCatalog.All.Where(scenario => scenario.DataProfileId != "default").Select(scenario => scenario.Id).ToHashSet(StringComparer.Ordinal);
-        var cases = CampaignCases.Create(new CampaignOptions(), Path.GetTempPath()).Where(item => variants.Contains(item.Definition.ScenarioId)).ToArray();
+        var variants = ScenarioCatalog.All.Where(scenario => scenario.FixtureId == "standard" && scenario.DataProfileId != "default")
+            .Select(scenario => scenario.Id).ToHashSet(StringComparer.Ordinal);
+        var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath()).Where(item => variants.Contains(item.Definition.ScenarioId)).ToArray();
         Assert.HasCount(9, cases);
         Assert.IsTrue(cases.All(item => item.Definition.Phase == "execution" && item.Definition.ResultApi == "Table"));
         CollectionAssert.AreEqual(new[] { 1_000, 10_000, 100_000 }, cases.Select(item => item.Definition.InputCount).Distinct().Order().ToArray());

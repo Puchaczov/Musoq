@@ -8,10 +8,14 @@ public static class BenchmarkMeasurement
     public static Measurement Measure(CampaignCase item, CampaignStore store, AttemptStart attempt)
     {
         var started = DateTimeOffset.UtcNow;
+        var previousDirectory = Environment.CurrentDirectory;
         var previousMetadataPath = Environment.GetEnvironmentVariable(MeasuredProcess.OutputVariable);
         Environment.SetEnvironmentVariable(MeasuredProcess.OutputVariable, store.RawDirectory(attempt));
         try
         {
+            // Scope BenchmarkDotNet project discovery away from retained workspaces.
+            Environment.CurrentDirectory = Path.Combine(ProvenanceCollector.RepositoryRoot(),
+                "src", "dotnet", "Musoq.Benchmarks");
             using var run = new BenchmarkRunInfo([item.Benchmark], item.Benchmark.Descriptor.Type, item.Benchmark.Config);
             var summary = BenchmarkRunner.Run(run);
             var reports = CopyReports(summary, store, attempt);
@@ -41,6 +45,7 @@ public static class BenchmarkMeasurement
         }
         finally
         {
+            Environment.CurrentDirectory = previousDirectory;
             Environment.SetEnvironmentVariable(MeasuredProcess.OutputVariable, previousMetadataPath);
         }
     }

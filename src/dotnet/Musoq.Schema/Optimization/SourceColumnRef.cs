@@ -20,5 +20,15 @@ public sealed record SourceColumnRef
     /// <summary>Authoritative CLR type identity for compilation-time provider binding.</summary>
     public string? ValueTypeName { get; init; }
 
-    public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
+    private IReadOnlyDictionary<string, string> _readModifiers = ColumnReadModifiers.Create(null);
+
+    public IReadOnlyDictionary<string, string> ReadModifiers
+    {
+        get => _readModifiers;
+        init
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _readModifiers = ColumnReadModifiers.Create(value);
+        }
+    }
 }

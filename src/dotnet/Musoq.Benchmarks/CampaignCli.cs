@@ -10,7 +10,7 @@ public static class CampaignCli
         {
             if (arguments.Length == 0 || arguments.Contains("--help", StringComparer.Ordinal))
             {
-                Console.WriteLine("--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --in-process (local Dry only)");
+                Console.WriteLine("--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --include-retired (Local measurement or List) --in-process (local Dry only)");
                 return 0;
             }
             return Dispatch(CampaignOptions.Parse(arguments), output);
@@ -66,6 +66,22 @@ public static class CampaignCli
         var cases = CampaignCases.Create(options, Path.GetTempPath());
         if (cases.Length == 0)
             throw new ArgumentException("No benchmark cases match the filter.");
+        if (options.IncludeRetired)
+        {
+            var canonical = CampaignCases.CreateComplete(options with { Size = null }, Path.GetTempPath());
+            var catalog = CaseLifecycleCatalog.Load(canonical.Select(item => item.Definition.Id));
+            var listings = cases.Select(item =>
+            {
+                var retired = catalog.Retirement(item.Definition.Id);
+                return new CaseListing(item.Definition, retired is null ? "active" : "retired", retired?.Reason, retired?.ReplacementCaseId);
+            }).ToArray();
+            if (options.Json)
+                Write(output, listings);
+            else
+                foreach (var listing in listings)
+                    output.WriteLine($"{listing.Definition.Id}: {listing.Status}; {listing.Reason}");
+            return 0;
+        }
         if (options.Json)
             Write(output, cases.Select(item => item.Definition).ToArray());
         else

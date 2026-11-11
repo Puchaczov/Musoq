@@ -54,12 +54,15 @@ public sealed class ExecutionTargetPhaseDispatchTests
     }
 
     [TestMethod]
-    public void Render_WhenHostAbiVersionIsOld_ShouldRejectBeforeBackendRendering()
+    [DataRow(1)]
+    [DataRow(8)]
+    [DataRow(10)]
+    public void Render_WhenHostAbiVersionIsUnsupported_ShouldRejectBeforeBackendRendering(int version)
     {
         var backend = new CapturingBackend();
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
             TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
-        var request = CreateMinimalRequest() with { HostAbiVersion = 1 };
+        var request = CreateMinimalRequest() with { HostAbiVersion = version };
 
         var result = ExecutionTargetCatalog.Render(request);
 

@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
 internal static partial class SourcePlanningPlanner
 {
-    private static (SourcePlanResult Result, SourceDescriptor Descriptor) PlanSource(
+    private static (SourcePlanResult Result, SourceDescriptor Descriptor, SourcePlanRequest Request) PlanSource(
         PlanningContext context,
         SchemaScanNode scan,
         SchemaFromNode? sourceNode,
@@ -94,6 +94,11 @@ internal static partial class SourcePlanningPlanner
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
 
+        request = request with
+        {
+            RequestedComputedProjections = SourceComputedProjectionPlanner.Candidates(context,
+                request.Identity.SourceContextId, descriptor).Select(item => item.Projection).ToArray()
+        };
         var sourceSpan = ResolveSourceSpan(sourceNode);
         SourcePredicatePlanContractValidator.ValidateCapabilities(
             descriptor.PredicateCapabilities,
@@ -158,11 +163,12 @@ internal static partial class SourcePlanningPlanner
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
 
+        SourceComputedProjectionPlanValidator.Validate(request, result, descriptor);
         result = OptimizationDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
         result = SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
-        return (result, descriptor);
+        return (result, descriptor, request);
     }
 
     private static SourceDescriptor ValidateQueryScopedRowsCapability(

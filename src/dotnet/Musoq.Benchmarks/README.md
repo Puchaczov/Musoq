@@ -1,5 +1,7 @@
 # Musoq.Benchmarks
 
+The complete catalog has **84 SQL scenarios / 279 canonical cases**, initially all active.
+
 The suite measures 32 feature families and ten composed pipelines. Results are individual elapsed times
 and allocations, with separate execution, first-compilation, warmed-compilation, artifact-load and typed-output
 cases. There is no overall score. All projects are non-packable and independent of existing engine test projects.
@@ -47,7 +49,8 @@ Do not overlap measurements with builds, tests or other heavy work.
 
 Correctness tests use four-row fixtures (plus focused empty/eight-row edge fixtures) and independent expected columns/types/nullability and complete rows.
 Ordered results are compared in order; other results use multiset equality including duplicates. There are
-no full-size correctness tests, performance thresholds or automatic expectation updates.
+no timing thresholds or automatic expectation updates. Added workloads also have independent standard-size
+cardinality/checksum checks and empty/partition/frame edge coverage.
 
 ## Artifacts and graphs
 
@@ -55,7 +58,7 @@ Official runs write `benchmarks/history/<suite>/<run-id>/`. Each bundle contains
 `manifest.json`, `measurements.json`, `summary.md`, `complete.json`, `attempts/`, `raw/` and `sessions/`.
 Raw evidence lives under `raw/<attempt-id>/`; the attempt records identify its scenario and case.
 Machine profiles and engine versions are recorded in metadata rather than repeated directory components.
-Working binaries/logs stay in ignored `BenchmarkDotNet.Artifacts/`. Review and commit Official bundles manually.
+Working reports/logs stay under ignored root `.artifacts/benchmarks/`. Review and commit Official bundles manually.
 Git attributes preserve history bundle bytes across commits and cross-platform checkouts.
 
 Before collection starts, the runner rejects repository-relative artifact paths longer than 180 characters

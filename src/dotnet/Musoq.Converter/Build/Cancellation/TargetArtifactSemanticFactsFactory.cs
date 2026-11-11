@@ -24,10 +24,15 @@ internal static class TargetArtifactSemanticFactsFactory
             items.ScriptVariableDefinitions,
             items.UsedColumns,
             items.PipelineInferredColumns,
-            items.SourcePlanRequestsPerSchema,
+            items.SourcePlanRequestsPerSchema.ToDictionary(entry => entry.Key, entry =>
+                items.PlanningResult?.Properties.SourcePlanRequestsBySourceId.TryGetValue(entry.Key.Id, out var planned) == true &&
+                planned.RequestedComputedProjections.Count > 0
+                    ? entry.Value with { RequestedComputedProjections = planned.RequestedComputedProjections }
+                    : entry.Value),
             cancellationToken,
             items.PlanningResult?.Facts.SourcePlanning.SourceDescriptorsBySourceId
-                .ToDictionary(static source => source.Key, static source => source.Value.ExecutionPermissions));
+                .ToDictionary(static source => source.Key, static source => source.Value.ExecutionPermissions),
+            items.PlanningResult?.Properties.SourcePlanResultsBySourceId);
 
         cancellationToken.ThrowIfCancellationRequested();
         return facts;

@@ -72,7 +72,11 @@ public sealed record SourceScalarBinary(
     SourceScalarExpression Right,
     Type ValueType,
     ColumnStability ExpressionStability = ColumnStability.Stable)
-    : SourceScalarExpression(RequireType(ValueType), ExpressionStability);
+    : SourceScalarExpression(RequireType(ValueType), ExpressionStability)
+{
+    /// <summary>Preserves SQL three-valued comparisons rather than CLR nullable equality.</summary>
+    public bool UsesSqlNullSemantics { get; init; }
+}
 
 /// <summary>A checked portable cast over a source scalar.</summary>
 public sealed record SourceScalarCast(
@@ -95,6 +99,14 @@ public sealed record SourceScalarCoalesce(
     ColumnStability ExpressionStability = ColumnStability.Stable)
     : SourceScalarExpression(RequireType(ValueType), ExpressionStability)
 {
+    private IReadOnlyList<SourceScalarExpression> _expressions = Array.AsReadOnly(Expressions.ToArray());
+
+    public IReadOnlyList<SourceScalarExpression> Expressions
+    {
+        get => _expressions;
+        init => _expressions = Array.AsReadOnly(value.ToArray());
+    }
+
     public SourceScalarCoalesce(IEnumerable<SourceScalarExpression> expressions, Type valueType)
         : this(expressions.ToArray(), valueType)
     {
@@ -107,38 +119,26 @@ public static class SourceScalarExpressionFacts
     public static bool IsStable(SourceScalarExpression expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
+        if (!SourceScalarExpressionGraph.IsValid(expression))
+            return false;
+        return IsStableNode(expression);
+    }
+
+    private static bool IsStableNode(SourceScalarExpression expression)
+    {
         if (expression.Stability != ColumnStability.Stable)
             return false;
 
         return expression switch
         {
             SourceScalarColumn column => column.ColumnStability == ColumnStability.Stable,
-            SourceScalarUnary unary => unary.ExpressionStability == ColumnStability.Stable && IsStable(unary.Operand),
-            SourceScalarBinary binary => binary.ExpressionStability == ColumnStability.Stable && IsStable(binary.Left) && IsStable(binary.Right),
-            SourceScalarCast cast => cast.ExpressionStability == ColumnStability.Stable && IsStable(cast.Operand),
-            SourceScalarNullCheck nullCheck => nullCheck.ExpressionStability == ColumnStability.Stable && IsStable(nullCheck.Operand),
-            SourceScalarCoalesce coalesce => coalesce.ExpressionStability == ColumnStability.Stable && coalesce.Expressions.All(IsStable),
-            _ => true
-        };
-    }
-}
-
-/// <summary>Produces deterministic semantic identities for source scalar expressions.</summary>
-public static class SourceScalarExpressionFingerprint
-{
-    public static string Compute(SourceScalarExpression expression)
-    {
-        ArgumentNullException.ThrowIfNull(expression);
-        return expression switch
-        {
-            SourceScalarLiteral literal => $"literal:{literal.Value?.GetType().AssemblyQualifiedName}:{literal.Value}",
-            SourceScalarColumn column => $"column:{column.Column.Name}:{column.ResultType.AssemblyQualifiedName}:{column.ColumnStability}",
-            SourceScalarUnary unary => $"unary:{unary.Operator}:{Compute(unary.Operand)}:{unary.ResultType.AssemblyQualifiedName}:{unary.ExpressionStability}",
-            SourceScalarBinary binary => $"binary:{binary.Operator}:{Compute(binary.Left)}:{Compute(binary.Right)}:{binary.ResultType.AssemblyQualifiedName}:{binary.ExpressionStability}",
-            SourceScalarCast cast => $"cast:{Compute(cast.Operand)}:{cast.ResultType.AssemblyQualifiedName}:{cast.ExpressionStability}",
-            SourceScalarNullCheck nullCheck => $"null:{nullCheck.Negated}:{Compute(nullCheck.Operand)}:{nullCheck.ExpressionStability}",
-            SourceScalarCoalesce coalesce => $"coalesce:{string.Join(",", coalesce.Expressions.Select(Compute))}:{coalesce.ResultType.AssemblyQualifiedName}:{coalesce.ExpressionStability}",
-            _ => expression.ToString() ?? expression.GetType().FullName ?? expression.GetType().Name
+            SourceScalarUnary unary => unary.ExpressionStability == ColumnStability.Stable && IsStableNode(unary.Operand),
+            SourceScalarBinary binary => binary.ExpressionStability == ColumnStability.Stable && IsStableNode(binary.Left) && IsStableNode(binary.Right),
+            SourceScalarCast cast => cast.ExpressionStability == ColumnStability.Stable && IsStableNode(cast.Operand),
+            SourceScalarNullCheck nullCheck => nullCheck.ExpressionStability == ColumnStability.Stable && IsStableNode(nullCheck.Operand),
+            SourceScalarCoalesce coalesce => coalesce.ExpressionStability == ColumnStability.Stable && coalesce.Expressions.All(IsStableNode),
+            SourceScalarLiteral => true,
+            _ => false
         };
     }
 }

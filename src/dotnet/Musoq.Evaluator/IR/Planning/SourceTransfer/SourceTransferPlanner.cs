@@ -34,6 +34,10 @@ internal static class SourceTransferPlanner
             context.CancellationToken.ThrowIfCancellationRequested();
             var usage = usageResult.PlansBySourceId[source.SourceContextId];
             var plan = PlanSource(context, sourcePlanning, source, usage);
+            if (plan.Mode != SourceTransferMode.QueryScopedRows &&
+                sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(source.SourceContextId, out var result) &&
+                result.AcceptedComputedProjections.Count > 0)
+                throw new SourcePlanContractException("Accepted computed projections require query-scoped row transfer.", TextSpan.Empty);
             plans[source.SourceContextId] = plan;
             decisions.Add(CreateDecision(source, plan));
         }
@@ -104,6 +108,10 @@ internal static class SourceTransferPlanner
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
+        var computed = ResolveComputedProjections(context, sourcePlanning, source, descriptor);
+        if (computed.Count > 0)
+            shape = new QueryRowShape([.. shape.Fields, .. computed.Select((binding, index) =>
+                QueryRowField.ForComputedProjection(shape.Fields.Count + index, binding.Projection))]);
         var estimatedPayload = EstimatePayload(shape, context.CancellationToken);
         var carrier = estimatedPayload is <= StructCarrierPayloadLimit && usage.Lifetime == SourceRowLifetime.ScanLocal
             ? SourceQueryRowCarrier.ReadonlyStruct
@@ -120,10 +128,25 @@ internal static class SourceTransferPlanner
             shape,
             reason)
         {
+            ComputedProjections = computed,
             Lifetime = usage.Lifetime == SourceRowLifetime.ScanLocal
                 ? SourceQueryRowLifetime.ScanLocal
                 : SourceQueryRowLifetime.EscapesScan
         };
+    }
+
+    private static IReadOnlyList<SourcePlanning.SourceComputedProjectionBinding> ResolveComputedProjections(
+        PlanningContext context, SourcePlanningFacts facts, SourcePlanProperties source, SourceDescriptor descriptor)
+    {
+        if (!facts.SourcePlanResultsBySourceId.TryGetValue(source.SourceContextId, out var result) ||
+            result.AcceptedComputedProjections.Count == 0)
+            return [];
+        var accepted = result.AcceptedComputedProjections.Select(item => item.Name).ToHashSet(StringComparer.Ordinal);
+        var bindings = SourcePlanning.SourceComputedProjectionPlanner.Candidates(context, source.SourceContextId, descriptor)
+            .Where(item => accepted.Contains(item.Projection.Name)).ToArray();
+        if (bindings.Length != accepted.Count)
+            throw new SourcePlanContractException("Accepted computed projections lost their planner bindings.", TextSpan.Empty);
+        return Array.AsReadOnly(bindings);
     }
 
     private static bool TryCreateShape(

@@ -56,6 +56,7 @@ public static partial class Expectations
             .Select(index => ($"C{index}", typeof(decimal)))).ToArray(), Enumerable.Range(0, 4)
             .Select(row => new object?[] { row }.Concat(Enumerable.Range(0, 64).Select(column => (object?)(row + 1m + column))).ToArray()).ToArray()));
         AddProfiles(results);
+        AddCosts(results);
         return results;
     }
 }

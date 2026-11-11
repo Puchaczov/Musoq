@@ -50,6 +50,7 @@ internal static partial class SourcePlanningPlanner
             request = request with { CancellationToken = context.CancellationToken };
             var sourcePlan = PlanSource(context, scan, sourceNode, request);
 
+            request = sourcePlan.Request;
             requests[scan.SourceContextId] = request with { CancellationToken = CancellationToken.None };
             results[scan.SourceContextId] = sourcePlan.Result;
             descriptors[scan.SourceContextId] = sourcePlan.Descriptor;
@@ -297,7 +298,13 @@ internal static partial class SourcePlanningPlanner
         var requested = $"columns={request.RequiredColumns.Count}, predicate={FormatPredicate(request.Predicate)}, orderBy={request.OrderBy.Count}, skip={FormatValue(request.Skip)}, take={FormatValue(request.Take)}";
         var accepted = $"columns={result.AcceptedColumns.Count}, predicate={FormatPredicate(result.AcceptedPredicate)}, orderBy={result.AcceptedOrderBy.Count}, skip={FormatValue(result.AcceptedSkip)}, take={FormatValue(result.AcceptedTake)}";
         var residual = $"predicate={FormatPredicate(result.ResidualPredicate)}, orderBy={result.ResidualOrderBy.Count}, skip={FormatValue(result.ResidualSkip)}, take={FormatValue(result.ResidualTake)}";
-        var acceptedAny = result.AcceptedColumns.Count > 0 || result.AcceptedPredicate != null || result.AcceptedOrderBy.Count > 0 || result.AcceptedSkip.HasValue || result.AcceptedTake.HasValue;
+        if (request.RequestedComputedProjections.Count > 0)
+        {
+            requested += $", computed={request.RequestedComputedProjections.Count}";
+            accepted += $", computed={result.AcceptedComputedProjections.Count}";
+            residual += $", computed={result.ResidualComputedProjections.Count}";
+        }
+        var acceptedAny = result.AcceptedComputedProjections.Count > 0 || result.AcceptedColumns.Count > 0 || result.AcceptedPredicate != null || result.AcceptedOrderBy.Count > 0 || result.AcceptedSkip.HasValue || result.AcceptedTake.HasValue;
 
         return new PlanningDecision(
             PlanningDecisionCategory.SourcePlanning,

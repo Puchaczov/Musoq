@@ -123,7 +123,9 @@ internal static class ExecutionBindingInvariantValidator
                     $"Execution query-row transfer field '{sourceId}.{transferField.Name}' is incompatible with its generated source binding at slot {slot}.");
             }
 
-            shapeFields.Add(new QueryRowField(
+            shapeFields.Add(transferField.ComputedProjection is { } computed
+                ? QueryRowField.ForComputedProjection(transferField.Slot, computed.ToSchema())
+                : new QueryRowField(
                 transferField.Slot,
                 transferField.SourceColumnIndex,
                 transferField.Name,
@@ -133,6 +135,8 @@ internal static class ExecutionBindingInvariantValidator
                 transferField.IsNullable,
                 transferField.ReadModifiers,
                 ColumnStability.Stable));
+            if (transferField.ComputedProjection is not null && shapeFields[^1].IsNullable != transferField.IsNullable)
+                throw new InvalidOperationException("Computed source field has inconsistent nullability.");
         }
 
         var expectedFingerprint = new QueryRowShape(shapeFields).Fingerprint;

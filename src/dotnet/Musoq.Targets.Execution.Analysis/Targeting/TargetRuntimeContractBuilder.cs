@@ -169,7 +169,8 @@ internal static class TargetRuntimeContractBuilder
                         field.SourceReadType.Descriptor,
                         CreateEnumType(field.EnumType),
                         field.IsNullable,
-                        field.ReadModifiers)).ToArray());
+                        field.ReadModifiers,
+                        field.ComputedProjection?.ExpressionIdentity)).ToArray());
             })
             .OrderBy(static source => source.SourceContextId, StringComparer.Ordinal)
             .ToArray();

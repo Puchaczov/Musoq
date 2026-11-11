@@ -69,6 +69,8 @@ public sealed class RunManifest
 {
     public string SchemaVersion { get; init; } = "3";
     public CampaignOptions? Invocation { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CaseCatalogSnapshot? CaseCatalog { get; init; }
     public required string SuiteVersion { get; init; }
     public required string RunId { get; init; }
     public required RunProvenance Provenance { get; init; }

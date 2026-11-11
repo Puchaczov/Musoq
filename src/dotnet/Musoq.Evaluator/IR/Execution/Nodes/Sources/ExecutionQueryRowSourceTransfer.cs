@@ -59,7 +59,7 @@ public sealed record ExecutionQueryRowSourceTransfer
                 throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
         }
 
-        if (values.Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Length)
+        if (values.Where(static field => field.ComputedProjection is null).Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Count(static field => field.ComputedProjection is null))
             throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
 
         Carrier = carrier;
@@ -110,7 +110,8 @@ public sealed record ExecutionQueryRowSourceTransfer
                 ExecutionClrBindingFactory.FromClr(field.SourceReadType),
                 field.EnumType,
                 field.IsNullable,
-                field.ReadModifiers)).ToArray());
+                field.ReadModifiers,
+                field.ComputedProjection is { } projection ? ExecutionSourceComputedProjection.FromSchema(projection) : null)).ToArray());
     }
 }
 
@@ -147,16 +148,21 @@ public sealed record ExecutionQueryRowField
         ExecutionTypeRef sourceReadType,
         EnumTypeDescriptor? enumType,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
+        IReadOnlyDictionary<string, string>? readModifiers = null,
+        ExecutionSourceComputedProjection? computedProjection = null)
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot));
-        if (sourceColumnIndex < 0)
+        if (sourceColumnIndex < 0 && (sourceColumnIndex != -1 || computedProjection is null))
             throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex));
 
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(fieldType);
         ArgumentNullException.ThrowIfNull(sourceReadType);
+        if (computedProjection is not null && (sourceColumnIndex != -1 || name != computedProjection.Name ||
+                fieldType.StableId != computedProjection.ResultType.StableId || fieldType.StableId != sourceReadType.StableId || enumType != null))
+            throw new ArgumentException("Computed field metadata does not match its typed projection.", nameof(computedProjection));
+        ComputedProjection = computedProjection;
         Slot = slot;
         SourceColumnIndex = sourceColumnIndex;
         Name = name;
@@ -169,6 +175,8 @@ public sealed record ExecutionQueryRowField
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
                 : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
     }
+
+    public ExecutionSourceComputedProjection? ComputedProjection { get; }
 
     public int Slot { get; }
 

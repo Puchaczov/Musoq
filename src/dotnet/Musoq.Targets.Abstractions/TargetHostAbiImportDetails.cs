@@ -201,7 +201,8 @@ internal enum TargetSourcePlanOperation
     Predicate = 1,
     OrderBy = 2,
     Skip = 3,
-    Take = 4
+    Take,
+    ComputedProjection = 4
 }
 
 internal sealed record TargetSourceArgumentAbiContract(
@@ -553,7 +554,7 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
                 throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
         }
 
-        if (values.Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Length)
+        if (values.Where(static field => field.ComputedExpressionIdentity is null).Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Count(static field => field.ComputedExpressionIdentity is null))
             throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
 
         Fields = Array.AsReadOnly(values);
@@ -605,6 +606,8 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
                 AppendType(builder, "fields.sourceReadType", rowField.SourceReadTypeSymbol);
                 AppendEnumType(builder, "fields.enumType", rowField.EnumType);
                 AppendField(builder, "fields.nullable", rowField.IsNullable);
+                if (rowField.ComputedExpressionIdentity is { } identity)
+                    AppendField(builder, "fields.computedExpression", identity);
                 AppendDictionary(builder, "fields.readModifiers", rowField.ReadModifiers);
             }
         });
@@ -631,12 +634,13 @@ internal sealed record TargetQueryRowFieldAbiContract
         ExecutionPortableTypeDescriptor sourceReadTypeSymbol,
         TargetEnumTypeAbiContract? enumType,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers)
+        IReadOnlyDictionary<string, string>? readModifiers,
+        string? computedExpressionIdentity = null)
     {
         Slot = slot < 0
             ? throw new ArgumentOutOfRangeException(nameof(slot))
             : slot;
-        SourceColumnIndex = sourceColumnIndex < 0
+        SourceColumnIndex = sourceColumnIndex < 0 && (sourceColumnIndex != -1 || string.IsNullOrWhiteSpace(computedExpressionIdentity))
             ? throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex))
             : sourceColumnIndex;
         Name = string.IsNullOrWhiteSpace(name)
@@ -644,6 +648,7 @@ internal sealed record TargetQueryRowFieldAbiContract
             : name;
         TypeSymbol = typeSymbol ?? throw new ArgumentNullException(nameof(typeSymbol));
         SourceReadTypeSymbol = sourceReadTypeSymbol ?? throw new ArgumentNullException(nameof(sourceReadTypeSymbol));
+        ComputedExpressionIdentity = computedExpressionIdentity;
         EnumType = enumType;
         IsNullable = isNullable;
         ReadModifiers = new ReadOnlyDictionary<string, string>(
@@ -651,6 +656,8 @@ internal sealed record TargetQueryRowFieldAbiContract
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
                 : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
     }
+
+    public string? ComputedExpressionIdentity { get; }
 
     public int Slot { get; }
 

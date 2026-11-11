@@ -22,7 +22,8 @@ internal sealed record TargetArtifactSemanticFacts
         IReadOnlyDictionary<string, ISchemaColumn[]>? pipelineInferredColumns,
         IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? sourcePlanRequestsPerSchema,
         CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, SourceExecutionPermissions>? sourceExecutionPermissions = null)
+        IReadOnlyDictionary<string, SourceExecutionPermissions>? sourceExecutionPermissions = null,
+        IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         QueryResultMode = queryResultMode;
@@ -63,7 +64,8 @@ internal sealed record TargetArtifactSemanticFacts
         cancellationToken.ThrowIfCancellationRequested();
         PortableSourcePlanSignatures = Freeze(
             (sourcePlanRequestsPerSchema ?? new Dictionary<SchemaFromNode, SourcePlanRequest>())
-            .Select(entry => CreateSourcePlanFact(entry.Key, entry.Value, cancellationToken)),
+            .Select(entry => CreateSourcePlanFact(entry.Key, entry.Value, cancellationToken,
+                sourcePlanResults?.GetValueOrDefault(entry.Key.Id))),
             cancellationToken);
         SourceScheduling = Freeze(sourceExecutionPermissions?.Select(static source =>
             new TargetArtifactSourceSchedulingFact(source.Key, (int)source.Value)), cancellationToken);
@@ -187,7 +189,8 @@ internal sealed record TargetArtifactSemanticFacts
     private static TargetArtifactSourcePlanFact CreateSourcePlanFact(
         SchemaFromNode source,
         SourcePlanRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        SourcePlanResult? result)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return new TargetArtifactSourcePlanFact(
@@ -203,18 +206,20 @@ internal sealed record TargetArtifactSemanticFacts
             FormatTypeName(request.Predicate?.GetType()) ?? "<null>")
         {
             RequestedComputedProjectionFingerprints = CreateComputedProjectionFingerprints(
-                request,
+                request.RequestedComputedProjections,
                 cancellationToken),
+            AcceptedComputedProjectionFingerprints = CreateComputedProjectionFingerprints(result?.AcceptedComputedProjections ?? [], cancellationToken),
+            ResidualComputedProjectionFingerprints = CreateComputedProjectionFingerprints(result?.ResidualComputedProjections ?? [], cancellationToken),
             Replayability = request.Replayability
         };
     }
 
     private static IReadOnlyList<string> CreateComputedProjectionFingerprints(
-        SourcePlanRequest request,
+        IReadOnlyList<SourceComputedProjection> projections,
         CancellationToken cancellationToken)
     {
-        var fingerprints = new List<string>(request.RequestedComputedProjections.Count);
-        foreach (var projection in request.RequestedComputedProjections
+        var fingerprints = new List<string>(projections.Count);
+        foreach (var projection in projections
                      .OrderBy(static projection => projection.Name, StringComparer.Ordinal))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -351,6 +356,8 @@ internal sealed record TargetArtifactSourcePlanFact(
     string PredicateTypeName)
 {
     public IReadOnlyList<string> RequestedComputedProjectionFingerprints { get; init; } = [];
+    public IReadOnlyList<string> AcceptedComputedProjectionFingerprints { get; init; } = [];
+    public IReadOnlyList<string> ResidualComputedProjectionFingerprints { get; init; } = [];
 
     public RowStreamReplayability Replayability { get; init; } = RowStreamReplayability.Unknown;
 }

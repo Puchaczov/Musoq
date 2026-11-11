@@ -11,6 +11,7 @@ param(
     [string] $RunDirectory,
     [string] $HistoryRoot,
     [switch] $InProcess,
+    [switch] $IncludeRetired,
     [switch] $Json
 )
 
@@ -38,7 +39,7 @@ if (!$inspection) {
     $projectName = 'Musoq.Benchmarks'
     if ($effectiveMode -eq 'Official') { $projectName = 'Musoq.Benchmarks.Tests' }
     $projectPath = Join-Path $repoRoot "src/dotnet/$projectName/$projectName.csproj"
-    $buildDirectory = Join-Path $repoRoot 'BenchmarkDotNet.Artifacts'
+    $buildDirectory = Join-Path $repoRoot '.artifacts/benchmarks'
     New-Item -ItemType Directory -Force $buildDirectory | Out-Null
     $buildLog = Join-Path $buildDirectory 'entrypoint-build.log'
     & dotnet build $projectPath -c Release --nologo --verbosity quiet *> $buildLog
@@ -60,6 +61,7 @@ foreach ($name in $values.Keys | Sort-Object) {
     }
 }
 if ($InProcess) { $runnerArguments += '--in-process' }
+if ($IncludeRetired) { $runnerArguments += '--include-retired' }
 if ($Json) { $runnerArguments += '--json' }
 
 Push-Location $repoRoot

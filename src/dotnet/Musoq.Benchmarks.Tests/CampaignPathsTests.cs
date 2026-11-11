@@ -10,10 +10,10 @@ public sealed class CampaignPathsTests
     [TestMethod]
     public void EntireCatalog_FitsCompactDefaultLayout()
     {
-        var cases = CampaignCases.Create(new CampaignOptions(), Path.GetTempPath());
+        var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath());
         var directory = Path.Combine(Repository, "benchmarks", "history", "engine-v3", "20261028T235933572Z-507c7340ade4");
         CampaignPaths.Validate(Repository, directory, cases);
-        Assert.AreEqual(225, cases.Length);
+        Assert.AreEqual(279, cases.Length);
     }
 
     [TestMethod]

@@ -111,7 +111,7 @@ internal sealed record TargetQueryRowSourceAccessContract
                 throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
         }
 
-        if (fieldValues.Select(static field => field.SourceColumnIndex).Distinct().Count() != fieldValues.Length)
+        if (fieldValues.Where(static field => field.ComputedExpressionIdentity is null).Select(static field => field.SourceColumnIndex).Distinct().Count() != fieldValues.Count(static field => field.ComputedExpressionIdentity is null))
             throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
 
         Carrier = carrier;
@@ -163,13 +163,15 @@ internal sealed record TargetQueryRowFieldContract
         ExecutionPortableTypeDescriptor sourceReadType,
         TargetEnumTypeAbiContract? enumType,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers)
+        IReadOnlyDictionary<string, string>? readModifiers,
+        string? computedExpressionIdentity = null)
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot));
-        if (sourceColumnIndex < 0)
+        if (sourceColumnIndex < 0 && (sourceColumnIndex != -1 || string.IsNullOrWhiteSpace(computedExpressionIdentity)))
             throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex));
 
+        ComputedExpressionIdentity = computedExpressionIdentity;
         Slot = slot;
         SourceColumnIndex = sourceColumnIndex;
         Name = string.IsNullOrWhiteSpace(name)
@@ -184,6 +186,8 @@ internal sealed record TargetQueryRowFieldContract
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
                 : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
     }
+
+    public string? ComputedExpressionIdentity { get; }
 
     public int Slot { get; }
 

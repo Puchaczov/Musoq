@@ -265,7 +265,7 @@ internal static class SourcePlanPhysicalRewriter
         {
             var sourcePlan = entry.Value;
             var accepted = acceptedOperations[entry.Key];
-            var executionPlan = new SourceExecutionPlan
+            var executionPlan = sourcePlan.ExecutionPlan with
             {
                 Identity = accepted.Identity,
                 AcceptedColumns = accepted.AcceptedColumns,

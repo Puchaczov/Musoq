@@ -31,6 +31,7 @@ public static partial class ScenarioCatalog
         scenarios.AddRange(Interpretation());
         scenarios.AddRange(Composed());
         AddProfiles(scenarios);
+        AddCostScenarios(scenarios);
         return scenarios;
     }
 }

@@ -7,6 +7,7 @@ public sealed record CampaignOptions(string Mode = "Local", string Job = "Short"
 {
     [System.Text.Json.Serialization.JsonIgnore]
     public string[] Supplied { get; init; } = [];
+    public bool IncludeRetired { get; init; }
     public bool Official => Mode == "Official";
     public bool Inspecting => Action is "Status" or "Verify" or "Latest";
 
@@ -16,11 +17,12 @@ public sealed record CampaignOptions(string Mode = "Local", string Job = "Short"
         for (var index = 0; index < arguments.Length; index++)
         {
             var argument = arguments[index];
-            if (argument is "--in-process" or "--json")
+            if (argument is "--in-process" or "--json" or "--include-retired")
             {
                 options = argument switch
                 {
                     "--json" => options with { Json = true },
+                    "--include-retired" => options with { IncludeRetired = true },
                     _ => options with { InProcess = true }
                 };
                 continue;
@@ -58,7 +60,7 @@ public sealed record CampaignOptions(string Mode = "Local", string Job = "Short"
             if (options.Action != "Latest" && options.RunDirectory is null)
                 throw new ArgumentException("Status and Verify require --run-directory.");
             if (options.Resume is not null || options.Output is not null || options.Size is not null ||
-                options.Filter != "*" || options.InProcess || options.MachineProfile is not null ||
+                options.Filter != "*" || options.InProcess || options.IncludeRetired || options.MachineProfile is not null ||
                 options.Supplied.Contains("--mode") || options.Supplied.Contains("--job"))
                 throw new ArgumentException("Inspection actions do not accept measurement options.");
             if (options.Action == "Latest" && options.RunDirectory is not null ||
@@ -68,6 +70,8 @@ public sealed record CampaignOptions(string Mode = "Local", string Job = "Short"
         }
         if (options.RunDirectory is not null || options.HistoryRoot is not null)
             throw new ArgumentException("--run-directory and --history-root are inspection options.");
+        if (options.Official && options.IncludeRetired && options.Action != "List")
+            throw new ArgumentException("Retired cases may be measured only in Local mode.");
         if (options.Official && (options.Filter != "*" || options.InProcess || options.Job != "Short" || options.Size != null))
             throw new ArgumentException("Official runs use the complete fixed out-of-process profile; filters, sizes and jobs are local only.");
         if (options.Official && options.Resume == null && string.IsNullOrWhiteSpace(options.MachineProfile))
@@ -101,6 +105,7 @@ public sealed record CampaignOptions(string Mode = "Local", string Job = "Short"
         "--size" => supplied.Size == saved.Size,
         "--machine-profile" => supplied.MachineProfile == saved.MachineProfile,
         "--in-process" => supplied.InProcess == saved.InProcess,
+        "--include-retired" => supplied.IncludeRetired == saved.IncludeRetired,
         "--action" => supplied.Action == saved.Action,
         _ => false
     };

@@ -17,8 +17,8 @@ public sealed class GeneratedCodeSamplesScalarReuseShapeTests
     [DataRow("Q262_CorrelatedCteProbeReuse.cs", "bHash")]
     [DataRow("Q263_StableUnpivotExpansion.cs", "__unpivot")]
     [DataRow("Q264_BoundaryRowShapeNarrowing.cs", "BoundedTopRecordList")]
-    [DataRow("Q265_SourceComputedProjectionAccepted.cs", "Population * 2")]
-    [DataRow("Q266_SourceComputedProjectionResidual.cs", "Population * 2")]
+    [DataRow("Q265_SourceComputedProjectionAccepted.cs", "QueryRowField.ForComputedProjection")]
+    [DataRow("Q266_SourceComputedProjectionResidual.cs", "StrictCastRuntime.ToInt64(id) * 2")]
     [DataRow("Q267_RecursiveStableScalarInvariant.cs", "cte0CurrentFrontier")]
     public void ScalarReuseSample_ShouldExposeItsBoundaryShape(string fileName, string expectedToken)
     {

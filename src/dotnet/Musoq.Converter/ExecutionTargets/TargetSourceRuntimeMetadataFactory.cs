@@ -37,6 +37,8 @@ internal static class TargetSourceRuntimeMetadataFactory
     private static IReadOnlyList<TargetSourcePlanOperation> GetAcceptedOperations(SourcePlanResult sourcePlan)
     {
         var operations = new List<TargetSourcePlanOperation>();
+        if (sourcePlan.AcceptedComputedProjections.Count > 0)
+            operations.Add(TargetSourcePlanOperation.ComputedProjection);
         if (sourcePlan.AcceptedColumns.Count > 0)
             operations.Add(TargetSourcePlanOperation.Columns);
         if (sourcePlan.AcceptedPredicate != null)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -51,8 +52,8 @@ public sealed record QueryRowShape
         builder.Append("query-row-shape-v2\n");
         foreach (var field in fields)
         {
-            builder.Append(field.Slot).Append('|')
-                .Append(field.SourceColumnIndex).Append('|')
+            builder.Append(field.Slot.ToString(CultureInfo.InvariantCulture)).Append('|')
+                .Append(field.SourceColumnIndex.ToString(CultureInfo.InvariantCulture)).Append('|')
                 .Append(field.Name).Append('|')
                 .Append(field.FieldType.AssemblyQualifiedName).Append('|')
                 .Append(field.SourceReadType.AssemblyQualifiedName).Append('|')
@@ -61,6 +62,9 @@ public sealed record QueryRowShape
 
             if (field.Stability != ColumnStability.Stable)
                 builder.Append("stability=").Append(field.Stability).Append('|');
+
+            if (field.ComputedProjection is { } projection)
+                builder.Append("computed=").Append(SourceScalarExpressionFingerprint.Compute(projection.Expression)).Append('|');
 
             foreach (var modifier in field.ReadModifiers.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
                 builder.Append(modifier.Key).Append('=').Append(modifier.Value).Append(';');

@@ -34,7 +34,7 @@ internal static class StandardDataProfiles
         return rows;
     }
 
-    private static void Shuffle(FixtureRow[] rows)
+    internal static void Shuffle<T>(T[] rows)
     {
         var state = ShuffleSeed;
         for (var index = rows.Length - 1; index > 0; index--)

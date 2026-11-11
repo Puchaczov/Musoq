@@ -28,6 +28,8 @@ public sealed record SourceTransferStrategyPlan(
     QueryRowShape? Shape,
     string Reason)
 {
+    internal IReadOnlyList<SourcePlanning.SourceComputedProjectionBinding> ComputedProjections { get; init; } = [];
+
     public SourceQueryRowLifetime? Lifetime { get; init; }
 
     public static SourceTransferStrategyPlan DeclaredRows(string sourceContextId, string reason)

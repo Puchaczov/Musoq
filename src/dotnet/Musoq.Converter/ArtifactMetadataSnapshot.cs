@@ -31,6 +31,8 @@ internal static class ArtifactMetadataSnapshot
         {
             Identity = plan.Identity,
             AcceptedColumns = CopyList(plan.AcceptedColumns.Select(CopyColumn)),
+            AcceptedComputedProjections = CopyList(plan.AcceptedComputedProjections),
+            Replayability = plan.Replayability,
             AcceptedPredicate = CopyPredicate(plan.AcceptedPredicate),
             PredicateApplications = CopyList(plan.PredicateApplications.Select(CopyPredicateApplication)),
             AcceptedOrderBy = CopyList(plan.AcceptedOrderBy.Select(CopyOrderBy)),

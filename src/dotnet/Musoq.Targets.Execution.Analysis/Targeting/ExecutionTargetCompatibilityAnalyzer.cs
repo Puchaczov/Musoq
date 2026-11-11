@@ -98,6 +98,9 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                 AddFields(sourceScan.Binding.Fields, sink);
                 if (sourceScan.Binding.QueryRowSourceTransfer is { } transfer)
                 {
+                    foreach (var computed in transfer.Fields.Select(field => field.ComputedProjection).OfType<ExecutionSourceComputedProjection>())
+                        foreach (var expression in ExecutionSourceComputedProjection.Nodes(computed.Expression))
+                            sink.AddClrType(expression.ResultType);
                     sink.Add(
                         ExecutionTargetRequirementKind.QueryRowSourceAccess,
                         $"{sourceScan.Binding.RuntimeContextId}:{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}");
