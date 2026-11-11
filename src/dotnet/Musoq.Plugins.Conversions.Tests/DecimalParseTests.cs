@@ -9,6 +9,7 @@ public class DecimalParseTests
     [TestMethod]
     public void DecimalTryParse_WithComma_CurrentCulture_Polish()
     {
+        using var culture = new Musoq.Tests.Common.CultureScope(CultureInfo.GetCultureInfo("pl-PL"));
         var result = decimal.TryParse("100,50", out var value);
         Assert.IsTrue(result, $"Parse failed. CurrentCulture: {CultureInfo.CurrentCulture.Name}");
         Assert.AreEqual(100.50m, value);
