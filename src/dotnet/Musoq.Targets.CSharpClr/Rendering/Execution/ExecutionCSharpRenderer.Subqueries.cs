@@ -50,14 +50,9 @@ public sealed partial class ExecutionCSharpRenderer
         if (!TableViaRowsResultInfoResolver.TryResolveRenderPlan(query.Plan, out var output))
             throw new NotSupportedException("Subquery result does not expose a native row result.");
         var nativeRows = HasNativeSubqueryRows(query.Plan);
-        var rowType = "global::Musoq.Evaluator.Tables.Row";
-        if (nativeRows)
-        {
-            if (output.FinalSinkPlans.TableOutput.UsesGeneratedRow)
-                rowType = output.FinalSinkPlans.TableOutput.Result.RowTypeName;
-            else
-                rowType = FinalSelectShapeNaming.CreateTypeName(final.Shape);
-        }
+        var rowType = nativeRows
+            ? output.FinalSinkPlans.TableOutput.RowTypeName
+            : "global::Musoq.Evaluator.Tables.Row";
         var arguments = new List<ExpressionSyntax>(CreateRuntimeHelperArguments(SubqueryRuntimeContext()));
         arguments.AddRange(SubqueryScriptCaptures(query.Plan).Select(CreateCapturedLocalArgument));
         arguments.AddRange(query.Bindings.Select(binding => RenderExpression(binding, context)));

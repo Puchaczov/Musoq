@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 with recursive totals (Total, Depth) as (select 0::Decimal, 0 from values {( Seed: 1 )} seed union all select (t.Total + 1)::Decimal, t.Depth + 1 from totals t where t.Depth < 2) select Total, Depth from totals order by Depth
 */
@@ -87,7 +87,7 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Total: totals.Total, Depth: totals.Depth)]
     PhaseBoundary [Select]
     SortOwnedBuffer [result by Depth ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -130,14 +130,14 @@ namespace GeneratedSample_Q216_RecursiveExplicitDecimalCast
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Total", typeof(decimal?), 0), new Column("Depth", typeof(int), 1) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Total, __musoqShapeRow.Depth);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -339,7 +339,7 @@ namespace GeneratedSample_Q216_RecursiveExplicitDecimalCast
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(decimal? Total, int Depth)
             {
@@ -347,9 +347,39 @@ namespace GeneratedSample_Q216_RecursiveExplicitDecimalCast
                 this.Depth = Depth;
             }
 
-            public int Depth { get; }
-            public decimal? Total { get; }
+            public override int Count => 2;
+            public int Depth { get; private set; }
+            public decimal? Total { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Depth = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Total),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Depth),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Total" => true,
+                "Depth" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Total, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Depth, ref visitor);
+            }
         }
 
         private sealed class seedValuesD6F9BDFERow0 : Row

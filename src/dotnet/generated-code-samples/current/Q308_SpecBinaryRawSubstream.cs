@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary Packet {
                         Kind: byte,
@@ -304,8 +304,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Packet'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Packet : BytesInterpreterBase<Packet>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Packet : BytesInterpreterBase<Packet>, IBytesInterpreterStatus<Packet>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Kind", "Length", "Payload", "Checksum" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Packet value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -358,30 +361,69 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Packet";
 
-        /// <inheritdoc/>
-        public override Packet InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Packet InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Packet>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Packet> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Packet>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Packet();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Kind");
-            var _kind = ReadByte(data);
-            __parsedValue.Kind = _kind;
-            RecordParsedField("Kind");
-            SetCurrentField("Length");
-            var _length = ReadByte(data);
-            __parsedValue.Length = _length;
-            RecordParsedField("Length");
-            SetCurrentField("Payload");
-            var _payload = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize));
-            __parsedValue.Payload = _payload;
-            RecordParsedField("Payload");
-            SetCurrentField("Checksum");
-            var _checksum = ReadByte(data);
-            __parsedValue.Checksum = _checksum;
-            RecordParsedField("Checksum");
-            return __parsedValue;
+            Packet? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Packet();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Kind");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _kind = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Kind = _kind;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Length");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _length = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Length = _length;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("Payload");
+                var __musoqReadResult4 = base.ResolveSizeValueStatus<byte>((byte?)(_length), ParseErrorCode.InvalidSize);
+                if (!__musoqReadResult4.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadResult4.Failure!);
+                }
+
+                var __musoqReadSize3 = __musoqReadResult4.Value!;
+                if (base.PrepareByteArrayStatus(data, __musoqReadSize3)is { } __musoqReadFailure5)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure5);
+                }
+
+                var _payload = base.ReadPreparedByteArray(data, __musoqReadSize3);
+                __parsedValue.Payload = _payload;
+                base.RecordParsedFieldSlot(2);
+                SetCurrentField("Checksum");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure6)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure6);
+                }
+
+                var _checksum = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Checksum = _checksum;
+                base.RecordParsedFieldSlot(3);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

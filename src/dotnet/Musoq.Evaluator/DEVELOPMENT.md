@@ -306,6 +306,30 @@ The snapshot tests compile each catalog query through `InstanceCreator.CreateFor
 - **`: GeneratedRow`, `GroupLayout`, `GroupSlot`, `GroupKey`, `new Group(...)`, `.GetValue<...>` aggregate reads, and `.SetValue(...)` aggregate writes** — retired generated-code shapes for normal runtime-v2 queries. Add or extend static typed aggregate kernel metadata instead of routing awkward aggregates through object-backed groups.
 - **`EvaluationHelper.AggregateSingleKeyParallel(...)` and `AggregateSingleKeyParallel_...` generated names** — retired generic parallel aggregate helper paths. Parallel single-key aggregation should use generated query-specific loops named for the concrete query shape.
 
+## Byte-buffer operation binding
+
+`ByteBufferMethodBinding` classifies exact, already-bound `LibraryBase` declarations, overloads and closed
+byte generic arguments. This is declaration metadata inspection, without member discovery or invocation.
+Planner rules consume these immutable semantics rather than matching callable names. Unknown plugin
+methods and arbitrary enumerable producers retain their original evaluation and enumeration.
+
+`ByteBufferPlanner` selects immutable value, ownership, null, logical-length, consumer and evaluation-region
+facts after physical optimization. Array ranges, snapshots and compiler-owned concatenation lists lower
+through shared executable programs. `ByteBufferFlowPlanner` combines all consumers through projected
+field bindings, aliases and private CTE producer identities. Eligible private values use owned generated
+views carrying bounded bytes and complete logical length; public/datasource arrays remain `byte[]`.
+
+Snapshots keep their original evaluation point and observable allocation identity. Unknown byte-array
+producers and planned no-hoist regions remain ineligible for scalar reuse. Program operands must be
+rebound whenever a projection changes expression bindings. Rendering consumes these decisions rather
+than classifying callable names. Runtime-service inventory includes actual snapshot calls in ordinary,
+view and validation-only programs. Buffer semantics participate in semantic and executable cache identity.
+The internal Execution IR contract is version 14; host ABI 10, package format 2 and compiled artifact format 5 remain.
+
+See [byte-buffer planning](../../../docs/byte-buffer-planning.md) for supported consumers, ownership and
+conservative boundaries. Group/window propagation, recursive stored buffers, escaping/opaque consumers
+and unproven dynamic bounds retain complete storage. No datasource capability declaration is needed.
+
 ## Interpretation Schema Enforcement
 
 The Evaluator enforces the generic-style interpretation function syntax (`Interpret<Schema>(data)`) and bans the old string-based syntax (`Interpret(data, 'SchemaName')`):

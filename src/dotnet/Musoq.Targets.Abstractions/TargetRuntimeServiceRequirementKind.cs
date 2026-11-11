@@ -11,5 +11,7 @@ internal enum TargetRuntimeServiceRequirementKind
     Profiling = 6,
     QueryRowSourceAccess = 7,
     LikeMatcher = 8,
-    RLikeMatcher = 9
+    RLikeMatcher = 9,
+    ByteBufferSnapshot = 10,
+    InterpretationStatus = 11
 }

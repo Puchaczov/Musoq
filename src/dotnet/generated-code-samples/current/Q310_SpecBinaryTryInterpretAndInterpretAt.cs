@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary Header { Magic: int le, Offset: int le };
                     binary Payload { Value: short le };
@@ -243,7 +243,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                             Musoq.Generated.Interpreters.Header? statement0_hRows = null;
                             try
                             {
-                                statement0_hRows = _interpreter_Header.Interpret(f.Content);
+                                statement0_hRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryInterpret(_interpreter_Header, f.Content);
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -276,7 +276,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                             Musoq.Generated.Interpreters.Header? statement0_hRows = null;
                             try
                             {
-                                statement0_hRows = _interpreter_Header.Interpret(f.Content);
+                                statement0_hRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryInterpret(_interpreter_Header, f.Content);
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -307,7 +307,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                     Musoq.Generated.Interpreters.Header? statement0_hRows = null;
                     try
                     {
-                        statement0_hRows = _interpreter_Header.Interpret(f.Content);
+                        statement0_hRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryInterpret(_interpreter_Header, f.Content);
                     }
                     catch (global::Musoq.Schema.Interpreters.ParseException)
                     {
@@ -410,8 +410,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Header'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Header : BytesInterpreterBase<Header>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Header : BytesInterpreterBase<Header>, IBytesInterpreterStatus<Header>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Magic", "Offset" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Header value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -446,22 +449,44 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Header";
 
-        /// <inheritdoc/>
-        public override Header InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Header InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Header>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Header> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Header>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Header();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Magic");
-            var _magic = ReadInt32Le(data);
-            __parsedValue.Magic = _magic;
-            RecordParsedField("Magic");
-            SetCurrentField("Offset");
-            var _offset = ReadInt32Le(data);
-            __parsedValue.Offset = _offset;
-            RecordParsedField("Offset");
-            return __parsedValue;
+            Header? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Header();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Magic");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _magic = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Magic = _magic;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Offset");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _offset = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Offset = _offset;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 
@@ -469,8 +494,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Payload'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Payload : BytesInterpreterBase<Payload>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Payload : BytesInterpreterBase<Payload>, IBytesInterpreterStatus<Payload>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Value" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Payload value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -496,18 +524,35 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Payload";
 
-        /// <inheritdoc/>
-        public override Payload InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Payload InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Payload>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Payload> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Payload>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Payload();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Value");
-            var _value = ReadInt16Le(data);
-            __parsedValue.Value = _value;
-            RecordParsedField("Value");
-            return __parsedValue;
+            Payload? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Payload>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Payload();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Value");
+                if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Payload>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.Value = _value;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Payload>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Payload>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

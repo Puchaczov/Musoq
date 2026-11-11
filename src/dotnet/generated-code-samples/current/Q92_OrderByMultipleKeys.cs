@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select City, Country, Name, Population from #A.entities() order by Country, City desc, Population desc, Name
 */
@@ -50,7 +50,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(City: ko3iko.City, Country: ko3iko.Country, Name: ko3iko.Name, Population: ko3iko.Population)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Country ASC, City DESC, Population DESC, Name ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -96,14 +96,14 @@ namespace GeneratedSample_Q92_OrderByMultipleKeys
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Name", typeof(string), 2), new Column("Population", typeof(decimal), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.City, __musoqShapeRow.Country, __musoqShapeRow.Name, __musoqShapeRow.Population);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -256,7 +256,7 @@ namespace GeneratedSample_Q92_OrderByMultipleKeys
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(string City, string Country, string Name, decimal Population, int __ordinal)
             {
@@ -267,11 +267,49 @@ namespace GeneratedSample_Q92_OrderByMultipleKeys
                 this.__ordinal = __ordinal;
             }
 
-            public string City { get; }
-            public string Country { get; }
-            public string Name { get; }
-            public decimal Population { get; }
-            public int __ordinal { get; }
+            public string City { get; private set; }
+            public override int Count => 4;
+            public string Country { get; private set; }
+            public string Name { get; private set; }
+            public decimal Population { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Country = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Population = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Country),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Population),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "City" => true,
+                "Country" => true,
+                "Name" => true,
+                "Population" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Country, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Population, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

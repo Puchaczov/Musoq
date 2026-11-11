@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 SELECT (Quantity + 1)::Int64 as QuantityNext,
                          Population::Int32::String as PopulationText,
@@ -60,7 +60,7 @@ ExecutionPlan [compiled]
         AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(QuantityNext: (ko3iko.Quantity + 1)::Int64, PopulationText: populationInt32::String, CreatedOffset: ko3iko.CreatedAt::DateTimeOffset, __sortKey0: ko3iko.Amount::Decimal)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -105,14 +105,14 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("QuantityNext", typeof(long?), 0), new Column("PopulationText", typeof(string), 1), new Column("CreatedOffset", typeof(DateTimeOffset?), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.QuantityNext, __musoqShapeRow.PopulationText, __musoqShapeRow.CreatedOffset);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -275,7 +275,7 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(long? QuantityNext, string PopulationText, DateTimeOffset? CreatedOffset, decimal? __sortKey0, int __ordinal)
             {
@@ -286,11 +286,45 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
                 this.__ordinal = __ordinal;
             }
 
-            public DateTimeOffset? CreatedOffset { get; }
-            public string PopulationText { get; }
-            public long? QuantityNext { get; }
-            public int __ordinal { get; }
-            public decimal? __sortKey0 { get; }
+            public override int Count => 3;
+            public DateTimeOffset? CreatedOffset { get; private set; }
+            public string PopulationText { get; private set; }
+            public long? QuantityNext { get; private set; }
+            public int __ordinal { get; private set; }
+            public decimal? __sortKey0 { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long?>(this.QuantityNext = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long?, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.PopulationText = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, DateTimeOffset?>(this.CreatedOffset = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<DateTimeOffset?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long?>(this.QuantityNext),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.PopulationText),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, DateTimeOffset?>(this.CreatedOffset),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "QuantityNext" => true,
+                "PopulationText" => true,
+                "CreatedOffset" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.QuantityNext, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.PopulationText, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.CreatedOffset, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

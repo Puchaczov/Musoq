@@ -91,6 +91,10 @@ Optimizer trace text is part of inspection output. It should preserve changed/no
 
 Source-aware planner facts flow through `BuildItems.PlanningResult` and `BuildItems.PlanningText`. Source-local ordering/slicing uses the public stateless planning contract: `ISchema.DescribeSource`, `ISchema.TryPlanSource`, and `SourceExecutionContext.Plan`. Do not add runtime-side query state; accepted source plans must be immutable data passed back to execution.
 
+### Interpretation executable reuse
+
+Eligible table queries with interpretation schemas reuse executable artifacts after rendering. The cache compares the exact interpreter source, normalized generated syntax, resolved metadata references in compiler order, options and the runtime ABI. The schema registry and provider binding are rebuilt for each compilation. Declared-row queries can reuse an already loaded executable, and query-scoped row carriers use fresh load contexts. Interpretation queries remain excluded from semantic-template caching.
+
 ### BuildItems
 
 `BuildItems` is the shared state object that flows through the chain. It accumulates:

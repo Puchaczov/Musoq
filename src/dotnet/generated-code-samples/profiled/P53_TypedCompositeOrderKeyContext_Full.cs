@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Partition, Position, FirstLabel(Value) over (partition by Partition order by Position, Label rows between unbounded preceding and current row) as Label from #schema.first() order by Partition, Position, Label
 */
@@ -46,7 +46,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Partition: ko3iko.Partition, Position: ko3iko.Position, Label: resultFirstLabels[windowIndex])]
     SortOwnedBuffer [result by Partition ASC, Position ASC, Label ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
     PhaseBoundary [Select]
 */
 
@@ -94,28 +94,28 @@ namespace GeneratedSample_P53_TypedCompositeOrderKeyContext_Full
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Partition", typeof(int), 0), new Column("Position", typeof(int), 1), new Column("Label", typeof(string), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Partition", typeof(int), 0), new Column("Position", typeof(int), 1), new Column("Label", typeof(string), 2) }, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Partition, __musoqShapeRow.Position, __musoqShapeRow.Label);
+                yield return __musoqShapeRow;
             }
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
             {
-                yield return new ResultRow0(__musoqShapeRow.Partition, __musoqShapeRow.Position, __musoqShapeRow.Label);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -414,7 +414,7 @@ namespace GeneratedSample_P53_TypedCompositeOrderKeyContext_Full
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Partition, int Position, string Label)
             {
@@ -423,10 +423,44 @@ namespace GeneratedSample_P53_TypedCompositeOrderKeyContext_Full
                 this.Label = Label;
             }
 
-            public string Label { get; }
-            public int Partition { get; }
-            public int Position { get; }
+            public override int Count => 3;
+            public string Label { get; private set; }
+            public int Partition { get; private set; }
+            public int Position { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Partition = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Label = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Partition),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Label),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Partition" => true,
+                "Position" => true,
+                "Label" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Partition, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Position, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Label, ref visitor);
+            }
         }
 
         private readonly struct WindowResultFirstLabelsOrderKeysKey : System.IEquatable<WindowResultFirstLabelsOrderKeysKey>, System.IComparable<WindowResultFirstLabelsOrderKeysKey>

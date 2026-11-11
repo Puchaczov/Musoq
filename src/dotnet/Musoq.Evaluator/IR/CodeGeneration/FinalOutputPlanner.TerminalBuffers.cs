@@ -63,7 +63,8 @@ internal static partial class FinalOutputPlanner
         var names = output.Result.ShapeFields.Select(ExecutionSymbolicNamePolicy.GetGeneratedFieldName).ToHashSet(StringComparer.Ordinal);
         while (names.Contains(sequence))
             sequence += "_";
-        return new OwnedTerminalBuffer(sort.Source.Name, output.Result.ShapeTypeName, sequence);
+        return new OwnedTerminalBuffer(sort.Source.Name, output.Result.ShapeTypeName, sequence,
+            !names.Any(ExecutionSymbolicNamePolicy.IsReservedResultRowMember));
     }
 
     private static bool IsShapeBufferWrite(ExecutionNode node, string source)
@@ -94,7 +95,13 @@ internal static partial class FinalOutputPlanner
         }
         if (!HasExclusiveBufferUses(body, materialize.Source.Name, materialize, IsRecordBufferWrite))
             return null;
-        return new OwnedTerminalBuffer(materialize.Source.Name, materialize.RecordShape.TypeName, null);
+        var record = materialize.RecordShape;
+        var supportsResultRows = !record.EmitAsValueType &&
+            !record.Fields.Select(ExecutionSymbolicNamePolicy.GetGeneratedFieldName)
+                .Any(ExecutionSymbolicNamePolicy.IsReservedResultRowMember) &&
+            ExecutionIrAnalysis.CollectNodes<ExecutionCreateRecordList>(body)
+                .Count(create => create.RecordShape.TypeName == record.TypeName) == 1;
+        return new OwnedTerminalBuffer(materialize.Source.Name, record.TypeName, null, supportsResultRows);
     }
 
     private static bool IsRecordBufferWrite(ExecutionNode node, string source)

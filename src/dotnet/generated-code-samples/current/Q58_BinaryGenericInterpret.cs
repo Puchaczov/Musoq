@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary GenericItem {
                 Value: byte
@@ -367,8 +367,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'GenericItem'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class GenericItem : BytesInterpreterBase<GenericItem>, global::Musoq.Plugins.IJsonPayload
+    public sealed class GenericItem : BytesInterpreterBase<GenericItem>, IBytesInterpreterStatus<GenericItem>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Value" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(GenericItem value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -394,18 +397,35 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "GenericItem";
 
-        /// <inheritdoc/>
-        public override GenericItem InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override GenericItem InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<GenericItem>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<GenericItem> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<GenericItem>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new GenericItem();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Value");
-            var _value = ReadByte(data);
-            __parsedValue.Value = _value;
-            RecordParsedField("Value");
-            return __parsedValue;
+            GenericItem? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<GenericItem>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new GenericItem();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Value");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<GenericItem>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _value = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Value = _value;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<GenericItem>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<GenericItem>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 
@@ -414,8 +434,11 @@ namespace Musoq.Generated.Interpreters
     /// This is a generic schema with type parameters: T.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class LengthPrefixed<T> : BytesInterpreterBase<LengthPrefixed<T>>, global::Musoq.Plugins.IJsonPayload where T : IBytesInterpreter<T>, new()
+    public sealed class LengthPrefixed<T> : BytesInterpreterBase<LengthPrefixed<T>>, IBytesInterpreterStatus<LengthPrefixed<T>>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload where T : IBytesInterpreter<T>, new()
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Count", "Data" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         internal readonly record struct ParentContext();
         private readonly ParentContext __parentContext;
         private readonly System.Func<LengthPrefixed<T>, LengthPrefixed<T>.ParentContext, T>? __factory0;
@@ -463,31 +486,60 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "LengthPrefixed";
 
-        /// <inheritdoc/>
-        public override LengthPrefixed<T> InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override LengthPrefixed<T> InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<LengthPrefixed<T>>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<LengthPrefixed<T>>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new LengthPrefixed<T>();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Count");
-            var _count = ReadByte(data);
-            __parsedValue.Count = _count;
-            RecordParsedField("Count");
-            SetCurrentField("Data");
-            var __data_list = new System.Collections.Generic.List<T>();
-            var __data_count = ResolveExpressionSize<byte>(() => checked((byte?)(_count)), ParseErrorCode.InvalidSize);
-            for (int __data_i = 0; __data_i < __data_count; __data_i++)
+            LengthPrefixed<T>? __parsedValue = null;
+            try
             {
-                var ___data_elem_interpreter = (__factory0 is null ? new T() : __factory0.Invoke(__parsedValue, __parentContext));
-                var __data_elem = InterpretNested(___data_elem_interpreter, data, "Data");
-                __data_list.Add(__data_elem);
-            }
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Failed(__parsedValue, __musoqReadFailure0);
+                }
 
-            var _data = __data_list.ToArray();
-            __parsedValue.Data = _data;
-            RecordParsedField("Data");
-            return __parsedValue;
+                SetCurrentField(null);
+                __parsedValue = new LengthPrefixed<T>();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Count");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _count = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Count = _count;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Data");
+                var __data_list = new System.Collections.Generic.List<T>();
+                var __musoqReadResult2 = base.ResolveSizeValueStatus<byte>((byte?)(_count), ParseErrorCode.InvalidSize);
+                if (!__musoqReadResult2.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Failed(__parsedValue, __musoqReadResult2.Failure!);
+                }
+
+                var __data_count = __musoqReadResult2.Value!;
+                for (int __data_i = 0; __data_i < __data_count; __data_i++)
+                {
+                    var ___data_elem_interpreter = (__factory0 is null ? new T() : __factory0.Invoke(__parsedValue, __parentContext));
+                    var __musoqReadResult3 = base.InterpretNestedStatus(___data_elem_interpreter, data, "Data");
+                    if (!__musoqReadResult3.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Failed(__parsedValue, __musoqReadResult3.Failure!);
+                    }
+
+                    var __data_elem = __musoqReadResult3.Value!;
+                    __data_list.Add(__data_elem);
+                }
+
+                var _data = __data_list.ToArray();
+                __parsedValue.Data = _data;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 
@@ -495,8 +547,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'GenericContainer'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class GenericContainer : BytesInterpreterBase<GenericContainer>, global::Musoq.Plugins.IJsonPayload
+    public sealed class GenericContainer : BytesInterpreterBase<GenericContainer>, IBytesInterpreterStatus<GenericContainer>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Items" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(GenericContainer value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -522,19 +577,37 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "GenericContainer";
 
-        /// <inheritdoc/>
-        public override GenericContainer InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override GenericContainer InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<GenericContainer>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<GenericContainer> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<GenericContainer>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new GenericContainer();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Items");
-            var __items_interpreter = new LengthPrefixed<GenericItem>(new LengthPrefixed<GenericItem>.ParentContext(), null);
-            var _items = InterpretNested(__items_interpreter, data, "Items");
-            __parsedValue.Items = _items;
-            RecordParsedField("Items");
-            return __parsedValue;
+            GenericContainer? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<GenericContainer>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new GenericContainer();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Items");
+                var __items_interpreter = new LengthPrefixed<GenericItem>(new LengthPrefixed<GenericItem>.ParentContext(), null);
+                var __musoqReadResult1 = base.InterpretNestedStatus(__items_interpreter, data, "Items");
+                if (!__musoqReadResult1.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<GenericContainer>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                }
+
+                var _items = __musoqReadResult1.Value!;
+                __parsedValue.Items = _items;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<GenericContainer>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<GenericContainer>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

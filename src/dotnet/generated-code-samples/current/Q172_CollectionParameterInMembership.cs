@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 param(ids: int[])
               select Name, Id
@@ -53,7 +53,7 @@ ExecutionPlan [compiled]
         AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Name: ko3iko.Name, Id: id)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Name ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -103,14 +103,14 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Name", typeof(string), 0), new Column("Id", typeof(int), 1) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Id);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -266,7 +266,7 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(string Name, int Id, int __ordinal)
             {
@@ -275,9 +275,39 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
                 this.__ordinal = __ordinal;
             }
 
-            public int Id { get; }
-            public string Name { get; }
-            public int __ordinal { get; }
+            public override int Count => 2;
+            public int Id { get; private set; }
+            public string Name { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "Id" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Id, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

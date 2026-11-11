@@ -6,7 +6,8 @@ internal enum FinalOutputRowRepresentation
 {
     SelectShape,
     SelectValueShape,
-    GeneratedRow
+    GeneratedRow,
+    OwnedBufferRow
 }
 
 /// <summary>Independent final-output decisions shared by method emission, class emission and plan printing.</summary>
@@ -22,7 +23,13 @@ internal sealed record FinalOutputPlan(
 {
     public OwnedTerminalBuffer? OwnedBuffer { get; init; }
     public bool UsesGeneratedRow => RowRepresentation == FinalOutputRowRepresentation.GeneratedRow;
+    public bool ReturnsOwnedRows => RowRepresentation == FinalOutputRowRepresentation.OwnedBufferRow;
     public string RowTypeName => OwnedBuffer?.CarrierTypeName ?? (UsesGeneratedRow ? Result.RowTypeName : Result.ShapeTypeName);
+    public string TableRowTypeName => ReturnsOwnedRows ? RowTypeName : Result.RowTypeName;
 }
 
-internal sealed record OwnedTerminalBuffer(string SourceName, string CarrierTypeName, string? SequenceField);
+internal sealed record OwnedTerminalBuffer(
+    string SourceName,
+    string CarrierTypeName,
+    string? SequenceField,
+    bool SupportsResultRows);

@@ -144,7 +144,7 @@ public sealed partial class CSharpRenderer
                     queryIdentifier,
                     shapeRowsMethodName,
                     rowsMethodName,
-                    tableResultInfo,
+                    tableRenderPlan.FinalSinkPlans.TableOutput,
                     useQueryRunContext: _context.EnableContextualExecution,
                     out var tableShapeStreamingRowsAdapterMethod,
                     out var tableShapeStreamingRowsMetadata))
@@ -229,7 +229,7 @@ public sealed partial class CSharpRenderer
                 queryIdentifier,
                 shapeRowsMethodName,
                 rowsMethodName,
-                resultInfo,
+                renderPlan.FinalSinkPlans.TableOutput,
                 useQueryRunContext: _context.EnableContextualExecution,
                 out var tableShapeStreamingRowsAdapterMethod,
                 out var tableShapeStreamingRowsMetadata))

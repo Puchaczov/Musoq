@@ -1,3 +1,5 @@
+using Musoq.Evaluator.IR.Planning;
+
 namespace Musoq.Evaluator.IR.Expressions;
 
 public abstract class IrExpressionRewriter : ExpressionArrayRewriter
@@ -50,12 +52,8 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
 
     protected override IrExpression VisitMethodCall(MethodCall node)
     {
-        var arguments = RewriteExpressions(node.Arguments, out var changed);
-
-        if (!changed)
-            return node;
-
-        return node with { Arguments = arguments };
+        var arguments = RewriteExpressions(node.Arguments, out _);
+        return ByteBufferPlanRewrite.Method(node, arguments, Visit);
     }
 
     protected override IrExpression VisitIsNullCheck(IsNullCheck node)

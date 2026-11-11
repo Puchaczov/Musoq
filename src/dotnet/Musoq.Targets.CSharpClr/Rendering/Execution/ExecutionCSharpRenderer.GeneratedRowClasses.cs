@@ -37,22 +37,32 @@ public sealed partial class ExecutionCSharpRenderer
             includePrivateSetter: true)));
         members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts));
         members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts));
-        members.Add(CreateGeneratedRowCountProperty(shape.Fields.Count));
-        members.Add(GeneratedRowColumnVisitation.Create(shape.Fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax));
-        members.Add(GeneratedRowColumnVisitation.CreateRead(shape.Fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax));
-        if (RequiresWideGeneratedRowColumnMap(shape.Fields))
+        members.AddRange(CreateResultRowContractMembers(shape.Fields));
+        return CreateResultRowClass(shape.TypeName, members);
+    }
+
+    private static IEnumerable<MemberDeclarationSyntax> CreateResultRowContractMembers(IReadOnlyList<FieldBinding> fields)
+    {
+        yield return CreateGeneratedRowCountProperty(fields.Count);
+        yield return GeneratedRowColumnVisitation.Create(fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax);
+        yield return GeneratedRowColumnVisitation.CreateRead(fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax);
+        if (RequiresWideGeneratedRowColumnMap(fields))
         {
-            members.AddRange(CreateWideGeneratedRowColumnMapMembers(shape.Fields));
-            members.Add(CreateWideGeneratedRowHasColumnMethod());
+            foreach (var member in CreateWideGeneratedRowColumnMapMembers(fields))
+                yield return member;
+            yield return CreateWideGeneratedRowHasColumnMethod();
         }
         else
         {
-            members.Add(CreateGeneratedRowHasColumnMethod(shape.Fields));
+            yield return CreateGeneratedRowHasColumnMethod(fields);
         }
 
-        members.Add(GeneratedRowColumnVisitation.CreateWrite(shape.Fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax));
+        yield return GeneratedRowColumnVisitation.CreateWrite(fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax);
+    }
 
-        return SyntaxFactory.ClassDeclaration(shape.TypeName)
+    private static ClassDeclarationSyntax CreateResultRowClass(string typeName, IEnumerable<MemberDeclarationSyntax> members)
+    {
+        return SyntaxFactory.ClassDeclaration(typeName)
             .AddModifiers(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
                 SyntaxFactory.Token(SyntaxKind.SealedKeyword))

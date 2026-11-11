@@ -1,6 +1,9 @@
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -221,8 +224,58 @@ internal static class CSharpClrBatchCompatibility
     }
 }
 
+internal sealed record CSharpArtifactCompilationIdentity(
+    string OrderedReferenceFingerprint,
+    CSharpCompilationOptions Options);
+
 internal static class CSharpClrGeneratedCodeCompatibility
 {
+    private static readonly ConditionalWeakTable<MetadataId, ReferenceId> ReferenceIds = new();
+    private static long _nextReferenceId;
+
+    internal static CSharpArtifactCompilationIdentity? TryGetCompilationIdentity(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
+        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(artifact, "executable compilation identity");
+        var identity = new StringBuilder();
+        foreach (var reference in compilation.References)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reference is not PortableExecutableReference portable)
+                return null;
+
+            MetadataId metadata;
+            try
+            {
+                metadata = portable.GetMetadataId();
+            }
+            catch (Exception exception) when (exception is IOException or BadImageFormatException or UnauthorizedAccessException)
+            {
+                // Let normal emission report an unavailable reference.
+                return null;
+            }
+
+            // Roslyn identifies the exact immutable images selected by the
+            // compiler. Weak keys retain neither the image nor the reference.
+            var id = ReferenceIds.GetValue(metadata, static _ => new ReferenceId(
+                Interlocked.Increment(ref _nextReferenceId)));
+            var properties = portable.Properties;
+            identity.Append(id.Value).Append('|')
+                .Append((int)properties.Kind).Append('|')
+                .Append(properties.EmbedInteropTypes).Append('|')
+                .Append(properties.Aliases.Length).Append('|');
+            foreach (var alias in properties.Aliases)
+                identity.Append(alias.Length).Append(':').Append(alias);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return new CSharpArtifactCompilationIdentity(
+            CanonicalIdentityHash.Compute(identity.ToString(), cancellationToken),
+            compilation.Options);
+    }
+
+    private sealed record ReferenceId(long Value);
 
     internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(
         RenderedQueryArtifact artifact,

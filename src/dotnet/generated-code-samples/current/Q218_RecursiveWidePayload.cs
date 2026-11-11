@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 with recursive wide (Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code) as (select 1, 0, 10, 20, 30, 40, 50, 60, 'row', true, 1::Decimal, 'x' from values {( Seed: 1 )} seed union (Id) select w.Id + 1, w.Depth + 1, w.A, w.B, w.C, w.D, w.E, w.F, w.Name + 'x', w.Flag, (w.Amount + 1)::Decimal, w.Code from wide w where w.Depth < 2) select Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code from wide order by Id
 */
@@ -127,7 +127,7 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Id: wide.Id, Depth: wide.Depth, A: wide.A, B: wide.B, C: wide.C, D: wide.D, E: wide.E, F: wide.F, Name: wide.Name, Flag: wide.Flag, Amount: wide.Amount, Code: wide.Code)]
     PhaseBoundary [Select]
     SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -180,14 +180,14 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Id", typeof(int), 0), new Column("Depth", typeof(int), 1), new Column("A", typeof(int), 2), new Column("B", typeof(int), 3), new Column("C", typeof(int), 4), new Column("D", typeof(int), 5), new Column("E", typeof(int), 6), new Column("F", typeof(int), 7), new Column("Name", typeof(string), 8), new Column("Flag", typeof(bool), 9), new Column("Amount", typeof(decimal?), 10), new Column("Code", typeof(string), 11) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Depth, __musoqShapeRow.A, __musoqShapeRow.B, __musoqShapeRow.C, __musoqShapeRow.D, __musoqShapeRow.E, __musoqShapeRow.F, __musoqShapeRow.Name, __musoqShapeRow.Flag, __musoqShapeRow.Amount, __musoqShapeRow.Code);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -500,7 +500,7 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Id, int Depth, int A, int B, int C, int D, int E, int F, string Name, bool Flag, decimal? Amount, string Code)
             {
@@ -518,19 +518,89 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
                 this.Code = Code;
             }
 
-            public int A { get; }
-            public decimal? Amount { get; }
-            public int B { get; }
-            public int C { get; }
-            public string Code { get; }
-            public int D { get; }
-            public int Depth { get; }
-            public int E { get; }
-            public int F { get; }
-            public bool Flag { get; }
-            public int Id { get; }
-            public string Name { get; }
+            public int A { get; private set; }
+            public decimal? Amount { get; private set; }
+            public int B { get; private set; }
+            public int C { get; private set; }
+            public string Code { get; private set; }
+            public override int Count => 12;
+            public int D { get; private set; }
+            public int Depth { get; private set; }
+            public int E { get; private set; }
+            public int F { get; private set; }
+            public bool Flag { get; private set; }
+            public int Id { get; private set; }
+            public string Name { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Depth = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.A = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.B = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.C = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    5 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.D = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    6 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.E = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    7 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.F = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    8 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    9 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.Flag = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool, T>(value)),
+                    10 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Amount = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    11 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Code = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Depth),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.A),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.B),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.C),
+                5 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.D),
+                6 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.E),
+                7 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.F),
+                8 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                9 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.Flag),
+                10 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Amount),
+                11 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Code),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Depth" => true,
+                "A" => true,
+                "B" => true,
+                "C" => true,
+                "D" => true,
+                "E" => true,
+                "F" => true,
+                "Name" => true,
+                "Flag" => true,
+                "Amount" => true,
+                "Code" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Depth, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.A, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.B, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.C, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(5, this.D, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(6, this.E, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(7, this.F, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(8, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(9, this.Flag, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(10, this.Amount, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(11, this.Code, ref visitor);
+            }
         }
 
         private sealed class seedValuesD6F9BDFERow0 : Row

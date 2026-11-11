@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary Packet { Amount: int le, Currency: byte }; select s.Position as Position, p.ParsedFields as ParsedFields, p.ErrorField as ErrorField, p.BytesConsumed as BytesConsumed from #schema.first() s cross apply PartialInterpret<Packet>(s.Data) p order by s.Position
 */
@@ -74,7 +74,7 @@ ExecutionPlan [compiled]
     ForEach [sp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Position: sp.s.Position, ParsedFields: sp.p.ParsedFields, ErrorField: sp.p.ErrorField, BytesConsumed: sp.p.BytesConsumed)]
     SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -130,7 +130,7 @@ namespace GeneratedSample_P58_TypedPartialPayload_Full
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Position", typeof(int), 0), new Column("ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 1), new Column("ErrorField", typeof(string), 2), new Column("BytesConsumed", typeof(int), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
             _ = __musoqMaterializedTable.Count;
             return __musoqMaterializedTable;
         }
@@ -138,24 +138,24 @@ namespace GeneratedSample_P58_TypedPartialPayload_Full
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Position", typeof(int), 0), new Column("ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 1), new Column("ErrorField", typeof(string), 2), new Column("BytesConsumed", typeof(int), 3) }, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
             _ = __musoqMaterializedTable.Count;
             return __musoqMaterializedTable;
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.ParsedFields, __musoqShapeRow.ErrorField, __musoqShapeRow.BytesConsumed);
+                yield return __musoqShapeRow;
             }
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.ParsedFields, __musoqShapeRow.ErrorField, __musoqShapeRow.BytesConsumed);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -636,7 +636,7 @@ namespace GeneratedSample_P58_TypedPartialPayload_Full
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Position, Musoq.Generated.Interpreters.Packet ParsedFields, string ErrorField, int BytesConsumed)
             {
@@ -646,11 +646,49 @@ namespace GeneratedSample_P58_TypedPartialPayload_Full
                 this.BytesConsumed = BytesConsumed;
             }
 
-            public int BytesConsumed { get; }
-            public string ErrorField { get; }
-            public Musoq.Generated.Interpreters.Packet ParsedFields { get; }
-            public int Position { get; }
+            public int BytesConsumed { get; private set; }
+            public override int Count => 4;
+            public string ErrorField { get; private set; }
+            public Musoq.Generated.Interpreters.Packet ParsedFields { get; private set; }
+            public int Position { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, Musoq.Generated.Interpreters.Packet>(this.ParsedFields = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<Musoq.Generated.Interpreters.Packet, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.ErrorField = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.BytesConsumed = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, Musoq.Generated.Interpreters.Packet>(this.ParsedFields),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.ErrorField),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.BytesConsumed),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Position" => true,
+                "ParsedFields" => true,
+                "ErrorField" => true,
+                "BytesConsumed" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Position, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.ParsedFields, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.ErrorField, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.BytesConsumed, ref visitor);
+            }
         }
 
         private sealed class Statement0Row0
@@ -683,8 +721,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Packet'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Packet : BytesInterpreterBase<Packet>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Packet : BytesInterpreterBase<Packet>, IBytesInterpreterStatus<Packet>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Amount", "Currency" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Packet value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -719,22 +760,44 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Packet";
 
-        /// <inheritdoc/>
-        public override Packet InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Packet InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Packet>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Packet> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Packet>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Packet();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Amount");
-            var _amount = ReadInt32Le(data);
-            __parsedValue.Amount = _amount;
-            RecordParsedField("Amount");
-            SetCurrentField("Currency");
-            var _currency = ReadByte(data);
-            __parsedValue.Currency = _currency;
-            RecordParsedField("Currency");
-            return __parsedValue;
+            Packet? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Packet();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Amount");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _amount = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Amount = _amount;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Currency");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _currency = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Currency = _currency;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

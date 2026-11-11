@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Name, Name rlike r'\AAlex\z' as IsExact, Name rlike r'^[A-Z]' as UsesRegex from #A.entities() order by Name
 */
@@ -47,7 +47,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Name: name, IsExact: STRING_MATCH(name, pattern='\AAlex\z', needle='Alex', kind=Exact, comparison=Ordinal, strategy=direct-ordinal, anchors=StartAndEnd, literal-span=2:4, fallback=none), UsesRegex: PREPARED_RLIKE(name, __rlikeMatcher0))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Name ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -92,14 +92,14 @@ namespace GeneratedSample_Q375_LiteralAndFallbackRLike
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Name", typeof(string), 0), new Column("IsExact", typeof(bool), 1), new Column("UsesRegex", typeof(bool), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.IsExact, __musoqShapeRow.UsesRegex);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -265,7 +265,7 @@ namespace GeneratedSample_Q375_LiteralAndFallbackRLike
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(string Name, bool IsExact, bool UsesRegex, int __ordinal)
             {
@@ -275,10 +275,44 @@ namespace GeneratedSample_Q375_LiteralAndFallbackRLike
                 this.__ordinal = __ordinal;
             }
 
-            public bool IsExact { get; }
-            public string Name { get; }
-            public bool UsesRegex { get; }
-            public int __ordinal { get; }
+            public override int Count => 3;
+            public bool IsExact { get; private set; }
+            public string Name { get; private set; }
+            public bool UsesRegex { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.IsExact = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.UsesRegex = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.IsExact),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.UsesRegex),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "IsExact" => true,
+                "UsesRegex" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.IsExact, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.UsesRegex, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

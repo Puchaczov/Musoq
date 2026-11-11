@@ -5,7 +5,7 @@ namespace Musoq.Schema.Interpreters;
 ///     Generated interpreter classes inherit from this class.
 /// </summary>
 /// <typeparam name="TOut">The type of the parsed result object.</typeparam>
-public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
+public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>, IBytesInterpreterStatus<TOut>
 {
     /// <summary>
     ///     Current parse position in the byte array during interpretation.
@@ -42,16 +42,9 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
     /// <inheritdoc />
     public bool TryInterpret(ReadOnlySpan<byte> data, out TOut? result)
     {
-        try
-        {
-            result = Interpret(data);
-            return true;
-        }
-        catch (ParseException)
-        {
-            result = default;
-            return false;
-        }
+        var attempt = InterpretationStatus.ReadAt(this, data, 0);
+        result = attempt.Succeeded ? attempt.Value : default;
+        return attempt.Succeeded;
     }
 
     /// <summary>

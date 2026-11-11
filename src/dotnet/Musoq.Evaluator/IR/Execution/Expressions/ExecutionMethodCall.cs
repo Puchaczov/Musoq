@@ -60,6 +60,9 @@ public sealed record ExecutionMethodCall : ExecutionExpression
 
     internal EnumIntrinsicKind? EnumIntrinsic { get; init; }
 
+    internal ByteBufferCallableSemantics? BufferSemantics { get; init; }
+    internal bool IsOpaqueBufferProducer { get; init; }
+
     internal EnumTypeDescriptor? OperandEnumType { get; init; }
 
     internal EnumScalarValue? EnumMask { get; init; }

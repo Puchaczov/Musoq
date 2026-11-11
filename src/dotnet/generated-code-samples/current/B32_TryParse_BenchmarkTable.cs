@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 text Valid { Prefix: literal 'INFO|', Message: rest }; select r.Id as Id, p.Message as Message
 from bench.rows() r
@@ -70,7 +70,7 @@ ExecutionPlan [compiled]
     ForEach [rp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: rp.r.Id, Message: rp.p.Message)]
     SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -119,14 +119,14 @@ namespace GeneratedSample_B32_TryParse_BenchmarkTable
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Id", typeof(int), 0), new Column("Message", typeof(string), 1) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Message);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -218,7 +218,7 @@ namespace GeneratedSample_B32_TryParse_BenchmarkTable
                             Musoq.Generated.Interpreters.Valid? statement0_pRows = null;
                             try
                             {
-                                statement0_pRows = _interpreter_Valid.Parse(((r.Id % ((int?)2).GetValueOrDefault()) == 0) ? (string)r.Text : (string)"bad");
+                                statement0_pRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryParse(_interpreter_Valid, ((r.Id % ((int?)2).GetValueOrDefault()) == 0) ? (string)r.Text : (string)"bad");
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -259,7 +259,7 @@ namespace GeneratedSample_B32_TryParse_BenchmarkTable
                             Musoq.Generated.Interpreters.Valid? statement0_pRows = null;
                             try
                             {
-                                statement0_pRows = _interpreter_Valid.Parse(((r.Id % ((int?)2).GetValueOrDefault()) == 0) ? (string)r.Text : (string)"bad");
+                                statement0_pRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryParse(_interpreter_Valid, ((r.Id % ((int?)2).GetValueOrDefault()) == 0) ? (string)r.Text : (string)"bad");
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -298,7 +298,7 @@ namespace GeneratedSample_B32_TryParse_BenchmarkTable
                     Musoq.Generated.Interpreters.Valid? statement0_pRows = null;
                     try
                     {
-                        statement0_pRows = _interpreter_Valid.Parse(((r.Id % ((int?)2).GetValueOrDefault()) == 0) ? (string)r.Text : (string)"bad");
+                        statement0_pRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryParse(_interpreter_Valid, ((r.Id % ((int?)2).GetValueOrDefault()) == 0) ? (string)r.Text : (string)"bad");
                     }
                     catch (global::Musoq.Schema.Interpreters.ParseException)
                     {
@@ -368,7 +368,7 @@ namespace GeneratedSample_B32_TryParse_BenchmarkTable
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Id, string Message)
             {
@@ -376,9 +376,36 @@ namespace GeneratedSample_B32_TryParse_BenchmarkTable
                 this.Message = Message;
             }
 
-            public int Id { get; }
-            public string Message { get; }
+            public override int Count => 2;
+            public int Id { get; private set; }
+            public string Message { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Message = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Message),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Message" => true,
+                _ => false
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Message, ref visitor);
+            }
         }
 
         private sealed class Statement0Row0
@@ -413,8 +440,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for text schema 'Valid'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Valid : TextInterpreterBase<Valid>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Valid : TextInterpreterBase<Valid>, ITextInterpreterStatus<Valid>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Prefix", "Message" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Valid value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -449,22 +479,48 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Valid";
 
-        /// <inheritdoc/>
         public override Valid ParseAt(ReadOnlySpan<char> data, int offset)
         {
-            ParsePosition = offset;
-            SetCurrentField(null);
-            var __parsedValue = new Valid();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Prefix");
-            var _prefix = ExpectLiteral(data, "INFO|", fieldName: "Prefix");
-            __parsedValue.Prefix = _prefix;
-            RecordParsedField("Prefix");
-            SetCurrentField("Message");
-            var _message = ReadRest(data, fieldName: "Message");
-            __parsedValue.Message = _message;
-            RecordParsedField("Message");
-            return __parsedValue;
+            var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
+            return ((global::Musoq.Schema.Interpreters.ITextInterpreterStatus<Valid>)this).ReadAt(ref input, offset).GetValueOrThrow();
+        }
+
+        global::Musoq.Schema.Interpreters.ParseAttempt<Valid> global::Musoq.Schema.Interpreters.ITextInterpreterStatus<Valid>.ReadAt(ref global::Musoq.Schema.Interpreters.TextParseInput __musoqTextInput, int offset)
+        {
+            var data = __musoqTextInput.Text;
+            Valid? __parsedValue = null;
+            try
+            {
+                ParsePosition = offset;
+                SetCurrentField(null);
+                __parsedValue = new Valid();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Prefix");
+                var __musoqReadResult0 = base.ExpectLiteralStatus(ref __musoqTextInput, "INFO|", fieldName: "Prefix");
+                if (!__musoqReadResult0.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                }
+
+                var _prefix = __musoqReadResult0.Value!;
+                __parsedValue.Prefix = _prefix;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Message");
+                var __musoqReadResult1 = base.ReadRestStatus(data, fieldName: "Message");
+                if (!__musoqReadResult1.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                }
+
+                var _message = __musoqReadResult1.Value!;
+                __parsedValue.Message = _message;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

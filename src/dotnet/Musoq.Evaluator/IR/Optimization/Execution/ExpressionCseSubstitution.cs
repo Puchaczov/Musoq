@@ -177,6 +177,7 @@ internal static partial class ExpressionCseSubstitution
 
         return expression switch
         {
+            ExecutionByteBufferSnapshot or ExecutionByteBufferOperation => ByteBufferExpressionRewrite.Children(expression, child => Replace(child, variablesBySignature)),
             ExecutionStringConcatenation concatenation => concatenation with
             {
                 Expressions = concatenation.Expressions.Select(value => Replace(value, variablesBySignature)).ToArray()

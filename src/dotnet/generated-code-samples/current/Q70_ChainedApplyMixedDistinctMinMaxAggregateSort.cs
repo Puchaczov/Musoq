@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name
 */
@@ -71,7 +71,7 @@ ExecutionPlan [compiled]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Name: finalGroup.i.Name, RepeatedMin: inm.Min(n.Value), DistinctMin: inm.Min(distinct n.Value), RepeatedMax: inm.Max(n.Value), DistinctMax: inm.Max(distinct n.Value))]
     SortOwnedBuffer [result by DistinctMax DESC, RepeatedMax DESC, DistinctMin ASC, RepeatedMin ASC, Name ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -118,14 +118,14 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Name", typeof(string), 0), new Column("RepeatedMin", typeof(int?), 1), new Column("DistinctMin", typeof(int?), 2), new Column("RepeatedMax", typeof(int?), 3), new Column("DistinctMax", typeof(int?), 4) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.RepeatedMin, __musoqShapeRow.DistinctMin, __musoqShapeRow.RepeatedMax, __musoqShapeRow.DistinctMax);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -480,7 +480,7 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string Name, int? RepeatedMin, int? DistinctMin, int? RepeatedMax, int? DistinctMax)
             {
@@ -491,12 +491,54 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
                 this.DistinctMax = DistinctMax;
             }
 
-            public int? DistinctMax { get; }
-            public int? DistinctMin { get; }
-            public string Name { get; }
-            public int? RepeatedMax { get; }
-            public int? RepeatedMin { get; }
+            public override int Count => 5;
+            public int? DistinctMax { get; private set; }
+            public int? DistinctMin { get; private set; }
+            public string Name { get; private set; }
+            public int? RepeatedMax { get; private set; }
+            public int? RepeatedMin { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.RepeatedMin = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.DistinctMin = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.RepeatedMax = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.DistinctMax = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.RepeatedMin),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.DistinctMin),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.RepeatedMax),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.DistinctMax),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "RepeatedMin" => true,
+                "DistinctMin" => true,
+                "RepeatedMax" => true,
+                "DistinctMax" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.RepeatedMin, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.DistinctMin, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.RepeatedMax, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.DistinctMax, ref visitor);
+            }
         }
     }
 }

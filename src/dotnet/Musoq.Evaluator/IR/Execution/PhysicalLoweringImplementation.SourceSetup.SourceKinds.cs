@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -22,9 +23,19 @@ internal sealed partial class PhysicalLoweringImplementation
                 interpret.SchemaName,
                 ResolveInterpreterTypeName(interpret),
                 interpret.Kind,
-                interpret.Arguments.Select(argument => ExecutionExpressionConverter.Convert(argument, sourceLookup, cteIndexes)).ToArray(),
+                CreateInterpretArguments(interpret, sourceLookup, cteIndexes),
                 interpret.ApplyKind)
         ];
+    }
+
+    private static ExecutionExpression[] CreateInterpretArguments(PhysicalInterpretSourceNode interpret,
+        IReadOnlyDictionary<string, RowShape> sourceLookup, IReadOnlyDictionary<string, int> cteIndexes)
+    {
+        var arguments = new ExecutionExpression[interpret.Arguments.Length];
+        for (var index = 0; index < arguments.Length; index++)
+            arguments[index] = ExecutionExpressionConverter.Convert(interpret.Arguments[index], sourceLookup, cteIndexes);
+        arguments[0] = ByteBufferViewShape.Storage(arguments[0]);
+        return arguments;
     }
 
     private static List<ExecutionNode> CreateEnumerableSourceSetup(

@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary Rectangle {
                 Width: int le,
@@ -303,8 +303,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Rectangle'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Rectangle : BytesInterpreterBase<Rectangle>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Rectangle : BytesInterpreterBase<Rectangle>, IBytesInterpreterStatus<Rectangle>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Width", "Height", "Area" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Rectangle value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -348,26 +351,48 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Rectangle";
 
-        /// <inheritdoc/>
-        public override Rectangle InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Rectangle InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Rectangle>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Rectangle> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Rectangle>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Rectangle();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Width");
-            var _width = ReadInt32Le(data);
-            __parsedValue.Width = _width;
-            RecordParsedField("Width");
-            SetCurrentField("Height");
-            var _height = ReadInt32Le(data);
-            __parsedValue.Height = _height;
-            RecordParsedField("Height");
-            SetCurrentField("Area");
-            var _area = (int)((_width * _height));
-            __parsedValue.Area = _area;
-            RecordParsedField("Area");
-            return __parsedValue;
+            Rectangle? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Rectangle>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Rectangle();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Width");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Rectangle>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _width = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Width = _width;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Height");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Rectangle>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _height = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Height = _height;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("Area");
+                var _area = (int)((_width * _height));
+                __parsedValue.Area = _area;
+                base.RecordParsedFieldSlot(2);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Rectangle>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Rectangle>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

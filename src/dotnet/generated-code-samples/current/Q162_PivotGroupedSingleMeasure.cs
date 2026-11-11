@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 pivot #A.entities()
                   on Month in ('Jan' as Jan, 'Feb' as Feb)
@@ -60,7 +60,7 @@ ExecutionPlan [compiled]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Jan: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'))]
     SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -105,14 +105,14 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("City", typeof(string), 0), new Column("Jan", typeof(decimal?), 1), new Column("Feb", typeof(decimal?), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.City, __musoqShapeRow.Jan, __musoqShapeRow.Feb);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -350,7 +350,7 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string City, decimal? Jan, decimal? Feb)
             {
@@ -359,10 +359,44 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
                 this.Feb = Feb;
             }
 
-            public string City { get; }
-            public decimal? Feb { get; }
-            public decimal? Jan { get; }
+            public string City { get; private set; }
+            public override int Count => 3;
+            public decimal? Feb { get; private set; }
+            public decimal? Jan { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Jan = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Feb = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Jan),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Feb),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "City" => true,
+                "Jan" => true,
+                "Feb" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Jan, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Feb, ref visitor);
+            }
         }
     }
 }

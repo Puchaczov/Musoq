@@ -18,7 +18,8 @@ public class BinaryInterpretationRepeatUntilEofTests : BinaryInterpretationTestB
         var code = generator.GenerateAll();
 
         StringAssert.Contains(code, "while (!IsAtEnd(data))");
-        StringAssert.Contains(code, "EnsureRepeatMadeProgress(\"Bytes\"");
+        StringAssert.Contains(code, "base.CheckRepeatProgressStatus(\"Bytes\"");
+        StringAssert.Contains(code, "ParseAttempt<ByteStream>.Failed");
     }
 
     [TestMethod]

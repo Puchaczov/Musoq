@@ -150,7 +150,7 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
             var variables = reads.ToDictionary(
                 static read => read,
-                read => new ExecutionVariable(CreateHoistedVariableName(read, usedNames), read.ReturnType, read.InterpretationShape?.TypeName ?? read.GeneratedTypeName));
+                read => new ExecutionVariable(CreateHoistedVariableName(read, usedNames), read.ReturnType, ExecutionGeneratedTypeName.For(read)));
             var lets = reads
                 .Select(read => new ExecutionLet(variables[read], read))
                 .ToArray();

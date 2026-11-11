@@ -9,6 +9,8 @@ using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Analysis;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Targets.Execution.Analysis;
 using Musoq.Targets.TestPortable;
 
@@ -17,6 +19,27 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public sealed class PortableSubsetTargetAssemblyTests
 {
+    [TestMethod]
+    public void BufferOperations_ShouldRejectPortableSubsetBeforeRendering()
+    {
+        var descriptor = ExecutionTargetDescriptor.Create(PortableSubsetTarget.TargetId,
+            renderPhase: new PortableSubsetExecutionBackend(),
+            createRenderInputs: static _ => new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId));
+        using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
+        var region = new ScalarEvaluationRegion("buffer-test", ScalarEvaluationRegionKind.Materialization, false, false);
+        var buffer = new ExecutionByteBufferOperation(new ExecutionLiteral(null, typeof(byte[])),
+            new ByteBufferValuePlan(ByteBufferOperationKind.Materialize,
+                new(0, ByteBufferOwnership.Owned, ByteBufferNullState.Unknown, region, 0), [], ByteBufferRequirement.Complete));
+        var plan = new ExecutionPlan("BufferUnsupported", [], new ExecutionBlock([
+            new ExecutionLet(new ExecutionVariable("buffer", typeof(byte[])), buffer)]));
+
+        var result = ExecutionTargetCatalog.Render(CreateRequest(plan));
+
+        Assert.IsFalse(result.Success);
+        Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Message.Contains("expr.byte-buffer.operation", StringComparison.Ordinal)));
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.SupportedOperations.Contains(ExecutionOperationCatalog.Resolve(buffer)));
+    }
+
     [TestMethod]
     public void ClosedInterpretationMemberOperation_ShouldRemainOutsideThePortableSubset()
     {

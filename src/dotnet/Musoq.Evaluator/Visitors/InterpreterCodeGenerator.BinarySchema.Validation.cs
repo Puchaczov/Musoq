@@ -17,7 +17,7 @@ public partial class InterpreterCodeGenerator
             : GenerateScalarValidationCondition(validation, localVar, field);
 
         var message = GenerateValidationFailureMessage(validation, field.Name);
-        return $"Validate({condition}, \"{field.Name}\", \"{EscapeString(message)}\");";
+        return StatusCheck($"base.ValidateWithStatus({condition}, \"{EscapeString(field.Name)}\", \"{EscapeString(message)}\")");
     }
 
     private string GenerateScalarValidationCondition(

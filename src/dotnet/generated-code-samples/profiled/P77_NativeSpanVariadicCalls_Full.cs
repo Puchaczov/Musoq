@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Position, NativeTotal(Value, 1, 2, 3, 4, 5) as Total, Concat(Position, Position, Position, Position, Position, Position) as Repeated from #schema.first() order by Position
 */
@@ -49,7 +49,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: position, Total: NativeTotal(ko3iko.Value, 1, 2, 3, 4, 5), Repeated: Concat(position, position, position, position, position, position))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -96,28 +96,28 @@ namespace GeneratedSample_P77_NativeSpanVariadicCalls_Full
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Position", typeof(int), 0), new Column("Total", typeof(int), 1), new Column("Repeated", typeof(string), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Position", typeof(int), 0), new Column("Total", typeof(int), 1), new Column("Repeated", typeof(string), 2) }, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Total, __musoqShapeRow.Repeated);
+                yield return __musoqShapeRow;
             }
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Total, __musoqShapeRow.Repeated);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -424,7 +424,7 @@ namespace GeneratedSample_P77_NativeSpanVariadicCalls_Full
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(int Position, int Total, string Repeated, int __ordinal)
             {
@@ -434,10 +434,44 @@ namespace GeneratedSample_P77_NativeSpanVariadicCalls_Full
                 this.__ordinal = __ordinal;
             }
 
-            public int Position { get; }
-            public string Repeated { get; }
-            public int Total { get; }
-            public int __ordinal { get; }
+            public override int Count => 3;
+            public int Position { get; private set; }
+            public string Repeated { get; private set; }
+            public int Total { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Repeated = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Total),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Repeated),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Position" => true,
+                "Total" => true,
+                "Repeated" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Position, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Total, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Repeated, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

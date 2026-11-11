@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select City, City like 'Ł%' as IsPolish, Count(Name) filter (where Name like 'Ż%') as MatchingNames from #A.entities() where Name like '%ó%' or City like 'Ł%' group by City having City like 'Ł%' order by City
 */
@@ -65,7 +65,7 @@ ExecutionPlan [compiled]
       If [PREPARED_LIKE(finalGroup.City, __likeMatcher1)]
         AppendShape [result <- ResultShape0(City: finalGroup.City, IsPolish: PREPARED_LIKE(finalGroup.City, __likeMatcher1), MatchingNames: ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%'))]
     SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -110,14 +110,14 @@ namespace GeneratedSample_Q371_UnicodeLikeClauseContexts
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("City", typeof(string), 0), new Column("IsPolish", typeof(bool), 1), new Column("MatchingNames", typeof(long), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.City, __musoqShapeRow.IsPolish, __musoqShapeRow.MatchingNames);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -409,7 +409,7 @@ namespace GeneratedSample_Q371_UnicodeLikeClauseContexts
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string City, bool IsPolish, long MatchingNames)
             {
@@ -418,10 +418,44 @@ namespace GeneratedSample_Q371_UnicodeLikeClauseContexts
                 this.MatchingNames = MatchingNames;
             }
 
-            public string City { get; }
-            public bool IsPolish { get; }
-            public long MatchingNames { get; }
+            public string City { get; private set; }
+            public override int Count => 3;
+            public bool IsPolish { get; private set; }
+            public long MatchingNames { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.IsPolish = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<bool, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.MatchingNames = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, bool>(this.IsPolish),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.MatchingNames),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "City" => true,
+                "IsPolish" => true,
+                "MatchingNames" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.IsPolish, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.MatchingNames, ref visitor);
+            }
         }
     }
 }

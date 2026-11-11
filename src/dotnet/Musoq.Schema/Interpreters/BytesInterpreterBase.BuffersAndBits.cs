@@ -17,6 +17,12 @@ public abstract partial class BytesInterpreterBase<TOut>
                 $"Negative byte array size: {length}");
 
         PrepareByteRead(data, length);
+        return ReadPreparedByteArray(data, length);
+    }
+
+    /// <summary>Copies an already validated byte region and advances the cursor.</summary>
+    protected byte[] ReadPreparedByteArray(ReadOnlySpan<byte> data, int length)
+    {
         var result = data.Slice(ParsePosition, length).ToArray();
         ParsePosition += length;
         return result;

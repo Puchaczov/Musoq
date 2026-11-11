@@ -40,7 +40,6 @@ public static partial class ExecutionPlanPrinter
     }
 
 
-
     private static string FormatAggregateArguments(IReadOnlyList<ExecutionExpression> arguments)
     {
         var builder = new StringBuilder();

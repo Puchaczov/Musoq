@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary TinyHeader {
                 Id: int le
@@ -282,8 +282,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'TinyHeader'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class TinyHeader : BytesInterpreterBase<TinyHeader>, global::Musoq.Plugins.IJsonPayload
+    public sealed class TinyHeader : BytesInterpreterBase<TinyHeader>, IBytesInterpreterStatus<TinyHeader>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Id" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(TinyHeader value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -309,18 +312,35 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "TinyHeader";
 
-        /// <inheritdoc/>
-        public override TinyHeader InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override TinyHeader InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<TinyHeader>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<TinyHeader>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new TinyHeader();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Id");
-            var _id = ReadInt32Le(data);
-            __parsedValue.Id = _id;
-            RecordParsedField("Id");
-            return __parsedValue;
+            TinyHeader? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new TinyHeader();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Id");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _id = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Id = _id;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

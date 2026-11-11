@@ -17,13 +17,16 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated nested interpreter for inline schema '{className}'.");
         builder.AppendLine("/// </summary>");
         builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : BytesInterpreterBase<{className}>, global::Musoq.Plugins.IJsonPayload");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : BytesInterpreterBase<{className}>, IBytesInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload");
         builder.AppendLine("{");
         builder.Append(PartialPayloadCodeEmitter.Members(className));
 
         var fields = inlineSchema.Fields;
         _expressionFields = fields.Concat(outerRefs.Select(name => (SchemaFieldNode)new FieldDefinitionNode(name,
             new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)))).ToArray();
+        var completion = CompletionLayoutCodeEmitter.Create(fields.Where(static field =>
+            field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode }).Select(static field => field.Name));
+        builder.Append(completion);
         builder.Append(GenerateParentContextMembers(className));
         builder.Append(PartialPayloadCodeEmitter.JsonMembers(fields
             .Where(static field => field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
@@ -60,12 +63,11 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override string SchemaName => \"{className}\";");
         builder.AppendLine();
 
-        builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override {className} InterpretAt(ReadOnlySpan<byte> data, int offset)");
-        builder.AppendLine("    {");
-        builder.AppendLine("        InitializeParsePosition(data, offset);");
+        BeginStatusMethod(className);
+        builder.Append(InterpreterStatusCodeEmitter.BeginBinary(className));
+        builder.Append(StatusCheck("base.InitializeParsePositionStatus(data, offset)"));
         builder.AppendLine("        SetCurrentField(null);");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        var __parsedValue = new {className}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        __parsedValue = new {className}();");
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
@@ -78,6 +80,7 @@ public partial class InterpreterCodeGenerator
         if (outerRefs.Count > 0)
             builder.AppendLine();
 
+        var completionIndex = 0;
         foreach (var field in fields)
         {
             AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(field.Name)}\");");
@@ -92,12 +95,11 @@ public partial class InterpreterCodeGenerator
             if (field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
             {
                 AppendGeneratedLine(builder, $"        __parsedValue.{EscapeCSharpIdentifier(field.Name)} = {GetLocalVarName(field.Name)};");
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(field.Name)}\");");
+                AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
 
-        builder.AppendLine("        return __parsedValue;");
-        builder.AppendLine("    }");
+        builder.Append(InterpreterStatusCodeEmitter.End(className));
 
         builder.AppendLine("}");
 
@@ -114,7 +116,7 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = {CreateNestedInterpreter(inlineClassName)};");
         builder.Append(GenerateOuterRefAssignments(tempInterpreter, inlineSchema));
-        AppendGeneratedLine(builder, $"var {localVar} = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
+        builder.Append(StatusRead(localVar, $"base.InterpretNestedStatus({tempInterpreter}, data, \"{EscapeString(fieldName)}\")"));
         return builder.ToString();
     }
 

@@ -11,6 +11,7 @@ using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
 using Musoq.Targets.CSharpClr;
@@ -100,7 +101,7 @@ public static partial class InstanceCreator
     }
 
     private static ExecutionCompilationCachePublication PrepareExecutionCompilation(
-        ExecutionCompilationCacheKey cacheKey,
+        ExecutionCompilationCacheKey? cacheKey,
         ExecutableQueryArtifact executableArtifact,
         string semanticContractFingerprint,
         string runnableTypeName,
@@ -109,17 +110,19 @@ public static partial class InstanceCreator
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(executableArtifact);
-        if (cacheKey.ExecutionTarget != executableArtifact.TargetId)
+        if (cacheKey is { } exactKey && exactKey.ExecutionTarget != executableArtifact.TargetId)
         {
             throw new InvalidOperationException(
-                $"Execution compilation cache key targets '{cacheKey.ExecutionTarget}', but executable artifact targets '{executableArtifact.TargetId}'.");
+                $"Execution compilation cache key targets '{exactKey.ExecutionTarget}', but executable artifact targets '{executableArtifact.TargetId}'.");
         }
+        if (cacheKey is null && canonicalContract is null)
+            throw new ArgumentException("An executable template requires a cache identity.", nameof(canonicalContract));
 
         return new ExecutionCompilationCachePublication(
             cacheKey,
             new PreparedExecutableTemplate(
                 executableArtifact,
-                cacheKey.ExecutionTarget,
+                executableArtifact.TargetId,
                 runnableTypeName,
                 semanticContractFingerprint),
             canonicalContract);
@@ -137,7 +140,8 @@ public static partial class InstanceCreator
         {
             lock (ExecutionCompilationCacheMutationSync)
             {
-                if (ExecutionCompilationCache.TryGetValue(publication.CacheKey, out var existing))
+                if (publication.CacheKey is { } exactKey &&
+                    ExecutionCompilationCache.TryGetValue(exactKey, out var existing))
                 {
                     if (string.Equals(
                             existing.SemanticContractFingerprint,
@@ -155,7 +159,8 @@ public static partial class InstanceCreator
                 EnsureExecutionCompilationCapacityLocked();
                 var addedEntry = new CachedExecutionCompilation(publication.Template!);
                 ExecutionCompilationEntries.Add(addedEntry);
-                ExecutionCompilationCache[publication.CacheKey] = addedEntry;
+                if (publication.CacheKey is { } addedKey)
+                    ExecutionCompilationCache[addedKey] = addedEntry;
                 AddCanonicalExecutionAliasLocked(addedEntry, publication.CanonicalContract);
                 publication.MarkCommitted(ownsArtifact: true);
             }
@@ -186,6 +191,8 @@ public static partial class InstanceCreator
         ExecutionCompilationCachePublication publication)
     {
         ArgumentNullException.ThrowIfNull(publication);
+        var exactKey = publication.CacheKey ??
+                       throw new InvalidOperationException("An exact alias requires an exact cache key.");
         if (!publication.TryBeginCommit())
             return;
 
@@ -199,12 +206,12 @@ public static partial class InstanceCreator
                     return;
                 }
 
-                if (ExecutionCompilationCache.TryGetValue(publication.CacheKey, out var existing) &&
+                if (ExecutionCompilationCache.TryGetValue(exactKey, out var existing) &&
                     !ReferenceEquals(existing, publication.CachedCompilation))
                     RemoveExecutionCompilationEntryLocked(existing);
 
                 EnsureExecutionCompilationCapacityLocked();
-                ExecutionCompilationCache[publication.CacheKey] = publication.CachedCompilation!;
+                ExecutionCompilationCache[exactKey] = publication.CachedCompilation!;
                 AddCanonicalExecutionAliasLocked(
                     publication.CachedCompilation!,
                     publication.CanonicalContract);
@@ -428,15 +435,21 @@ public static partial class InstanceCreator
 
     private static bool CanUseExecutionCompilationCache(BuildItems items)
     {
+        // Interpretation requires rendered source, references and runtime ABI
+        // identity. The exact cache can decide reuse after planning alone.
+        return items.InterpreterSourceCode is null && CanReuseExecutableArtifact(items);
+    }
+
+    private static bool CanReuseExecutableArtifact(BuildItems items)
+    {
         return !items.HasDeclaredSourceRuntimeSettings &&
                !items.HasSourceRuntimeSettingValues &&
-               items.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled &&
-               items.InterpreterSourceCode is null;
+               items.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled;
     }
 
     private static bool CanUseCanonicalExecutionCompilationCache(BuildItems items)
     {
-        return CanUseExecutionCompilationCache(items) &&
+        return CanReuseExecutableArtifact(items) &&
                !Debugger.IsAttached &&
                items.ExecutionTarget == ExecutionTargetIds.CSharpClr &&
                items.QueryResultMode == QueryResultMode.Table &&
@@ -457,7 +470,7 @@ public static partial class InstanceCreator
 
         return new ExecutionCompilationCacheKey(
             script,
-            RuntimeV2Contract.ContractSignature,
+            RuntimeV2Contract.ContractSignature + "|" + ByteBufferCallableSemantics.Contract,
             ExecutionSemanticsContract.Current.Fingerprint,
             executionTarget,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
@@ -568,7 +581,7 @@ public static partial class InstanceCreator
             schemaProvider,
             items.CompilationOptions,
             CancellationToken.None);
-        return TryGetCanonicalExecutionCompilation(contract) is { } entry
+        return contract is not null && TryGetCanonicalExecutionCompilation(contract) is { } entry
             ? RuntimeHelpers.GetHashCode(entry)
             : 0;
     }
@@ -581,7 +594,7 @@ public static partial class InstanceCreator
             items,
             schemaProvider,
             items.CompilationOptions,
-            CancellationToken.None);
+            CancellationToken.None) ?? throw new InvalidOperationException("Canonical identity is unavailable.");
     }
 
     internal static CanonicalExecutionArtifactContract CreateCanonicalExecutionContractForTests(
@@ -593,7 +606,7 @@ public static partial class InstanceCreator
             items,
             schemaProvider,
             items.CompilationOptions,
-            cancellationToken);
+            cancellationToken) ?? throw new InvalidOperationException("Canonical identity is unavailable.");
     }
 
     internal static IDisposable SetExecutionCompilationCacheLimitForTests(int limit)
@@ -1022,7 +1035,7 @@ public static partial class InstanceCreator
         private bool _ownsArtifact;
 
         public ExecutionCompilationCachePublication(
-            ExecutionCompilationCacheKey cacheKey,
+            ExecutionCompilationCacheKey? cacheKey,
             PreparedExecutableTemplate template,
             CanonicalExecutionArtifactContract? canonicalContract)
         {
@@ -1041,7 +1054,7 @@ public static partial class InstanceCreator
             CanonicalContract = canonicalContract;
         }
 
-        public ExecutionCompilationCacheKey CacheKey { get; }
+        public ExecutionCompilationCacheKey? CacheKey { get; }
 
         public PreparedExecutableTemplate? Template { get; }
 

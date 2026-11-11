@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.IR.Planning.SourcePlanning;
 using Musoq.Parser;
 using Musoq.Schema;
 
@@ -10,11 +11,10 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal static class SourceTransferPlanner
 {
-    private const int StructCarrierPayloadLimit = 64;
-
     public static SourceTransferPlanningResult Plan(
         PlanningContext context,
-        SourcePlanningFacts sourcePlanning)
+        SourcePlanningFacts sourcePlanning,
+        IReadOnlyDictionary<string, SourceComputedTransferPlan>? computedTransfers = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(sourcePlanning);
@@ -33,10 +33,14 @@ internal static class SourceTransferPlanner
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             var usage = usageResult.PlansBySourceId[source.SourceContextId];
-            var plan = PlanSource(context, sourcePlanning, source, usage);
+            var computed = computedTransfers?.GetValueOrDefault(source.SourceContextId);
+            var accepted = sourcePlanning.SourcePlanResultsBySourceId.GetValueOrDefault(source.SourceContextId)
+                ?.AcceptedComputedProjections.Count ?? 0;
+            if (accepted != (computed?.Bindings.Count ?? 0))
+                throw new SourcePlanContractException("Accepted computed projections lost their planner bindings.", TextSpan.Empty);
+            var plan = PlanSource(context, sourcePlanning, source, usage, computed);
             if (plan.Mode != SourceTransferMode.QueryScopedRows &&
-                sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(source.SourceContextId, out var result) &&
-                result.AcceptedComputedProjections.Count > 0)
+                accepted > 0)
                 throw new SourcePlanContractException("Accepted computed projections require query-scoped row transfer.", TextSpan.Empty);
             plans[source.SourceContextId] = plan;
             decisions.Add(CreateDecision(source, plan));
@@ -50,7 +54,8 @@ internal static class SourceTransferPlanner
         PlanningContext context,
         SourcePlanningFacts sourcePlanning,
         SourcePlanProperties source,
-        SourceTransferUsagePlan usage)
+        SourceTransferUsagePlan usage,
+        SourceComputedTransferPlan? computed)
     {
         if (!sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(source.SourceContextId, out var descriptor))
             return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, "source descriptor was unavailable");
@@ -97,6 +102,7 @@ internal static class SourceTransferPlanner
                 sourcePlanning,
                 source,
                 descriptor,
+                computed,
                 context.CancellationToken,
                 out var shape,
                 out var shapeReason))
@@ -108,18 +114,16 @@ internal static class SourceTransferPlanner
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
-        var computed = ResolveComputedProjections(context, sourcePlanning, source, descriptor);
-        if (computed.Count > 0)
-            shape = new QueryRowShape([.. shape.Fields, .. computed.Select((binding, index) =>
-                QueryRowField.ForComputedProjection(shape.Fields.Count + index, binding.Projection))]);
-        var estimatedPayload = EstimatePayload(shape, context.CancellationToken);
-        var carrier = estimatedPayload is <= StructCarrierPayloadLimit && usage.Lifetime == SourceRowLifetime.ScanLocal
+        var estimatedPayload = SourceRowPayload.Estimate(shape, context.CancellationToken);
+        var carrier = estimatedPayload <= SourceRowPayload.StructCarrierLimit && usage.Lifetime == SourceRowLifetime.ScanLocal
             ? SourceQueryRowCarrier.ReadonlyStruct
             : SourceQueryRowCarrier.SealedClass;
         var carrierName = carrier == SourceQueryRowCarrier.ReadonlyStruct ? "readonly struct" : "sealed class";
         var reason = string.Create(
             CultureInfo.InvariantCulture,
             $"query-scoped rows selected with {carrierName} carrier; lifetime={usage.Lifetime}; shape={shape.Fingerprint}; estimated payload={estimatedPayload} bytes; {usage.LifetimeReason}");
+        if (computed is { UnusedSourceColumns.Count: > 0 })
+            reason += $"; dropped provider-only inputs: {string.Join(", ", computed.UnusedSourceColumns.Order(StringComparer.Ordinal))}";
 
         return new SourceTransferStrategyPlan(
             source.SourceContextId,
@@ -128,31 +132,18 @@ internal static class SourceTransferPlanner
             shape,
             reason)
         {
-            ComputedProjections = computed,
+            ComputedProjections = computed?.Bindings ?? [],
             Lifetime = usage.Lifetime == SourceRowLifetime.ScanLocal
                 ? SourceQueryRowLifetime.ScanLocal
                 : SourceQueryRowLifetime.EscapesScan
         };
     }
 
-    private static IReadOnlyList<SourcePlanning.SourceComputedProjectionBinding> ResolveComputedProjections(
-        PlanningContext context, SourcePlanningFacts facts, SourcePlanProperties source, SourceDescriptor descriptor)
-    {
-        if (!facts.SourcePlanResultsBySourceId.TryGetValue(source.SourceContextId, out var result) ||
-            result.AcceptedComputedProjections.Count == 0)
-            return [];
-        var accepted = result.AcceptedComputedProjections.Select(item => item.Name).ToHashSet(StringComparer.Ordinal);
-        var bindings = SourcePlanning.SourceComputedProjectionPlanner.Candidates(context, source.SourceContextId, descriptor)
-            .Where(item => accepted.Contains(item.Projection.Name)).ToArray();
-        if (bindings.Length != accepted.Count)
-            throw new SourcePlanContractException("Accepted computed projections lost their planner bindings.", TextSpan.Empty);
-        return Array.AsReadOnly(bindings);
-    }
-
     private static bool TryCreateShape(
         SourcePlanningFacts sourcePlanning,
         SourcePlanProperties source,
         SourceDescriptor descriptor,
+        SourceComputedTransferPlan? computed,
         CancellationToken cancellationToken,
         out QueryRowShape shape,
         out string reason)
@@ -243,6 +234,8 @@ internal static class SourceTransferPlanner
                 return false;
             }
 
+            if (computed?.UnusedSourceColumns.Contains(column.ColumnName) == true)
+                continue;
             fields.Add(new QueryRowField(
                 fields.Count,
                 column.ColumnIndex,
@@ -255,6 +248,9 @@ internal static class SourceTransferPlanner
                 column.Stability));
         }
 
+        if (computed is not null)
+            foreach (var binding in computed.Bindings)
+                fields.Add(QueryRowField.ForComputedProjection(fields.Count, binding.Projection));
         shape = new QueryRowShape(fields);
         reason = string.Empty;
         cancellationToken.ThrowIfCancellationRequested();
@@ -480,19 +476,6 @@ internal static class SourceTransferPlanner
             : TextSpan.Empty;
     }
 
-    private static int EstimatePayload(QueryRowShape shape, CancellationToken cancellationToken)
-    {
-        var size = 0;
-        foreach (var field in shape.Fields)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            size += EstimateFieldSize(field.FieldType);
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        return size;
-    }
-
     private static IReadOnlyList<SourcePlanProperties> GetOrderedSources(
         IEnumerable<SourcePlanProperties> sources,
         CancellationToken cancellationToken)
@@ -523,25 +506,6 @@ internal static class SourceTransferPlanner
         });
         cancellationToken.ThrowIfCancellationRequested();
         return ordered;
-    }
-
-    private static int EstimateFieldSize(Type type)
-    {
-        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
-            return IntPtr.Size;
-
-        if (type.IsEnum)
-            type = Enum.GetUnderlyingType(type);
-
-        return Type.GetTypeCode(type) switch
-        {
-            TypeCode.Boolean or TypeCode.Byte or TypeCode.SByte => 1,
-            TypeCode.Char or TypeCode.Int16 or TypeCode.UInt16 => 2,
-            TypeCode.Int32 or TypeCode.UInt32 or TypeCode.Single => 4,
-            TypeCode.Int64 or TypeCode.UInt64 or TypeCode.Double or TypeCode.DateTime => 8,
-            _ when type == typeof(decimal) || type == typeof(Guid) => 16,
-            _ => StructCarrierPayloadLimit + 1
-        };
     }
 
     private static PlanningDecision CreateDecision(

@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select a.Position as FirstPosition, b.Position as SecondPosition
 from #schema.first() a inner join #schema.first() b
@@ -88,7 +88,7 @@ ExecutionPlan [compiled]
     ForEach [ab in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(FirstPosition: ab.a.Position, SecondPosition: ab.b.Position)]
     SortOwnedBuffer [result by FirstPosition ASC, SecondPosition ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -137,14 +137,14 @@ namespace GeneratedSample_K52_TypedWideRangeJoinPartition
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("FirstPosition", typeof(int), 0), new Column("SecondPosition", typeof(int), 1) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.FirstPosition, __musoqShapeRow.SecondPosition);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -378,7 +378,7 @@ namespace GeneratedSample_K52_TypedWideRangeJoinPartition
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int FirstPosition, int SecondPosition)
             {
@@ -386,9 +386,39 @@ namespace GeneratedSample_K52_TypedWideRangeJoinPartition
                 this.SecondPosition = SecondPosition;
             }
 
-            public int FirstPosition { get; }
-            public int SecondPosition { get; }
+            public override int Count => 2;
+            public int FirstPosition { get; private set; }
+            public int SecondPosition { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.FirstPosition = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.SecondPosition = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.FirstPosition),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.SecondPosition),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "FirstPosition" => true,
+                "SecondPosition" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.FirstPosition, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.SecondPosition, ref visitor);
+            }
         }
 
         private sealed class Statement0Row0

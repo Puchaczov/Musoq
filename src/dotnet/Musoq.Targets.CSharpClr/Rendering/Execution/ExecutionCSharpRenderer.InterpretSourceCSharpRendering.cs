@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Logical.Nodes;
+using Musoq.Schema.Interpreters;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -106,6 +107,20 @@ public sealed partial class ExecutionCSharpRenderer
         string interpreterVariableName,
         ExecutionRenderContext context)
     {
+        var statusMethod = interpret.Kind switch
+        {
+            InterpretSourceKind.TryInterpret => nameof(InterpretationStatus.TryInterpret),
+            InterpretSourceKind.TryParse => nameof(InterpretationStatus.TryParse),
+            InterpretSourceKind.Parse => nameof(InterpretationStatus.ParseText),
+            _ => null
+        };
+        if (statusMethod is not null)
+        {
+            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(
+                    $"global::Musoq.Schema.Interpreters.InterpretationStatus.{statusMethod}"))
+                .WithArgumentList(CreateArgumentList(new[] { SyntaxFactory.IdentifierName(interpreterVariableName) }
+                    .Cast<ExpressionSyntax>().Concat(interpret.Arguments.Select(argument => RenderExpression(argument, context)))));
+        }
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,

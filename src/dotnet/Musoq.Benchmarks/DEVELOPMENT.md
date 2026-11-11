@@ -3,6 +3,9 @@
 Follow the repository-wide guide and the measurement contract in README.md.
 
 - Benchmark SQL, IDs and deterministic fixtures belong only to Musoq.Benchmarks.Scenarios.
+- Admit workloads that represent real query workflows. Generated fixtures may model those workflows; artificial conversion round trips and isolated optimizer stress expressions stay outside the canonical catalog.
+- Budget the complete Official campaign, including preflight, compilation, process launches and all standard sizes, for a ten-hour target and twelve-hour overnight ceiling on the declared machine/runtime profile. Record a proposed workload's runtime cost and retain headroom before admitting it.
+- Qualify the overnight budget with a complete Official campaign. Local timings or case removal alone do not certify it. Preserve measurement profiles and sizes; the budget does not authorize truncating or marking an incomplete campaign complete.
 - Musoq.Benchmarks.Tests independently asserts complete small resultsets.
 - Neither shared scenarios nor benchmarks may reference existing engine test projects.
 - Compile and generate data outside execution measurement. Consume every result row and dispose owned resources.

@@ -23,7 +23,8 @@ public sealed class InterpretationLimitGeneratedCodeTests
         var code = new InterpreterCodeGenerator(registry, new(37)).GenerateAll();
         var guards = CSharpSyntaxTree.ParseText(code).GetRoot().DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
-            .Where(call => call.Expression is IdentifierNameSyntax { Identifier.ValueText: "EnsureRepeatIteration" }).ToArray();
+            .Where(call => call.Expression is MemberAccessExpressionSyntax
+                { Expression: BaseExpressionSyntax, Name.Identifier.ValueText: "CheckRepeatIterationStatus" }).ToArray();
 
         Assert.HasCount(1, guards);
         Assert.HasCount(3, guards[0].ArgumentList.Arguments);
@@ -49,7 +50,8 @@ public sealed class InterpretationLimitGeneratedCodeTests
             "binary S { Records: Inner repeat until eof }");
         var code = new InterpreterCodeGenerator(registry, new(37)).GenerateAll();
         var guards = CSharpSyntaxTree.ParseText(code).GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .Where(call => call.Expression is IdentifierNameSyntax { Identifier.ValueText: "EnsureRepeatIteration" }).ToArray();
+            .Where(call => call.Expression is MemberAccessExpressionSyntax
+                { Expression: BaseExpressionSyntax, Name.Identifier.ValueText: "CheckRepeatIterationStatus" }).ToArray();
 
         Assert.HasCount(2, guards);
         Assert.IsTrue(guards.All(call => call.ArgumentList.Arguments[2].Expression is LiteralExpressionSyntax literal &&

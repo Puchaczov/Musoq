@@ -52,6 +52,45 @@ public sealed class TextCaptureResultContractTests : BinaryOrTextualEvaluatorTes
     }
 
     [TestMethod]
+    [DataRow(@"\A(?<Word>\p{L}+)\z")]
+    [DataRow(@"\G(?<Word>\p{L}+)$")]
+    [DataRow(@"\\b(?<Word>\p{L}+)")]
+    public void CaptureAnchors_ShouldUseTheRemainingRegion(string pattern)
+    {
+        using var result = Run($"text Rec {{ _: literal 'X', Part: pattern '{pattern}' capture (Word) lower }}",
+            "p.Part.Word", "XŁÓDŹ");
+        TableMaterializationTestHelper.AssertRowsInOrder(result, ["łódź"]);
+    }
+
+    [TestMethod]
+    public void CapturesAcrossNestedParses_ShouldKeepEachInputAndRegion()
+    {
+        const string sql = """
+            text Child { Part: pattern '\A(?<Word>\p{L}+)\z' capture (Word) lower };
+            text Rec { Left: pattern '\A(?<Word>\p{L}+)' capture (Word), _: literal ';', Right: Child };
+            select p.Left.Word, p.Right.Part.Word from #test.lines() e cross apply Parse<Rec>(e.Line) p
+            """;
+        using var result = RunSql(sql, "a;ŁÓDŹ", "b;ΓΔ");
+        TableMaterializationTestHelper.AssertRowsInOrder(result, ["a", "łódź"], ["b", "γδ"]);
+    }
+
+    [TestMethod]
+    public void NonCaptureAlternation_ShouldKeepItsEstablishedMatchAndCursor()
+    {
+        using var result = Run("text Rec { _: literal 'x', Part: pattern 'n|foo', Tail: rest }",
+            "p.Part, p.Tail", "x--foo!");
+        TableMaterializationTestHelper.AssertRowsInOrder(result, ["foo", "oo!"]);
+    }
+
+    [TestMethod]
+    public void GeneratedPatternStorage_ShouldAvoidUserFieldNames()
+    {
+        using var result = Run("text Rec { _musoqTextInput: literal 'X', _musoqPattern0: pattern 'a', Tail: rest }",
+            "p.Tail", "Xa!");
+        TableMaterializationTestHelper.AssertRowsInOrder(result, ["!"]);
+    }
+
+    [TestMethod]
     [DataRow("Name, Name")]
     [DataRow("name")]
     [DataRow("Missing")]
@@ -65,9 +104,12 @@ public sealed class TextCaptureResultContractTests : BinaryOrTextualEvaluatorTes
     private Table Run(string schemas, string projection, string input) =>
         RunSql($"{schemas} select {projection} from #test.lines() e cross apply Parse<Rec>(e.Line) p", input);
 
-    private Table RunSql(string sql, string input)
+    private Table RunSql(string sql, params string[] inputs)
     {
-        var provider = new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>> { ["#test"] = [new TextEntity { Text = input }] });
+        var provider = new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
+        {
+            ["#test"] = inputs.Select(static input => new TextEntity { Text = input })
+        });
         using var compiled = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
         return TableMaterializationTestHelper.Materialize(compiled.Run());
     }

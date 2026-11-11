@@ -6,50 +6,41 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
-    private static string GeneratePrimitiveReadCode(string localVar, PrimitiveTypeNode primitiveType)
+    private string GeneratePrimitiveReadCode(string localVar, PrimitiveTypeNode primitiveType)
     {
-        var readMethod = GetPrimitiveReadMethod(primitiveType);
-        return $"var {localVar} = {readMethod}(data);";
+        var bytes = $"base.TakePreparedBytes(data, {primitiveType.FixedSizeBytes})";
+        return StatusCheck($"base.PrepareByteInputStatus(data, {primitiveType.FixedSizeBytes})") +
+               $"var {localVar} = {ReadPreparedPrimitive(primitiveType, bytes)};";
     }
 
-    private static string GetPrimitiveReadMethod(PrimitiveTypeNode primitiveType)
+    private static string ReadPreparedPrimitive(PrimitiveTypeNode primitiveType, string bytes)
     {
-        return primitiveType.TypeName switch
+        if (primitiveType.TypeName == PrimitiveTypeName.Byte)
+            return $"{bytes}[0]";
+        if (primitiveType.TypeName == PrimitiveTypeName.SByte)
+            return $"unchecked((sbyte){bytes}[0])";
+
+        var number = primitiveType.TypeName switch
         {
-            PrimitiveTypeName.Byte => "ReadByte",
-            PrimitiveTypeName.SByte => "ReadSByte",
-            PrimitiveTypeName.Short => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadInt16Le"
-                : "ReadInt16Be",
-            PrimitiveTypeName.UShort => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadUInt16Le"
-                : "ReadUInt16Be",
-            PrimitiveTypeName.Int => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadInt32Le"
-                : "ReadInt32Be",
-            PrimitiveTypeName.UInt => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadUInt32Le"
-                : "ReadUInt32Be",
-            PrimitiveTypeName.Long => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadInt64Le"
-                : "ReadInt64Be",
-            PrimitiveTypeName.ULong => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadUInt64Le"
-                : "ReadUInt64Be",
-            PrimitiveTypeName.Float => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadSingleLe"
-                : "ReadSingleBe",
-            PrimitiveTypeName.Double => primitiveType.Endianness == Endianness.LittleEndian
-                ? "ReadDoubleLe"
-                : "ReadDoubleBe",
+            PrimitiveTypeName.Short => "Int16",
+            PrimitiveTypeName.UShort => "UInt16",
+            PrimitiveTypeName.Int => "Int32",
+            PrimitiveTypeName.UInt => "UInt32",
+            PrimitiveTypeName.Long => "Int64",
+            PrimitiveTypeName.ULong => "UInt64",
+            PrimitiveTypeName.Float => "Single",
+            PrimitiveTypeName.Double => "Double",
             _ => throw new InvalidOperationException($"Unknown primitive type: {primitiveType.TypeName}")
         };
+        var order = primitiveType.Endianness == Endianness.LittleEndian ? "LittleEndian" : "BigEndian";
+        return $"global::System.Buffers.Binary.BinaryPrimitives.Read{number}{order}({bytes})";
     }
 
     private string GenerateByteArrayReadCode(string localVar, ByteArrayTypeNode byteArrayType)
     {
-        var sizeExpr = GenerateSizeExpression(byteArrayType.SizeExpression);
-        return $"var {localVar} = ReadBytes(data, {sizeExpr});";
+        var size = NextStatusName("__musoqReadSize");
+        return StatusSizeDeclaration(size, byteArrayType.SizeExpression) + StatusCheck($"base.PrepareByteArrayStatus(data, {size})") +
+               $"var {localVar} = base.ReadPreparedByteArray(data, {size});";
     }
 
     private string GenerateStringReadCode(string localVar, StringTypeNode stringType, string fieldName)
@@ -62,21 +53,26 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         var rawStringVar = stringType.AsTextSchemaName != null ? $"{targetVar}_raw" : targetVar;
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {rawStringVar} = {GenerateStringReadExpression(stringType)};");
+        var size = NextStatusName("__musoqReadSize");
+        var encoding = NextStatusName("__musoqReadEncoding");
+        builder.Append(StatusSizeDeclaration(size, stringType.SizeExpression));
+        builder.AppendLine($"var {encoding} = {GetEncodingExpression(stringType.Encoding)};");
+        var preparation = stringType.Modifiers.HasFlag(StringModifier.NullTerm)
+            ? "PrepareNullTerminatedStringStatus" : "PrepareStringStatus";
+        builder.Append(StatusCheck($"base.{preparation}(data, {size})"));
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {rawStringVar} = {GenerateStringReadExpression(stringType, size, encoding)};");
 
         if (stringType.AsTextSchemaName == null)
             return builder.ToString();
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"var {targetVar} = ParseNested({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\");");
+        builder.Append(StatusRead(targetVar,
+            $"base.ParseNestedStatus({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\")"));
         return builder.ToString();
     }
 
-    private string GenerateStringReadExpression(StringTypeNode stringType)
+    private static string GenerateStringReadExpression(StringTypeNode stringType, string sizeExpr, string encodingExpr)
     {
-        var sizeExpr = GenerateSizeExpression(stringType.SizeExpression);
-        var encodingExpr = GetEncodingExpression(stringType.Encoding);
         var expression = stringType.Modifiers.HasFlag(StringModifier.NullTerm)
             ? $"ReadNullTerminatedString(data, {sizeExpr}, {encodingExpr})"
             : $"ReadString(data, {sizeExpr}, {encodingExpr})";
@@ -116,11 +112,12 @@ public partial class InterpreterCodeGenerator
         };
     }
 
-    private static string GenerateBitsReadCode(string localVar, BitsTypeNode bitsType)
+    private string GenerateBitsReadCode(string localVar, BitsTypeNode bitsType)
     {
         var bitCount = bitsType.BitCount;
         var castType = GetBitsClrTypeName(bitsType);
-        return $"var {localVar} = ({castType})ReadBits(data, {bitCount});";
+        return StatusCheck($"base.PrepareBitsStatus(data, {bitCount})") +
+               $"var {localVar} = ({castType})ReadBits(data, {bitCount});";
     }
 
     private static string GetBitsClrTypeName(BitsTypeNode bitsType)

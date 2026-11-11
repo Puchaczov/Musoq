@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 SELECT City as c,
                          Population::Int32 as pop,
@@ -75,7 +75,7 @@ ExecutionPlan [compiled]
       If [((ko3iko.Count(*) > 1) AND (ko3iko.Sum(ko3iko.Amount::Decimal) > '10.00'::Decimal))]
         AppendShape [result <- ResultShape0(c: finalGroup.ko3iko.City, pop: finalGroup.ko3iko.Population::Int32, cnt: ko3iko.Count(*), total: ko3iko.Sum(ko3iko.Amount::Decimal))]
     SortOwnedBuffer [result by c ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -121,14 +121,14 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("c", typeof(string), 0), new Column("pop", typeof(int?), 1), new Column("cnt", typeof(long), 2), new Column("total", typeof(decimal?), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.c, __musoqShapeRow.pop, __musoqShapeRow.cnt, __musoqShapeRow.total);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -409,7 +409,7 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string c, int? pop, long cnt, decimal? total)
             {
@@ -419,11 +419,49 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                 this.total = total;
             }
 
+            public override int Count => 4;
             public int __musoqSequence { get; init; }
-            public string c { get; }
-            public long cnt { get; }
-            public int? pop { get; }
-            public decimal? total { get; }
+            public string c { get; private set; }
+            public long cnt { get; private set; }
+            public int? pop { get; private set; }
+            public decimal? total { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.c = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.pop = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.cnt = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.c),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.pop),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.cnt),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.total),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "c" => true,
+                "pop" => true,
+                "cnt" => true,
+                "total" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.c, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.pop, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.cnt, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.total, ref visitor);
+            }
         }
     }
 }

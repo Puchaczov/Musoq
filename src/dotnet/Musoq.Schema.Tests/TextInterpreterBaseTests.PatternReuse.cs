@@ -12,6 +12,9 @@ public partial class TextInterpreterBaseTests
         public System.Text.RegularExpressions.Match TestReadPatternMatch(ReadOnlySpan<char> text, string pattern,
             string? fieldName = null, bool greedy = false, bool lazy = false)
             => ReadPatternMatch(text, pattern, fieldName, greedy, lazy);
+
+        public string TestReadPreparedPattern(ReadOnlySpan<char> text, PreparedTextPattern pattern, string fieldName) =>
+            ReadPreparedPatternStatus(text, pattern, fieldName).GetValueOrThrow();
     }
 
     [TestMethod]
@@ -56,6 +59,22 @@ public partial class TextInterpreterBaseTests
         Assert.AreEqual(ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("Second", exception.FieldName);
         Assert.AreEqual(2, exception.Position);
+    }
+
+    [TestMethod]
+    [DataRow("[")]
+    [DataRow(@"(?=a)a")]
+    public void PreparedInvalidPattern_ShouldPreserveItsFieldSiteDiagnostic(string pattern)
+    {
+        var interpreter = new TestTextInterpreter();
+        var prepared = new PreparedTextPattern(pattern, TextPatternModifiers.None);
+        var original = ReadPatternFailure(interpreter, pattern, 2);
+        var actual = Assert.Throws<ParseException>(() =>
+            interpreter.TestReadPreparedPattern("aaaa".AsSpan(), prepared, "Field2"));
+
+        Assert.AreEqual((original.ErrorCode, original.SchemaName, original.FieldName, original.Position, original.Details),
+            (actual.ErrorCode, actual.SchemaName, actual.FieldName, actual.Position, actual.Details));
+        Assert.AreEqual(original.InnerException?.Message, actual.InnerException?.Message);
     }
 
     private static void AssertRepeatedCaptures()

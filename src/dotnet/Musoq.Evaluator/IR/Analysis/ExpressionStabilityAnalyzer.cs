@@ -25,6 +25,8 @@ internal static class ExpressionStabilityAnalyzer
             BinaryOp binary => IsStable(binary.Left) && IsStable(binary.Right),
             UnaryOp unary => IsStable(unary.Operand),
             MethodCall method => method.ReturnType != typeof(void) &&
+                                 method.BufferPlan?.Facts.Region.AllowsHoisting != false &&
+                                 (method.ReturnType != typeof(byte[]) || method.BufferSemantics is not null) &&
                                  IsStableMethod(method.Method) &&
                                  method.Arguments.All(IsStable),
             IsNullCheck check => IsStable(check.Expression),
@@ -54,7 +56,7 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionUnionMemberRead union => IsStable(union.Receiver),
             ExecutionMemberRead member => IsStableMember(member),
             ExecutionMethodTargetReuseCandidate candidate => IsStable(candidate.MethodCall),
-            ExecutionMethodCall call => call.InjectedSource == null &&
+            ExecutionMethodCall call => !call.IsOpaqueBufferProducer && call.InjectedSource == null &&
                                          call.Method.Descriptor.IsStable &&
                                          call.Arguments.All(IsStable),
             ExecutionStrictCast cast => IsStable(cast.Expression),

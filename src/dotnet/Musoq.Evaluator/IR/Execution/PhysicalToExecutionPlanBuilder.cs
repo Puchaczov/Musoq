@@ -40,6 +40,6 @@ public sealed class PhysicalToExecutionPlanBuilder
     public ExecutionPlanBuildResult Build(
         PhysicalNode physicalPlan,
         string identifier = "compiled") =>
-        _physicalLoweringFacade.Build(physicalPlan, identifier);
+        ByteBufferViewShape.Add(_physicalLoweringFacade.Build(physicalPlan, identifier));
 
 }

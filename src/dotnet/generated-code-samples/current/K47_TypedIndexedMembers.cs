@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Position, Children[-1].Value as Last, Children[8].Value as Missing, ChildrenByName['present'].Value as Present, ChildrenByName['missing'].Value as MissingKey from #schema.first() order by Position
 */
@@ -53,7 +53,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: ko3iko.Position, Last: GetTypedReadOnlyListElement(children, -1)?.Value, Missing: GetTypedReadOnlyListElement(children, 8)?.Value, Present: GetTypedDictionaryValue(childrenByName, 'present')?.Value, MissingKey: GetTypedDictionaryValue(childrenByName, 'missing')?.Value)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -100,14 +100,14 @@ namespace GeneratedSample_K47_TypedIndexedMembers
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Position", typeof(int), 0), new Column("Last", typeof(int), 1), new Column("Missing", typeof(int), 2), new Column("Present", typeof(int), 3), new Column("MissingKey", typeof(int), 4) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Last, __musoqShapeRow.Missing, __musoqShapeRow.Present, __musoqShapeRow.MissingKey);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -272,7 +272,7 @@ namespace GeneratedSample_K47_TypedIndexedMembers
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(int Position, int Last, int Missing, int Present, int MissingKey, int __ordinal)
             {
@@ -284,12 +284,54 @@ namespace GeneratedSample_K47_TypedIndexedMembers
                 this.__ordinal = __ordinal;
             }
 
-            public int Last { get; }
-            public int Missing { get; }
-            public int MissingKey { get; }
-            public int Position { get; }
-            public int Present { get; }
-            public int __ordinal { get; }
+            public override int Count => 5;
+            public int Last { get; private set; }
+            public int Missing { get; private set; }
+            public int MissingKey { get; private set; }
+            public int Position { get; private set; }
+            public int Present { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Last = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Missing = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Present = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.MissingKey = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Last),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Missing),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Present),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.MissingKey),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Position" => true,
+                "Last" => true,
+                "Missing" => true,
+                "Present" => true,
+                "MissingKey" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Position, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Last, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Missing, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Present, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.MissingKey, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

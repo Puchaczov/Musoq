@@ -14,21 +14,20 @@ public partial class InterpreterCodeGenerator
         var tempInterpreter = $"_{localVar}_interpreter";
         var builder = new StringBuilder();
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = {CreateNestedInterpreter(typeName)};");
-        AppendGeneratedLine(builder, $"var {localVar} = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
+        builder.Append(StatusRead(localVar, $"base.InterpretNestedStatus({tempInterpreter}, data, \"{EscapeString(fieldName)}\")"));
         return builder.ToString();
     }
 
     private string GenerateArrayReadCode(string localVar, string fieldName, ArrayTypeNode arrayType)
     {
         var builder = new StringBuilder();
-        var countExpr = GenerateSizeExpression(arrayType.SizeExpression);
         var countVar = $"_{localVar}_count";
         var elementTypeName = GetBinaryValueClrTypeName(fieldName, arrayType.ElementType);
         var loopVar = $"_{localVar}_i";
         var tempVar = $"_{localVar}_list";
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {countVar} = {countExpr};");
+        builder.Append(StatusSizeDeclaration(countVar, arrayType.SizeExpression));
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"for (int {loopVar} = 0; {loopVar} < {countVar}; {loopVar}++)");
         builder.AppendLine("{");
 
@@ -42,10 +41,10 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private static string GenerateAlignmentCode(AlignmentNode alignmentNode)
+    private string GenerateAlignmentCode(AlignmentNode alignmentNode)
     {
         var bits = alignmentNode.AlignmentBits;
-        return $"AlignToBits(data, {bits});";
+        return StatusCheck($"base.AlignWithStatus({bits})");
     }
 
     private ConstructionNotYetSupported CreateUnsupportedCodeGenerationException(

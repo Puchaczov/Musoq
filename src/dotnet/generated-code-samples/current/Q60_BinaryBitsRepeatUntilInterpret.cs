@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary BitsRepeatPacket {
                 Flags: bits[1] repeat until Flags = 0
@@ -378,8 +378,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'BitsRepeatPacket'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class BitsRepeatPacket : BytesInterpreterBase<BitsRepeatPacket>, global::Musoq.Plugins.IJsonPayload
+    public sealed class BitsRepeatPacket : BytesInterpreterBase<BitsRepeatPacket>, IBytesInterpreterStatus<BitsRepeatPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Flags" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(BitsRepeatPacket value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -405,29 +408,50 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "BitsRepeatPacket";
 
-        /// <inheritdoc/>
-        public override BitsRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override BitsRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<BitsRepeatPacket>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<BitsRepeatPacket>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new BitsRepeatPacket();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Flags");
-            var __flags_list = new System.Collections.Generic.List<byte>();
-            byte __flags_lastElem;
-            var __flags_iteration = 0;
-            do
+            BitsRepeatPacket? __parsedValue = null;
+            try
             {
-                EnsureRepeatIteration("Flags", __flags_iteration++, 10000);
-                var __flags_lastElem_value = (byte)ReadBits(data, 1);
-                __flags_lastElem = __flags_lastElem_value;
-                __flags_list.Add(__flags_lastElem);
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new BitsRepeatPacket();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Flags");
+                var __flags_list = new System.Collections.Generic.List<byte>();
+                byte __flags_lastElem;
+                var __flags_iteration = 0;
+                do
+                {
+                    if (base.CheckRepeatIterationStatus("Flags", __flags_iteration++, 10000)is { } __musoqReadFailure1)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Failed(__parsedValue, __musoqReadFailure1);
+                    }
+
+                    if (base.PrepareBitsStatus(data, 1)is { } __musoqReadFailure2)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Failed(__parsedValue, __musoqReadFailure2);
+                    }
+
+                    var __flags_lastElem_value = (byte)ReadBits(data, 1);
+                    __flags_lastElem = __flags_lastElem_value;
+                    __flags_list.Add(__flags_lastElem);
+                }
+                while (((__flags_lastElem == 0)) != true);
+                var _flags = __flags_list.ToArray();
+                __parsedValue.Flags = _flags;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Success(__parsedValue);
             }
-            while (((__flags_lastElem == 0)) != true);
-            var _flags = __flags_list.ToArray();
-            __parsedValue.Flags = _flags;
-            RecordParsedField("Flags");
-            return __parsedValue;
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

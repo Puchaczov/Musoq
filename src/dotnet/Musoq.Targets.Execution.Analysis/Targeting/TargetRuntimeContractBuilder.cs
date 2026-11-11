@@ -57,7 +57,9 @@ internal static class TargetRuntimeContractBuilder
                 OperatorCount: nodes.Length),
             queryRowSourceAccess,
             CreateLikeMatcherContract(expressions),
-            CreateRLikeMatcherContract(expressions));
+            CreateRLikeMatcherContract(expressions),
+            expressions.Any(ByteBufferRuntimeRequirements.RequiresSnapshotService),
+            nodes.Any(static node => node is ExecutionInterpretSource));
     }
 
     private static TargetLikeMatcherContract? CreateLikeMatcherContract(

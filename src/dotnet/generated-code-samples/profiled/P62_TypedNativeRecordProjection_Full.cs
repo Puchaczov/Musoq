@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select (Position: Position, Detail: (Value: Value), Items: array { Position, Position + 1 }) as Payload from #schema.first() order by Position
 */
@@ -44,7 +44,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Payload: (Position: ko3iko.Position, Detail: (Value: ko3iko.Value), Items: array { ko3iko.Position, (ko3iko.Position + 1) }), __sortKey0: position)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -89,28 +89,28 @@ namespace GeneratedSample_P62_TypedNativeRecordProjection_Full
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Payload", typeof(__musoqStructuralCarrier_0_root), 0) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Payload", typeof(__musoqStructuralCarrier_0_root), 0) }, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Payload);
+                yield return __musoqShapeRow;
             }
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
             {
-                yield return new ResultRow0(__musoqShapeRow.Payload);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -395,7 +395,7 @@ namespace GeneratedSample_P62_TypedNativeRecordProjection_Full
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(__musoqStructuralCarrier_0_root Payload, int __sortKey0, int __ordinal)
             {
@@ -404,9 +404,35 @@ namespace GeneratedSample_P62_TypedNativeRecordProjection_Full
                 this.__ordinal = __ordinal;
             }
 
-            public __musoqStructuralCarrier_0_root Payload { get; }
-            public int __ordinal { get; }
-            public int __sortKey0 { get; }
+            public override int Count => 1;
+            public __musoqStructuralCarrier_0_root Payload { get; private set; }
+            public int __ordinal { get; private set; }
+            public int __sortKey0 { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, __musoqStructuralCarrier_0_root>(this.Payload = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<__musoqStructuralCarrier_0_root, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, __musoqStructuralCarrier_0_root>(this.Payload),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Payload" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Payload, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

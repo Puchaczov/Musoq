@@ -64,15 +64,15 @@ public partial class InterpreterCodeGenerator
         AppendBinarySwitchNoMatch(builder, fieldName, selectorVar);
     }
 
-    private static void AppendBinarySwitchNoMatch(StringBuilder builder, string fieldName, string selectorVar)
+    private void AppendBinarySwitchNoMatch(StringBuilder builder, string fieldName, string selectorVar)
     {
         builder.AppendLine("{");
-        builder.AppendLine(CultureInfo.InvariantCulture,
-            $"    throw new Musoq.Schema.Interpreters.ParseException(" +
+        builder.AppendLine(StatusFailure(
+            $"global::Musoq.Schema.Interpreters.ParseFailure.ForText(" +
             $"Musoq.Schema.Interpreters.ParseErrorCode.NoAlternativeMatched, SchemaName, " +
             $"\"{EscapeString(fieldName)}\", ParsePosition, " +
             $"\"No switch branch matched selector value \" + " +
-            $"System.Convert.ToString({selectorVar}, System.Globalization.CultureInfo.InvariantCulture));");
+            $"System.Convert.ToString({selectorVar}, System.Globalization.CultureInfo.InvariantCulture))"));
         builder.AppendLine("}");
     }
 

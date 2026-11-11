@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
@@ -19,6 +20,9 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.IsNotNull(owned);
         Assert.AreEqual("result", owned.SourceName);
         Assert.AreEqual("__musoqSequence", owned.SequenceField);
+        Assert.AreEqual(FinalOutputRowRepresentation.SelectShape, render.FinalSinkPlans.TypedOutput.RowRepresentation);
+        Assert.AreEqual(FinalOutputRowRepresentation.OwnedBufferRow, render.FinalSinkPlans.TableOutput.RowRepresentation);
+        Assert.IsTrue(render.FinalSinkPlans.TableOutput.PreserveEnumerationBoundary);
     }
 
     [TestMethod]
@@ -50,6 +54,62 @@ public sealed partial class ExecutionCSharpRendererTests
             new ExecutionReturnTable(target)
         ]);
         return plan with { Body = body, FinalResult = result with { TableName = target.Name, Source = target } };
+    }
+
+    [TestMethod]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    public void FinalOutputPlanning_ExclusiveRecordBuffer_ShouldReuseOnlyReferenceCarriers(bool valueType, bool reuse)
+    {
+        var plan = CreateOwnedRecordPlan(valueType);
+        Assert.IsTrue(TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var render));
+        Assert.AreEqual(reuse, render.FinalSinkPlans.TableOutput.ReturnsOwnedRows);
+        Assert.IsFalse(render.FinalSinkPlans.TypedOutput.ReturnsOwnedRows);
+    }
+
+    [TestMethod]
+    public void FinalOutputPlanning_RecordCarrier_ShouldKeepHiddenKeyOutsideTheResultContract()
+    {
+        var plan = CreateOwnedRecordPlan(false);
+        var final = plan.FinalResult!;
+        var renderer = new ExecutionCSharpRenderer();
+        var carrier = renderer.RenderClassMembers(plan, final.TableName, "ResultShape0", final.Shape.Fields)
+            .OfType<ClassDeclarationSyntax>().Single(type => type.Identifier.ValueText == "OrderedRecord");
+        var methods = carrier.Members.OfType<MethodDeclarationSyntax>().ToArray();
+
+        Assert.AreEqual("Row", carrier.BaseList!.Types.Single().Type.ToString());
+        Assert.AreEqual("1", carrier.Members.OfType<PropertyDeclarationSyntax>()
+            .Single(property => property.Identifier.ValueText == "Count").ExpressionBody!.Expression.ToString());
+        Assert.IsTrue(carrier.Members.OfType<PropertyDeclarationSyntax>()
+            .Any(property => property.Identifier.ValueText == "HiddenKey"));
+        Assert.DoesNotContain("HiddenKey", methods.Single(method => method.Identifier.ValueText == "VisitColumns").ToString());
+        Assert.DoesNotContain("HiddenKey", methods.Single(method => method.Identifier.ValueText == "HasColumn").ToString());
+    }
+
+    private static ExecutionPlan CreateOwnedRecordPlan(bool valueType)
+    {
+        var plan = CreatePlan();
+        var result = plan.FinalResult!;
+        var list = new ExecutionVariable("orderedRecords", typeof(object));
+        var hidden = new FieldBinding("HiddenKey", "HiddenKey", 1, typeof(int), FieldNullability.Unknown,
+            new GeneratedFieldAccess("HiddenKey"));
+        var record = new GeneratedRecordShape("OrderedRecord", [.. result.Shape.Fields, hidden], valueType);
+        return plan with
+        {
+            Shapes = [.. plan.Shapes, record],
+            Body = new ExecutionBlock(
+            [
+                new ExecutionCreateRecordList(list, record),
+                new ExecutionAppendRecord(list, record,
+                    [new ExecutionRowValue("Name", new ExecutionLiteral("visible", typeof(string))),
+                        new ExecutionRowValue("HiddenKey", new ExecutionLiteral(7, typeof(int)))]),
+                new ExecutionOrderRecordList(list, record,
+                    [new ExecutionOrderField("HiddenKey", 1, typeof(int), false)], new ExecutionFullOrderRecordSelection()),
+                new ExecutionCreateTable(result.Source, result.Shape),
+                new ExecutionMaterializeRecordListToTable(list, result.Source, record, result.Shape, [0], []),
+                new ExecutionReturnTable(result.Source)
+            ])
+        };
     }
 
     [TestMethod]

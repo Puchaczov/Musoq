@@ -11,19 +11,17 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <returns>A PartialInterpretResult containing either the full result or error information.</returns>
     public virtual PartialInterpretResult<TOut> PartialParse(ReadOnlySpan<char> text)
     {
-        var parsedFields = new HashSet<string>(StringComparer.Ordinal);
+        var parsedFields = CreateCompletionSet();
         var captureState = BeginPartialCapture(parsedFields);
 
         try
         {
-            var result = Parse(text);
-
-            return new PartialInterpretResult<TOut>(result, parsedFields, CharsConsumed);
-        }
-        catch (ParseException ex)
-        {
-            return new PartialInterpretResult<TOut>(_partialParsedValue, parsedFields, CharsConsumed,
-                ex.FieldName ?? _currentFieldName ?? "Unknown", ex.GetPartialInterpretationMessage());
+            var attempt = InterpretationStatus.ReadAt(this, text, 0);
+            if (attempt.Succeeded)
+                return new PartialInterpretResult<TOut>(attempt.Value!, (IReadOnlySet<string>)parsedFields, CharsConsumed);
+            var failure = attempt.Failure!;
+            return new PartialInterpretResult<TOut>(attempt.Value, (IReadOnlySet<string>)parsedFields, CharsConsumed,
+                failure.FieldName ?? _currentFieldName ?? "Unknown", failure.GetPartialInterpretationMessage());
         }
         finally
         {

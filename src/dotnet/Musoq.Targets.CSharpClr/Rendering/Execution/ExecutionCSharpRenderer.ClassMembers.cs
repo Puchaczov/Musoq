@@ -90,6 +90,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
             var members = new List<MemberDeclarationSyntax>();
+            members.AddRange(CreateByteBufferPrograms(plan, context));
             members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(plan.StructuralCarriers));
             members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(
                 _scriptVariableDefinitions,
@@ -132,7 +133,7 @@ public sealed partial class ExecutionCSharpRenderer
                         }
                         break;
                     case GeneratedRecordShape generated:
-                        members.Add(RenderGeneratedRecordClass(generated));
+                        members.Add(RenderGeneratedRecordClass(generated, finalShapeTableName is null ? null : output));
                         break;
                     case HashPayloadShape hashPayload:
                         if (renderedHashPayloads.Add(hashPayload.TypeName))

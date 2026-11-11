@@ -35,41 +35,41 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         var isOptional = (field.Modifiers & TextFieldModifier.Optional) != 0;
 
-        if (isOptional && !isDiscard)
-        {
-            var propertyClrType = GetTextFieldPropertyClrType(field);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{propertyClrType} {localVar} = null;");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var _savedPos_{localVar} = ParsePosition;");
-            builder.AppendLine("try");
-            builder.AppendLine("{");
-            builder.Append("    ");
-            builder.AppendLine(GenerateTextFieldReadCodeInner(field, $"_temp_{localVar}", false));
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {localVar} = _temp_{localVar};");
-            builder.AppendLine("}");
-            builder.AppendLine("catch (Musoq.Schema.Interpreters.ParseException)");
-            builder.AppendLine("{");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = _savedPos_{localVar};");
-            builder.AppendLine("}");
-        }
-        else if (isOptional && isDiscard)
-        {
-            var discardId = Guid.NewGuid().ToString("N")[..8];
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var _savedPos_{discardId} = ParsePosition;");
-            builder.AppendLine("try");
-            builder.AppendLine("{");
-            builder.Append("    ");
-            builder.AppendLine(GenerateTextFieldReadCodeInner(field, "_", true));
-            builder.AppendLine("}");
-            builder.AppendLine("catch (Musoq.Schema.Interpreters.ParseException)");
-            builder.AppendLine("{");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = _savedPos_{discardId};");
-            builder.AppendLine("}");
-        }
-        else
-        {
-            builder.AppendLine(GenerateTextFieldReadCodeInner(field, localVar, isDiscard));
-        }
+        if (isOptional)
+            return GenerateOptionalTextRead(field, localVar, isDiscard);
+        builder.AppendLine(GenerateTextFieldReadCodeInner(field, localVar, isDiscard));
 
+        return builder.ToString();
+    }
+
+    private string GenerateOptionalTextRead(TextFieldDefinitionNode field, string localVar, bool isDiscard)
+    {
+        var failed = NextStatusName("__musoqOptionalFailed");
+        var completed = NextStatusName("__musoqOptionalDone");
+        var saved = NextStatusName("__musoqOptionalPosition");
+        var temporary = NextStatusName("__musoqOptionalValue");
+        var previous = _statusFailureLabel;
+        string read;
+        _statusFailureLabel = failed;
+        try { read = GenerateTextFieldReadCodeInner(field, temporary, isDiscard); }
+        finally { _statusFailureLabel = previous; }
+
+        var builder = new StringBuilder();
+        if (!isDiscard)
+            builder.AppendLine($"{GetTextFieldPropertyClrType(field)} {localVar} = null;");
+        builder.AppendLine("{");
+        builder.AppendLine($"var {saved} = ParsePosition;");
+        builder.AppendLine("try {");
+        builder.Append(read);
+        if (!isDiscard)
+            builder.AppendLine($"{localVar} = {temporary};");
+        builder.AppendLine("} catch (global::Musoq.Schema.Interpreters.ParseException) {");
+        builder.AppendLine($"goto {failed};");
+        builder.AppendLine("}");
+        builder.AppendLine($"goto {completed};");
+        builder.AppendLine($"{failed}: ParsePosition = {saved};");
+        builder.AppendLine($"{completed}: ;");
+        builder.AppendLine("}");
         return builder.ToString();
     }
 

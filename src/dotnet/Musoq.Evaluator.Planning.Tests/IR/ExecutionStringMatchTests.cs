@@ -29,7 +29,7 @@ public sealed class ExecutionStringMatchTests
         Assert.AreEqual("expr.string-match", ExecutionOperationCatalog.Resolve(match).Value);
         StringAssert.Contains(ExecutionExpressionFingerprint.ForHoist(match), "string-match:Prefix:LikeIgnoreCase");
         StringAssert.Contains(ExecutionPlanPrinter.Print(plan), "STRING_MATCH");
-        Assert.AreEqual(12, plan.ExecutionIrVersion);
+        Assert.AreEqual(14, plan.ExecutionIrVersion);
     }
 
     [TestMethod]

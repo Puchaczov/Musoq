@@ -242,6 +242,7 @@ public sealed partial class ExpressionConverter
 
         return new MethodCall(node.Method, args, node.Alias, NormalizeNativeEnumReturnType(RequireReturnType(node)))
         {
+            BufferSemantics = ByteBufferMethodBinding.Describe(node.Method),
             EnumType = ResolveNativeEnumType(node)
         };
     }

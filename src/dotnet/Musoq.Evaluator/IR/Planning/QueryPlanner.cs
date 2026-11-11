@@ -15,7 +15,8 @@ internal sealed class QueryPlanner
         context = context with { LogicalArtifacts = context.LogicalArtifacts with { OptimizedLogicalPlan = logicalPlan } };
         var propertyResult = PlanningPropertyDeriver.Derive(context);
         context.CancellationToken.ThrowIfCancellationRequested();
-        var sourceTransferResult = SourceTransferPlanner.Plan(context, propertyResult.Facts.SourcePlanning);
+        var sourceTransferResult = SourceTransferPlanner.Plan(context, propertyResult.Facts.SourcePlanning,
+            propertyResult.ComputedTransfers);
         context.CancellationToken.ThrowIfCancellationRequested();
         var decisions = new List<PlanningDecision>(propertyResult.Decisions)
         {

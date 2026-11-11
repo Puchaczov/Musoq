@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary TlvRecord {
                 Type: byte,
@@ -294,8 +294,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'TlvRecord'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class TlvRecord : BytesInterpreterBase<TlvRecord>, global::Musoq.Plugins.IJsonPayload
+    public sealed class TlvRecord : BytesInterpreterBase<TlvRecord>, IBytesInterpreterStatus<TlvRecord>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Type", "Length", "Value" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(TlvRecord value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -339,26 +342,60 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "TlvRecord";
 
-        /// <inheritdoc/>
-        public override TlvRecord InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override TlvRecord InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<TlvRecord>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<TlvRecord>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new TlvRecord();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Type");
-            var _type = ReadByte(data);
-            __parsedValue.Type = _type;
-            RecordParsedField("Type");
-            SetCurrentField("Length");
-            var _length = ReadByte(data);
-            __parsedValue.Length = _length;
-            RecordParsedField("Length");
-            SetCurrentField("Value");
-            var _value = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize));
-            __parsedValue.Value = _value;
-            RecordParsedField("Value");
-            return __parsedValue;
+            TlvRecord? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new TlvRecord();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Type");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _type = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Type = _type;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Length");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _length = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Length = _length;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("Value");
+                var __musoqReadResult4 = base.ResolveSizeValueStatus<byte>((byte?)(_length), ParseErrorCode.InvalidSize);
+                if (!__musoqReadResult4.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Failed(__parsedValue, __musoqReadResult4.Failure!);
+                }
+
+                var __musoqReadSize3 = __musoqReadResult4.Value!;
+                if (base.PrepareByteArrayStatus(data, __musoqReadSize3)is { } __musoqReadFailure5)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Failed(__parsedValue, __musoqReadFailure5);
+                }
+
+                var _value = base.ReadPreparedByteArray(data, __musoqReadSize3);
+                __parsedValue.Value = _value;
+                base.RecordParsedFieldSlot(2);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<TlvRecord>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

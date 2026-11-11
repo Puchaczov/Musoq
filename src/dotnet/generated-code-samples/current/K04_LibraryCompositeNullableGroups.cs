@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Partition, Integral, Sum(Amount) as Total, Count(*) as Rows
 from #schema.first() group by Partition, Integral order by Partition, Integral
@@ -58,7 +58,7 @@ ExecutionPlan [compiled]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Partition: finalGroup.Partition, Integral: finalGroup.Integral, Total: ko3iko.Sum(ko3iko.Amount), Rows: ko3iko.Count(*))]
     SortOwnedBuffer [result by Partition ASC, Integral ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -104,14 +104,14 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Partition", typeof(string), 0), new Column("Integral", typeof(int?), 1), new Column("Total", typeof(decimal?), 2), new Column("Rows", typeof(long), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Partition, __musoqShapeRow.Integral, __musoqShapeRow.Total, __musoqShapeRow.Rows);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -364,7 +364,7 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string Partition, int? Integral, decimal? Total, long Rows)
             {
@@ -374,11 +374,49 @@ namespace GeneratedSample_K04_LibraryCompositeNullableGroups
                 this.Rows = Rows;
             }
 
-            public int? Integral { get; }
-            public string Partition { get; }
-            public long Rows { get; }
-            public decimal? Total { get; }
+            public override int Count => 4;
+            public int? Integral { get; private set; }
+            public string Partition { get; private set; }
+            public long Rows { get; private set; }
+            public decimal? Total { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Partition = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Integral = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Rows = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Partition),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Integral),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Total),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Rows),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Partition" => true,
+                "Integral" => true,
+                "Total" => true,
+                "Rows" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Partition, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Integral, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Total, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Rows, ref visitor);
+            }
         }
     }
 }

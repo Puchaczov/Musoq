@@ -32,6 +32,7 @@ internal static partial class SourcePlanningPlanner
         var requests = new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal);
         var results = new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal);
         var descriptors = new Dictionary<string, SourceDescriptor>(StringComparer.Ordinal);
+        Dictionary<string, SourceComputedTransferPlan>? computedTransfers = null;
         var decisions = new List<PlanningDecision>();
 
         foreach (var scan in scans)
@@ -48,16 +49,26 @@ internal static partial class SourcePlanningPlanner
                 ? sourceLocalRequest
                 : CreateEmptyRequest(context, identity, scan, requiredColumnUsagesBySourceId, sourcePredicatePlansBySourceId);
             request = request with { CancellationToken = context.CancellationToken };
-            var sourcePlan = PlanSource(context, scan, sourceNode, request);
+            var usages = requiredColumnUsagesBySourceId.TryGetValue(scan.SourceContextId, out var required) ? required : [];
+            var sourcePlan = PlanSource(context, scan, sourceNode, request, usages);
 
             request = sourcePlan.Request;
             requests[scan.SourceContextId] = request with { CancellationToken = CancellationToken.None };
             results[scan.SourceContextId] = sourcePlan.Result;
             descriptors[scan.SourceContextId] = sourcePlan.Descriptor;
             decisions.Add(CreateDecision(scan, request, sourcePlan.Result));
+            if (sourcePlan.Computed.ResolveValidatedAcceptance(sourcePlan.Result, context.CancellationToken) is { } transfer)
+            {
+                computedTransfers ??= new Dictionary<string, SourceComputedTransferPlan>(StringComparer.Ordinal);
+                computedTransfers.Add(scan.SourceContextId, transfer);
+            }
+            if (sourcePlan.Computed.DeclinedForTransferCost > 0)
+                decisions.Add(new PlanningDecision(PlanningDecisionCategory.SourcePlanning, "ComputedProjectionTransferCost",
+                    scan.SourceContextId, "RetainedInCore", PlanningConfidence.Medium,
+                    $"Kept {sourcePlan.Computed.DeclinedForTransferCost} portable projection(s) in Core because the estimated transfer growth exceeded scalar reuse benefits."));
         }
 
-        return new SourcePlanningResult(requests, results, descriptors, decisions);
+        return new SourcePlanningResult(requests, results, descriptors, decisions, computedTransfers);
     }
 
     private static Dictionary<string, SourcePlanRequest> BuildSourceLocalRequests(

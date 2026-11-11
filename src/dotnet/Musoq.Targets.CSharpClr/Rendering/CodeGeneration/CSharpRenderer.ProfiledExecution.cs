@@ -11,7 +11,7 @@ public sealed partial class CSharpRenderer
         string queryIdentifier,
         string shapeRowsMethodName,
         string rowsMethodName,
-        TableViaRowsResultInfo resultInfo,
+        FinalOutputPlan output,
         bool useQueryRunContext,
         out MethodDeclarationSyntax rowsAdapterMethod,
         out QueryMethodRenderMetadata metadata)
@@ -24,7 +24,7 @@ public sealed partial class CSharpRenderer
                     queryIdentifier,
                     shapeRowsMethodName,
                     rowsMethodName,
-                    resultInfo,
+                    output,
                     useQueryRunContext,
                     includeProfileRecorderParameter: false,
                     out var shapeRowsMethod,
@@ -35,6 +35,7 @@ public sealed partial class CSharpRenderer
             }
 
             _context.AddClassMember(shapeRowsMethod);
+            SetTableRowCarrier(output);
             return true;
         }
 
@@ -44,7 +45,7 @@ public sealed partial class CSharpRenderer
                 queryIdentifier,
                 shapeRowsMethodName,
                 rowsMethodName,
-                resultInfo,
+                output,
                 useQueryRunContext,
                 includeProfileRecorderParameter: false,
                 out var unprofiledShapeRowsMethod,
@@ -62,7 +63,7 @@ public sealed partial class CSharpRenderer
                 queryIdentifier,
                 profiledShapeRowsMethodName,
                 profiledRowsMethodName,
-                resultInfo,
+                output,
                 useQueryRunContext,
                 includeProfileRecorderParameter: true,
                 out var profiledShapeRowsMethod,
@@ -75,6 +76,13 @@ public sealed partial class CSharpRenderer
         _context.AddClassMember(unprofiledShapeRowsMethod);
         _context.AddClassMember(profiledShapeRowsMethod);
         _context.AddClassMember(profiledRowsAdapterMethod);
+        SetTableRowCarrier(output);
         return true;
+    }
+
+    private void SetTableRowCarrier(FinalOutputPlan output)
+    {
+        if (output.ReturnsOwnedRows)
+            _context.SetTableViaRowsResult(output.Result with { RowTypeName = output.TableRowTypeName });
     }
 }

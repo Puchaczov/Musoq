@@ -10,15 +10,22 @@ public sealed partial class ExecutionCSharpRenderer
         FinalOutputPlan? output)
     {
         var sequence = output?.OwnedBuffer?.SequenceField;
+        var typeName = FinalSelectShapeNaming.CreateTypeName(finalResult);
+        if (output?.ReturnsOwnedRows == true)
+        {
+            var row = RenderOwnedResultRowClass(typeName, finalResult.Shape.Fields, output.Result.ShapeFields);
+            return sequence == null ? row : row.AddMembers(CreateSequenceProperty(sequence));
+        }
+
         if (output?.RowRepresentation == FinalOutputRowRepresentation.SelectValueShape)
         {
-            var shape = RenderRowCarrierStruct(FinalSelectShapeNaming.CreateTypeName(finalResult),
+            var shape = RenderRowCarrierStruct(typeName,
                 finalResult.Shape.Fields, GetGeneratedFieldName);
             return sequence == null ? shape : shape.AddMembers(CreateSequenceProperty(sequence));
         }
 
         var carrier = RenderRowCarrierClass(
-            FinalSelectShapeNaming.CreateTypeName(finalResult),
+            typeName,
             finalResult.Shape.Fields,
             GetGeneratedFieldName);
         return sequence == null ? carrier : carrier.AddMembers(CreateSequenceProperty(sequence));

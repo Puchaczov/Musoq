@@ -17,6 +17,9 @@ internal static partial class ExecutionExpressionChildren
             ExecutionValueTupleKey key => key.Parts,
             ExecutionAggregateCall aggregate => aggregate.Arguments,
             ExecutionMethodCall { InjectedSource: null } call => call.Arguments,
+            ExecutionByteBufferSnapshot { Program: { } program } => program.Children,
+            ExecutionByteBufferOperation { Program: { } program } => program.Children,
+            ExecutionByteBufferSnapshot snapshot => snapshot.Arguments,
             _ => MaterializeSmallChildren(expression)
         };
     }
@@ -54,6 +57,8 @@ internal static partial class ExecutionExpressionChildren
             ExecutionMemberRead memberRead => index == 0 ? memberRead.Receiver : null,
             ExecutionUnary unary => index == 0 ? unary.Operand : null,
             ExecutionStrictCast strictCast => index == 0 ? strictCast.Expression : null,
+            ExecutionByteBufferOperation { Program: { } program } => program.ChildAt(index),
+            ExecutionByteBufferOperation buffer => index == 0 ? buffer.Original : null,
             ExecutionMethodTargetReuseCandidate candidate => index == 0 ? candidate.MethodCall : null,
             ExecutionIsNullCheck isNull => index == 0 ? isNull.Expression : null,
             ExecutionRowPresence rowPresence => index == 0 ? rowPresence.PresenceSource : null,
@@ -69,6 +74,8 @@ internal static partial class ExecutionExpressionChildren
             ExecutionStructuralRecord record => index < record.Fields.Count ? record.Fields[index].Value : null,
             ExecutionContextArray array => index < array.Segments.Count ? array.Segments[index].Value : null,
             ExecutionMethodCall call => index < call.Arguments.Count ? call.Arguments[index] : index == call.Arguments.Count ? call.InjectedSource : null,
+            ExecutionByteBufferSnapshot { Program: { } program } => program.ChildAt(index),
+            ExecutionByteBufferSnapshot snapshot => At(snapshot.Arguments, index),
             ExecutionInCheck check => index == 0 ? check.Expression : At(check.Values, index - 1),
             ExecutionCaseWhen conditional => CaseChild(conditional, index),
             ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or

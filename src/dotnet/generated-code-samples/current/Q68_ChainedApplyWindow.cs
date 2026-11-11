@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select i.Name, n.Value as FirstValue, m.Value as SecondValue, RowNumber() over (partition by i.Name order by n.Value, m.Value) as RowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m order by i.Name, RowNo
 */
@@ -77,7 +77,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, apply_0_i_n_m in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: apply_0_i_n_m.i.Name, FirstValue: apply_0_i_n_m.n.Value, SecondValue: apply_0_i_n_m.m.Value, RowNo: resultRowNumbers[windowIndex])]
     SortOwnedBuffer [result by Name ASC, RowNo ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -130,14 +130,14 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Name", typeof(string), 0), new Column("FirstValue", typeof(int), 1), new Column("SecondValue", typeof(int), 2), new Column("RowNo", typeof(long), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.FirstValue, __musoqShapeRow.SecondValue, __musoqShapeRow.RowNo);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -487,7 +487,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string Name, int FirstValue, int SecondValue, long RowNo)
             {
@@ -497,11 +497,49 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                 this.RowNo = RowNo;
             }
 
-            public int FirstValue { get; }
-            public string Name { get; }
-            public long RowNo { get; }
-            public int SecondValue { get; }
+            public override int Count => 4;
+            public int FirstValue { get; private set; }
+            public string Name { get; private set; }
+            public long RowNo { get; private set; }
+            public int SecondValue { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.FirstValue = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.SecondValue = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.RowNo = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.FirstValue),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.SecondValue),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.RowNo),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "FirstValue" => true,
+                "SecondValue" => true,
+                "RowNo" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.FirstValue, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.SecondValue, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.RowNo, ref visitor);
+            }
         }
 
         private readonly struct WindowResultRowNumbersOrderKeysKey : System.IEquatable<WindowResultRowNumbersOrderKeysKey>, System.IComparable<WindowResultRowNumbersOrderKeysKey>

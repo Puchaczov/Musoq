@@ -6,6 +6,7 @@ using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -56,7 +57,7 @@ internal static class SemanticTemplateCache
         return new SemanticTemplateCacheKey(
             input.Script,
             ParsedQueryTemplateCache.DefaultParserContract,
-            RuntimeV2Contract.ContractSignature,
+            RuntimeV2Contract.ContractSignature + "|" + ByteBufferCallableSemantics.Contract,
             ExecutionSemanticsContract.Current.Fingerprint,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             InstanceCreator.CreateSemanticProviderContractSignatureForCache(

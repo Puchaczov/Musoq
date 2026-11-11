@@ -35,9 +35,9 @@ public partial class InterpreterCodeGenTests
         Assert.Contains("public sealed class KeyValue : TextInterpreterBase<KeyValue>", code);
         Assert.Contains("public string? Key { get; set; }", code);
         Assert.Contains("public string? Value { get; set; }", code);
-        Assert.Contains("ReadUntil(data, \":\"", code);
-        Assert.Contains("ExpectLiteral(data, \": \"", code);
-        Assert.Contains("ReadRest(data", code);
+        Assert.Contains("ReadUntilStatus(data, \":\"", code);
+        Assert.Contains("ExpectLiteralStatus(ref __musoqTextInput, \": \"", code);
+        Assert.Contains("ReadRestStatus(data", code);
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadBetween(data, \"[\", \"]\"", code);
+        Assert.Contains("ReadBetweenStatus(data, \"[\", \"]\"", code);
     }
 
     [TestMethod]
@@ -77,7 +77,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadChars(data, 10, trim: true, fieldName: \"Fixed\")", code);
+        Assert.Contains("ReadCharsStatus(data, 10, trim: true, fieldName: \"Fixed\")", code);
     }
 
     [TestMethod]
@@ -97,7 +97,9 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadPattern(data", code);
+        Assert.Contains("ReadPreparedPatternStatus(data, __musoqPattern0, \"IpAddress\")", code);
+        Assert.Contains("private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0", code);
+        Assert.Contains(@"new(@""\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}""", code);
     }
 
     [TestMethod]
@@ -119,8 +121,8 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadToken(data", code);
-        Assert.Contains("SkipWhitespace(data, true, fieldName: \"_\")", code);
+        Assert.Contains("ReadTokenStatus(data", code);
+        Assert.Contains("SkipWhitespaceStatus(data, true, fieldName: \"_\")", code);
     }
 
     [TestMethod]
@@ -221,7 +223,9 @@ public partial class InterpreterCodeGenTests
         // Act
         var code = generator.GenerateAll();
 
-        Assert.Contains("ReadBytes(data, ResolveExpressionSize<int>", code);
+        Assert.Contains("ResolveSizeExpressionStatus<int>", code);
+        Assert.Contains("PrepareByteArrayStatus", code);
+        Assert.Contains("ReadPreparedByteArray(data,", code);
         Assert.Contains("checked((int?)((_total - _headerSize)))", code);
     }
 
@@ -250,7 +254,7 @@ public partial class InterpreterCodeGenTests
 
         Assert.Contains("string? _optional = null;",
             code, $"Expected 'string? _optional = null;' but got:\n{code}");
-        Assert.Contains("_savedPos__optional",
+        Assert.Contains("ParsePosition = __musoqOptionalPosition",
             code, $"Expected position save for optional but got:\n{code}");
         Assert.Contains("try",
             code, $"Expected 'try' block for optional but got:\n{code}");
@@ -308,7 +312,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("SkipWhitespace(data, true, fieldName: \"_\")", code);
+        Assert.Contains("SkipWhitespaceStatus(data, true, fieldName: \"_\")", code);
     }
 
     [TestMethod]
@@ -330,7 +334,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("SkipWhitespace(data, false, fieldName: \"_\")", code);
+        Assert.Contains("SkipWhitespaceStatus(data, false, fieldName: \"_\")", code);
     }
 
     [TestMethod]
@@ -352,7 +356,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("SkipOptionalWhitespace(data, fieldName: \"_\")", code);
+        Assert.Contains("SkipOptionalWhitespaceStatus(data, fieldName: \"_\")", code);
     }
 
     [TestMethod]

@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 with recursive states (Id, Branch, Depth) as (select Id, Branch, 0 from values {( Id: 1, Branch: 'A' )} seed union (Id, Branch) select (case when s.Id = 1 then 2 else 1 end), s.Branch, s.Depth + 1 from states s) select Id, Branch, Depth from states order by Id
 */
@@ -88,7 +88,7 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Id: states.Id, Branch: states.Branch, Depth: states.Depth)]
     PhaseBoundary [Select]
     SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -132,14 +132,14 @@ namespace GeneratedSample_Q194_RecursiveUnionCompositeKey
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Id", typeof(int), 0), new Column("Branch", typeof(string), 1), new Column("Depth", typeof(int), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Branch, __musoqShapeRow.Depth);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -358,7 +358,7 @@ namespace GeneratedSample_Q194_RecursiveUnionCompositeKey
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Id, string Branch, int Depth)
             {
@@ -367,10 +367,44 @@ namespace GeneratedSample_Q194_RecursiveUnionCompositeKey
                 this.Depth = Depth;
             }
 
-            public string Branch { get; }
-            public int Depth { get; }
-            public int Id { get; }
+            public string Branch { get; private set; }
+            public override int Count => 3;
+            public int Depth { get; private set; }
+            public int Id { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Branch = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Depth = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Branch),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Depth),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Branch" => true,
+                "Depth" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Branch, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Depth, ref visitor);
+            }
         }
 
         private sealed class seedValues0B641ACERow0 : Row

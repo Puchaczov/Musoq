@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Nodes.InterpretationSchema;
+using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -36,9 +37,31 @@ public partial class InterpreterCodeGenerator
         var bound = BindTextFieldCore(field);
         return bound with
         {
+            PreparedPattern = field.FieldType == TextFieldType.Pattern
+                ? new BoundTextPattern(field.PrimaryValue ?? string.Empty, BindPatternModifiers(field.Modifiers),
+                    bound.CaptureGroups)
+                : null,
             RepeatElement = field.RepeatElement is { } element ? BindTextField(element) : null,
             SwitchArms = field.SwitchCases.Select(arm => new BoundTextSwitchArm(arm.Pattern, BindTextField(arm.Body))).ToArray()
         };
+    }
+
+    private static TextPatternModifiers BindPatternModifiers(TextFieldModifier modifiers)
+    {
+        var result = TextPatternModifiers.None;
+        if ((modifiers & (TextFieldModifier.Trim | TextFieldModifier.LTrim)) != 0)
+            result |= TextPatternModifiers.TrimStart;
+        if ((modifiers & (TextFieldModifier.Trim | TextFieldModifier.RTrim)) != 0)
+            result |= TextPatternModifiers.TrimEnd;
+        if ((modifiers & TextFieldModifier.Lower) != 0)
+            result |= TextPatternModifiers.Lower;
+        if ((modifiers & TextFieldModifier.Upper) != 0)
+            result |= TextPatternModifiers.Upper;
+        if ((modifiers & TextFieldModifier.Greedy) != 0)
+            result |= TextPatternModifiers.Greedy;
+        if ((modifiers & TextFieldModifier.Lazy) != 0)
+            result |= TextPatternModifiers.Lazy;
+        return result;
     }
 
     private BoundTextField BindTextFieldCore(TextFieldDefinitionNode field)

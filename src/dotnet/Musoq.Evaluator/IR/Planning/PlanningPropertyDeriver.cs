@@ -150,7 +150,7 @@ internal static partial class PlanningPropertyDeriver
             $"Derived properties for {sources.Count} source scan(s)."));
 
         context.CancellationToken.ThrowIfCancellationRequested();
-        return new PlanningPropertyResult(factsWithLocations, decisions);
+        return new PlanningPropertyResult(factsWithLocations, decisions, sourcePlanningResult.ComputedTransfers);
     }
 
     private static List<SchemaScanNode> CollectSchemaScans(

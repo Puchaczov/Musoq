@@ -67,6 +67,9 @@ internal static class ExecutionSymbolicNamePolicy
             : field.Name;
     }
 
+    internal static bool IsReservedResultRowMember(string name) =>
+        ReservedMemberNames.Contains(name) || name is "__columnIndexPairs" or "__columnIndexes" or "CreateColumnIndexes";
+
     internal static string TrimIdentifier(string identifier, int reservedSuffixLength)
     {
         var maxLength = MaxIdentifierLength - reservedSuffixLength;

@@ -112,7 +112,8 @@ public static partial class ExecutionPlanPrinter
         string RowTypeName,
         string ShapeTypeName,
         IReadOnlyDictionary<string, string> SourceBuffers,
-        Musoq.Evaluator.IR.CodeGeneration.OwnedTerminalBuffer? OwnedBuffer);
+        Musoq.Evaluator.IR.CodeGeneration.OwnedTerminalBuffer? OwnedBuffer,
+        bool ReturnsOwnedRows);
 
     private sealed class ExecutionNodePrintReferenceComparer : IEqualityComparer<ExecutionNode>
     {

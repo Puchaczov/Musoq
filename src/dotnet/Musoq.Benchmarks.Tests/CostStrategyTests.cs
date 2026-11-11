@@ -47,12 +47,21 @@ public sealed class CostStrategyTests
     [DataRow("B26_ComputedProjection_Residual", 0)]
     public void ComputedProjectionPair_UsesTheNegotiatedTypedFields(string id, int accepted)
     {
-        var inspection = Inspect(id);
+        var benchmark = Inspect(id);
+        var originalScan = PhysicalNodes(benchmark.PhysicalPlan).OfType<PhysicalSchemaScanNode>().Single();
+        Assert.AreEqual("Id", originalScan.SourceTransferStrategy!.Shape!.Fields.Single().Name);
+        StringAssert.Contains(benchmark.GeneratedCSharpCode, "StrictCastRuntime.ToInt64");
+
+        var source = accepted > 0 ? "accepted" : "residual";
+        var inspection = Inspect(id, $"select r.Id::long * 2 as Value from computed.{source}() r");
         var scan = PhysicalNodes(inspection.PhysicalPlan).OfType<PhysicalSchemaScanNode>().Single();
         var shape = scan.SourceTransferStrategy!.Shape!;
         Assert.AreEqual(accepted, shape.Fields.Count(field => field.Origin == QueryRowFieldOrigin.ComputedProjection));
         if (accepted > 0)
+        {
             Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("StrictCastRuntime.ToInt64", StringComparison.Ordinal));
+            Assert.AreEqual(QueryRowFieldOrigin.ComputedProjection, shape.Fields.Single().Origin);
+        }
         else
             StringAssert.Contains(inspection.GeneratedCSharpCode, "StrictCastRuntime.ToInt64");
     }
@@ -85,10 +94,10 @@ public sealed class CostStrategyTests
         Assert.AreEqual(SourceExecutionPermissions.None, descriptor.ExecutionPermissions);
     }
 
-    private static QueryInspectionResult Inspect(string id)
+    private static QueryInspectionResult Inspect(string id, string? sql = null)
     {
         var scenario = ScenarioCatalog.Get(id);
-        return InstanceCreator.CompileForInspection(scenario.Sql, "cost-inspection",
+        return InstanceCreator.CompileForInspection(sql ?? scenario.Sql, "cost-inspection",
             FixtureCatalog.Prepare(scenario, 1000).CreateSchemaProvider(), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, 1000));
     }
 

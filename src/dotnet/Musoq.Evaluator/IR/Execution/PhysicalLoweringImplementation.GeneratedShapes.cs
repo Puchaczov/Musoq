@@ -72,6 +72,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionExpression expression,
         IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
+        if (ByteBufferViewShape.IsView(expression) || expression is ExecutionByteBufferOperation { Program.Result: ExecutionByteBufferResultKind.View })
+            return ByteBufferViewShape.TypeName;
         if (expression is ExecutionMethodCall { GeneratedResultTypeName: { } resultName })
             return resultName;
         if (expression is ExecutionStructuralRecord { GeneratedTypeName: { } nativeType })

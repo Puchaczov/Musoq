@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -155,7 +156,8 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var arguments = RewriteFinalJoinExpressions(methodCall.Arguments, projectedExpressions, cteRef);
 
-        return arguments == null ? null : methodCall with { Arguments = arguments };
+        return arguments == null ? null : ByteBufferPlanRewrite.Projection(methodCall, arguments,
+            input => RewriteFinalJoinExpression(input, projectedExpressions, cteRef));
     }
 
     private static IrExpression? RewriteIsNullFinalJoinExpression(

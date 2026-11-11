@@ -2,9 +2,9 @@ using System.Text;
 
 namespace Musoq.Schema.Interpreters;
 
-public abstract partial class TextInterpreterBase<TOut>
+internal static partial class TextPatternCompiler
 {
-    private static string ApplyPatternGreediness(string pattern, bool greedy, bool lazy)
+    internal static string ApplyGreediness(string pattern, bool greedy, bool lazy)
     {
         if (!greedy && !lazy)
             return pattern;

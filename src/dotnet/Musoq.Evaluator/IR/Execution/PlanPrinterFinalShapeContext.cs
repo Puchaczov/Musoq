@@ -12,10 +12,11 @@ public static partial class ExecutionPlanPrinter
         var output = renderPlan.FinalSinkPlans.TableOutput;
         return new FinalShapePrintContext(
             output.Result.TableName,
-            output.Result.RowTypeName,
+            output.TableRowTypeName,
             output.RowTypeName,
             output.SourceBuffers,
-            output.OwnedBuffer);
+            output.OwnedBuffer,
+            output.ReturnsOwnedRows);
     }
 
     private static bool TryGetFinalShapeContext(out FinalShapePrintContext context)

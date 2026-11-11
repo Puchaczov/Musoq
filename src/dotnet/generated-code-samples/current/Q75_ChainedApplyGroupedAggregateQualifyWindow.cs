@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select i.Name as Name, Avg(n.Value) as ValueAvg, Min(n.Value) as ValueMin, Max(n.Value) as ValueMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name having Max(n.Value) >= 2 qualify RowNumber() over (order by Avg(n.Value) desc, Min(n.Value), Max(n.Value) desc) <= 1 order by Name
 */
@@ -98,7 +98,7 @@ ExecutionPlan [compiled]
       If [((resultRowNumbers[windowIndex] > 0) AND (resultRowNumbers[windowIndex] <= 1))]
         AppendShape [result <- ResultShape0(Name: inmScore.i.Name, ValueAvg: inmScore.inm.Avg(n.Value), ValueMin: inmScore.inm.Min(n.Value), ValueMax: inmScore.inm.Max(n.Value))]
     SortOwnedBuffer [result by Name ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -151,14 +151,14 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Name", typeof(string), 0), new Column("ValueAvg", typeof(decimal?), 1), new Column("ValueMin", typeof(int?), 2), new Column("ValueMax", typeof(int?), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.ValueAvg, __musoqShapeRow.ValueMin, __musoqShapeRow.ValueMax);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -520,7 +520,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string Name, decimal? ValueAvg, int? ValueMin, int? ValueMax)
             {
@@ -530,11 +530,49 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                 this.ValueMax = ValueMax;
             }
 
-            public string Name { get; }
-            public decimal? ValueAvg { get; }
-            public int? ValueMax { get; }
-            public int? ValueMin { get; }
+            public override int Count => 4;
+            public string Name { get; private set; }
+            public decimal? ValueAvg { get; private set; }
+            public int? ValueMax { get; private set; }
+            public int? ValueMin { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.ValueAvg = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.ValueMin = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.ValueMax = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.ValueAvg),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.ValueMin),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.ValueMax),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "ValueAvg" => true,
+                "ValueMin" => true,
+                "ValueMax" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.ValueAvg, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.ValueMin, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.ValueMax, ref visitor);
+            }
         }
 
         private sealed class Statement0AggregateGroup

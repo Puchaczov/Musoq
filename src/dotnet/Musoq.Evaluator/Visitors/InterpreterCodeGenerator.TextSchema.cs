@@ -7,19 +7,25 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
+    private string _textInputName = string.Empty;
+
     private string GenerateTextInterpreterClass(TextSchemaNode schema)
     {
         var plan = BuildTextPlan(schema);
 
         var builder = new StringBuilder();
         var className = plan.SchemaName;
+        var allFields = EnumerateBoundTextFields(plan.Fields).ToArray();
 
         builder.AppendLine("/// <summary>");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated interpreter for text schema '{className}'.");
         builder.AppendLine("/// </summary>");
         builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : TextInterpreterBase<{className}>, global::Musoq.Plugins.IJsonPayload");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : TextInterpreterBase<{className}>, ITextInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload");
         builder.AppendLine("{");
+        var completion = CompletionLayoutCodeEmitter.Create(plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name));
+        builder.Append(completion);
+        AppendPreparedPatternMembers(builder, allFields, className);
         builder.Append(PartialPayloadCodeEmitter.Members(className));
         builder.Append(PartialPayloadCodeEmitter.JsonMembers(plan.Fields.Where(static field => field.EmitsProperty)
             .Select(static field => (field.Name, field.PropertyName ?? throw new InvalidOperationException("An emitted payload field requires a property name.")))));
@@ -38,17 +44,21 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override string SchemaName => \"{className}\";");
         builder.AppendLine();
 
-        builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override {className} ParseAt(ReadOnlySpan<char> data, int offset)");
-        builder.AppendLine("    {");
+        BeginStatusMethod(className);
+        _statusNames.UnionWith(allFields.Select(static field => field.LocalVariableName));
+        _textInputName = "__musoqTextInput";
+        while (!_statusNames.Add(_textInputName))
+            _textInputName += "_";
+        builder.Append(InterpreterStatusCodeEmitter.BeginText(className, _textInputName));
         builder.AppendLine("        ParsePosition = offset;");
         builder.AppendLine("        SetCurrentField(null);");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        var __parsedValue = new {className}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        __parsedValue = new {className}();");
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
         _discardCounter = 0;
 
+        var completionIndex = 0;
         foreach (var field in plan.Fields)
         {
             AppendGeneratedLine(builder, $"        SetCurrentField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");");
@@ -59,14 +69,13 @@ public partial class InterpreterCodeGenerator
             if (field.EmitsProperty)
             {
                 AppendGeneratedLine(builder, $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};");
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");");
+                AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
 
-        builder.AppendLine("        return __parsedValue;");
-        builder.AppendLine("    }");
+        builder.Append(InterpreterStatusCodeEmitter.End(className));
 
-        foreach (var field in EnumerateBoundTextFields(plan.Fields))
+        foreach (var field in allFields)
         {
             if (!field.IsCaptureResult) continue;
 

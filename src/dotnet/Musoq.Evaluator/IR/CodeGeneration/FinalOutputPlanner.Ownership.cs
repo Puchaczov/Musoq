@@ -8,11 +8,12 @@ internal static partial class FinalOutputPlanner
 {
     public static FinalOutputPlan SelectTableRows(ExecutionPlan plan, FinalOutputPlan output)
     {
-        if (!output.IsSupported || output.UsesGeneratedRow ||
-            !HasFreshTerminalWrites(plan.Body, output.Result))
-        {
+        if (!output.IsSupported || output.UsesGeneratedRow)
             return output;
-        }
+        if (output.OwnedBuffer is { SupportsResultRows: true })
+            return output with { RowRepresentation = FinalOutputRowRepresentation.OwnedBufferRow };
+        if (!HasFreshTerminalWrites(plan.Body, output.Result))
+            return output;
 
         return output with { RowRepresentation = FinalOutputRowRepresentation.GeneratedRow };
     }

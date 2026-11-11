@@ -19,6 +19,7 @@ internal static class OptimizerClassificationRegistry
             ["DeadCteElimination"] = OptimizationEvaluationClassification.RegionChecked,
             ["SourcePredicateMetadata"] = OptimizationEvaluationClassification.StabilityChecked,
             ["SourceProjectionMetadata"] = OptimizationEvaluationClassification.StabilityChecked,
+            ["ByteBufferPlanning"] = OptimizationEvaluationClassification.RegionChecked,
             ["ProjectionPruning"] = OptimizationEvaluationClassification.StabilityChecked,
             ["AggregateStrategySelection"] = OptimizationEvaluationClassification.RegionChecked,
             ["PredicateMovement"] = OptimizationEvaluationClassification.StabilityChecked,

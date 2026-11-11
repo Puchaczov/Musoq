@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select r.Id as Id, Sum(r.Amount) over (order by r.Id rows between 1 preceding and current row) as Total, FirstValue(r.Amount) over (order by r.Id rows between 1 preceding and current row) as First
 from bench.rows() r
@@ -47,7 +47,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, r in resultWindowRows]
       AppendShape [result <- ResultShape0(Id: r.Id, Total: resultSums0[windowIndex], First: resultFirstValues1[windowIndex])]
     SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
     PhaseBoundary [Select]
 */
 
@@ -93,14 +93,14 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTable
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Id", typeof(int), 0), new Column("Total", typeof(decimal?), 1), new Column("First", typeof(decimal?), 2) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Total, __musoqShapeRow.First);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -292,7 +292,7 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTable
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Id, decimal? Total, decimal? First)
             {
@@ -301,10 +301,41 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTable
                 this.First = First;
             }
 
-            public decimal? First { get; }
-            public int Id { get; }
-            public decimal? Total { get; }
+            public override int Count => 3;
+            public decimal? First { get; private set; }
+            public int Id { get; private set; }
+            public decimal? Total { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.First = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Total),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.First),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Total" => true,
+                "First" => true,
+                _ => false
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Total, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.First, ref visitor);
+            }
         }
 
         private readonly struct WindowResultSums0OrderKeysKey : System.IEquatable<WindowResultSums0OrderKeysKey>, System.IComparable<WindowResultSums0OrderKeysKey>

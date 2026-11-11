@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select r.Id as Id, Sum(r.Amount) over (order by r.Id rows between 1 preceding and current row) as Total, FirstValue(r.Amount) over (order by r.Id rows between 1 preceding and current row) as First
 from bench.rows() r
@@ -47,7 +47,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, r in resultWindowRows]
       AppendShape [result <- ResultShape0(Id: r.Id, Total: resultSums0[windowIndex], First: resultFirstValues1[windowIndex])]
     SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
     PhaseBoundary [Select]
 */
 

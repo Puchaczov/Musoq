@@ -36,8 +36,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(CultureInfo.InvariantCulture, $"var {iterationVar} = 0;");
         builder.AppendLine("do");
         builder.AppendLine("{");
-        builder.AppendLine(CultureInfo.InvariantCulture,
-            $"    EnsureRepeatIteration(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations});");
+        builder.Append(StatusCheck($"base.CheckRepeatIterationStatus(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations})"));
 
         AppendRepeatUntilElementRead(
             builder,
@@ -76,8 +75,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(CultureInfo.InvariantCulture, $"var {iterationVar} = 0;");
         builder.AppendLine("while (!IsAtEnd(data))");
         builder.AppendLine("{");
-        builder.AppendLine(CultureInfo.InvariantCulture,
-            $"    EnsureRepeatIteration(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations});");
+        builder.Append(StatusCheck($"base.CheckRepeatIterationStatus(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations})"));
         builder.AppendLine(CultureInfo.InvariantCulture, $"    var {startPosVar} = ParsePosition;");
         builder.AppendLine(CultureInfo.InvariantCulture, $"    var {startBitVar} = BitOffset;");
 
@@ -88,8 +86,7 @@ public partial class InterpreterCodeGenerator
             tempVar,
             lastElemVar);
 
-        builder.AppendLine(CultureInfo.InvariantCulture,
-            $"    EnsureRepeatMadeProgress(\"{EscapeString(fieldName)}\", {startPosVar}, {startBitVar});");
+        builder.Append(StatusCheck($"base.CheckRepeatProgressStatus(\"{EscapeString(fieldName)}\", {startPosVar}, {startBitVar})"));
         builder.AppendLine("}");
 
         AppendRepeatResultAssignment(builder, localVar, tempVar, declareLocal);

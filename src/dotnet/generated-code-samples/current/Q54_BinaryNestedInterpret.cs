@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary Point {
                 X: short le,
@@ -307,8 +307,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Point'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Point : BytesInterpreterBase<Point>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Point : BytesInterpreterBase<Point>, IBytesInterpreterStatus<Point>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "X", "Y" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Point value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -343,22 +346,44 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Point";
 
-        /// <inheritdoc/>
-        public override Point InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Point InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Point>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Point> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Point>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Point();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("X");
-            var _x = ReadInt16Le(data);
-            __parsedValue.X = _x;
-            RecordParsedField("X");
-            SetCurrentField("Y");
-            var _y = ReadInt16Le(data);
-            __parsedValue.Y = _y;
-            RecordParsedField("Y");
-            return __parsedValue;
+            Point? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Point>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Point();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("X");
+                if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Point>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _x = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.X = _x;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Y");
+                if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Point>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _y = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.Y = _y;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Point>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Point>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 
@@ -366,8 +391,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Vertex'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Vertex : BytesInterpreterBase<Vertex>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Vertex : BytesInterpreterBase<Vertex>, IBytesInterpreterStatus<Vertex>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Id", "Position" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Vertex value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -402,23 +430,46 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Vertex";
 
-        /// <inheritdoc/>
-        public override Vertex InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Vertex InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Vertex>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Vertex> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Vertex>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Vertex();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Id");
-            var _id = ReadByte(data);
-            __parsedValue.Id = _id;
-            RecordParsedField("Id");
-            SetCurrentField("Position");
-            var __position_interpreter = new Point();
-            var _position = InterpretNested(__position_interpreter, data, "Position");
-            __parsedValue.Position = _position;
-            RecordParsedField("Position");
-            return __parsedValue;
+            Vertex? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Vertex>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Vertex();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Id");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Vertex>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _id = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Id = _id;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Position");
+                var __position_interpreter = new Point();
+                var __musoqReadResult2 = base.InterpretNestedStatus(__position_interpreter, data, "Position");
+                if (!__musoqReadResult2.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Vertex>.Failed(__parsedValue, __musoqReadResult2.Failure!);
+                }
+
+                var _position = __musoqReadResult2.Value!;
+                __parsedValue.Position = _position;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Vertex>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Vertex>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

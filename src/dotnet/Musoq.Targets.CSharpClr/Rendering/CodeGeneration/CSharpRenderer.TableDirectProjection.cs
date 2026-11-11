@@ -131,15 +131,14 @@ public sealed partial class CSharpRenderer
         string queryIdentifier,
         string shapeRowsMethodName,
         string rowsMethodName,
-        TableViaRowsResultInfo resultInfo,
+        FinalOutputPlan output,
         bool useQueryRunContext,
         bool includeProfileRecorderParameter,
         out MethodDeclarationSyntax shapeRowsMethod,
         out MethodDeclarationSyntax rowsAdapterMethod,
         out QueryMethodRenderMetadata metadata)
     {
-        TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan);
-        var output = renderPlan.FinalSinkPlans.TableOutput;
+        var resultInfo = output.Result;
         metadata = new QueryMethodRenderMetadata(
             FinalResultSinkKind.TableRowsMaterialized, QueryResultRowPathKind.DirectRows, false);
         if (!output.IsSupported)
@@ -161,11 +160,10 @@ public sealed partial class CSharpRenderer
             includeProfileRecorderParameter: includeProfileRecorderParameter,
             outputPlan: output);
         rowsAdapterMethod = !output.PreserveEnumerationBoundary
-            ? CreateTableRowsForwardingMethod(rowsMethodName, shapeRowsMethodName, resultInfo.RowTypeName, useQueryRunContext, includeProfileRecorderParameter)
+            ? CreateTableRowsForwardingMethod(rowsMethodName, shapeRowsMethodName, output.TableRowTypeName, useQueryRunContext, includeProfileRecorderParameter)
             : CreateTableRowsAdapterMethod(
                 rowsMethodName,
                 shapeRowsMethodName,
-                resultInfo,
                 output,
                 useQueryRunContext,
                 includeProfileRecorderParameter,
@@ -480,7 +478,6 @@ public sealed partial class CSharpRenderer
     private static MethodDeclarationSyntax CreateTableRowsAdapterMethod(
         string rowsMethodName,
         string shapeRowsMethodName,
-        TableViaRowsResultInfo resultInfo,
         FinalOutputPlan output,
         bool useQueryRunContext,
         bool includeProfileRecorderParameter = false,
@@ -527,7 +524,7 @@ public sealed partial class CSharpRenderer
             SyntaxFactory.Block(yieldRow)));
 
         return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.ParseTypeName($"IEnumerable<{resultInfo.RowTypeName}>"),
+                SyntaxFactory.ParseTypeName($"IEnumerable<{output.TableRowTypeName}>"),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(CreateTableRowsAdapterParameterList(useQueryRunContext, includeProfileRecorderParameter))
@@ -536,7 +533,7 @@ public sealed partial class CSharpRenderer
 
     private static ExpressionSyntax CreateFinalTableRowExpression(FinalOutputPlan output, string shapeRowName)
     {
-        if (output.UsesGeneratedRow)
+        if (output.UsesGeneratedRow || output.ReturnsOwnedRows)
             return SyntaxFactory.IdentifierName(shapeRowName);
 
         var rowArguments = output.Result.ShapeFields

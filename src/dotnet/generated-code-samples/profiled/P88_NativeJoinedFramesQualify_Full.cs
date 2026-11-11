@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 with joined as (
     select a.Position as Position, a.Partition as Partition,
@@ -120,7 +120,7 @@ ExecutionPlan [compiled]
       If [((resultRowNumbers0[windowIndex] > 0) AND (resultRowNumbers0[windowIndex] <= 5))]
         AppendShape [result <- ResultShape0(Position: joined.Position, Partition: joined.Partition, Total: resultSums1[windowIndex], Average: resultAvgs2[windowIndex], Present: resultCounts3[windowIndex], Previous: resultLags4[windowIndex], Number: resultRowNumbers0[windowIndex])]
     SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -178,28 +178,28 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_3, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Position", typeof(int), 0), new Column("Partition", typeof(int?), 1), new Column("Total", typeof(int?), 2), new Column("Average", typeof(decimal?), 3), new Column("Present", typeof(long), 4), new Column("Previous", typeof(int?), 5), new Column("Number", typeof(long), 6) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_3, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Position", typeof(int), 0), new Column("Partition", typeof(int?), 1), new Column("Total", typeof(int?), 2), new Column("Average", typeof(decimal?), 3), new Column("Present", typeof(long), 4), new Column("Previous", typeof(int?), 5), new Column("Number", typeof(long), 6) }, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Partition, __musoqShapeRow.Total, __musoqShapeRow.Average, __musoqShapeRow.Present, __musoqShapeRow.Previous, __musoqShapeRow.Number);
+                yield return __musoqShapeRow;
             }
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Partition, __musoqShapeRow.Total, __musoqShapeRow.Average, __musoqShapeRow.Present, __musoqShapeRow.Previous, __musoqShapeRow.Number);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -1291,7 +1291,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Position, int? Partition, int? Total, decimal? Average, long Present, int? Previous, long Number)
             {
@@ -1304,14 +1304,64 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                 this.Number = Number;
             }
 
-            public decimal? Average { get; }
-            public long Number { get; }
-            public int? Partition { get; }
-            public int Position { get; }
-            public long Present { get; }
-            public int? Previous { get; }
-            public int? Total { get; }
+            public decimal? Average { get; private set; }
+            public override int Count => 7;
+            public long Number { get; private set; }
+            public int? Partition { get; private set; }
+            public int Position { get; private set; }
+            public long Present { get; private set; }
+            public int? Previous { get; private set; }
+            public int? Total { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Partition = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Total = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Average = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Present = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    5 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Previous = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    6 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Number = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Partition),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Total),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.Average),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Present),
+                5 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Previous),
+                6 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.Number),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Position" => true,
+                "Partition" => true,
+                "Total" => true,
+                "Average" => true,
+                "Present" => true,
+                "Previous" => true,
+                "Number" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Position, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Partition, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Total, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Average, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.Present, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(5, this.Previous, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(6, this.Number, ref visitor);
+            }
         }
 
         private readonly struct WindowResultRowNumbers0OrderKeysKey : System.IEquatable<WindowResultRowNumbers0OrderKeysKey>, System.IComparable<WindowResultRowNumbers0OrderKeysKey>

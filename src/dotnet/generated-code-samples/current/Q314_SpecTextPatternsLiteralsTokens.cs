@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 text Patterned {
                         Ip: pattern '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',
@@ -152,7 +152,7 @@ namespace GeneratedSample_Q314_SpecTextPatternsLiteralsTokens
 
                                     var f = fChunkViewArray[fChunkViewOffset + fIndex];
                                     var _interpreter_Patterned = new Musoq.Generated.Interpreters.Patterned();
-                                    var pRows = _interpreter_Patterned.Parse(f.Line);
+                                    var pRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_Patterned, f.Line);
                                     if (pRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
@@ -176,7 +176,7 @@ namespace GeneratedSample_Q314_SpecTextPatternsLiteralsTokens
 
                                     var f = fChunkViewList[fChunkViewOffset + fIndex];
                                     var _interpreter_Patterned = new Musoq.Generated.Interpreters.Patterned();
-                                    var pRows = _interpreter_Patterned.Parse(f.Line);
+                                    var pRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_Patterned, f.Line);
                                     if (pRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
@@ -198,7 +198,7 @@ namespace GeneratedSample_Q314_SpecTextPatternsLiteralsTokens
 
                             var f = fChunk[fIndex];
                             var _interpreter_Patterned = new Musoq.Generated.Interpreters.Patterned();
-                            var pRows = _interpreter_Patterned.Parse(f.Line);
+                            var pRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_Patterned, f.Line);
                             if (pRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
@@ -303,8 +303,12 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for text schema 'Patterned'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Patterned : TextInterpreterBase<Patterned>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Patterned : TextInterpreterBase<Patterned>, ITextInterpreterStatus<Patterned>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Ip", "Separator", "User", "Message" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
+        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0);
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Patterned value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -357,32 +361,74 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Patterned";
 
-        /// <inheritdoc/>
         public override Patterned ParseAt(ReadOnlySpan<char> data, int offset)
         {
-            ParsePosition = offset;
-            SetCurrentField(null);
-            var __parsedValue = new Patterned();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Ip");
-            var _ip = ReadPattern(data, @"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", fieldName: "Ip");
-            __parsedValue.Ip = _ip;
-            RecordParsedField("Ip");
-            SetCurrentField("Separator");
-            var _separator = ExpectLiteral(data, ":", fieldName: "Separator");
-            __parsedValue.Separator = _separator;
-            RecordParsedField("Separator");
-            SetCurrentField("User");
-            var _user = ReadToken(data, fieldName: "User");
-            __parsedValue.User = _user;
-            RecordParsedField("User");
-            SetCurrentField("_");
-            SkipWhitespace(data, true, fieldName: "_");
-            SetCurrentField("Message");
-            var _message = ReadRest(data, fieldName: "Message");
-            __parsedValue.Message = _message;
-            RecordParsedField("Message");
-            return __parsedValue;
+            var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
+            return ((global::Musoq.Schema.Interpreters.ITextInterpreterStatus<Patterned>)this).ReadAt(ref input, offset).GetValueOrThrow();
+        }
+
+        global::Musoq.Schema.Interpreters.ParseAttempt<Patterned> global::Musoq.Schema.Interpreters.ITextInterpreterStatus<Patterned>.ReadAt(ref global::Musoq.Schema.Interpreters.TextParseInput __musoqTextInput, int offset)
+        {
+            var data = __musoqTextInput.Text;
+            Patterned? __parsedValue = null;
+            try
+            {
+                ParsePosition = offset;
+                SetCurrentField(null);
+                __parsedValue = new Patterned();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Ip");
+                var __musoqReadResult0 = base.ReadPreparedPatternStatus(data, __musoqPattern0, "Ip");
+                if (!__musoqReadResult0.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                }
+
+                var _ip = __musoqReadResult0.Value!;
+                __parsedValue.Ip = _ip;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Separator");
+                var __musoqReadResult1 = base.ExpectLiteralStatus(ref __musoqTextInput, ":", fieldName: "Separator");
+                if (!__musoqReadResult1.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                }
+
+                var _separator = __musoqReadResult1.Value!;
+                __parsedValue.Separator = _separator;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("User");
+                var __musoqReadResult2 = base.ReadTokenStatus(data, fieldName: "User");
+                if (!__musoqReadResult2.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult2.Failure!);
+                }
+
+                var _user = __musoqReadResult2.Value!;
+                __parsedValue.User = _user;
+                base.RecordParsedFieldSlot(2);
+                SetCurrentField("_");
+                if (base.SkipWhitespaceStatus(data, true, fieldName: "_")is { } __musoqReadFailure3)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadFailure3);
+                }
+
+                SetCurrentField("Message");
+                var __musoqReadResult4 = base.ReadRestStatus(data, fieldName: "Message");
+                if (!__musoqReadResult4.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult4.Failure!);
+                }
+
+                var _message = __musoqReadResult4.Value!;
+                __parsedValue.Message = _message;
+                base.RecordParsedFieldSlot(3);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

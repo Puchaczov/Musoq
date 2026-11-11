@@ -179,7 +179,7 @@ public static partial class InstanceCreator
         using (EvaluatorPerformanceTelemetry.BeginPhase("canonical-identity"))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            canonicalContract = semanticContractFingerprint is not null &&
+            canonicalContract = cacheKey.HasValue &&
                                 CanUseCanonicalExecutionCompilationCache(items)
                 ? CreateCanonicalExecutionArtifactContract(
                     items,
@@ -206,7 +206,7 @@ public static partial class InstanceCreator
             items.ExecutableArtifact = canonicalCompilation.Template.ExecutableArtifact;
 
             ExecutionCompilationCachePublication? canonicalAliasPublication = null;
-            if (cacheKey.HasValue)
+            if (cacheKey.HasValue && semanticContractFingerprint is not null)
             {
                 canonicalAliasPublication = PrepareCanonicalExecutionAlias(
                     cacheKey.Value,
@@ -228,7 +228,7 @@ public static partial class InstanceCreator
                 telemetry.SetArtifactIdentity(
                     canonicalCompilation.Template.RunnableTypeName,
                     emitted: false,
-                    loaded: false);
+                    loaded: ContainsQueryScopedRowTransfer(items));
                 telemetry.SetBindingIdentity($"{schemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
                 telemetry.SetCacheOutcome("canonical-hit");
                 canonicalQuery = new CompiledQuery(canonicalRunnable);
@@ -332,20 +332,21 @@ public static partial class InstanceCreator
             telemetry.SetArtifactIdentity(runnableTypeName, emitted: true, loaded: true);
             telemetry.SetBindingIdentity($"{items.SchemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
 
-            if (cacheKey.HasValue && CanUseExecutionCompilationCache(items))
+            var publicationFingerprint = semanticContractFingerprint ?? canonicalContract?.SemanticContractFingerprint;
+            if (publicationFingerprint is not null)
             {
                 var cacheStoreStarted = Stopwatch.GetTimestamp();
                 var cacheArtifact = CreateCachedExecutableArtifact(
                     items,
-                    cacheKey.Value.ExecutionTarget,
+                    items.ExecutionTarget,
                     runnableType,
                     cancellationToken);
                 try
                 {
                     cachePublication = PrepareExecutionCompilation(
-                        cacheKey.Value,
+                        semanticContractFingerprint is not null ? cacheKey : null,
                         cacheArtifact,
-                        semanticContractFingerprint!,
+                        publicationFingerprint,
                         runnableTypeName,
                         canonicalContract,
                         cancellationToken);

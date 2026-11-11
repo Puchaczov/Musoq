@@ -21,6 +21,8 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionBinary binary => RewriteBinary(binary),
             ExecutionUnary unary => RewriteUnary(unary),
             ExecutionMethodCall methodCall => RewriteMethodCall(methodCall),
+            ExecutionByteBufferSnapshot or ExecutionByteBufferOperation => ByteBufferExpressionRewrite.Children(expression, RewriteExpression),
+            ExecutionByteBufferArgument => expression,
             ExecutionStrictCast strictCast => RewriteStrictCast(strictCast),
             ExecutionMethodTargetReuseCandidate candidate => RewriteMethodTargetReuseCandidate(candidate),
             ExecutionArrayAccess arrayAccess => RewriteArrayAccess(arrayAccess),
@@ -96,9 +98,7 @@ internal abstract partial class ExecutionIrRewriter
     protected virtual ExecutionExpression RewriteCteCollectionInput(ExecutionCteCollectionInput expression)
     {
         var rows = RewriteExpression(expression.Rows);
-        return ReferenceEquals(rows, expression.Rows)
-            ? expression
-            : expression with { Rows = rows };
+        return ReferenceEquals(rows, expression.Rows) ? expression : expression with { Rows = rows };
     }
     protected virtual ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression) => expression;
     protected virtual ExecutionExpression RewriteMemberRead(ExecutionMemberRead expression)
@@ -244,9 +244,6 @@ internal abstract partial class ExecutionIrRewriter
         var segments = RewriteContextSegments(expression.Segments);
         return ReferenceEquals(segments, expression.Segments) ? expression : expression with { Segments = segments };
     }
-
-
-
     protected virtual ExecutionExpression RewriteValueTupleKey(ExecutionValueTupleKey expression)
     {
         var parts = RewriteExpressionList(expression.Parts);

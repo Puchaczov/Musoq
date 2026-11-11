@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary Header {
     Kind: byte,
@@ -83,7 +83,7 @@ ExecutionPlan [compiled]
     ForEach [rp in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: rp.r.Id, Kind: rp.p.ParsedFields.Kind, Consumed: rp.p.BytesConsumed, Error: rp.p.ErrorField)]
     SortOwnedBuffer [result by Id ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -136,14 +136,14 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Id", typeof(int), 0), new Column("Kind", typeof(byte), 1), new Column("Consumed", typeof(int), 2), new Column("Error", typeof(string), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Kind, __musoqShapeRow.Consumed, __musoqShapeRow.Error);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -349,7 +349,7 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(int Id, byte Kind, int Consumed, string Error)
             {
@@ -359,11 +359,46 @@ namespace GeneratedSample_B32_Partial_BenchmarkTable
                 this.Error = Error;
             }
 
-            public int Consumed { get; }
-            public string Error { get; }
-            public int Id { get; }
-            public byte Kind { get; }
+            public int Consumed { get; private set; }
+            public override int Count => 4;
+            public string Error { get; private set; }
+            public int Id { get; private set; }
+            public byte Kind { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, byte>(this.Kind = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<byte, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Consumed = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Error = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, byte>(this.Kind),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Consumed),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Error),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Kind" => true,
+                "Consumed" => true,
+                "Error" => true,
+                _ => false
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Kind, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Consumed, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Error, ref visitor);
+            }
         }
 
         private sealed class Statement0Row0
@@ -402,8 +437,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'Header'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Header : BytesInterpreterBase<Header>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Header : BytesInterpreterBase<Header>, IBytesInterpreterStatus<Header>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Kind", "Value", "Count", "Tail" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Header value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -456,30 +494,69 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Header";
 
-        /// <inheritdoc/>
-        public override Header InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override Header InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Header>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<Header> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Header>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new Header();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Kind");
-            var _kind = ReadByte(data);
-            __parsedValue.Kind = _kind;
-            RecordParsedField("Kind");
-            SetCurrentField("Value");
-            var _value = ReadInt32Le(data);
-            __parsedValue.Value = _value;
-            RecordParsedField("Value");
-            SetCurrentField("Count");
-            var _count = ReadByte(data);
-            __parsedValue.Count = _count;
-            RecordParsedField("Count");
-            SetCurrentField("Tail");
-            var _tail = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_count)), ParseErrorCode.InvalidSize));
-            __parsedValue.Tail = _tail;
-            RecordParsedField("Tail");
-            return __parsedValue;
+            Header? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new Header();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Kind");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _kind = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Kind = _kind;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Value");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Value = _value;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("Count");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure3)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure3);
+                }
+
+                var _count = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Count = _count;
+                base.RecordParsedFieldSlot(2);
+                SetCurrentField("Tail");
+                var __musoqReadResult5 = base.ResolveSizeValueStatus<byte>((byte?)(_count), ParseErrorCode.InvalidSize);
+                if (!__musoqReadResult5.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadResult5.Failure!);
+                }
+
+                var __musoqReadSize4 = __musoqReadResult5.Value!;
+                if (base.PrepareByteArrayStatus(data, __musoqReadSize4)is { } __musoqReadFailure6)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure6);
+                }
+
+                var _tail = base.ReadPreparedByteArray(data, __musoqReadSize4);
+                __parsedValue.Tail = _tail;
+                base.RecordParsedFieldSlot(3);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

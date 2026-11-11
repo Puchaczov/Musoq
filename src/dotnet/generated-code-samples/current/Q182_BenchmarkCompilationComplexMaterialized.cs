@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 SELECT City, Country, Population, City + ' (' + Country + ')' as CityCountry
               FROM #test.entities()
@@ -69,7 +69,7 @@ ExecutionPlan [compiled]
       If [(ko3iko.Count(ko3iko.City) > 0)]
         AppendShape [result <- ResultShape0(City: finalGroup.City, Country: finalGroup.Country, Population: finalGroup.Population, CityCountry: (((finalGroup.City || ' (') || finalGroup.Country) || ')'))]
     SortOwnedBuffer [result by Population DESC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -115,16 +115,16 @@ namespace GeneratedSample_Q182_BenchmarkCompilationComplexMaterialized
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Population", typeof(decimal), 2), new Column("CityCountry", typeof(string), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
             _ = __musoqMaterializedTable.Count;
             return __musoqMaterializedTable;
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.City, __musoqShapeRow.Country, __musoqShapeRow.Population, __musoqShapeRow.CityCountry);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -375,7 +375,7 @@ namespace GeneratedSample_Q182_BenchmarkCompilationComplexMaterialized
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string City, string Country, decimal Population, string CityCountry)
             {
@@ -385,11 +385,49 @@ namespace GeneratedSample_Q182_BenchmarkCompilationComplexMaterialized
                 this.CityCountry = CityCountry;
             }
 
-            public string City { get; }
-            public string CityCountry { get; }
-            public string Country { get; }
-            public decimal Population { get; }
+            public string City { get; private set; }
+            public string CityCountry { get; private set; }
+            public override int Count => 4;
+            public string Country { get; private set; }
+            public decimal Population { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Country = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Population = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.CityCountry = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Country),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Population),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.CityCountry),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "City" => true,
+                "Country" => true,
+                "Population" => true,
+                "CityCountry" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Country, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Population, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.CityCountry, ref visitor);
+            }
         }
     }
 }

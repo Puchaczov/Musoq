@@ -477,7 +477,10 @@ public static partial class ExecutionPlanPrinter
                 if (TryGetFinalShapeContext(out var finalShapeContext) &&
                     string.Equals(returnTable.Table.Name, finalShapeContext.FinalTableName, StringComparison.Ordinal))
                 {
-                    builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}ReturnDeferredTable [{finalShapeContext.FinalTableName}: {finalShapeContext.RowTypeName} <- {finalShapeContext.ShapeTypeName}]");
+                    var rows = finalShapeContext.ReturnsOwnedRows
+                        ? $"{finalShapeContext.RowTypeName} from owned buffer {finalShapeContext.OwnedBuffer!.SourceName}"
+                        : $"{finalShapeContext.RowTypeName} <- {finalShapeContext.ShapeTypeName}";
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}ReturnDeferredTable [{finalShapeContext.FinalTableName}: {rows}]");
                     break;
                 }
 

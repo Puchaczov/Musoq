@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary PrimitiveMatrix {
                         LittleInt: int le,
@@ -330,8 +330,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'PrimitiveMatrix'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class PrimitiveMatrix : BytesInterpreterBase<PrimitiveMatrix>, global::Musoq.Plugins.IJsonPayload
+    public sealed class PrimitiveMatrix : BytesInterpreterBase<PrimitiveMatrix>, IBytesInterpreterStatus<PrimitiveMatrix>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "LittleInt", "BigInt", "LittleShort", "BigShort", "LittleFloat", "LittleDouble" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(PrimitiveMatrix value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -402,38 +405,80 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "PrimitiveMatrix";
 
-        /// <inheritdoc/>
-        public override PrimitiveMatrix InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override PrimitiveMatrix InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<PrimitiveMatrix>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<PrimitiveMatrix>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new PrimitiveMatrix();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("LittleInt");
-            var _littleInt = ReadInt32Le(data);
-            __parsedValue.LittleInt = _littleInt;
-            RecordParsedField("LittleInt");
-            SetCurrentField("BigInt");
-            var _bigInt = ReadInt32Be(data);
-            __parsedValue.BigInt = _bigInt;
-            RecordParsedField("BigInt");
-            SetCurrentField("LittleShort");
-            var _littleShort = ReadInt16Le(data);
-            __parsedValue.LittleShort = _littleShort;
-            RecordParsedField("LittleShort");
-            SetCurrentField("BigShort");
-            var _bigShort = ReadInt16Be(data);
-            __parsedValue.BigShort = _bigShort;
-            RecordParsedField("BigShort");
-            SetCurrentField("LittleFloat");
-            var _littleFloat = ReadSingleLe(data);
-            __parsedValue.LittleFloat = _littleFloat;
-            RecordParsedField("LittleFloat");
-            SetCurrentField("LittleDouble");
-            var _littleDouble = ReadDoubleLe(data);
-            __parsedValue.LittleDouble = _littleDouble;
-            RecordParsedField("LittleDouble");
-            return __parsedValue;
+            PrimitiveMatrix? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new PrimitiveMatrix();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("LittleInt");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _littleInt = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.LittleInt = _littleInt;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("BigInt");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _bigInt = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.BigInt = _bigInt;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("LittleShort");
+                if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure3)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure3);
+                }
+
+                var _littleShort = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.LittleShort = _littleShort;
+                base.RecordParsedFieldSlot(2);
+                SetCurrentField("BigShort");
+                if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure4)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure4);
+                }
+
+                var _bigShort = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16BigEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.BigShort = _bigShort;
+                base.RecordParsedFieldSlot(3);
+                SetCurrentField("LittleFloat");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure5)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure5);
+                }
+
+                var _littleFloat = global::System.Buffers.Binary.BinaryPrimitives.ReadSingleLittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.LittleFloat = _littleFloat;
+                base.RecordParsedFieldSlot(4);
+                SetCurrentField("LittleDouble");
+                if (base.PrepareByteInputStatus(data, 8)is { } __musoqReadFailure6)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure6);
+                }
+
+                var _littleDouble = global::System.Buffers.Binary.BinaryPrimitives.ReadDoubleLittleEndian(base.TakePreparedBytes(data, 8));
+                __parsedValue.LittleDouble = _littleDouble;
+                base.RecordParsedFieldSlot(5);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

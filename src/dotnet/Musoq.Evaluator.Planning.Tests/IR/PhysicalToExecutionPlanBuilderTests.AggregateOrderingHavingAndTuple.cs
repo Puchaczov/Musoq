@@ -54,7 +54,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
             "    SortOwnedBuffer [result by Count DESC, stable sequence __musoqSequence]",
-            "    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]");
+            "    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

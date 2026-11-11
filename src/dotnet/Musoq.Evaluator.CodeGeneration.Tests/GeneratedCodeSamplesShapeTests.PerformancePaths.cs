@@ -42,6 +42,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]", code);
         Assert.Contains("resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);", code);
         Assert.Contains("return resultOrderRecords;", code);
+        Assert.Contains("ResultRow0WithSortKeys : Row", code);
+        Assert.Contains("yield return __musoqShapeRow;", code);
+        Assert.DoesNotContain("yield return new ResultRow0(", code);
         Assert.DoesNotContain("new ResultShape0", code);
         Assert.DoesNotContain("__musoqFinalShapeRows", code);
     }

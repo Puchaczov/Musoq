@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 text Comment { _: literal '#', Text: rest };
                     text KeyValue { Key: until '=', Value: rest };
@@ -151,7 +151,7 @@ namespace GeneratedSample_Q317_SpecTextSwitch
 
                                     var f = fChunkViewArray[fChunkViewOffset + fIndex];
                                     var _interpreter_ConfigLine = new Musoq.Generated.Interpreters.ConfigLine();
-                                    var cRows = _interpreter_ConfigLine.Parse(f.Line);
+                                    var cRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_ConfigLine, f.Line);
                                     if (cRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
@@ -184,7 +184,7 @@ namespace GeneratedSample_Q317_SpecTextSwitch
 
                                     var f = fChunkViewList[fChunkViewOffset + fIndex];
                                     var _interpreter_ConfigLine = new Musoq.Generated.Interpreters.ConfigLine();
-                                    var cRows = _interpreter_ConfigLine.Parse(f.Line);
+                                    var cRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_ConfigLine, f.Line);
                                     if (cRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
@@ -215,7 +215,7 @@ namespace GeneratedSample_Q317_SpecTextSwitch
 
                             var f = fChunk[fIndex];
                             var _interpreter_ConfigLine = new Musoq.Generated.Interpreters.ConfigLine();
-                            var cRows = _interpreter_ConfigLine.Parse(f.Line);
+                            var cRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_ConfigLine, f.Line);
                             if (cRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
@@ -327,8 +327,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for text schema 'Comment'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class Comment : TextInterpreterBase<Comment>, global::Musoq.Plugins.IJsonPayload
+    public sealed class Comment : TextInterpreterBase<Comment>, ITextInterpreterStatus<Comment>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Text" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Comment value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -354,20 +357,45 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "Comment";
 
-        /// <inheritdoc/>
         public override Comment ParseAt(ReadOnlySpan<char> data, int offset)
         {
-            ParsePosition = offset;
-            SetCurrentField(null);
-            var __parsedValue = new Comment();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("_");
-            ExpectLiteral(data, "#", fieldName: "_");
-            SetCurrentField("Text");
-            var _text = ReadRest(data, fieldName: "Text");
-            __parsedValue.Text = _text;
-            RecordParsedField("Text");
-            return __parsedValue;
+            var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
+            return ((global::Musoq.Schema.Interpreters.ITextInterpreterStatus<Comment>)this).ReadAt(ref input, offset).GetValueOrThrow();
+        }
+
+        global::Musoq.Schema.Interpreters.ParseAttempt<Comment> global::Musoq.Schema.Interpreters.ITextInterpreterStatus<Comment>.ReadAt(ref global::Musoq.Schema.Interpreters.TextParseInput __musoqTextInput, int offset)
+        {
+            var data = __musoqTextInput.Text;
+            Comment? __parsedValue = null;
+            try
+            {
+                ParsePosition = offset;
+                SetCurrentField(null);
+                __parsedValue = new Comment();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("_");
+                var __musoqReadResult0 = base.ExpectLiteralStatus(ref __musoqTextInput, "#", fieldName: "_");
+                if (!__musoqReadResult0.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Comment>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                }
+
+                SetCurrentField("Text");
+                var __musoqReadResult1 = base.ReadRestStatus(data, fieldName: "Text");
+                if (!__musoqReadResult1.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<Comment>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                }
+
+                var _text = __musoqReadResult1.Value!;
+                __parsedValue.Text = _text;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Comment>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<Comment>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 
@@ -375,8 +403,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for text schema 'KeyValue'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class KeyValue : TextInterpreterBase<KeyValue>, global::Musoq.Plugins.IJsonPayload
+    public sealed class KeyValue : TextInterpreterBase<KeyValue>, ITextInterpreterStatus<KeyValue>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Key", "Value" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(KeyValue value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -411,22 +442,48 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "KeyValue";
 
-        /// <inheritdoc/>
         public override KeyValue ParseAt(ReadOnlySpan<char> data, int offset)
         {
-            ParsePosition = offset;
-            SetCurrentField(null);
-            var __parsedValue = new KeyValue();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Key");
-            var _key = ReadUntil(data, "=", fieldName: "Key");
-            __parsedValue.Key = _key;
-            RecordParsedField("Key");
-            SetCurrentField("Value");
-            var _value = ReadRest(data, fieldName: "Value");
-            __parsedValue.Value = _value;
-            RecordParsedField("Value");
-            return __parsedValue;
+            var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
+            return ((global::Musoq.Schema.Interpreters.ITextInterpreterStatus<KeyValue>)this).ReadAt(ref input, offset).GetValueOrThrow();
+        }
+
+        global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue> global::Musoq.Schema.Interpreters.ITextInterpreterStatus<KeyValue>.ReadAt(ref global::Musoq.Schema.Interpreters.TextParseInput __musoqTextInput, int offset)
+        {
+            var data = __musoqTextInput.Text;
+            KeyValue? __parsedValue = null;
+            try
+            {
+                ParsePosition = offset;
+                SetCurrentField(null);
+                __parsedValue = new KeyValue();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Key");
+                var __musoqReadResult0 = base.ReadUntilStatus(data, "=", fieldName: "Key");
+                if (!__musoqReadResult0.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                }
+
+                var _key = __musoqReadResult0.Value!;
+                __parsedValue.Key = _key;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Value");
+                var __musoqReadResult1 = base.ReadRestStatus(data, fieldName: "Value");
+                if (!__musoqReadResult1.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                }
+
+                var _value = __musoqReadResult1.Value!;
+                __parsedValue.Value = _value;
+                base.RecordParsedFieldSlot(1);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 
@@ -434,8 +491,12 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for text schema 'ConfigLine'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class ConfigLine : TextInterpreterBase<ConfigLine>, global::Musoq.Plugins.IJsonPayload
+    public sealed class ConfigLine : TextInterpreterBase<ConfigLine>, ITextInterpreterStatus<ConfigLine>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Content" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
+        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = global::Musoq.Schema.Interpreters.PreparedTextPattern.CreateLookahead(@"#");
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(ConfigLine value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -461,33 +522,59 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "ConfigLine";
 
-        /// <inheritdoc/>
         public override ConfigLine ParseAt(ReadOnlySpan<char> data, int offset)
         {
-            ParsePosition = offset;
-            SetCurrentField(null);
-            var __parsedValue = new ConfigLine();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Content");
-            object? _content = default;
-            if (LookaheadMatchesPattern(data, @"#", fieldName: "Content"))
-            {
-                var _interp_content_selected = new Comment();
-                var _result_content_selected = ParseNested(_interp_content_selected, data, "Content");
-                var _content_selected = _result_content_selected;
-                _content = _content_selected;
-            }
-            else
-            {
-                var _interp_content_selected = new KeyValue();
-                var _result_content_selected = ParseNested(_interp_content_selected, data, "Content");
-                var _content_selected = _result_content_selected;
-                _content = _content_selected;
-            }
+            var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
+            return ((global::Musoq.Schema.Interpreters.ITextInterpreterStatus<ConfigLine>)this).ReadAt(ref input, offset).GetValueOrThrow();
+        }
 
-            __parsedValue.Content = _content;
-            RecordParsedField("Content");
-            return __parsedValue;
+        global::Musoq.Schema.Interpreters.ParseAttempt<ConfigLine> global::Musoq.Schema.Interpreters.ITextInterpreterStatus<ConfigLine>.ReadAt(ref global::Musoq.Schema.Interpreters.TextParseInput __musoqTextInput, int offset)
+        {
+            var data = __musoqTextInput.Text;
+            ConfigLine? __parsedValue = null;
+            try
+            {
+                ParsePosition = offset;
+                SetCurrentField(null);
+                __parsedValue = new ConfigLine();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Content");
+                object? _content = default;
+                if (LookaheadMatchesPatternPrepared(data, __musoqPattern0, fieldName: "Content"))
+                {
+                    var _interp_content_selected = new Comment();
+                    var __musoqReadResult0 = base.ParseNestedStatus(_interp_content_selected, ref __musoqTextInput, "Content");
+                    if (!__musoqReadResult0.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<ConfigLine>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                    }
+
+                    var _result_content_selected = __musoqReadResult0.Value!;
+                    var _content_selected = _result_content_selected;
+                    _content = _content_selected;
+                }
+                else
+                {
+                    var _interp_content_selected = new KeyValue();
+                    var __musoqReadResult1 = base.ParseNestedStatus(_interp_content_selected, ref __musoqTextInput, "Content");
+                    if (!__musoqReadResult1.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<ConfigLine>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                    }
+
+                    var _result_content_selected = __musoqReadResult1.Value!;
+                    var _content_selected = _result_content_selected;
+                    _content = _content_selected;
+                }
+
+                __parsedValue.Content = _content;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<ConfigLine>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<ConfigLine>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 text LogLine {
                 Timestamp: until ' ',
@@ -152,7 +152,7 @@ namespace GeneratedSample_Q17_TextParse
 
                                     var f = fChunkViewArray[fChunkViewOffset + fIndex];
                                     var _interpreter_LogLine = new Musoq.Generated.Interpreters.LogLine();
-                                    var lRows = _interpreter_LogLine.Parse(f.Line);
+                                    var lRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_LogLine, f.Line);
                                     if (lRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
@@ -176,7 +176,7 @@ namespace GeneratedSample_Q17_TextParse
 
                                     var f = fChunkViewList[fChunkViewOffset + fIndex];
                                     var _interpreter_LogLine = new Musoq.Generated.Interpreters.LogLine();
-                                    var lRows = _interpreter_LogLine.Parse(f.Line);
+                                    var lRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_LogLine, f.Line);
                                     if (lRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
@@ -198,7 +198,7 @@ namespace GeneratedSample_Q17_TextParse
 
                             var f = fChunk[fIndex];
                             var _interpreter_LogLine = new Musoq.Generated.Interpreters.LogLine();
-                            var lRows = _interpreter_LogLine.Parse(f.Line);
+                            var lRows = global::Musoq.Schema.Interpreters.InterpretationStatus.ParseText(_interpreter_LogLine, f.Line);
                             if (lRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
@@ -303,8 +303,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for text schema 'LogLine'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class LogLine : TextInterpreterBase<LogLine>, global::Musoq.Plugins.IJsonPayload
+    public sealed class LogLine : TextInterpreterBase<LogLine>, ITextInterpreterStatus<LogLine>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Timestamp", "Level", "Message" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(LogLine value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -348,26 +351,58 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "LogLine";
 
-        /// <inheritdoc/>
         public override LogLine ParseAt(ReadOnlySpan<char> data, int offset)
         {
-            ParsePosition = offset;
-            SetCurrentField(null);
-            var __parsedValue = new LogLine();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Timestamp");
-            var _timestamp = ReadUntil(data, " ", fieldName: "Timestamp");
-            __parsedValue.Timestamp = _timestamp;
-            RecordParsedField("Timestamp");
-            SetCurrentField("Level");
-            var _level = ReadUntil(data, " ", fieldName: "Level");
-            __parsedValue.Level = _level;
-            RecordParsedField("Level");
-            SetCurrentField("Message");
-            var _message = ReadRest(data, fieldName: "Message");
-            __parsedValue.Message = _message;
-            RecordParsedField("Message");
-            return __parsedValue;
+            var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
+            return ((global::Musoq.Schema.Interpreters.ITextInterpreterStatus<LogLine>)this).ReadAt(ref input, offset).GetValueOrThrow();
+        }
+
+        global::Musoq.Schema.Interpreters.ParseAttempt<LogLine> global::Musoq.Schema.Interpreters.ITextInterpreterStatus<LogLine>.ReadAt(ref global::Musoq.Schema.Interpreters.TextParseInput __musoqTextInput, int offset)
+        {
+            var data = __musoqTextInput.Text;
+            LogLine? __parsedValue = null;
+            try
+            {
+                ParsePosition = offset;
+                SetCurrentField(null);
+                __parsedValue = new LogLine();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Timestamp");
+                var __musoqReadResult0 = base.ReadUntilStatus(data, " ", fieldName: "Timestamp");
+                if (!__musoqReadResult0.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                }
+
+                var _timestamp = __musoqReadResult0.Value!;
+                __parsedValue.Timestamp = _timestamp;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Level");
+                var __musoqReadResult1 = base.ReadUntilStatus(data, " ", fieldName: "Level");
+                if (!__musoqReadResult1.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                }
+
+                var _level = __musoqReadResult1.Value!;
+                __parsedValue.Level = _level;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("Message");
+                var __musoqReadResult2 = base.ReadRestStatus(data, fieldName: "Message");
+                if (!__musoqReadResult2.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult2.Failure!);
+                }
+
+                var _message = __musoqReadResult2.Value!;
+                __parsedValue.Message = _message;
+                base.RecordParsedFieldSlot(2);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

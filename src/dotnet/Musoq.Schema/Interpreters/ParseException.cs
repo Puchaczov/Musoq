@@ -153,14 +153,22 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
     /// <summary>Returns a partial-result message with the ISE code and field context, excluding parser details.</summary>
     public string GetPartialInterpretationMessage()
     {
-        var target = GetInterpretationTarget();
-        var hasPosition = _hasPosition && Position >= 0;
+        return FormatPartialMessage(ErrorCode, SchemaName, FieldName, Position, _hasPosition);
+    }
+
+    internal static string FormatPartialMessage(ParseErrorCode errorCode, string schemaName, string? fieldName,
+        int errorPosition, bool positionAvailable)
+    {
+        var target = string.IsNullOrEmpty(fieldName) ? schemaName :
+            string.IsNullOrEmpty(schemaName) ? fieldName : $"{schemaName}.{fieldName}";
+        var formattedErrorCode = FormatErrorCode(errorCode);
+        var hasPosition = positionAvailable && errorPosition >= 0;
         if (string.IsNullOrEmpty(target) && !hasPosition)
-            return $"{FormattedErrorCode}: {GetSafeMessage(ErrorCode)}";
+            return $"{formattedErrorCode}: {GetSafeMessage(errorCode)}";
 
         var context = string.IsNullOrEmpty(target) ? "Error" : $"Error parsing {target}";
-        var position = hasPosition ? $" at position {Position}" : string.Empty;
-        return $"{FormattedErrorCode}: {context}{position}: {GetSafeMessage(ErrorCode)}";
+        var position = hasPosition ? $" at position {errorPosition}" : string.Empty;
+        return $"{formattedErrorCode}: {context}{position}: {GetSafeMessage(errorCode)}";
     }
 
     private DiagnosticInputLocation? CreateInputLocation()
@@ -205,17 +213,6 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
     private static string FormatErrorCode(ParseErrorCode errorCode)
     {
         return $"ISE{(int)errorCode:D4}";
-    }
-
-    private string GetInterpretationTarget()
-    {
-        if (string.IsNullOrEmpty(FieldName))
-            return SchemaName;
-
-        if (string.IsNullOrEmpty(SchemaName))
-            return FieldName;
-
-        return $"{SchemaName}.{FieldName}";
     }
 
     private enum InputPositionUnit

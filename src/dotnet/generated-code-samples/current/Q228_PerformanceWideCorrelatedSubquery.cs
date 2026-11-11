@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 SELECT a.Name,
        CASE WHEN EXISTS (
@@ -210,7 +210,7 @@ ExecutionPlan [compiled]
       Let [a_NullableValue: int? = a_sq_1.a.NullableValue]
       AppendShape [result <- ResultShape0(Name: a_Name, ExistsResult: CASE WHEN ApplyExists[Subquery0](a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue) THEN 'Y' ELSE 'N' END, NotExistsResult: CASE WHEN NOT ApplyExists[Subquery1](a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue) THEN 'Y' ELSE 'N' END, Lookup: __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value))]
     SortOwnedBuffer [result by Name ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 
   Subquery
 ExecutionPlan [Subquery0]
@@ -344,14 +344,14 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_3, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Name", typeof(string), 0), new Column("ExistsResult", typeof(string), 1), new Column("NotExistsResult", typeof(string), 2), new Column("Lookup", typeof(string), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.ExistsResult, __musoqShapeRow.NotExistsResult, __musoqShapeRow.Lookup);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -1220,7 +1220,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string Name, string ExistsResult, string NotExistsResult, string Lookup)
             {
@@ -1230,11 +1230,46 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 this.Lookup = Lookup;
             }
 
-            public string ExistsResult { get; }
-            public string Lookup { get; }
-            public string Name { get; }
-            public string NotExistsResult { get; }
+            public override int Count => 4;
+            public string ExistsResult { get; private set; }
+            public string Lookup { get; private set; }
+            public string Name { get; private set; }
+            public string NotExistsResult { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.ExistsResult = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.NotExistsResult = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Lookup = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))});
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.ExistsResult),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.NotExistsResult),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Lookup),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))};
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "ExistsResult" => true,
+                "NotExistsResult" => true,
+                "Lookup" => true,
+                _ => false
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.ExistsResult, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.NotExistsResult, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.Lookup, ref visitor);
+            }
         }
 
         private sealed class Statement0Row0

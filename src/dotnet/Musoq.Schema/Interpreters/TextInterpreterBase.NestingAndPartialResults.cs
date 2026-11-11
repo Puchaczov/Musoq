@@ -4,7 +4,7 @@ namespace Musoq.Schema.Interpreters;
 
 public abstract partial class TextInterpreterBase<TOut>
 {
-    private HashSet<string>? _partialParsedFields;
+    private ISet<string>? _partialParsedFields;
     private TOut? _partialParsedValue;
     private string? _currentFieldName;
 
@@ -29,7 +29,7 @@ public abstract partial class TextInterpreterBase<TOut>
         if (_partialParsedFields != null)
         {
             _partialParsedValue = value;
-            AttachPartialFieldNames(value, _partialParsedFields);
+            AttachPartialFieldNames(value, (IReadOnlySet<string>)_partialParsedFields);
         }
     }
 
@@ -80,7 +80,7 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Begins capturing successfully parsed fields for a partial result.
     /// </summary>
-    private PartialCaptureState BeginPartialCapture(HashSet<string> parsedFields)
+    private PartialCaptureState BeginPartialCapture(ISet<string> parsedFields)
     {
         var state = new PartialCaptureState(_partialParsedFields, _partialParsedValue, _currentFieldName);
         _partialParsedFields = parsedFields;
@@ -97,24 +97,16 @@ public abstract partial class TextInterpreterBase<TOut>
     }
 
     private readonly record struct PartialCaptureState(
-        HashSet<string>? ParsedFields,
+        ISet<string>? ParsedFields,
         TOut? ParsedValue,
         string? FieldName);
 
     private static ParseException AddNestedFieldContext(ParseException exception, string fieldName)
     {
-        var nestedFieldName = exception.FieldName;
-        var qualifiedFieldName = string.IsNullOrEmpty(nestedFieldName)
-            ? fieldName
-            : string.Equals(nestedFieldName, fieldName, StringComparison.OrdinalIgnoreCase) ||
-              nestedFieldName.StartsWith(fieldName + ".", StringComparison.OrdinalIgnoreCase)
-                ? nestedFieldName
-                : $"{fieldName}.{nestedFieldName}";
-
         return ParseException.ForText(
             exception.ErrorCode,
             exception.SchemaName,
-            qualifiedFieldName,
+            ParserFieldPath.Qualify(exception.FieldName, fieldName),
             exception.Position,
             exception.Details,
             exception);

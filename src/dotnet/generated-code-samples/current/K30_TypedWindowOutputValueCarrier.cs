@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Position, Sum(Amount) over (partition by Partition order by Position
     rows between 1 preceding and current row) as Total
@@ -46,7 +46,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, Total: resultSums[windowIndex])]
     SortOwnedBuffer [result by Position ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
     PhaseBoundary [Select]
 */
 

@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary ValidatedRecord {
                         Version: byte const 1,
@@ -302,8 +302,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'ValidatedRecord'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class ValidatedRecord : BytesInterpreterBase<ValidatedRecord>, global::Musoq.Plugins.IJsonPayload
+    public sealed class ValidatedRecord : BytesInterpreterBase<ValidatedRecord>, IBytesInterpreterStatus<ValidatedRecord>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Version", "Signature", "Kind" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(ValidatedRecord value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -347,29 +350,71 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "ValidatedRecord";
 
-        /// <inheritdoc/>
-        public override ValidatedRecord InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override ValidatedRecord InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<ValidatedRecord>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<ValidatedRecord>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new ValidatedRecord();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Version");
-            var _version = ReadByte(data);
-            Validate(_version == unchecked((byte)(1)), "Version", "Field 'Version' did not match the expected constant value.");
-            __parsedValue.Version = _version;
-            RecordParsedField("Version");
-            SetCurrentField("Signature");
-            var _signature = ReadBytes(data, 4);
-            Validate(BytesEqual(_signature, new byte[] { 202, 254, 186, 190 }), "Signature", "Field 'Signature' did not match the expected magic value.");
-            __parsedValue.Signature = _signature;
-            RecordParsedField("Signature");
-            SetCurrentField("Kind");
-            var _kind = ReadString(data, 4, System.Text.Encoding.ASCII);
-            Validate((_kind == "DATA" || _kind == "TEST"), "Kind", "Field 'Kind' value is not one of the allowed values.");
-            __parsedValue.Kind = _kind;
-            RecordParsedField("Kind");
-            return __parsedValue;
+            ValidatedRecord? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new ValidatedRecord();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Version");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _version = base.TakePreparedBytes(data, 1)[0];
+                if (base.ValidateWithStatus(_version == unchecked((byte)(1)), "Version", "Field 'Version' did not match the expected constant value.")is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                __parsedValue.Version = _version;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Signature");
+                var __musoqReadSize3 = 4;
+                if (base.PrepareByteArrayStatus(data, __musoqReadSize3)is { } __musoqReadFailure4)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure4);
+                }
+
+                var _signature = base.ReadPreparedByteArray(data, __musoqReadSize3);
+                if (base.ValidateWithStatus(BytesEqual(_signature, new byte[] { 202, 254, 186, 190 }), "Signature", "Field 'Signature' did not match the expected magic value.")is { } __musoqReadFailure5)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure5);
+                }
+
+                __parsedValue.Signature = _signature;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("Kind");
+                var __musoqReadSize6 = 4;
+                var __musoqReadEncoding7 = System.Text.Encoding.ASCII;
+                if (base.PrepareStringStatus(data, __musoqReadSize6)is { } __musoqReadFailure8)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure8);
+                }
+
+                var _kind = ReadString(data, __musoqReadSize6, __musoqReadEncoding7);
+                if (base.ValidateWithStatus((_kind == "DATA" || _kind == "TEST"), "Kind", "Field 'Kind' value is not one of the allowed values.")is { } __musoqReadFailure9)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, __musoqReadFailure9);
+                }
+
+                __parsedValue.Kind = _kind;
+                base.RecordParsedFieldSlot(2);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<ValidatedRecord>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

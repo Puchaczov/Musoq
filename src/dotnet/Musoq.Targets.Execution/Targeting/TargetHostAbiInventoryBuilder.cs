@@ -20,6 +20,14 @@ internal static class TargetHostAbiInventoryBuilder
         AddProfiling(runtimeContract, imports);
         AddLikeMatcher(runtimeContract, imports);
         AddRLikeMatcher(runtimeContract, imports);
+        if (runtimeContract.RequiresByteBufferSnapshots)
+            imports.Add(new TargetHostAbiImport(TargetHostAbiImportKind.ByteBufferSnapshot,
+                "owned-prefix-or-complete-snapshot", "byte-buffer-snapshot-v1", 1,
+                new TargetByteBufferSnapshotAbiDetails()));
+        if (runtimeContract.RequiresInterpretationStatus)
+            imports.Add(new TargetHostAbiImport(TargetHostAbiImportKind.InterpretationStatus,
+                "typed-parse-status-and-completion", "interpretation-status-v1", 1,
+                new TargetInterpretationStatusAbiDetails()));
         return new TargetHostAbiInventory(imports);
     }
 

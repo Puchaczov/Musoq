@@ -21,6 +21,9 @@ internal static partial class ExecutionOperationCatalog
         yield return Operation<ExecutionBinary>("expr.binary");
         yield return Operation<ExecutionUnary>("expr.unary");
         yield return Operation<ExecutionMethodCall>("expr.call");
+        yield return Operation<ExecutionByteBufferSnapshot>("expr.byte-buffer.snapshot");
+        yield return Operation<ExecutionByteBufferOperation>("expr.byte-buffer.operation");
+        yield return Operation<ExecutionByteBufferArgument>("expr.byte-buffer.argument");
         yield return Operation<ExecutionStrictCast>("expr.strict-cast");
         yield return Operation<ExecutionMethodTargetReuseCandidate>("optimizer.method-target-reuse");
         yield return Operation<ExecutionArrayAccess>("expr.array-access");

@@ -52,12 +52,14 @@ internal sealed class PhysicalPlanningPipeline
             shapeResolver);
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(optimizationResult.Decisions);
+        var inputPlanned = ByteBufferPlanner.Plan(optimizationResult.OptimizedPlan,
+            context.SchemaRegistry, context.CancellationToken);
 
         context.CancellationToken.ThrowIfCancellationRequested();
         return new PhysicalPlanningPipelineResult(
             new PhysicalPlanningArtifacts(
                 optimizationResult.InitialPlan,
-                optimizationResult.OptimizedPlan,
+                inputPlanned,
                 optimizationResult.OptimizedProperties.ToFacts(),
                 decisions,
                 optimizationResult.Trace));

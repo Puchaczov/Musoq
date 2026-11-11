@@ -38,8 +38,8 @@ public partial class InterpreterCodeGenTests
         Assert.Contains("public sealed class Header : BytesInterpreterBase<Header>", code);
         Assert.Contains("public int Magic { get; set; }", code);
         Assert.Contains("public short Version { get; set; }", code);
-        Assert.Contains("ReadInt32Le(data)", code);
-        Assert.Contains("ReadInt16Le(data)", code);
+        Assert.Contains("ReadInt32LittleEndian(base.TakePreparedBytes(data, 4))", code);
+        Assert.Contains("ReadInt16LittleEndian(base.TakePreparedBytes(data, 2))", code);
     }
 
     [TestMethod]
@@ -106,7 +106,7 @@ public partial class InterpreterCodeGenTests
 
         // Assert
         Assert.Contains("public byte Flags { get; set; }", code);
-        Assert.Contains("ReadByte(data)", code);
+        Assert.Contains("base.TakePreparedBytes(data, 1)[0]", code);
         Assert.DoesNotContain("ReadByteLE", code);
         Assert.DoesNotContain("ReadByteBE", code);
     }
@@ -128,7 +128,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadInt32Be(data)", code);
+        Assert.Contains("ReadInt32BigEndian(base.TakePreparedBytes(data, 4))", code);
     }
 
     [TestMethod]
@@ -157,16 +157,16 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadByte(data)", code);
-        Assert.Contains("ReadSByte(data)", code);
-        Assert.Contains("ReadInt16Le(data)", code);
-        Assert.Contains("ReadUInt16Le(data)", code);
-        Assert.Contains("ReadInt32Le(data)", code);
-        Assert.Contains("ReadUInt32Le(data)", code);
-        Assert.Contains("ReadInt64Le(data)", code);
-        Assert.Contains("ReadUInt64Le(data)", code);
-        Assert.Contains("ReadSingleLe(data)", code);
-        Assert.Contains("ReadDoubleLe(data)", code);
+        Assert.Contains("base.TakePreparedBytes(data, 1)[0]", code);
+        Assert.Contains("unchecked((sbyte)base.TakePreparedBytes(data, 1)[0])", code);
+        Assert.Contains("ReadInt16LittleEndian(base.TakePreparedBytes(data, 2))", code);
+        Assert.Contains("ReadUInt16LittleEndian(base.TakePreparedBytes(data, 2))", code);
+        Assert.Contains("ReadInt32LittleEndian(base.TakePreparedBytes(data, 4))", code);
+        Assert.Contains("ReadUInt32LittleEndian(base.TakePreparedBytes(data, 4))", code);
+        Assert.Contains("ReadInt64LittleEndian(base.TakePreparedBytes(data, 8))", code);
+        Assert.Contains("ReadUInt64LittleEndian(base.TakePreparedBytes(data, 8))", code);
+        Assert.Contains("ReadSingleLittleEndian(base.TakePreparedBytes(data, 4))", code);
+        Assert.Contains("ReadDoubleLittleEndian(base.TakePreparedBytes(data, 8))", code);
     }
 
     [TestMethod]
@@ -214,7 +214,8 @@ public partial class InterpreterCodeGenTests
 
         // Assert
         Assert.Contains("public byte[] Data { get; set; }", code);
-        Assert.Contains("ReadBytes(data, 16)", code);
+        PreparedInterpreterReadAssertions.LiteralSize(code, "ReadPreparedByteArray", 16);
+        Assert.Contains("PrepareByteArrayStatus", code);
     }
 
     [TestMethod]
@@ -462,36 +463,5 @@ public partial class InterpreterCodeGenTests
             $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}");
     }
 
-    [TestMethod]
-    public void GenerateAll_OptionalDiscardField_ShouldGenerateTryCatchWithPositionRestore()
-    {
-        // Arrange
-        var registry = new SchemaRegistry();
-
-
-        var fields = new[]
-        {
-            new TextFieldDefinitionNode("Required", TextFieldType.Until, ":"),
-            new TextFieldDefinitionNode("_", TextFieldType.Literal, "\t", null,
-                TextFieldModifier.Optional),
-            new TextFieldDefinitionNode("Extra", TextFieldType.Rest)
-        };
-        var schema = new TextSchemaNode("LogEntry", fields);
-        registry.Register("LogEntry", schema);
-
-        var generator = new InterpreterCodeGenerator(registry);
-
-        // Act
-        var code = generator.GenerateAll();
-
-        // Assert
-
-        Assert.Contains("_savedPos_",
-            code, $"Expected position save for optional discard but got:\n{code}");
-        Assert.Contains("try",
-            code, $"Expected 'try' block for optional discard but got:\n{code}");
-        Assert.Contains("ExpectLiteral(data, \"\\t\", fieldName: \"_\")",
-            code, $"Expected 'ExpectLiteral' call but got:\n{code}");
-    }
 
 }

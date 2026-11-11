@@ -195,7 +195,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             {
                 var variable = new ExecutionVariable(
                     CreateVariableName(candidate.Expression),
-                    candidate.Expression.ReturnType, candidate.Expression.InterpretationShape?.TypeName);
+                    candidate.Expression.ReturnType, ExecutionGeneratedTypeName.For(candidate.Expression));
                 variables.Add(candidate.Signature, variable);
             }
 

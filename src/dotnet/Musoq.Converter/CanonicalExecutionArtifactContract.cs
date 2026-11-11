@@ -29,43 +29,49 @@ internal sealed record CanonicalExecutionArtifactContract(
     string CompilationOptionsFingerprint,
     string OrderedReferenceIdentities,
     string ProviderContractFingerprint,
-    string InterpreterState)
+    string InterpreterState,
+    CSharpArtifactCompilationIdentity? InterpreterCompilationIdentity = null)
 {
     public string NormalizedGeneratedSyntax => GeneratedSyntaxIdentity.Descriptor;
 }
 
 public static partial class InstanceCreator
 {
-    private static CanonicalExecutionArtifactContract CreateCanonicalExecutionArtifactContract(
+    private static CanonicalExecutionArtifactContract? CreateCanonicalExecutionArtifactContract(
         BuildItems items,
         ISchemaProvider schemaProvider,
         EvaluatorCompilationOptions compilationOptions,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var interpreterSource = items.InterpreterSourceCode;
+        var interpretation = interpreterSource is null
+            ? null
+            : InterpretationExecutableIdentity.TryCreate(
+                items.RenderingArtifacts,
+                TargetArtifactSemanticFactsFactory.From(items, cancellationToken),
+                cancellationToken);
+        if (interpreterSource is not null && interpretation is null)
+            return null;
+
         var generatedSyntaxIdentity = CSharpClrGeneratedCodeCompatibility.CreateStructuralIdentity(
             items.RenderingArtifacts.Artifact,
             cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        var referencesByName = new List<string>(items.AdditionalReferenceTypes.Count);
-        foreach (var type in items.AdditionalReferenceTypes)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            referencesByName.Add(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
-        }
-
-        referencesByName.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return StringComparer.Ordinal.Compare(left, right);
-        });
+        var references = interpretation?.Compilation.OrderedReferenceFingerprint ??
+                         GetAdditionalReferenceIdentity(items.AdditionalReferenceTypes, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        var references = string.Join("\n", referencesByName);
-        cancellationToken.ThrowIfCancellationRequested();
-        var runtimeContract = items.RenderingArtifacts.RuntimeContract?.ToString() ?? string.Empty;
+        var runtimeContract = interpretation?.RuntimeFingerprint ??
+                              items.RenderingArtifacts.RuntimeContract?.ToString() ??
+                              string.Empty;
         var outputType = items.OutputType?.AssemblyQualifiedName ?? string.Empty;
         var renderProfile = TargetRenderPurposeFactory.CreateProfile(items.CompilationPurpose, items.EmitPdb);
-        var providerContract = CreateCanonicalProviderContractSignature(schemaProvider, cancellationToken);
+        // Interpretation compares the freshly rendered contract and receives a
+        // new runtime binding. Provider instance fields are runtime data.
+        var providerContract = interpretation is null
+            ? CreateCanonicalProviderContractSignature(schemaProvider, cancellationToken)
+            : schemaProvider.GetType().AssemblyQualifiedName ?? schemaProvider.GetType().Name;
+        var optionsFingerprint = CompilationOptionsFingerprint.Compute(compilationOptions);
         var canonicalSemanticContractFingerprint = CompiledQueryArtifactSupport.ComputeHash(
             string.Join(
                 "\n",
@@ -76,11 +82,11 @@ public static partial class InstanceCreator
                 TargetRenderProfileContract.Version.ToString(),
                 items.QueryResultMode.ToString(),
                 outputType,
-                CompilationOptionsFingerprint.Compute(compilationOptions),
+                optionsFingerprint,
                 references,
                 providerContract,
                 runtimeContract,
-                items.InterpreterSourceCode ?? string.Empty));
+                interpreterSource ?? string.Empty));
         cancellationToken.ThrowIfCancellationRequested();
 
         return new CanonicalExecutionArtifactContract(
@@ -93,10 +99,31 @@ public static partial class InstanceCreator
             TargetRenderProfileContract.Version,
             items.QueryResultMode.ToString(),
             outputType,
-            CompilationOptionsFingerprint.Compute(compilationOptions),
+            optionsFingerprint,
             references,
             providerContract,
-            items.InterpreterSourceCode ?? string.Empty);
+            interpreterSource ?? string.Empty,
+            interpretation?.Compilation);
+    }
+
+    private static string GetAdditionalReferenceIdentity(
+        IReadOnlyCollection<Type> referenceTypes,
+        CancellationToken cancellationToken)
+    {
+        var referencesByName = new List<string>(referenceTypes.Count);
+        foreach (var type in referenceTypes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            referencesByName.Add(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
+        }
+
+        referencesByName.Sort((left, right) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return StringComparer.Ordinal.Compare(left, right);
+        });
+        cancellationToken.ThrowIfCancellationRequested();
+        return string.Join("\n", referencesByName);
     }
 
     private static string CreateCanonicalProviderContractSignature(

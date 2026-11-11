@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Schema.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,11 +14,13 @@ namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
 internal static partial class SourcePlanningPlanner
 {
-    private static (SourcePlanResult Result, SourceDescriptor Descriptor, SourcePlanRequest Request) PlanSource(
+    private static (SourcePlanResult Result, SourceDescriptor Descriptor, SourcePlanRequest Request,
+        SourceComputedProjectionAnalysis Computed) PlanSource(
         PlanningContext context,
         SchemaScanNode scan,
         SchemaFromNode? sourceNode,
-        SourcePlanRequest request)
+        SourcePlanRequest request,
+        IReadOnlyList<RequiredColumnUsage> usages)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         request = request with { CancellationToken = context.CancellationToken };
@@ -94,11 +97,14 @@ internal static partial class SourcePlanningPlanner
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
 
-        request = request with
+        var computed = SourceComputedProjectionPlanner.Analyze(context, request.Identity.SourceContextId, descriptor, usages);
+        if (computed.Offers.Count > 0)
         {
-            RequestedComputedProjections = SourceComputedProjectionPlanner.Candidates(context,
-                request.Identity.SourceContextId, descriptor).Select(item => item.Projection).ToArray()
-        };
+            request = request with
+            {
+                RequestedComputedProjections = computed.Offers.Select(static item => item.Projection).ToArray()
+            };
+        }
         var sourceSpan = ResolveSourceSpan(sourceNode);
         SourcePredicatePlanContractValidator.ValidateCapabilities(
             descriptor.PredicateCapabilities,
@@ -168,7 +174,7 @@ internal static partial class SourcePlanningPlanner
         result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
         result = SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
-        return (result, descriptor, request);
+        return (result, descriptor, request, computed);
     }
 
     private static SourceDescriptor ValidateQueryScopedRowsCapability(

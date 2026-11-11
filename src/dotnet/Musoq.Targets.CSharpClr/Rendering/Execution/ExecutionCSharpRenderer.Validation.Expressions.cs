@@ -70,6 +70,12 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionBinary binary => CanRenderBinary(binary),
             ExecutionUnary unary => CanRenderUnary(unary),
             ExecutionMethodCall methodCall => CanRenderMethodCall(methodCall),
+            ExecutionByteBufferSnapshot { Program: { } program } => program.Children.All(CanRenderExpression),
+            ExecutionByteBufferSnapshot snapshot => snapshot.Arguments.All(CanRenderExpression),
+            ExecutionByteBufferOperation { Program: { } program } => program.Children.All(CanRenderExpression),
+            ExecutionByteBufferOperation { ViewAccess: not null } view => CanRenderExpression(view.Original),
+            ExecutionByteBufferOperation buffer => buffer.Materialization == ExecutionByteBufferMaterialization.OriginalCallable && CanRenderExpression(buffer.Original),
+            ExecutionByteBufferArgument => true,
             ExecutionStrictCast strictCast => CanRenderExpression(strictCast.Expression) &&
                                               CanReferenceType(strictCast.ReturnType),
             ExecutionMethodTargetReuseCandidate candidate => CanRenderMethodCall(candidate.MethodCall),

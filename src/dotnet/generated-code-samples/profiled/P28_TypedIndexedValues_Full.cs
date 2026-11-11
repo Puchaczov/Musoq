@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Position, Numbers[-1] as Last, Numbers[8] as Missing,
     Amounts[1] as NullableAmount, Costs['present'] as Cost, Costs['missing'] as MissingCost
@@ -58,7 +58,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: ko3iko.Position, Last: GetTypedReadOnlyListElement(numbers, -1), Missing: GetTypedReadOnlyListElement(numbers, 8), NullableAmount: GetTypedReadOnlyListElement(ko3iko.Amounts, 1), Cost: GetTypedDictionaryValue(costs, 'present'), MissingCost: GetTypedDictionaryValue(costs, 'missing'))]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -108,28 +108,28 @@ namespace GeneratedSample_P28_TypedIndexedValues_Full
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Position", typeof(int), 0), new Column("Last", typeof(int), 1), new Column("Missing", typeof(int), 2), new Column("NullableAmount", typeof(decimal?), 3), new Column("Cost", typeof(decimal), 4), new Column("MissingCost", typeof(decimal), 5) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("Position", typeof(int), 0), new Column("Last", typeof(int), 1), new Column("Missing", typeof(int), 2), new Column("NullableAmount", typeof(decimal?), 3), new Column("Cost", typeof(decimal), 4), new Column("MissingCost", typeof(decimal), 5) }, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Last, __musoqShapeRow.Missing, __musoqShapeRow.NullableAmount, __musoqShapeRow.Cost, __musoqShapeRow.MissingCost);
+                yield return __musoqShapeRow;
             }
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
             {
-                yield return new ResultRow0(__musoqShapeRow.Position, __musoqShapeRow.Last, __musoqShapeRow.Missing, __musoqShapeRow.NullableAmount, __musoqShapeRow.Cost, __musoqShapeRow.MissingCost);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -450,7 +450,7 @@ namespace GeneratedSample_P28_TypedIndexedValues_Full
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(int Position, int Last, int Missing, decimal? NullableAmount, decimal Cost, decimal MissingCost, int __ordinal)
             {
@@ -463,13 +463,59 @@ namespace GeneratedSample_P28_TypedIndexedValues_Full
                 this.__ordinal = __ordinal;
             }
 
-            public decimal Cost { get; }
-            public int Last { get; }
-            public int Missing { get; }
-            public decimal MissingCost { get; }
-            public decimal? NullableAmount { get; }
-            public int Position { get; }
-            public int __ordinal { get; }
+            public decimal Cost { get; private set; }
+            public override int Count => 6;
+            public int Last { get; private set; }
+            public int Missing { get; private set; }
+            public decimal MissingCost { get; private set; }
+            public decimal? NullableAmount { get; private set; }
+            public int Position { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Last = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Missing = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.NullableAmount = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Cost = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal, T>(value)),
+                    5 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.MissingCost = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Position),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Last),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.Missing),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.NullableAmount),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.Cost),
+                5 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal>(this.MissingCost),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Position" => true,
+                "Last" => true,
+                "Missing" => true,
+                "NullableAmount" => true,
+                "Cost" => true,
+                "MissingCost" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Position, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Last, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.Missing, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.NullableAmount, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.Cost, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(5, this.MissingCost, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>

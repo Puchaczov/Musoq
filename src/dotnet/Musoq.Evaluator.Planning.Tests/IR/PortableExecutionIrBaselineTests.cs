@@ -45,12 +45,22 @@ public sealed class PortableExecutionIrBaselineTests
             concreteTypes.Select(static type => type.FullName)
                 .Concat(clrShapedMembers.Select(static member => $"clr:{member}")));
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(inventory)));
+        var originalInventory = string.Join("\n", concreteTypes
+            .Where(type => type.Name != nameof(ExecutionByteBufferOperation) && type.Name != nameof(ExecutionByteBufferArgument))
+            .Select(static type => type.FullName)
+            .Concat(clrShapedMembers.Select(static member => $"clr:{member}")));
+        var originalHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(originalInventory)));
         Assert.AreEqual(89, nodeCount);
-        Assert.AreEqual(53, expressionCount);
+        Assert.AreEqual(54, concreteTypes.Count(type => type.Name != nameof(ExecutionByteBufferOperation) && type.Name != nameof(ExecutionByteBufferArgument) &&
+            CompilerContractSymbols.For(typeof(ExecutionExpression)).IsAssignableFrom(type)));
+        Assert.AreEqual(56, expressionCount);
         Assert.AreEqual(7, rowShapeCount);
         Assert.AreEqual(0, clrShapedMembers.Length);
         Assert.AreEqual(
-            "8CBB0F211787A33A7D7A7B1155F47097C10AA699B251BA4BD72A7A0CAA3CFD1D",
+            "29967EDF7730AA20AFECE0AC6AB1C86CC153E2835ECDEA2A73D1DDB9738FB9FD",
+            originalHash);
+        Assert.AreEqual(
+            "C3E8ADC8114158ACB8298ED1DB4604B0B354361B21A9268B4289B28806D25E37",
             hash,
             $"Current inventory hash: {hash}");
     }

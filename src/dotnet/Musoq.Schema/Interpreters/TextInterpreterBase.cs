@@ -8,7 +8,7 @@ namespace Musoq.Schema.Interpreters;
 ///     Generated interpreter classes inherit from this class.
 /// </summary>
 /// <typeparam name="TOut">The type of the parsed result object.</typeparam>
-public abstract partial class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
+public abstract partial class TextInterpreterBase<TOut> : ITextInterpreter<TOut>, ITextInterpreterStatus<TOut>
 {
     /// <summary>
     ///     Static cache for compiled regex patterns to avoid repeated compilation overhead.
@@ -54,16 +54,9 @@ public abstract partial class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     /// <inheritdoc />
     public bool TryParse(ReadOnlySpan<char> text, out TOut? result)
     {
-        try
-        {
-            result = Parse(text);
-            return true;
-        }
-        catch (ParseException)
-        {
-            result = default;
-            return false;
-        }
+        var attempt = InterpretationStatus.ReadAt(this, text, 0);
+        result = attempt.Succeeded ? attempt.Value : default;
+        return attempt.Succeeded;
     }
 
     /// <summary>

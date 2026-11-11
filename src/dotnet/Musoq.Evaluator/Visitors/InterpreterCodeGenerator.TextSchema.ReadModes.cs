@@ -11,8 +11,7 @@ public partial class InterpreterCodeGenerator
         var escapedLiteral = InterpretationStringLiterals.EscapeCSharpString(field.PrimaryValue ?? string.Empty);
         var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
         var modifierArgs = GenerateModifierArgs(field.Modifiers);
-        var read = $"ExpectLiteral(data, \"{escapedLiteral}\", fieldName: \"{fieldName}\"{modifierArgs})";
-        return isDiscard ? $"{read};" : $"var {localVar} = {read};";
+        return TextStatusRead(localVar, $"base.ExpectLiteralStatus(ref {_textInputName}, \"{escapedLiteral}\", fieldName: \"{fieldName}\"{modifierArgs})", isDiscard);
     }
 
     private string GenerateUntilCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -22,8 +21,7 @@ public partial class InterpreterCodeGenerator
         var greedinessArgs = GenerateGreedinessArgs(field.Modifiers);
         var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
 
-        if (isDiscard) return $"_ = ReadUntil(data, \"{escapedDelimiter}\"{modifierArgs}{greedinessArgs}, fieldName: \"{fieldName}\");";
-        return $"var {localVar} = ReadUntil(data, \"{escapedDelimiter}\"{modifierArgs}{greedinessArgs}, fieldName: \"{fieldName}\");";
+        return TextStatusRead(localVar, $"base.ReadUntilStatus(data, \"{escapedDelimiter}\"{modifierArgs}{greedinessArgs}, fieldName: \"{fieldName}\")", isDiscard);
     }
 
     private string GenerateBetweenCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -39,10 +37,7 @@ public partial class InterpreterCodeGenerator
         var fieldNameArg = $", fieldName: \"{InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field))}\"";
         var modifierArgs = GenerateModifierArgs(field.Modifiers);
 
-        if (isDiscard)
-            return $"_ = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{escapedArg}{escapeCharacterArg}{modifierArgs}{fieldNameArg});";
-        return
-            $"var {localVar} = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{escapedArg}{escapeCharacterArg}{modifierArgs}{fieldNameArg});";
+        return TextStatusRead(localVar, $"base.ReadBetweenStatus(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{escapedArg}{escapeCharacterArg}{modifierArgs}{fieldNameArg})", isDiscard);
     }
 
     private string GenerateCharsCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -51,8 +46,7 @@ public partial class InterpreterCodeGenerator
         var modArgs = GenerateModifierArgs(field.Modifiers);
         var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
 
-        if (isDiscard) return $"_ = ReadChars(data, {count}{modArgs}, fieldName: \"{fieldName}\");";
-        return $"var {localVar} = ReadChars(data, {count}{modArgs}, fieldName: \"{fieldName}\");";
+        return TextStatusRead(localVar, $"base.ReadCharsStatus(data, {count}{modArgs}, fieldName: \"{fieldName}\")", isDiscard);
     }
 
     private string GenerateTokenCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -60,8 +54,7 @@ public partial class InterpreterCodeGenerator
         var modifierArgs = GenerateModifierArgs(field.Modifiers);
         var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
 
-        if (isDiscard) return $"_ = ReadToken(data{modifierArgs}, fieldName: \"{fieldName}\");";
-        return $"var {localVar} = ReadToken(data{modifierArgs}, fieldName: \"{fieldName}\");";
+        return TextStatusRead(localVar, $"base.ReadTokenStatus(data{modifierArgs}, fieldName: \"{fieldName}\")", isDiscard);
     }
 
     private string GenerateRestCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -69,8 +62,7 @@ public partial class InterpreterCodeGenerator
         var modArgs = GenerateModifierArgs(field.Modifiers);
         var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
 
-        if (isDiscard) return $"_ = ReadRest(data{modArgs}, fieldName: \"{fieldName}\");";
-        return $"var {localVar} = ReadRest(data{modArgs}, fieldName: \"{fieldName}\");";
+        return TextStatusRead(localVar, $"base.ReadRestStatus(data{modArgs}, fieldName: \"{fieldName}\")", isDiscard);
     }
 
     private string GenerateWhitespaceCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -79,43 +71,43 @@ public partial class InterpreterCodeGenerator
         var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
 
         if (!isDiscard)
-            return $"var {localVar} = ReadWhitespace(data, \"{InterpretationStringLiterals.EscapeCSharpString(quantifier)}\"{GenerateModifierArgs(field.Modifiers)}, fieldName: \"{fieldName}\");";
+            return StatusRead(localVar, $"base.ReadWhitespaceStatus(data, \"{InterpretationStringLiterals.EscapeCSharpString(quantifier)}\"{GenerateModifierArgs(field.Modifiers)}, fieldName: \"{fieldName}\")");
 
         return quantifier switch
         {
-            "+" => $"SkipWhitespace(data, true, fieldName: \"{fieldName}\");",
-            "*" => $"SkipWhitespace(data, false, fieldName: \"{fieldName}\");",
-            "?" => $"SkipOptionalWhitespace(data, fieldName: \"{fieldName}\");",
-            _ => "SkipWhitespace(data, true);"
+            "+" => StatusCheck($"base.SkipWhitespaceStatus(data, true, fieldName: \"{fieldName}\")"),
+            "*" => StatusCheck($"base.SkipWhitespaceStatus(data, false, fieldName: \"{fieldName}\")"),
+            "?" => StatusCheck($"base.SkipOptionalWhitespaceStatus(data, fieldName: \"{fieldName}\")"),
+            _ => StatusCheck("base.SkipWhitespaceStatus(data, true)")
         };
     }
 
     private string GeneratePatternCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
-        var escapedPattern = InterpretationStringLiterals.EscapeCSharpRegexString(field.PrimaryValue ?? string.Empty);
+        var pattern = _textPatterns[field];
+        var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
 
-        if (field.CaptureGroups.Length > 0 && !isDiscard)
-        {
-            var builder = new StringBuilder();
-            var matchVar = $"_match_{localVar}";
-            var captureClassName = $"CaptureResult_{field.Name}";
-            var fieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
-            var greedinessArgs = GenerateGreedinessArgs(field.Modifiers);
-            var postCaptureArgs = GeneratePostCaptureModifierArgs(field.Modifiers);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {matchVar} = ReadPatternMatch(data, @\"{escapedPattern}\", fieldName: \"{fieldName}\"{greedinessArgs});");
-            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar} = {matchVar}.Success ? new {captureClassName} {{ ");
-            var groupInits = new List<string>();
-            foreach (var group in field.CaptureGroups)
-                groupInits.Add($"{EscapeCSharpIdentifier(group)} = ApplyModifiers({matchVar}.Groups[\"{InterpretationStringLiterals.EscapeCSharpString(group)}\"].Value{postCaptureArgs})");
-            builder.Append(string.Join(", ", groupInits));
-            builder.AppendLine(" } : null;");
-            return builder.ToString();
-        }
+        if (isDiscard)
+            return StatusCheck($"base.SkipPreparedPatternStatus(data, {pattern.Name}, \"{fieldName}\")");
+        if (pattern.Pattern.CaptureGroups.Count == 0)
+            return StatusRead(localVar, $"base.ReadPreparedPatternStatus(data, {pattern.Name}, \"{fieldName}\")");
 
-        var patternFieldName = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
-        var patternModifierArgs = GenerateModifierArgs(field.Modifiers);
-        var patternGreedinessArgs = GenerateGreedinessArgs(field.Modifiers);
-        if (isDiscard) return $"_ = ReadPattern(data, @\"{escapedPattern}\", fieldName: \"{patternFieldName}\"{patternGreedinessArgs}{patternModifierArgs});";
-        return $"var {localVar} = ReadPattern(data, @\"{escapedPattern}\", fieldName: \"{patternFieldName}\"{patternGreedinessArgs}{patternModifierArgs});";
+        return GeneratePreparedCaptureRead(field.Name, localVar, fieldName, pattern);
+    }
+
+    private string GeneratePreparedCaptureRead(string field, string localVar, string fieldName,
+        PreparedPatternMember pattern)
+    {
+        var builder = new StringBuilder();
+        var matchVar = NextStatusName("__musoqMatch");
+        builder.Append(StatusRead(matchVar,
+            $"base.ReadPreparedPatternMatchStatus(ref {_textInputName}, {pattern.Name}, \"{fieldName}\")"));
+        builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar} = new CaptureResult_{field} {{ ");
+        var groupInits = new List<string>(pattern.Pattern.CaptureGroups.Count);
+        for (var slot = 0; slot < pattern.Pattern.CaptureGroups.Count; slot++)
+            groupInits.Add($"{EscapeCSharpIdentifier(pattern.Pattern.CaptureGroups[slot])} = GetPreparedCapture({pattern.Name}, {matchVar}, {slot})");
+        builder.Append(string.Join(", ", groupInits));
+        builder.AppendLine(" };");
+        return builder.ToString();
     }
 }

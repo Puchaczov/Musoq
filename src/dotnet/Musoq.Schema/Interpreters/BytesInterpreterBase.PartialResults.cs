@@ -4,7 +4,7 @@ namespace Musoq.Schema.Interpreters;
 
 public abstract partial class BytesInterpreterBase<TOut>
 {
-    private HashSet<string>? _partialParsedFields;
+    private ISet<string>? _partialParsedFields;
     private TOut? _partialParsedValue;
     private string? _currentFieldName;
 
@@ -49,7 +49,7 @@ public abstract partial class BytesInterpreterBase<TOut>
         if (_partialParsedFields != null)
         {
             _partialParsedValue = value;
-            AttachPartialFieldNames(value, _partialParsedFields);
+            AttachPartialFieldNames(value, (IReadOnlySet<string>)_partialParsedFields);
         }
     }
 
@@ -148,7 +148,7 @@ public abstract partial class BytesInterpreterBase<TOut>
     /// <returns>A PartialInterpretResult containing either the full result or error information with partial fields.</returns>
     public virtual PartialInterpretResult<TOut> PartialInterpret(ReadOnlySpan<byte> data)
     {
-        var parsedFields = new HashSet<string>(StringComparer.Ordinal);
+        var parsedFields = CreateCompletionSet();
         var previousParsedValue = _partialParsedValue;
         _partialParsedValue = default;
         var previousParsedFields = _partialParsedFields;
@@ -158,14 +158,12 @@ public abstract partial class BytesInterpreterBase<TOut>
 
         try
         {
-            var result = Interpret(data);
-
-            return new PartialInterpretResult<TOut>(result, parsedFields, BytesConsumed, BitOffset);
-        }
-        catch (ParseException ex)
-        {
-            return new PartialInterpretResult<TOut>(_partialParsedValue, parsedFields, BytesConsumed,
-                ex.FieldName ?? _currentFieldName ?? "Unknown", ex.GetPartialInterpretationMessage(), BitOffset);
+            var attempt = InterpretationStatus.ReadAt(this, data, 0);
+            if (attempt.Succeeded)
+                return new PartialInterpretResult<TOut>(attempt.Value!, (IReadOnlySet<string>)parsedFields, BytesConsumed, BitOffset);
+            var failure = attempt.Failure!;
+            return new PartialInterpretResult<TOut>(attempt.Value, (IReadOnlySet<string>)parsedFields, BytesConsumed,
+                failure.FieldName ?? _currentFieldName ?? "Unknown", failure.GetPartialInterpretationMessage(), BitOffset);
         }
         finally
         {
@@ -180,18 +178,10 @@ public abstract partial class BytesInterpreterBase<TOut>
         string fieldName,
         int? positionOverride = null)
     {
-        var nestedFieldName = exception.FieldName;
-        var qualifiedFieldName = string.IsNullOrEmpty(nestedFieldName)
-            ? fieldName
-            : string.Equals(nestedFieldName, fieldName, StringComparison.OrdinalIgnoreCase) ||
-              nestedFieldName.StartsWith(fieldName + ".", StringComparison.OrdinalIgnoreCase)
-                ? nestedFieldName
-                : $"{fieldName}.{nestedFieldName}";
-
         return ParseException.ForBytes(
             exception.ErrorCode,
             exception.SchemaName,
-            qualifiedFieldName,
+            ParserFieldPath.Qualify(exception.FieldName, fieldName),
             positionOverride ?? exception.Position,
             exception.Details,
             exception);

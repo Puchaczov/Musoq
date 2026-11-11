@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary SampleReading { Score: int le } select batch.Label, reading.Score from #fixture.batches('demo', false) batch cross apply #fixture.samples(batch.Key) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading
 */
@@ -504,8 +504,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'SampleReading'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class SampleReading : BytesInterpreterBase<SampleReading>, global::Musoq.Plugins.IJsonPayload
+    public sealed class SampleReading : BytesInterpreterBase<SampleReading>, IBytesInterpreterStatus<SampleReading>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Score" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(SampleReading value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -531,18 +534,35 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "SampleReading";
 
-        /// <inheritdoc/>
-        public override SampleReading InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override SampleReading InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<SampleReading>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<SampleReading>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new SampleReading();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("Score");
-            var _score = ReadInt32Le(data);
-            __parsedValue.Score = _score;
-            RecordParsedField("Score");
-            return __parsedValue;
+            SampleReading? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new SampleReading();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("Score");
+                if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading>.Failed(__parsedValue, __musoqReadFailure1);
+                }
+
+                var _score = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Score = _score;
+                base.RecordParsedFieldSlot(0);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

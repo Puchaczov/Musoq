@@ -7,12 +7,23 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static MemberDeclarationSyntax RenderGeneratedRecordClass(GeneratedRecordShape shape)
+    private static MemberDeclarationSyntax RenderGeneratedRecordClass(GeneratedRecordShape shape, FinalOutputPlan? output)
     {
+        if (output is { ReturnsOwnedRows: true, OwnedBuffer: { } owned } && owned.CarrierTypeName == shape.TypeName)
+            return RenderOwnedResultRowClass(shape.TypeName, shape.Fields, output.Result.ShapeFields);
+
         if (shape.EmitAsValueType)
             return RenderRowCarrierStruct(shape.TypeName, shape.Fields, GetGeneratedFieldName);
 
         return RenderRowCarrierClass(shape.TypeName, shape.Fields, GetGeneratedFieldName);
+    }
+
+    private static ClassDeclarationSyntax RenderOwnedResultRowClass(string typeName,
+        IReadOnlyList<FieldBinding> storageFields, IReadOnlyList<FieldBinding> visibleFields)
+    {
+        var members = CreateRowCarrierMembers(typeName, storageFields, GetGeneratedFieldName, includePrivateSetters: true);
+        members.AddRange(CreateResultRowContractMembers(visibleFields));
+        return CreateResultRowClass(typeName, members);
     }
 
     private static ClassDeclarationSyntax RenderRowCarrierClass(
@@ -42,13 +53,14 @@ public sealed partial class ExecutionCSharpRenderer
     private static List<MemberDeclarationSyntax> CreateRowCarrierMembers(
         string typeName,
         IReadOnlyList<FieldBinding> fields,
-        Func<FieldBinding, string> resolvePropertyName)
+        Func<FieldBinding, string> resolvePropertyName,
+        bool includePrivateSetters = false)
     {
         var members = new List<MemberDeclarationSyntax>
         {
             CreateRowCarrierConstructor(typeName, fields, resolvePropertyName)
         };
-        members.AddRange(fields.Select(field => CreateRowCarrierProperty(field, resolvePropertyName)));
+        members.AddRange(fields.Select(field => CreateRowCarrierProperty(field, resolvePropertyName, includePrivateSetters)));
         return members;
     }
 

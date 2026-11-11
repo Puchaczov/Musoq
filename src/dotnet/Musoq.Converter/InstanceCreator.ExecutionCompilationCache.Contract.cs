@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Musoq.Converter.Build;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Schema;
 
@@ -21,6 +22,7 @@ public static partial class InstanceCreator
         cancellationToken.ThrowIfCancellationRequested();
         var facts = TargetArtifactSemanticFactsFactory.From(items, cancellationToken);
         var builder = new StringBuilder();
+        builder.Append(ByteBufferCallableSemantics.Contract).AppendLine();
         builder.Append(CompiledQueryArtifactSupport.ComputeSemanticShapeHash(
             facts,
             "<execution-cache>",

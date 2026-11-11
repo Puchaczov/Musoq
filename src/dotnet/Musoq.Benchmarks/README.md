@@ -12,6 +12,22 @@ cases. There is no overall score. All projects are non-packable and independent 
 - **Musoq.Benchmarks** contains ordinary BenchmarkDotNet classes and the campaign infrastructure.
 - **Musoq.Benchmarks.Tests** independently checks complete small resultsets using those exact shared queries.
 
+## Workload scope and overnight budget
+
+The canonical suite represents real query workflows. Deterministic generated fixtures may model those
+workflows. Artificial conversion round trips and isolated optimizer stress expressions belong in focused
+development experiments and correctness regression tests outside the canonical catalog.
+
+The complete Official campaign targets **ten hours**, with a **twelve-hour overnight ceiling**, on its
+declared machine/runtime profile. Include preflight, compilation, process launches and every standard
+input size in that wall-clock budget. Workload admission requires a representative use case and measured
+runtime cost, with headroom for normal variation. Qualify the budget with a complete Official campaign;
+Local measurements or removing cases alone do not certify overnight completion.
+
+The runner has no overall timeout. Meet the budget through catalog selection and engine improvements,
+while preserving fixed measurement settings, input sizes and immutable evidence. An interrupted campaign
+remains incomplete.
+
 ## Run
 
 Use PowerShell 7 on Windows or Linux with the repository's pinned/compatible .NET 10 SDK:
@@ -43,8 +59,8 @@ Do not overlap measurements with builds, tests or other heavy work.
   fixture data during execution. Source construction and argument conversion remain part of query execution.
 - First compilation prepares inputs without compiling and measures one compile-and-dispose operation per
   fresh process. Its allocation metric stays unavailable because a memory rerun would observe warmed state.
-- Warmed compilation compiles once in setup and then measures compile-and-dispose. A warmed process does
-  not guarantee cache hits: interpretation schemas may emit again. No compilation probes run before timing.
+- Warmed compilation compiles once in setup before the framework's warm-up, then measures compile-and-dispose.
+  Artifact reuse depends on the compilation contract and cache state.
 - Artifact load compiles an in-memory artifact in setup, then loads/disposes an executable without Run.
 
 Correctness tests use four-row fixtures (plus focused empty/eight-row edge fixtures) and independent expected columns/types/nullability and complete rows.
@@ -91,7 +107,7 @@ are recorded in each case's arguments; row and snapshot limits retain the engine
 The structured source allows at least `1 + 3 * N` nodes: one collection root and one record plus two
 scalar fields per input row. Its node budget keeps the engine default as a minimum, and depth/string
 budgets retain their defaults. Effective structural limits are included in case arguments.
-The complete Official campaign has no overall duration limit and is not guaranteed to finish overnight.
+Full-campaign wall-clock qualification must include these expensive cases; see the overnight budget above.
 
 Local `-Size 1_000` replaces all selected execution sizes with one exact count. Underscores are accepted.
 Use `-Filter` for a subset or omit it for all workloads. Compilation and artifact-load cases retain the
@@ -105,10 +121,11 @@ widens binary values to `long` before SUM; its nullable total has type `long?`. 
 value offset defaults to zero and exists for deterministic small overflow regression tests, without adding
 a benchmark dimension.
 
-Recursive chunk decoding deliberately retains repeated remainder copying. A prior native Local Dry probe
-at 100,000 chunks took about 88 seconds for one measured execution and allocated about 136.7 GiB
-cumulatively. Those single-sample observations are not Official baselines or peak-memory measurements.
-Repeated Official measurements can take substantially longer.
+Recursive chunk decoding keeps its SQL round trip over the remaining buffer. The engine can replace
+the round trip with an owned snapshot of the readable prefix when it proves the schema read bound.
+Before this optimization, a native Local Dry probe at 100,000 chunks took about 88 seconds for one
+measured execution and allocated about 136.7 GiB cumulatively. The figures describe a single historical
+probe and report cumulative allocation.
 
 Artifact schema is v3. The suite label describes workloads; Latest selection uses the engine version.
 Recorded SQL and parameters let consumers review which work each point represents.
@@ -184,7 +201,8 @@ these commands. It never commits or pushes collected results.
 
 ## Add a workload
 
-1. Add SQL, description, input unit, specification reference and fixtures in the shared scenario project.
+1. Establish the real query workflow and its runtime cost within the complete overnight budget. Add SQL,
+   description, input unit, specification reference and fixtures in the shared scenario project.
 2. Add independently authored small expected columns/rows in the test project. The normal catalog automatically
    participates in mirrored tests and table benchmarks. Register specialized benchmark types in `BenchmarkRegistrations`.
 3. Run its small test and a filtered Dry check, then proper measurements when needed.

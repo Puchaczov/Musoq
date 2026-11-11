@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg, RowNumber() over (order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name) as MixedAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedAvgRowNo
 */
@@ -84,7 +84,7 @@ ExecutionPlan [compiled]
     ForEachIndexed [windowIndex, windowSource in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: windowSource.i.Name, RepeatedAvg: windowSource.RepeatedAvg, DistinctAvg: windowSource.DistinctAvg, MixedAvgRowNo: resultRowNumbers[windowIndex])]
     SortOwnedBuffer [result by MixedAvgRowNo ASC, stable sequence __musoqSequence]
-    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
+    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */
 
 // === Generated C# ===
@@ -136,14 +136,14 @@ namespace GeneratedSample_Q73_ChainedApplyMixedDistinctAvgAggregateWindow
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Name", typeof(string), 0), new Column("RepeatedAvg", typeof(decimal?), 1), new Column("DistinctAvg", typeof(decimal?), 2), new Column("MixedAvgRowNo", typeof(long), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.RepeatedAvg, __musoqShapeRow.DistinctAvg, __musoqShapeRow.MixedAvgRowNo);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -467,7 +467,7 @@ namespace GeneratedSample_Q73_ChainedApplyMixedDistinctAvgAggregateWindow
             }
         }
 
-        private sealed class ResultShape0
+        private sealed class ResultShape0 : Row
         {
             public ResultShape0(string Name, decimal? RepeatedAvg, decimal? DistinctAvg, long MixedAvgRowNo)
             {
@@ -477,11 +477,49 @@ namespace GeneratedSample_Q73_ChainedApplyMixedDistinctAvgAggregateWindow
                 this.MixedAvgRowNo = MixedAvgRowNo;
             }
 
-            public decimal? DistinctAvg { get; }
-            public long MixedAvgRowNo { get; }
-            public string Name { get; }
-            public decimal? RepeatedAvg { get; }
+            public override int Count => 4;
+            public decimal? DistinctAvg { get; private set; }
+            public long MixedAvgRowNo { get; private set; }
+            public string Name { get; private set; }
+            public decimal? RepeatedAvg { get; private set; }
             public int __musoqSequence { get; init; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.RepeatedAvg = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.DistinctAvg = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.MixedAvgRowNo = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<long, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.Name),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.RepeatedAvg),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.DistinctAvg),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, long>(this.MixedAvgRowNo),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Name" => true,
+                "RepeatedAvg" => true,
+                "DistinctAvg" => true,
+                "MixedAvgRowNo" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Name, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.RepeatedAvg, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.DistinctAvg, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.MixedAvgRowNo, ref visitor);
+            }
         }
 
         private readonly struct WindowResultRowNumbersOrderKeysKey : System.IEquatable<WindowResultRowNumbersOrderKeysKey>, System.IComparable<WindowResultRowNumbersOrderKeysKey>

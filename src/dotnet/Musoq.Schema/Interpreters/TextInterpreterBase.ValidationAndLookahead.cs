@@ -192,18 +192,14 @@ public abstract partial class TextInterpreterBase<TOut>
         var remaining = GetTextRemaining(text, fieldName).ToString();
 
 
-        var normalizedPattern = pattern.StartsWith(@"\G", StringComparison.Ordinal)
-            ? pattern[2..]
-            : pattern;
+        var normalizedPattern = TextPatternCompiler.Normalize(pattern);
         var anchoredPattern = normalizedPattern.StartsWith('^') ? normalizedPattern : "^" + normalizedPattern;
         Match match;
         try
         {
             var regex = RegexCache.GetOrAdd(
                 anchoredPattern,
-                p => new Regex(
-                    p,
-                    RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking));
+                static key => TextPatternCompiler.Compile(key, null));
             match = regex.Match(remaining);
         }
         catch (ArgumentException exception)

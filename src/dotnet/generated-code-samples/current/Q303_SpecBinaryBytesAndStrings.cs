@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 binary EncodedRecord {
                         FixedBytes: byte[4],
@@ -348,8 +348,11 @@ namespace Musoq.Generated.Interpreters
     /// Generated interpreter for binary schema 'EncodedRecord'.
     /// </summary>
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
-    public sealed class EncodedRecord : BytesInterpreterBase<EncodedRecord>, global::Musoq.Plugins.IJsonPayload
+    public sealed class EncodedRecord : BytesInterpreterBase<EncodedRecord>, IBytesInterpreterStatus<EncodedRecord>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "FixedBytes", "Length", "DynamicBytes", "AsciiValue", "Utf8Value", "Utf16Value", "LatinValue", "NullTermValue" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(EncodedRecord value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -438,46 +441,116 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override string SchemaName => "EncodedRecord";
 
-        /// <inheritdoc/>
-        public override EncodedRecord InterpretAt(ReadOnlySpan<byte> data, int offset)
+        public override EncodedRecord InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<EncodedRecord>)this).ReadAt(data, offset).GetValueOrThrow();
+        global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<EncodedRecord>.ReadAt(ReadOnlySpan<byte> data, int offset)
         {
-            InitializeParsePosition(data, offset);
-            SetCurrentField(null);
-            var __parsedValue = new EncodedRecord();
-            RecordParsedValue(__parsedValue);
-            SetCurrentField("FixedBytes");
-            var _fixedBytes = ReadBytes(data, 4);
-            __parsedValue.FixedBytes = _fixedBytes;
-            RecordParsedField("FixedBytes");
-            SetCurrentField("Length");
-            var _length = ReadByte(data);
-            __parsedValue.Length = _length;
-            RecordParsedField("Length");
-            SetCurrentField("DynamicBytes");
-            var _dynamicBytes = ReadBytes(data, ResolveExpressionSize<byte>(() => checked((byte?)(_length)), ParseErrorCode.InvalidSize));
-            __parsedValue.DynamicBytes = _dynamicBytes;
-            RecordParsedField("DynamicBytes");
-            SetCurrentField("AsciiValue");
-            var _asciiValue = ReadString(data, 4, System.Text.Encoding.ASCII).Trim();
-            __parsedValue.AsciiValue = _asciiValue;
-            RecordParsedField("AsciiValue");
-            SetCurrentField("Utf8Value");
-            var _utf8Value = ReadString(data, 8, System.Text.Encoding.UTF8).TrimEnd();
-            __parsedValue.Utf8Value = _utf8Value;
-            RecordParsedField("Utf8Value");
-            SetCurrentField("Utf16Value");
-            var _utf16Value = ReadString(data, 8, System.Text.Encoding.Unicode).Trim();
-            __parsedValue.Utf16Value = _utf16Value;
-            RecordParsedField("Utf16Value");
-            SetCurrentField("LatinValue");
-            var _latinValue = ReadString(data, 4, System.Text.Encoding.Latin1).TrimStart();
-            __parsedValue.LatinValue = _latinValue;
-            RecordParsedField("LatinValue");
-            SetCurrentField("NullTermValue");
-            var _nullTermValue = ReadNullTerminatedString(data, 8, System.Text.Encoding.ASCII);
-            __parsedValue.NullTermValue = _nullTermValue;
-            RecordParsedField("NullTermValue");
-            return __parsedValue;
+            EncodedRecord? __parsedValue = null;
+            try
+            {
+                if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure0);
+                }
+
+                SetCurrentField(null);
+                __parsedValue = new EncodedRecord();
+                RecordParsedValue(__parsedValue);
+                SetCurrentField("FixedBytes");
+                var __musoqReadSize1 = 4;
+                if (base.PrepareByteArrayStatus(data, __musoqReadSize1)is { } __musoqReadFailure2)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure2);
+                }
+
+                var _fixedBytes = base.ReadPreparedByteArray(data, __musoqReadSize1);
+                __parsedValue.FixedBytes = _fixedBytes;
+                base.RecordParsedFieldSlot(0);
+                SetCurrentField("Length");
+                if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure3)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure3);
+                }
+
+                var _length = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Length = _length;
+                base.RecordParsedFieldSlot(1);
+                SetCurrentField("DynamicBytes");
+                var __musoqReadResult5 = base.ResolveSizeValueStatus<byte>((byte?)(_length), ParseErrorCode.InvalidSize);
+                if (!__musoqReadResult5.Succeeded)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadResult5.Failure!);
+                }
+
+                var __musoqReadSize4 = __musoqReadResult5.Value!;
+                if (base.PrepareByteArrayStatus(data, __musoqReadSize4)is { } __musoqReadFailure6)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure6);
+                }
+
+                var _dynamicBytes = base.ReadPreparedByteArray(data, __musoqReadSize4);
+                __parsedValue.DynamicBytes = _dynamicBytes;
+                base.RecordParsedFieldSlot(2);
+                SetCurrentField("AsciiValue");
+                var __musoqReadSize7 = 4;
+                var __musoqReadEncoding8 = System.Text.Encoding.ASCII;
+                if (base.PrepareStringStatus(data, __musoqReadSize7)is { } __musoqReadFailure9)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure9);
+                }
+
+                var _asciiValue = ReadString(data, __musoqReadSize7, __musoqReadEncoding8).Trim();
+                __parsedValue.AsciiValue = _asciiValue;
+                base.RecordParsedFieldSlot(3);
+                SetCurrentField("Utf8Value");
+                var __musoqReadSize10 = 8;
+                var __musoqReadEncoding11 = System.Text.Encoding.UTF8;
+                if (base.PrepareStringStatus(data, __musoqReadSize10)is { } __musoqReadFailure12)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure12);
+                }
+
+                var _utf8Value = ReadString(data, __musoqReadSize10, __musoqReadEncoding11).TrimEnd();
+                __parsedValue.Utf8Value = _utf8Value;
+                base.RecordParsedFieldSlot(4);
+                SetCurrentField("Utf16Value");
+                var __musoqReadSize13 = 8;
+                var __musoqReadEncoding14 = System.Text.Encoding.Unicode;
+                if (base.PrepareStringStatus(data, __musoqReadSize13)is { } __musoqReadFailure15)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure15);
+                }
+
+                var _utf16Value = ReadString(data, __musoqReadSize13, __musoqReadEncoding14).Trim();
+                __parsedValue.Utf16Value = _utf16Value;
+                base.RecordParsedFieldSlot(5);
+                SetCurrentField("LatinValue");
+                var __musoqReadSize16 = 4;
+                var __musoqReadEncoding17 = System.Text.Encoding.Latin1;
+                if (base.PrepareStringStatus(data, __musoqReadSize16)is { } __musoqReadFailure18)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure18);
+                }
+
+                var _latinValue = ReadString(data, __musoqReadSize16, __musoqReadEncoding17).TrimStart();
+                __parsedValue.LatinValue = _latinValue;
+                base.RecordParsedFieldSlot(6);
+                SetCurrentField("NullTermValue");
+                var __musoqReadSize19 = 8;
+                var __musoqReadEncoding20 = System.Text.Encoding.ASCII;
+                if (base.PrepareNullTerminatedStringStatus(data, __musoqReadSize19)is { } __musoqReadFailure21)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure21);
+                }
+
+                var _nullTermValue = ReadNullTerminatedString(data, __musoqReadSize19, __musoqReadEncoding20);
+                __parsedValue.NullTermValue = _nullTermValue;
+                base.RecordParsedFieldSlot(7);
+                return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Success(__parsedValue);
+            }
+            catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+            {
+                return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
         }
     }
 }

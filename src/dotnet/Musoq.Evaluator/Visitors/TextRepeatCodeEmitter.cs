@@ -13,6 +13,8 @@ internal sealed record TextRepeatEmission(
     internal string? DiagnosticName { get; init; }
 
     internal int MaxRepeatIterations { get; init; } = InterpretationExecutionLimits.DefaultMaxRepeatIterations;
+    internal required string IterationCheck { get; init; }
+    internal required string ProgressCheck { get; init; }
 }
 
 internal static class TextRepeatCodeEmitter
@@ -58,10 +60,10 @@ internal static class TextRepeatCodeEmitter
     private static void AppendIteration(StringBuilder builder, TextRepeatEmission emission, string escapedFieldName)
     {
         var localName = emission.LocalName;
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatIteration(\"{escapedFieldName}\", _iteration_{localName}++, {emission.MaxRepeatIterations});");
+        builder.Append(emission.IterationCheck);
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _startPos_{localName} = ParsePosition;");
         builder.Append(emission.ReadCode);
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatMadeProgress(\"{escapedFieldName}\", _startPos_{localName});");
+        builder.Append(emission.ProgressCheck);
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    _list_{localName}.Add(_item_{localName});");
     }
 }

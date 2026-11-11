@@ -20,8 +20,8 @@ public partial class InterpreterCodeGenerator
 
         var builder = new StringBuilder();
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {interpreterVar} = new {schemaName}();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"var {resultVar} = ParseNested({interpreterVar}, data, \"{InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field))}\");");
+        builder.Append(StatusRead(resultVar,
+            $"base.ParseNestedStatus({interpreterVar}, ref {_textInputName}, \"{InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field))}\")"));
 
         if (isDiscard)
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"_ = {resultVar};");

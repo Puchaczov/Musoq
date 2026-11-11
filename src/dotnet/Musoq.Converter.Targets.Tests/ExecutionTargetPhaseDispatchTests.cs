@@ -56,7 +56,7 @@ public sealed class ExecutionTargetPhaseDispatchTests
     [TestMethod]
     [DataRow(1)]
     [DataRow(8)]
-    [DataRow(10)]
+    [DataRow(TargetContractVersions.HostAbi + 1)]
     public void Render_WhenHostAbiVersionIsUnsupported_ShouldRejectBeforeBackendRendering(int version)
     {
         var backend = new CapturingBackend();

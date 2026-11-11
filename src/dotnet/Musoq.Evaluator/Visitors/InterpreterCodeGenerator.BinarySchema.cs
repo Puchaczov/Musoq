@@ -40,8 +40,10 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("/// </summary>");
         builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, global::Musoq.Plugins.IJsonPayload{genericConstraints}");
+            $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, IBytesInterpreterStatus<{fullClassName}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload{genericConstraints}");
         builder.AppendLine("{");
+        var completion = CompletionLayoutCodeEmitter.Create(plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name));
+        builder.Append(completion);
         builder.Append(GenerateParentContextMembers(fullClassName));
         builder.Append(PartialPayloadCodeEmitter.Members(fullClassName));
         builder.Append(PartialPayloadCodeEmitter.JsonMembers(plan.Fields.Where(static field => field.EmitsProperty)
@@ -60,17 +62,17 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override string SchemaName => \"{className}\";");
         builder.AppendLine();
 
-        builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override {fullClassName} InterpretAt(ReadOnlySpan<byte> data, int offset)");
-        builder.AppendLine("    {");
-        builder.AppendLine("        InitializeParsePosition(data, offset);");
+        BeginStatusMethod(fullClassName);
+        builder.Append(InterpreterStatusCodeEmitter.BeginBinary(fullClassName));
+        builder.Append(StatusCheck("base.InitializeParsePositionStatus(data, offset)"));
         builder.AppendLine("        SetCurrentField(null);");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        var __parsedValue = new {fullClassName}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        __parsedValue = new {fullClassName}();");
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
         _discardCounter = 0;
 
+        var completionIndex = 0;
         foreach (var field in plan.Fields)
         {
             AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(field.Name)}\");");
@@ -88,12 +90,11 @@ public partial class InterpreterCodeGenerator
             if (field.EmitsProperty)
             {
                 AppendGeneratedLine(builder, $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};");
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(field.Name)}\");");
+                AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
 
-        builder.AppendLine("        return __parsedValue;");
-        builder.AppendLine("    }");
+        builder.Append(InterpreterStatusCodeEmitter.End(fullClassName));
 
         builder.AppendLine("}");
 
@@ -140,8 +141,9 @@ public partial class InterpreterCodeGenerator
 
             if (field.AtOffset != null)
             {
-                var offsetExpr = GenerateSizeExpression(field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    SeekTo({offsetExpr});");
+                var offset = NextStatusName("__musoqOffset");
+                builder.Append(StatusSizeDeclaration(offset, field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition));
+                builder.Append(StatusCheck($"base.SeekWithStatus({offset})"));
             }
 
             var innerReadCode = GenerateFieldReadCodeInner(field, localVar);
@@ -150,7 +152,7 @@ public partial class InterpreterCodeGenerator
             if (field.Constraint != null)
             {
                 var checkExpr = GenerateConditionExpression(field.Constraint.Expression);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    Validate(({checkExpr}) == true, \"{field.Name}\", \"Check constraint failed\");");
+                builder.Append(StatusCheck($"base.ValidateWithStatus(({checkExpr}) == true, \"{EscapeString(field.Name)}\", \"Check constraint failed\")"));
             }
 
             var valueValidationStatement = GenerateFieldValueValidationStatement(field, localVar);
@@ -163,8 +165,9 @@ public partial class InterpreterCodeGenerator
         {
             if (field.AtOffset != null)
             {
-                var offsetExpr = GenerateSizeExpression(field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"SeekTo({offsetExpr});");
+                var offset = NextStatusName("__musoqOffset");
+                builder.Append(StatusSizeDeclaration(offset, field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition));
+                builder.Append(StatusCheck($"base.SeekWithStatus({offset})"));
             }
 
             builder.AppendLine(GenerateFieldReadCode(field));
@@ -172,7 +175,7 @@ public partial class InterpreterCodeGenerator
             if (field.Constraint != null)
             {
                 var checkExpr = GenerateConditionExpression(field.Constraint.Expression);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Validate(({checkExpr}) == true, \"{field.Name}\", \"Check constraint failed\");");
+                builder.Append(StatusCheck($"base.ValidateWithStatus(({checkExpr}) == true, \"{EscapeString(field.Name)}\", \"Check constraint failed\")"));
             }
 
             var valueValidationStatement = GenerateFieldValueValidationStatement(field, localVar);

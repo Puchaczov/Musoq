@@ -24,7 +24,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Assert.Contains("TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys", sample.Content);
             Assert.Contains("private sealed class ResultRow0WithSortKeys", sample.Content);
             Assert.Contains("private sealed class ResultRow0 : Row", sample.Content);
-            Assert.IsFalse(sample.Content.Contains("ResultRow0WithSortKeys : Row", StringComparison.Ordinal));
+            Assert.Contains("ResultRow0WithSortKeys : Row", sample.Content);
+            Assert.Contains("yield return __musoqShapeRow;", sample.Content);
+            Assert.DoesNotContain("yield return new ResultRow0(", sample.Content);
             Assert.IsFalse(sample.Content.Contains("result.Rows.OrderBy", StringComparison.Ordinal));
             Assert.IsFalse(sample.Content.Contains("RowOrderKey", StringComparison.Ordinal));
             Assert.IsFalse(sample.Content.Contains("ProjectTable [", StringComparison.Ordinal));

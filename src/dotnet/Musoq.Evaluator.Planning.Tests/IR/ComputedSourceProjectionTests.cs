@@ -18,7 +18,7 @@ namespace Musoq.Evaluator.Tests.IR;
 [TestClass]
 public sealed class ComputedSourceProjectionTests
 {
-    private const string Query = "select r.Id, r.Id::long * 2 as Value from #computedtest.rows() r";
+    private const string Query = "select r.Id, r.Optional::long * 2 as Value from #computedtest.rows() r";
 
     [TestMethod]
     [DataRow(ComputedSourceBehavior.Accept, 1)]
@@ -31,20 +31,41 @@ public sealed class ComputedSourceProjectionTests
         var provider = new ComputedSourceProvider(behavior);
         using var query = Compile(Query, provider);
         using var table = query.Run();
-        CollectionAssert.AreEqual(new long?[] { -4, 0, 6 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
+        CollectionAssert.AreEqual(new long?[] { null, 8, -2 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
         Assert.AreEqual(accepted * 3, provider.Source.ComputedReads);
         Assert.AreEqual(accepted, provider.Source.Shape?.Fields.Count(field => field.Origin == QueryRowFieldOrigin.ComputedProjection) ?? 0);
+        if (accepted > 0)
+        {
+            CollectionAssert.AreEqual(new[] { "Id" }, provider.Source.Shape!.Fields
+                .Where(field => field.Origin == QueryRowFieldOrigin.SourceColumn).Select(field => field.Name).ToArray());
+            Assert.IsTrue(provider.Source.Request!.RequiredColumns.Any(column => column.Name == "Optional"));
+        }
     }
 
     [TestMethod]
     public void PartialAcceptance_LeavesTheSecondExpressionInCore()
     {
         var provider = new ComputedSourceProvider(ComputedSourceBehavior.Partial);
-        using var query = Compile("select r.Id::long * 2 as First, r.Id::long + 3 as Second from #computedtest.rows() r", provider);
+        using var query = Compile("select r.Optional::long + 2 as First, -(r.Id::long) as Second from #computedtest.rows() r", provider);
         using var table = query.Run();
-        CollectionAssert.AreEqual(new long?[] { -4, 0, 6 }, table.Select(row => row.GetValue<long?>(0)).ToArray());
-        CollectionAssert.AreEqual(new long?[] { 1, 3, 6 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
+        CollectionAssert.AreEqual(new long?[] { null, 6, 1 }, table.Select(row => row.GetValue<long?>(0)).ToArray());
+        CollectionAssert.AreEqual(new long?[] { 2, 0, -3 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
         Assert.AreEqual(2, provider.Source.Request!.RequestedComputedProjections.Count);
+        Assert.AreEqual(3, provider.Source.ComputedReads);
+        CollectionAssert.AreEqual(new[] { "Id" }, provider.Source.Shape!.Fields
+            .Where(field => field.Origin == QueryRowFieldOrigin.SourceColumn).Select(field => field.Name).ToArray());
+    }
+
+    [TestMethod]
+    public void RepeatedAcceptedExpression_TransfersOneValueWithoutItsInputs()
+    {
+        var provider = new ComputedSourceProvider();
+        using var query = Compile("select r.Optional::long + 2 as First, r.Optional::long + 2 as Second from #computedtest.rows() r", provider);
+        using var table = query.Run();
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [null, null], [6L, 6L], [1L, 1L]);
+
+        Assert.AreEqual(1, provider.Source.Request!.RequestedComputedProjections.Count);
+        Assert.AreEqual(QueryRowFieldOrigin.ComputedProjection, provider.Source.Shape!.Fields.Single().Origin);
         Assert.AreEqual(3, provider.Source.ComputedReads);
     }
 
@@ -187,7 +208,7 @@ public sealed class ComputedSourceProjectionTests
         Assert.IsTrue(loaded.Succeeded, string.Join("; ", loaded.Diagnostics.Select(item => item.Message)));
         using var query = loaded.CompiledQuery!;
         using var table = query.Run();
-        CollectionAssert.AreEqual(new long?[] { -4, 0, 6 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
+        CollectionAssert.AreEqual(new long?[] { null, 8, -2 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
         Assert.AreEqual(3, provider.Source.ComputedReads);
     }
 

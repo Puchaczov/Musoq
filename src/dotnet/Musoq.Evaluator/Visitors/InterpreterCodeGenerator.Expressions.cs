@@ -17,12 +17,32 @@ public partial class InterpreterCodeGenerator
                 System.Globalization.CultureInfo.InvariantCulture), System.Globalization.NumberStyles.Integer,
                 System.Globalization.CultureInfo.InvariantCulture, out var value))
             return value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var (typeName, expression) = BindSizeExpression(sizeExpression);
+        return $"ResolveExpressionSize<{typeName}>(() => checked(({typeName}?)({expression})), ParseErrorCode.{errorCode})";
+    }
+
+    private (string TypeName, string Expression) BindSizeExpression(Node sizeExpression)
+    {
         var type = BinarySchemaExpressionTypes.Unwrap(BinarySchemaExpressionTypes.Resolve(sizeExpression, _expressionFields, _registry));
         if (!BinaryOperatorTypeRules.IsNumericType(type))
             throw new Musoq.Evaluator.Exceptions.QuerySyntaxException("Size and position expressions must be numeric.",
                 sizeExpression.SpanOrEmpty(), Musoq.Parser.Diagnostics.DiagnosticCode.MQ4006_InvalidFieldConstraint);
         var typeName = MapClrTypeName(type);
-        return $"ResolveExpressionSize<{typeName}>(() => checked(({typeName}?)({GenerateConditionExpression(sizeExpression)})), ParseErrorCode.{errorCode})";
+        return (typeName, GenerateConditionExpression(sizeExpression));
+    }
+
+    private string StatusSizeDeclaration(string variable, Node expression, ParseErrorCode errorCode = ParseErrorCode.InvalidSize)
+    {
+        if (expression is IntegerNode integer && int.TryParse(Convert.ToString(integer.ObjValue,
+                System.Globalization.CultureInfo.InvariantCulture), System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var value))
+            return $"var {variable} = {value.ToString(System.Globalization.CultureInfo.InvariantCulture)};\n";
+        var binding = BindSizeExpression(expression);
+        var argument = $"({binding.TypeName}?)({binding.Expression})";
+        var call = expression is IdentifierNode
+            ? $"base.ResolveSizeValueStatus<{binding.TypeName}>({argument}, ParseErrorCode.{errorCode})"
+            : $"base.ResolveSizeExpressionStatus<{binding.TypeName}>(() => checked({argument}), ParseErrorCode.{errorCode})";
+        return StatusRead(variable, call);
     }
 
     private string GenerateComputedFieldCode(ComputedFieldNode field, List<SchemaFieldNode>? contextFields = null)

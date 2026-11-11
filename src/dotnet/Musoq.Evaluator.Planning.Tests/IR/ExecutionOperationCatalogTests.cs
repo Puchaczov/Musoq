@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Targets.Execution.Analysis;
+using Musoq.Evaluator.Tests.Architecture;
+using Microsoft.CodeAnalysis;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -13,19 +15,21 @@ public sealed class ExecutionOperationCatalogTests
     [TestMethod]
     public void Catalog_ShouldRegisterEveryConcreteNodeAndExpressionExactlyOnce()
     {
-        var assemblyTypes = typeof(ExecutionPlan).Assembly.GetTypes();
+        var assemblyTypes = CompilerContractSymbols.For(typeof(ExecutionPlan)).Assembly.GetTypes();
         var nodes = assemblyTypes
-            .Where(static type => !type.IsAbstract && typeof(ExecutionNode).IsAssignableFrom(type))
+            .Where(static type => !type.IsAbstract && CompilerContractSymbols.For(typeof(ExecutionNode)).IsAssignableFrom(type))
             .ToArray();
         var expressions = assemblyTypes
-            .Where(static type => !type.IsAbstract && typeof(ExecutionExpression).IsAssignableFrom(type))
+            .Where(static type => !type.IsAbstract && CompilerContractSymbols.For(typeof(ExecutionExpression)).IsAssignableFrom(type))
             .ToArray();
 
-        CollectionAssert.AreEquivalent(nodes, ExecutionOperationCatalog.RegisteredNodeTypes.ToArray());
-        CollectionAssert.AreEquivalent(expressions, ExecutionOperationCatalog.RegisteredExpressionTypes.ToArray());
+        CollectionAssert.AreEquivalent(nodes, ExecutionOperationCatalog.RegisteredNodeTypes.Select(CompilerContractSymbols.For).ToArray());
+        CollectionAssert.AreEquivalent(expressions, ExecutionOperationCatalog.RegisteredExpressionTypes.Select(CompilerContractSymbols.For).ToArray());
         Assert.HasCount(89, nodes);
-        Assert.HasCount(53, expressions);
-        Assert.HasCount(142, ExecutionOperationCatalog.AllOperationIds);
+        Assert.HasCount(54, expressions.Where(type => type.Name != nameof(ExecutionByteBufferOperation) && type.Name != nameof(ExecutionByteBufferArgument)));
+        Assert.HasCount(143, ExecutionOperationCatalog.AllOperationIds.Where(operation => operation.Value is not ("expr.byte-buffer.operation" or "expr.byte-buffer.argument")));
+        Assert.HasCount(56, expressions);
+        Assert.HasCount(145, ExecutionOperationCatalog.AllOperationIds);
     }
 
     [TestMethod]

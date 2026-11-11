@@ -124,7 +124,7 @@ public static partial class InstanceCreator
             telemetry.SetArtifactIdentity(
                 cachedCompilation.Template.RunnableTypeName,
                 emitted: false,
-                loaded: false);
+                loaded: ContainsQueryScopedRowTransfer(items));
             telemetry.SetBindingIdentity($"{schemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
             compiledQuery = new CompiledQuery(runnable);
             runnable = null;

@@ -1,4 +1,4 @@
-﻿// === Parsed Query ===
+// === Parsed Query ===
 /*
 select Position as [case], Amount as [decimal], Position as T,
        Amount as GetValue, Partition as VisitColumns from #schema.first() order by Position
@@ -54,7 +54,7 @@ ExecutionPlan [compiled]
       AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(case: position, decimal: amount, T: position, GetValue: amount, VisitColumns: ko3iko.Partition)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by case ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
-    ReturnDeferredTable [result: ResultRow0 <- ResultRow0WithSortKeys]
+    ReturnDeferredTable [result: ResultRow0WithSortKeys from owned buffer resultOrderRecords]
 */
 
 // === Generated C# ===
@@ -101,14 +101,14 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0WithSortKeys>("result", new Column[] { new Column("case", typeof(int), 0), new Column("decimal", typeof(decimal?), 1), new Column("T", typeof(int), 2), new Column("GetValue", typeof(decimal?), 3), new Column("VisitColumns", typeof(string), 4) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<ResultRow0WithSortKeys> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
-                yield return new ResultRow0(__musoqShapeRow.@case, __musoqShapeRow.@decimal, __musoqShapeRow.T, __musoqShapeRow.GetValue_, __musoqShapeRow.VisitColumns_);
+                yield return __musoqShapeRow;
             }
         }
 
@@ -275,7 +275,7 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
             }
         }
 
-        private sealed class ResultRow0WithSortKeys
+        private sealed class ResultRow0WithSortKeys : Row
         {
             public ResultRow0WithSortKeys(int @case, decimal? @decimal, int T, decimal? GetValue_, string VisitColumns_, int __ordinal)
             {
@@ -287,12 +287,56 @@ namespace GeneratedSample_K11_TypedReservedColumnAliases
                 this.__ordinal = __ordinal;
             }
 
-            public int @case { get; }
-            public decimal? @decimal { get; }
-            public decimal? GetValue_ { get; }
-            public int T { get; }
-            public string VisitColumns_ { get; }
-            public int __ordinal { get; }
+            public int @case { get; private set; }
+            public decimal? @decimal { get; private set; }
+            public override int Count => 5;
+            public decimal? GetValue_ { get; private set; }
+            public int T { get; private set; }
+            public string VisitColumns_ { get; private set; }
+            public int __ordinal { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.@case = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.@decimal = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.T = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)),
+                    3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.GetValue_ = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<decimal?, T>(value)),
+                    4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.VisitColumns_ = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.@case),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.@decimal),
+                2 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int>(this.T),
+                3 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, decimal?>(this.GetValue_),
+                4 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.VisitColumns_),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "case" => true,
+                "decimal" => true,
+                "T" => true,
+                "GetValue" => true,
+                "GetValue_" => true,
+                "VisitColumns" => true,
+                "VisitColumns_" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.@case, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.@decimal, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(2, this.T, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(3, this.GetValue_, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(4, this.VisitColumns_, ref visitor);
+            }
         }
 
         private sealed class ResultRow0WithSortKeysComparer : IComparer<ResultRow0WithSortKeys>
